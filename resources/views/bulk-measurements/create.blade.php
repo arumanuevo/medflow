@@ -451,21 +451,23 @@
                                 <i class="bi bi-x-lg"></i> Cancelar
                             </a>
                             
-                            @if($hasPrevious)
-                                <a href="{{ route('bulk-measurements.previous', $sensor->id) }}" 
-                                   class="btn btn-previous">
-                                    <i class="bi bi-arrow-left"></i> Anterior
-                                </a>
-                            @endif
-                            
-                            <button type="submit" class="btn btn-save">
+                                <button type="submit" class="btn btn-save">
                                 <i class="bi bi-check-circle"></i> Guardar Medición
                             </button>
                             
-                            @if($hasNext)
-                                <button type="button" class="btn btn-next" id="saveAndContinueBtn">
-                                    <i class="bi bi-arrow-right"></i> Guardar y Continuar
-                                </button>
+                            @if(!$isSingleMeasurement)
+                                @if($hasPrevious)
+                                    <a href="{{ route('bulk-measurements.previous', $sensor->id) }}" 
+                                       class="btn btn-previous">
+                                        <i class="bi bi-arrow-left"></i> Anterior
+                                    </a>
+                                @endif
+                                
+                                @if($hasNext)
+                                    <button type="button" class="btn btn-next" id="saveAndContinueBtn">
+                                        <i class="bi bi-arrow-right"></i> Guardar y Continuar
+                                    </button>
+                                @endif
                             @endif
                         </div>
                     </form>

@@ -205,6 +205,10 @@ class BulkMeasurementFlowController extends Controller
         $currentIndex = array_search($sensor->id, $sequence);
         session(['bulk_measurement_current_index' => $currentIndex]);
 
+        // Detectar si es una medición individual (acceso directo sin flujo masivo)
+        // Si la secuencia tiene solo 1 sensor y no hay índice guardado previamente, es individual
+        $isSingleMeasurement = (count($sequence) === 1 && !session('bulk_measurement_from_bulk', false));
+
         // Obtener información del sensor
         $previousMeasurement = Measurement::where('sensor_id', $sensor->id)
             ->orderBy('measured_at', 'desc')
@@ -225,6 +229,12 @@ class BulkMeasurementFlowController extends Controller
         $hasPrevious = $currentIndex > 0;
         $nextSensorId = $hasNext ? $sequence[$currentIndex + 1] : null;
         $previousSensorId = $hasPrevious ? $sequence[$currentIndex - 1] : null;
+        
+        // Para mediciones individuales, deshabilitar navegación
+        if ($isSingleMeasurement) {
+            $hasNext = false;
+            $hasPrevious = false;
+        }
 
         $ownerName = $isOwner ? $user->name : ($this->getWorkspaceOwnerName($activeWorkspace) ?? 'Propietario');
 
@@ -232,7 +242,8 @@ class BulkMeasurementFlowController extends Controller
             'sensor_id' => $sensor->id,
             'position' => $currentPosition,
             'total' => $totalSensors,
-            'sequence' => $sequence
+            'sequence' => $sequence,
+            'is_single' => $isSingleMeasurement
         ]);
 
         return view('bulk-measurements.create', compact(
