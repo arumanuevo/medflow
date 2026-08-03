@@ -168,3 +168,74 @@
         text-decoration: underline;
     }
 </style>
+
+<script>
+$(document).ready(function() {
+    // Funcionalidad para descartar alertas del dropdown
+    $('.modern-header-alerts .dismiss-alert').click(function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const $button = $(this);
+        const alertType = $button.data('alert-type');
+        const $listItem = $button.closest('li');
+        
+        // Animación de fade out
+        $listItem.fadeOut(300, function() {
+            $(this).remove();
+            
+            // Actualizar el contador de alertas
+            updateAlertCounter();
+            
+            // Guardar el estado en localStorage para persistir
+            saveDismissedAlert(alertType);
+            
+            // Si no quedan alertas, mostrar mensaje "Todo en orden"
+            if ($('.modern-header-alerts .dropdown-item-text').length === 0) {
+                $('.modern-header-alerts .dropdown-menu').prepend(`
+                    <li class="dropdown-header text-success">
+                        <i class="bi bi-check-circle me-2"></i>
+                        Todo en orden
+                    </li>
+                `);
+            }
+        });
+    });
+
+    // Actualizar el contador de alertas en el badge
+    function updateAlertCounter() {
+        const remainingAlerts = $('.modern-header-alerts .dropdown-item-text').length;
+        const $badge = $('.modern-header-alerts .badge');
+        
+        if (remainingAlerts === 0) {
+            $badge.hide();
+        } else {
+            $badge.text(remainingAlerts).show();
+        }
+    }
+
+    // Guardar alerta descartada en localStorage
+    function saveDismissedAlert(alertType) {
+        let dismissedAlerts = JSON.parse(localStorage.getItem('dismissedSubscriptionAlerts') || '[]');
+        
+        if (!dismissedAlerts.includes(alertType)) {
+            dismissedAlerts.push(alertType);
+            localStorage.setItem('dismissedSubscriptionAlerts', JSON.stringify(dismissedAlerts));
+        }
+    }
+
+    // Verificar alertas descartadas al cargar la página
+    function checkDismissedAlerts() {
+        const dismissedAlerts = JSON.parse(localStorage.getItem('dismissedSubscriptionAlerts') || '[]');
+        
+        dismissedAlerts.forEach(function(alertType) {
+            $('.modern-header-alerts .dismiss-alert[data-alert-type="' + alertType + '"]').closest('li').hide();
+        });
+        
+        updateAlertCounter();
+    }
+
+    // Inicializar al cargar la página
+    checkDismissedAlerts();
+});
+</script>
