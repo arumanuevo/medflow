@@ -110,8 +110,19 @@ class BulkMeasurementFlowController extends Controller
             }
         }
 
-        // Ordenar los sensores por ID ascendente para mantener secuencia consistente
-        sort($sensorIds, SORT_NUMERIC);
+        // Obtener el orden de selección si el usuario lo eligió
+        $useSelectionOrder = $request->input('use_selection_order', 0);
+        $selectionOrder = $request->input('selection_order', '');
+        
+        if ($useSelectionOrder && !empty($selectionOrder)) {
+            // Usar el orden de selección manual del usuario
+            $sensorIds = explode(',', $selectionOrder);
+            // Filtrar solo los IDs que están en la selección original (por seguridad)
+            $sensorIds = array_intersect($sensorIds, $request->input('sensor_ids', []));
+        } else {
+            // Ordenar por ID ascendente (orden por defecto)
+            sort($sensorIds, SORT_NUMERIC);
+        }
 
         // Marcar todos los sensores seleccionados
         Sensor::whereIn('id', $sensorIds)->update(['marcado_para_medicion' => true]);
@@ -127,7 +138,8 @@ class BulkMeasurementFlowController extends Controller
             'user_id' => $user->id,
             'sensor_ids' => $sensorIds,
             'first_sensor_id' => $firstSensorId,
-            'active_workspace' => $activeWorkspace
+            'active_workspace' => $activeWorkspace,
+            'use_selection_order' => $useSelectionOrder
         ]);
 
         return redirect()->route('bulk-measurements.create', $firstSensorId);

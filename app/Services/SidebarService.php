@@ -50,8 +50,8 @@ class SidebarService
             [
                 'icon' => 'bi bi-rulers',  // antes fas fa-ruler-combined
                 'label' => 'Tomar Mediciones',
-                'url' => '/mediciones/select-sensor',
-                'active' => request()->is('mediciones/select-sensor*'),
+                'url' => '/bulk-measurements/select',
+                'active' => request()->is('bulk-measurements*') || request()->is('mediciones/select-sensor*'),
             ],
             [
                 'icon' => 'bi bi-people',

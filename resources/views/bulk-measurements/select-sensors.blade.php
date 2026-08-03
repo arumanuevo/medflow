@@ -112,6 +112,18 @@
                                 <i class="bi bi-x-circle"></i> Deseleccionar Todos
                             </button>
                             <span class="badge-count" id="selectedCount">0 seleccionados</span>
+                            
+                            {{-- Checkbox para elegir orden --}}
+                            <div class="form-check form-check-inline ms-2">
+                                <input class="form-check-input" type="checkbox" id="useSelectionOrder" checked>
+                                <label class="form-check-label small" for="useSelectionOrder">
+                                    <i class="bi bi-list-ol me-1"></i> Orden de selección
+                                </label>
+                                <span class="text-muted small ms-1" data-bs-toggle="tooltip" title="Si está marcado, los sensores se medirán en el orden en que los seleccionaste. Si no, se ordenarán por ID ascendente.">
+                                    <i class="bi bi-info-circle"></i>
+                                </span>
+                            </div>
+                            
                             <button class="btn btn-sm btn-primary" id="startBulkBtn" disabled>
                                 <i class="bi bi-rulers"></i> Comenzar Medición Masiva
                             </button>
@@ -307,6 +319,10 @@ $(document).ready(function() {
     const $searchFilter = $('#searchFilter');
     const $clearFiltersBtn = $('#clearFiltersBtn');
     const $sensorRows = $('#sensorsTable tbody tr');
+    const $useSelectionOrder = $('#useSelectionOrder');
+    
+    // Array para mantener el orden de selección manual
+    let selectionOrder = [];
 
     // Inicializar contador
     updateSelectedCount();
@@ -314,10 +330,18 @@ $(document).ready(function() {
     // Seleccionar/Deseleccionar checkbox individual
     $sensorCheckboxes.change(function() {
         const $row = $(this).closest('tr');
+        const sensorId = $(this).data('sensor-id');
+        
         if ($(this).is(':checked')) {
             $row.addClass('selected-row');
+            // Agregar al final del array de orden de selección
+            if (!selectionOrder.includes(sensorId)) {
+                selectionOrder.push(sensorId);
+            }
         } else {
             $row.removeClass('selected-row');
+            // Remover del array de orden de selección
+            selectionOrder = selectionOrder.filter(id => id !== sensorId);
         }
         updateSelectedCount();
     });
@@ -333,6 +357,16 @@ $(document).ready(function() {
                 $(this).removeClass('selected-row');
             }
         });
+        
+        // Actualizar el orden de selección
+        if (isChecked) {
+            selectionOrder = $sensorCheckboxes.map(function() {
+                return $(this).data('sensor-id');
+            }).get();
+        } else {
+            selectionOrder = [];
+        }
+        
         updateSelectedCount();
     });
 
@@ -352,6 +386,21 @@ $(document).ready(function() {
         if (selectedCount === 0) {
             showAlert('Debes seleccionar al menos un sensor.', 'warning');
             return;
+        }
+        
+        // Guardar el orden de selección en un campo oculto
+        const useSelectionOrder = $useSelectionOrder.is(':checked');
+        if (useSelectionOrder && selectionOrder.length > 0) {
+            // Crear campo oculto con el orden de selección
+            $('#bulkMeasurementForm').append(`
+                <input type="hidden" name="selection_order" value="${selectionOrder.join(',')}">
+                <input type="hidden" name="use_selection_order" value="1">
+            `);
+        } else {
+            // Usar orden por ID (por defecto)
+            $('#bulkMeasurementForm').append(`
+                <input type="hidden" name="use_selection_order" value="0">
+            `);
         }
         
         $modalSelectedCount.text(selectedCount);
