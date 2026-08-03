@@ -86,6 +86,40 @@ Route::middleware(['auth'])->group(function () {
         ->where('sensor', '[0-9]+');
 
     // =============================================
+    // NUEVO FLUJO DE MEDICIONES MASIVAS (Bulk Measurement Flow)
+    // =============================================
+    Route::get('/bulk-measurements/select', [\App\Http\Controllers\BulkMeasurementFlowController::class, 'selectSensors'])
+        ->name('bulk-measurements.select')
+        ->middleware('auth');
+    
+    Route::post('/bulk-measurements/start', [\App\Http\Controllers\BulkMeasurementFlowController::class, 'startBulkMeasurement'])
+        ->name('bulk-measurements.start')
+        ->middleware('auth');
+    
+    Route::get('/bulk-measurements/create/{sensor}', [\App\Http\Controllers\BulkMeasurementFlowController::class, 'create'])
+        ->name('bulk-measurements.create')
+        ->where('sensor', '[0-9]+')
+        ->middleware('auth');
+    
+    Route::post('/bulk-measurements/store', [\App\Http\Controllers\BulkMeasurementFlowController::class, 'store'])
+        ->name('bulk-measurements.store')
+        ->middleware('auth');
+    
+    Route::get('/bulk-measurements/next/{sensor}', [\App\Http\Controllers\BulkMeasurementFlowController::class, 'nextSensor'])
+        ->name('bulk-measurements.next')
+        ->where('sensor', '[0-9]+')
+        ->middleware('auth');
+    
+    Route::get('/bulk-measurements/previous/{sensor}', [\App\Http\Controllers\BulkMeasurementFlowController::class, 'previousSensor'])
+        ->name('bulk-measurements.previous')
+        ->where('sensor', '[0-9]+')
+        ->middleware('auth');
+    
+    Route::get('/bulk-measurements/cancel', [\App\Http\Controllers\BulkMeasurementFlowController::class, 'cancelBulkMeasurement'])
+        ->name('bulk-measurements.cancel')
+        ->middleware('auth');
+
+    // =============================================
     // GRUPOS DE SENSORES (vistas)
     // =============================================
     Route::get('/sensor-groups', [SensorGroupViewController::class, 'index'])->name('sensor-groups.index');

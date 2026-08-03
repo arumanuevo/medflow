@@ -317,7 +317,8 @@ $(document).ready(function() {
 
     // Confirmar medición masiva
     $('#confirmBulkMeasurementBtn').click(function() {
-        const sensorIds = Array.from(selectedSensors);
+        // \u2705 Ordenar los sensores seleccionados por ID ascendente para mantener secuencia consistente
+        const sensorIds = Array.from(selectedSensors).sort((a, b) => a - b);
         
         if (sensorIds.length === 0) return;
         
