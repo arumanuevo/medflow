@@ -1,0 +1,141 @@
+/* =============================================
+   ESTILOS PARA LA PÁGINA DE CREAR SENSOR
+   ============================================= */
+
+   /* Estilos para el card principal */
+   .card {
+    border-radius: 8px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: none;
+    margin-bottom: 2rem;
+}
+
+.card-header {
+    border-radius: 8px 8px 0 0 !important;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    background-color: #343a40;
+    color: #fff;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Estilos para los botones */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.btn-sm {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.85rem;
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+    color: #fff;
+}
+
+.btn-outline-primary {
+    color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-outline-primary:hover {
+    background-color: rgba(13, 110, 253, 0.1);
+    border-color: #0d6efd;
+    color: #0d6efd;
+}
+
+/* Estilos para los form-select y form-control */
+.form-select, .form-control {
+    border-radius: 6px;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.85rem;
+    border: 1px solid #ced4da;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-select:focus, .form-control:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Estilos para los labels */
+.form-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #495057;
+}
+
+/* Estilos para el form-text */
+.form-text {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+
+/* Estilos para las alertas */
+.alert {
+    border-radius: 6px;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1rem;
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    font-size: 0.85rem;
+}
+
+/* Estilos para el contenedor principal */
+.container {
+    margin-top: 1.5rem;
+}
+
+/* Estilos para el row principal */
+.row.justify-content-center {
+    margin-bottom: 1rem;
+}
+
+/* Estilos para el ícono en los botones */
+.btn i {
+    margin-right: 0.3rem;
+}
+
+/* Estilos para el botón de "Crear Grupo" */
+#group_id + .mt-2 .btn-outline-primary {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    padding: 0.3rem 0.6rem;
+}
+
+/* Estilos para el botón de "Guardar Sensor" */
+.btn-primary[type="submit"] {
+    min-width: 120px;
+}
+
+/* Estilos para el botón de "Cancelar" */
+.btn-secondary.me-2 {
+    min-width: 100px;
+}

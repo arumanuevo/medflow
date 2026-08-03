@@ -1,0 +1,154 @@
+/* =============================================
+   ESTILOS PARA LA PÁGINA DE EDITAR GRUPO DE SENSORES
+   ============================================= */
+
+   /* Estilos para el card principal */
+   .card {
+    border-radius: 8px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: none;
+}
+
+.card-header {
+    border-radius: 8px 8px 0 0 !important;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    background-color: #343a40;
+    color: #fff;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Estilos para los botones */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.btn-sm {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.85rem;
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+    color: #fff;
+}
+
+/* Estilos para los form-select y form-control */
+.form-select, .form-control {
+    border-radius: 6px;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.85rem;
+    border: 1px solid #ced4da;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-select:focus, .form-control:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Estilos para los labels */
+.form-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #495057;
+}
+
+/* Estilos para las alertas */
+.alert {
+    border-radius: 6px;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1rem;
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    font-size: 0.85rem;
+}
+
+/* Estilos para el texto mutado */
+.text-muted {
+    color: #6c757d !important;
+    font-size: 0.85rem;
+}
+
+/* Estilos para el icono en los botones */
+.btn-icon {
+    margin-right: 0.3rem;
+}
+
+/* Estilos para el textarea */
+textarea.form-control {
+    font-size: 0.85rem;
+    resize: vertical;
+}
+
+/* Estilos para la información de la plantilla */
+.template-info {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    font-size: 0.85rem;
+}
+
+.template-info strong {
+    color: #495057;
+    font-weight: 600;
+}
+
+.template-info p {
+    margin-bottom: 0.5rem;
+    color: #212529;
+}
+
+/* Estilos para la lista de campos */
+#templateFieldsList {
+    padding-left: 1.25rem;
+    margin-bottom: 0;
+}
+
+#templateFieldsList li {
+    margin-bottom: 0.3rem;
+    font-size: 0.85rem;
+    color: #212529;
+}
+
+#templateFieldsList strong {
+    color: #495057;
+}
+
+/* Estilos para el texto de requerido/opcional */
+.text-danger {
+    color: #dc3545 !important;
+    font-size: 0.8rem;
+}
+
+/* Estilos para el contenedor de los botones de acción */
+.d-flex.justify-content-end {
+    margin-top: 1.5rem;
+}

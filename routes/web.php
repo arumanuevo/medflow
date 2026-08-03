@@ -1,0 +1,228 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\SensorViewController;
+use App\Http\Controllers\TemplateViewController;
+use App\Http\Controllers\SensorGroupViewController;
+use App\Http\Controllers\MeasurementViewController;
+use App\Http\Controllers\LandingController;
+use App\Http\Controllers\SensorExtraFieldController;
+use App\Http\Controllers\Api\CollaborationController;
+use App\Http\Controllers\CollaborationViewController;
+use App\Http\Controllers\Api\Auth\GoogleController as ApiGoogleController;
+use App\Http\Controllers\TestMailController;
+use App\Http\Controllers\Auth\SetPasswordController;
+use App\Http\Controllers\Api\SubscriptionPaymentController;
+
+// =============================================
+// RUTAS PÚBLICAS (sin autenticación)
+// =============================================
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login')->middleware('guest');
+Route::post('/login', [LoginController::class, 'login'])->middleware('guest');
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
+Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register')->middleware('guest');
+Route::post('/register', [RegisterController::class, 'register'])->middleware('guest');
+
+// Landing pública
+Route::get('/', [LandingController::class, 'index'])->name('landing');
+Route::post('/registro', [LandingController::class, 'register'])->name('landing.register');
+
+// Google Auth
+Route::get('/auth/google', [ApiGoogleController::class, 'redirectToGoogle'])->name('auth.google');
+Route::get('/auth/google/callback', [ApiGoogleController::class, 'handleGoogleCallback']);
+
+// Ruta de registro exitoso - Página estática
+Route::get('/registro-exitoso', function () {
+    $name = request()->get('name', 'Usuario');
+    $email = request()->get('email', '');
+    $subscriptionType = request()->get('subscription_type', 'domiciliario');
+    
+    $user = (object) [
+        'name' => $name,
+        'email' => $email,
+        'subscription_type' => $subscriptionType,
+    ];
+    
+    return view('auth.register-success', compact('user'));
+})->name('register.success');
+
+// =============================================
+// RUTAS PROTEGIDAS CON MIDDLEWARE 'auth'
+// =============================================
+Route::middleware(['auth'])->group(function () {
+
+    // Dashboard
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/dashboard/update-settings', [DashboardController::class, 'updateSettings'])
+        ->name('dashboard.update-settings');
+
+    // =============================================
+    // SENSORES (vistas)
+    // =============================================
+    Route::get('/sensors', [SensorViewController::class, 'index'])->name('sensors.index');
+    Route::get('/sensors/create', [SensorViewController::class, 'create'])->name('sensors.create');
+    Route::get('/sensors/{sensor}/edit', [SensorViewController::class, 'edit'])->name('sensors.edit');
+    Route::get('/sensors/{sensor}', [SensorViewController::class, 'show'])->name('sensors.show');
+    Route::get('/sensors/extra-fields', [SensorExtraFieldController::class, 'index'])->name('sensors.extra-fields');
+
+    // =============================================
+    // MEDICIONES (vistas)
+    // =============================================
+    Route::get('/mediciones', [MeasurementViewController::class, 'index'])->name('measurements.index');
+    Route::get('/mediciones/select-sensor', [MeasurementViewController::class, 'selectSensor'])->name('measurements.select-sensor');
+    
+    // ✅ NUEVA RUTA: Vista específica para inspector colaborador
+    Route::get('/mediciones/inspector', [MeasurementViewController::class, 'inspectorSelectSensor'])->name('measurements.inspector');
+    
+    Route::get('/mediciones/create/{sensor}', [MeasurementViewController::class, 'create'])->name('measurements.create');
+    Route::get('/mediciones/edit/{measurement}', [MeasurementViewController::class, 'edit'])->name('measurements.edit');
+    Route::get('/mediciones/bulk-import', [MeasurementViewController::class, 'showBulkImportForm'])
+        ->name('measurements.bulk-import');
+    Route::get('/mediciones/bulk-create/{sensor}', [MeasurementViewController::class, 'bulkCreate'])
+        ->name('measurements.bulk-create')
+        ->where('sensor', '[0-9]+');
+
+    // =============================================
+    // GRUPOS DE SENSORES (vistas)
+    // =============================================
+    Route::get('/sensor-groups', [SensorGroupViewController::class, 'index'])->name('sensor-groups.index');
+    Route::get('/sensor-groups/create', [SensorGroupViewController::class, 'create'])->name('sensor-groups.create');
+    
+    // ✅ IMPORTACIÓN DE SENSORES - SOLO PREMIUM
+    Route::get('/sensor-groups/bulk-import', [SensorGroupViewController::class, 'showBulkImportForm'])
+        ->name('sensor-groups.bulk-import')
+        ->middleware('subscription.gate:import_sensors');
+    
+    Route::get('/sensor-groups/{group}/edit', [SensorGroupViewController::class, 'edit'])
+        ->name('sensor-groups.edit')
+        ->where('group', '[0-9]+');
+    Route::get('/sensor-groups/{group}', [SensorGroupViewController::class, 'show'])
+        ->name('sensor-groups.show')
+        ->where('group', '[0-9]+');
+    Route::delete('/sensor-groups/{group}', [SensorGroupViewController::class, 'destroy'])
+        ->name('sensor-groups.destroy')
+        ->where('group', '[0-9]+');
+
+    // =============================================
+    // PLANTILLAS (vistas)
+    // =============================================
+    Route::get('/templates', [TemplateViewController::class, 'index'])->name('templates.index');
+    
+    // ✅ CREAR PLANTILLA - SOLO PREMIUM
+    Route::get('/templates/create', [TemplateViewController::class, 'create'])
+        ->name('templates.create')
+        ->middleware('subscription.gate:create_template');
+    
+    Route::get('/templates/{template}/edit', [TemplateViewController::class, 'edit'])
+        ->name('templates.edit')
+        ->where('template', '[0-9]+');
+
+    // =============================================
+    // CONSUMOS (vistas)
+    // =============================================
+    Route::get('/consumptions', fn() => view('consumptions.index'))->name('consumptions.index');
+
+    // =============================================
+    // ADMINISTRACIÓN
+    // =============================================
+    Route::get('/admin', fn() => view('admin'))->name('admin')->middleware('can:admin');
+
+    // =============================================
+    // PERFIL
+    // =============================================
+    
+    Route::get('/profile', function () {
+        return view('profile.index', ['user' => auth()->user()]);
+    })->name('profile.index')->middleware('auth');
+    
+    // =============================================
+    // COLABORACIONES
+    // =============================================
+    Route::get('/collaborations', [CollaborationViewController::class, 'index'])->name('collaborations.index');
+
+    // =============================================
+    // TEST EMAIL
+    // =============================================
+    Route::get('/test-email', [TestMailController::class, 'sendTestEmail'])->name('test.email');
+
+    Route::get('/mediciones/inspector/create/{sensor}', [MeasurementViewController::class, 'inspectorCreate'])
+    ->name('measurements.inspector.create')
+    ->where('sensor', '[0-9]+');
+});
+
+// =============================================
+// SUSCRIPCIONES Y PAGOS
+// =============================================
+Route::middleware(['auth'])->group(function () {
+    // Vista de pago
+    Route::get('/suscripcion/{plan}/pagar', function ($plan) {
+        $user = auth()->user();
+        
+        // Verificar que el plan existe
+        $planData = config('mercadopago.plans.' . $plan);
+        if (!$planData) {
+            return redirect('/dashboard')->with('error', 'Plan no encontrado.');
+        }
+        
+        // Verificar si ya tiene suscripción activa
+        $activeSubscription = \App\Models\Subscription::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->where(function($q) {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })
+            ->first();
+            
+        if ($activeSubscription) {
+            return redirect('/dashboard')->with('info', 'Ya tienes una suscripción activa.');
+        }
+        
+        return view('subscriptions.payment', [
+            'plan' => $plan,
+            'planData' => $planData,
+            'preferenceId' => session('preference_id')
+        ]);
+    })->name('subscription.payment');
+    
+    // Crear preferencia (API)
+    Route::post('/api/subscription/create-preference', [SubscriptionPaymentController::class, 'createPreference'])
+        ->name('subscription.create.preference');
+    
+    // Webhook (público)
+    Route::post('/api/subscription/webhook', [SubscriptionPaymentController::class, 'handleWebhook'])
+        ->name('subscription.payment.webhook');
+    
+    // Callbacks de pago (públicos)
+    Route::get('/subscription/success/{plan}', [SubscriptionPaymentController::class, 'handleSuccess'])
+        ->name('subscription.payment.success');
+    Route::get('/subscription/failure/{plan}', [SubscriptionPaymentController::class, 'handleFailure'])
+        ->name('subscription.payment.failure');
+    Route::get('/subscription/pending/{plan}', [SubscriptionPaymentController::class, 'handlePending'])
+        ->name('subscription.payment.pending');
+    
+    // Estado de suscripción (API)
+    Route::get('/api/subscription/status', [SubscriptionPaymentController::class, 'getStatus'])
+        ->name('subscription.status');
+});
+
+// =============================================
+// RUTAS DE INVITACIÓN (con autenticación)
+// =============================================
+Route::get('/invitacion/aceptar/{token}', function ($token) {
+    return view('collaborations.accept', compact('token'));
+})->name('collaborations.accept')->middleware('auth');
+
+// =============================================
+// RUTAS DE ESTABLECER CONTRASEÑA
+// =============================================
+Route::get('/establecer-contraseña/{token}', [SetPasswordController::class, 'showForm'])->name('password.set.form');
+Route::post('/establecer-contraseña', [SetPasswordController::class, 'setPassword'])->name('password.set');
+
+//Route::get('/mediciones', [MeasurementViewController::class, 'index'])->name('measurements.index');
+// Ruta temporal para prueba (FUERA del grupo auth) - PUEDES ELIMINARLA AHORA
+// Route::get('/test-sensors', fn() => view('sensors.index'))->name('test.sensors');
+
+// routes/web.php
+// Ruta temporal para prueba (FUERA del grupo auth)

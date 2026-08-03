@@ -1,0 +1,500 @@
+/* =============================================
+   MODERN SIDEBAR - MEDFLOW
+   ============================================= */
+
+   :root {
+    --sidebar-width: 260px;
+    --sidebar-bg: #0f172a;
+    --sidebar-bg-hover: #1e293b;
+    --sidebar-text: #94a3b8;
+    --sidebar-text-active: #f1f5f9;
+    --sidebar-border: #1e293b;
+    --sidebar-accent: #3b82f6;
+    --header-bg: #ffffff;
+    --transition-speed: 0.3s;
+}
+
+/* ===== LAYOUT PRINCIPAL ===== */
+.modern-app {
+    display: flex;
+    min-height: 100vh;
+    background: #f1f5f9;
+}
+
+/* ===== SIDEBAR ===== */
+.modern-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-width);
+    background: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    z-index: 1050;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--sidebar-border);
+    transition: transform var(--transition-speed) ease;
+    
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.06) transparent;
+}
+.modern-sidebar::-webkit-scrollbar {
+    width: 3px;
+}
+.modern-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+/* ✅ DESKTOP: Sidebar siempre visible */
+@media (min-width: 769px) {
+    .modern-sidebar {
+        transform: translateX(0) !important;
+    }
+}
+
+/* ✅ MÓVIL: Sidebar oculto por defecto */
+@media (max-width: 768px) {
+    .modern-sidebar {
+        transform: translateX(-100%);
+        box-shadow: 2px 0 20px rgba(0, 0, 0, 0.3);
+    }
+    .modern-sidebar.mobile-open {
+        transform: translateX(0);
+    }
+    .modern-main {
+        margin-left: 0 !important;
+    }
+}
+
+/* ===== MAIN CONTENT ===== */
+.modern-main {
+    flex: 1;
+    margin-left: var(--sidebar-width);
+    transition: margin-left var(--transition-speed) ease;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+@media (max-width: 768px) {
+    .modern-main {
+        margin-left: 0 !important;
+    }
+}
+
+/* ===== HEADER ===== */
+.modern-header {
+    background: var(--header-bg);
+    padding: 0.75rem 1.5rem;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 1040;
+    min-height: 64px;
+    flex-shrink: 0;
+}
+.modern-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.modern-header-toggle {
+    background: transparent;
+    border: none;
+    color: #475569;
+    font-size: 1.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.modern-header-toggle:hover {
+    background: #f1f5f9;
+}
+
+/* ✅ EN DESKTOP: OCULTAR BOTÓN DE HAMBURGUESA */
+@media (min-width: 769px) {
+    .modern-header-toggle {
+        display: none !important;
+    }
+}
+
+.modern-header-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #0f172a;
+    margin: 0;
+}
+.modern-header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.modern-header-user {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem 0.25rem 0.25rem;
+    border-radius: 20px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+    text-decoration: none;
+    color: #0f172a;
+}
+.modern-header-user:hover {
+    background: #f1f5f9;
+    text-decoration: none;
+    color: #0f172a;
+}
+.modern-header-user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+.modern-header-user-name {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #0f172a;
+}
+.modern-header-user-role {
+    font-size: 0.65rem;
+    color: #94a3b8;
+}
+.modern-header-logout {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.modern-header-logout:hover {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+/* ===== CONTENT ===== */
+.modern-content {
+    flex: 1;
+    padding: 1.5rem;
+    background: #f1f5f9;
+}
+
+@media (max-width: 480px) {
+    .modern-content {
+        padding: 0.75rem;
+    }
+    .modern-header {
+        padding: 0.5rem 0.75rem;
+    }
+    .modern-header-user-name,
+    .modern-header-user-role {
+        display: none;
+    }
+}
+
+/* ===== OVERLAY MÓVIL ===== */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1045;
+    backdrop-filter: blur(4px);
+}
+.sidebar-overlay.active {
+    display: block;
+}
+
+body.sidebar-open {
+    overflow: hidden;
+}
+
+/* ===== BRAND ===== */
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    padding: 1.25rem;
+    border-bottom: 1px solid var(--sidebar-border);
+    text-decoration: none;
+    color: #fff;
+    gap: 0.75rem;
+    min-height: 70px;
+    flex-shrink: 0;
+}
+.sidebar-brand:hover {
+    color: #fff;
+    text-decoration: none;
+}
+.sidebar-brand-icon {
+    font-size: 1.75rem;
+    color: var(--sidebar-accent);
+    flex-shrink: 0;
+}
+.sidebar-brand-text {
+    font-size: 1.25rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    white-space: nowrap;
+}
+.sidebar-brand-text .light {
+    -webkit-text-fill-color: #94a3b8;
+}
+
+/* ===== USER PANEL ===== */
+.sidebar-user {
+    padding: 1.25rem;
+    border-bottom: 1px solid var(--sidebar-border);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+.sidebar-user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+.sidebar-user-info {
+    flex: 1;
+    min-width: 0;
+}
+.sidebar-user-name {
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.sidebar-user-role {
+    font-size: 0.7rem;
+    color: var(--sidebar-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.sidebar-user-badge {
+    font-size: 0.55rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 10px;
+    font-weight: 500;
+}
+.sidebar-user-badge.owner {
+    background: #059669;
+    color: #fff;
+}
+.sidebar-user-badge.collaborator {
+    background: #2563eb;
+    color: #fff;
+}
+.sidebar-user-badge.paused {
+    background: #dc2626;
+    color: #fff;
+}
+
+/* ===== SELECTOR DE ESPACIO ===== */
+#workspaceSelector {
+    width: 100%;
+    background: var(--sidebar-bg-hover);
+    color: #fff;
+    border: 1px solid var(--sidebar-border);
+    border-radius: 6px;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.75rem;
+    outline: none;
+    cursor: pointer;
+    max-width: 100%;
+}
+#workspaceSelector option {
+    background: var(--sidebar-bg);
+    color: #fff;
+}
+
+/* ===== MENÚ ===== */
+.sidebar-menu {
+    flex: 1;
+    padding: 0.75rem 0.5rem;
+    overflow-y: auto;
+}
+.sidebar-menu-section {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #475569;
+    padding: 0.75rem 1rem 0.5rem;
+    font-weight: 600;
+    opacity: 0.7;
+}
+
+.sidebar-menu-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 8px;
+    color: var(--sidebar-text);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    position: relative;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    width: 100%;
+    font-size: 0.875rem;
+    overflow: hidden;
+}
+.sidebar-menu-link:hover {
+    background: var(--sidebar-bg-hover);
+    color: var(--sidebar-text-active);
+    text-decoration: none;
+}
+.sidebar-menu-link.active {
+    background: var(--sidebar-bg-hover);
+    color: var(--sidebar-text-active);
+}
+.sidebar-menu-link.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--sidebar-accent);
+    border-radius: 0 4px 4px 0;
+}
+.sidebar-menu-link i {
+    width: 1.25rem;
+    text-align: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+.sidebar-menu-link .sidebar-menu-text {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.sidebar-menu-link .sidebar-badge {
+    font-size: 0.6rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: 10px;
+    background: #dc2626;
+    color: #fff;
+    font-weight: 500;
+    flex-shrink: 0;
+}
+
+/* ===== FOOTER SIDEBAR ===== */
+.sidebar-footer {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--sidebar-border);
+    flex-shrink: 0;
+}
+.sidebar-footer .sidebar-menu-link {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.75rem;
+}
+
+/* ===== TOOLTIP DE ROLES ===== */
+.sidebar-user-roles-tooltip {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    cursor: help;
+    color: #64748b;
+    transition: color 0.2s;
+    font-size: 0.6rem;
+    padding: 0.1rem 0.3rem;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.05);
+}
+.sidebar-user-roles-tooltip:hover {
+    color: #94a3b8;
+    background: rgba(255, 255, 255, 0.1);
+}
+.sidebar-user-roles-tooltip i {
+    font-size: 0.65rem;
+}
+.sidebar-user-roles-tooltip span {
+    font-size: 0.55rem;
+    color: #64748b;
+}
+
+/* ✅ Tooltip personalizado para roles */
+.sidebar-user-roles-tooltip[title] {
+    position: relative;
+}
+.sidebar-user-roles-tooltip[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e293b;
+    color: #f1f5f9;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    white-space: nowrap;
+    font-weight: 400;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1060;
+    border: 1px solid #334155;
+    pointer-events: none;
+}
+.sidebar-user-roles-tooltip[title]:hover::before {
+    content: '';
+    position: absolute;
+    bottom: calc(100% + 2px);
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #1e293b;
+    z-index: 1060;
+    pointer-events: none;
+}
+
+/* ✅ En móvil, tooltip más grande */
+@media (max-width: 768px) {
+    .sidebar-user-roles-tooltip[title]:hover::after {
+        font-size: 0.65rem;
+        white-space: normal;
+        max-width: 200px;
+        padding: 0.5rem 0.8rem;
+    }
+}
+
+/* ✅ Cuando el sidebar está colapsado, ocultar el tooltip de roles */
+.modern-sidebar.collapsed .sidebar-user-roles-tooltip {
+    display: none;
+}

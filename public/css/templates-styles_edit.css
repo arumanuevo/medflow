@@ -1,0 +1,181 @@
+/* =============================================
+   ESTILOS PARA LAS VISTAS DE PLANTILLAS (CREAR/EDITAR)
+   ============================================= */
+
+   /* Estilos para el card principal */
+   .card {
+    border-radius: 8px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: none;
+}
+
+.card-header {
+    border-radius: 8px 8px 0 0 !important;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    background-color: #343a40;
+    color: #fff;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Estilos para los botones */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.btn-sm {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.85rem;
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+    color: #fff;
+}
+
+/* Estilos para los form-select y form-control */
+.form-select, .form-control {
+    border-radius: 6px;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.85rem;
+    border: 1px solid #ced4da;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-select:focus, .form-control:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Estilos para los labels */
+.form-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #495057;
+}
+
+/* Estilos para las alertas */
+.alert {
+    border-radius: 6px;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1rem;
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    font-size: 0.85rem;
+}
+
+/* Estilos para los campos de la plantilla */
+.field-row {
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    background-color: #f8f9fa;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.field-row .row {
+    align-items: center;
+}
+
+/* Estilos para los inputs dentro de los campos */
+.field-row .form-control,
+.field-row .form-select {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 5px;
+    border: 1px solid #ced4da;
+}
+
+/* Estilos para los íconos dentro de los campos */
+.field-row i {
+    cursor: pointer;
+    font-size: 1.2rem;
+}
+
+/* Estilos para el botón de agregar campo */
+.add-field-btn {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+}
+
+/* Estilos para el hr */
+hr {
+    margin: 1.5rem 0;
+    opacity: 0.2;
+    border: 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos para los encabezados */
+h4, h5 {
+    font-weight: 600;
+    color: #212529;
+    font-size: 1rem;
+}
+
+h4 i, h5 i {
+    margin-right: 0.5rem;
+}
+
+/* Estilos para el texto mutado */
+.text-muted {
+    color: #6c757d !important;
+    font-size: 0.85rem;
+}
+
+/* Estilos para el botón de guardar */
+#saveTemplate {
+    min-width: 150px;
+    font-size: 0.85rem;
+}
+
+/* Estilos para el icono en los botones */
+.btn-icon {
+    margin-right: 0.3rem;
+}
+
+/* Estilos para los inputs de texto y textarea */
+textarea.form-control {
+    font-size: 0.85rem;
+    resize: vertical;
+}
+
+/* Estilos para los selectores de tipo de medición */
+#templateType {
+    font-size: 0.85rem;
+}
+
+/* Estilos para los inputs de nombre y descripción */
+#templateName, #templateDescription {
+    font-size: 0.85rem;
+}
+
+/* Estilos para el campo de ID oculto */
+#templateId {
+    display: none;
+}

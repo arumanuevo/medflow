@@ -1,0 +1,221 @@
+/* =============================================
+   ESTILOS PARA LA PÁGINA DE SENSORES
+   ============================================= */
+
+   /* Estilos para el card principal */
+   .card {
+    border-radius: 8px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: none;
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    border-radius: 8px 8px 0 0 !important;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    background-color: #343a40;
+    color: #fff;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Estilos para los botones */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.btn-sm {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.85rem;
+}
+
+.btn-success {
+    background-color: #198754;
+    border-color: #198754;
+}
+
+.btn-success:hover {
+    background-color: #157347;
+    border-color: #146c43;
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+.btn-info {
+    background-color: #0dcaf0;
+    border-color: #0dcaf0;
+    color: #fff;
+}
+
+.btn-info:hover {
+    background-color: #31d2f2;
+    border-color: #25cff2;
+    color: #fff;
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+}
+
+.btn-warning:hover {
+    background-color: #e0a800;
+    border-color: #d39e00;
+    color: #212529;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: #fff;
+}
+
+.btn-danger:hover {
+    background-color: #bb2d3b;
+    border-color: #b02a37;
+    color: #fff;
+}
+
+/* Estilos para la tabla de sensores */
+.table {
+    --bs-table-bg: transparent;
+    --bs-table-accent-bg: transparent;
+    --bs-table-striped-color: #212529;
+    --bs-table-striped-bg: rgba(0, 0, 0, 0.02);
+    --bs-table-active-color: #212529;
+    --bs-table-active-bg: rgba(0, 0, 0, 0.05);
+    --bs-table-hover-color: #212529;
+    --bs-table-hover-bg: rgba(0, 0, 0, 0.05);
+    width: 100%;
+    margin-bottom: 1rem;
+    color: #212529;
+    vertical-align: top;
+    border-color: #dee2e6;
+}
+
+.table th {
+    background-color: #343a40;
+    color: #fff;
+    border-bottom: 2px solid #2e3235;
+    padding: 0.75rem;
+    vertical-align: middle;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.table td {
+    padding: 0.75rem;
+    vertical-align: middle;
+    font-size: 0.85rem;
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+    --bs-table-bg-type: rgba(0, 0, 0, 0.02);
+}
+
+.table-hover > tbody > tr:hover > * {
+    --bs-table-bg-type: rgba(0, 0, 0, 0.05);
+}
+
+/* Estilos para el spinner */
+.spinner-border {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-width: 0.2em;
+}
+
+/* Estilos para el texto de error */
+.text-danger {
+    color: #dc3545 !important;
+}
+
+/* Estilos para los íconos */
+.fas, .bi {
+    margin-right: 0.3rem;
+}
+
+/* Estilos para el contenedor de los botones en la tabla */
+.text-nowrap {
+    white-space: nowrap;
+}
+
+/* Estilos para los botones en la tabla */
+.table .btn {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+/* Estilos para el mensaje de "No tienes sensores" */
+.text-center a {
+    color: #0d6efd;
+    text-decoration: underline;
+}
+
+ /* Estilos para el card principal */
+ .card {
+    border-radius: 8px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: none;
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    border-radius: 8px 8px 0 0 !important;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    background-color: #0d6efd; /* Cambiado a azul primario */
+    color: #fff;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Animación para eliminación */
+.table-danger {
+    animation: fadeOut 0.5s ease;
+}
+
+@keyframes fadeOut {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* Posicionamiento de notificaciones */
+.position-fixed {
+    position: fixed !important;
+}
+
+.top-0 {
+    top: 0 !important;
+}
+
+.end-0 {
+    right: 0 !important;
+}
+
+.p-3 {
+    padding: 1rem !important;
+}
+
+.z-index-9999 {
+    z-index: 9999 !important;
+}

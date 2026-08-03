@@ -1,0 +1,199 @@
+/* =============================================
+   ESTILOS PARA LA PÁGINA DE DETALLES DEL GRUPO
+   ============================================= */
+
+   /* Estilos para el card principal */
+   .card {
+    border-radius: 8px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: none;
+}
+
+.card-header {
+    border-radius: 8px 8px 0 0 !important;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    background-color: #343a40;
+    color: #fff;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Estilos para los botones */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem; /* ✅ Tamaño unificado */
+    transition: all 0.2s;
+}
+
+.btn-sm {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.85rem; /* ✅ Tamaño unificado */
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+}
+
+.btn-warning:hover {
+    background-color: #e0a800;
+    border-color: #d39e00;
+    color: #212529;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-danger:hover {
+    background-color: #bb2d3b;
+    border-color: #b02a37;
+}
+
+.btn-light {
+    background-color: #f8f9fa;
+    border-color: #f8f9fa;
+    color: #212529;
+}
+
+.btn-light:hover {
+    background-color: #f9fafb;
+    border-color: #f9fafb;
+    color: #212529;
+}
+
+/* Estilos para las listas de descripción (dl) */
+dl {
+    margin-bottom: 0;
+}
+
+dt {
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.85rem; /* ✅ Tamaño unificado */
+}
+
+dd {
+    color: #212529;
+    font-size: 0.85rem; /* ✅ Tamaño unificado */
+    margin-bottom: 0.5rem;
+}
+
+/* Estilos para los encabezados (h4, h5) */
+h4 {
+    margin-bottom: 0;
+    font-size: 1.1rem; /* ✅ Tamaño ajustado para encabezados */
+    font-weight: 600;
+}
+
+h5 {
+    font-size: 0.95rem; /* ✅ Tamaño ajustado para subencabezados */
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #212529;
+}
+
+/* Estilos para la tabla de sensores */
+.table {
+    --bs-table-bg: transparent;
+    --bs-table-accent-bg: transparent;
+    --bs-table-striped-color: #212529;
+    --bs-table-striped-bg: rgba(0, 0, 0, 0.02);
+    --bs-table-active-color: #212529;
+    --bs-table-active-bg: rgba(0, 0, 0, 0.05);
+    --bs-table-hover-color: #212529;
+    --bs-table-hover-bg: rgba(0, 0, 0, 0.05);
+    width: 100%;
+    margin-bottom: 1rem;
+    color: #212529;
+    vertical-align: top;
+    border-color: #dee2e6;
+}
+
+.table th {
+    background-color: #343a40;
+    color: #fff;
+    border-bottom: 2px solid #2e3235;
+    padding: 0.75rem;
+    vertical-align: middle;
+    font-size: 0.85rem; /* ✅ Tamaño unificado */
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.table td {
+    padding: 0.75rem;
+    vertical-align: middle;
+    font-size: 0.85rem; /* ✅ Tamaño unificado */
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+    --bs-table-bg-type: rgba(0, 0, 0, 0.02);
+}
+
+.table-hover > tbody > tr:hover > * {
+    --bs-table-bg-type: rgba(0, 0, 0, 0.05);
+}
+
+/* Estilos para el alert */
+.alert {
+    border-radius: 6px;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1rem;
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    font-size: 0.85rem; /* ✅ Tamaño unificado */
+}
+
+.alert-info {
+    background-color: rgba(13, 110, 253, 0.1);
+    color: #0d6efd;
+}
+
+/* Estilos para el ícono en los botones */
+.btn-icon {
+    margin-right: 0.3rem;
+}
+
+/* Estilos para el contenedor de acciones */
+.d-flex.gap-2 {
+    gap: 0.5rem !important;
+}
+
+/* Estilos para el contenedor de sensores */
+.mt-4 {
+    margin-top: 1.5rem !important;
+}
+
+/* Estilos para el texto mutado */
+.text-muted {
+    color: #6c757d !important;
+    font-size: 0.85rem; /* ✅ Tamaño unificado */
+}
+
+/* Estilos para los badges */
+.badge {
+    padding: 0.45em 0.65em;
+    border-radius: 0.25rem;
+    font-size: 0.75rem; /* ✅ Tamaño ajustado para badges */
+    font-weight: 600;
+    line-height: 1;
+}

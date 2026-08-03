@@ -1,0 +1,615 @@
+/* =============================================
+   ESTILOS PARA LA PÁGINA DE EDICIÓN DE MEDICIONES
+   ============================================= */
+
+   /* Estilos para el card principal */
+   .card {
+    border-radius: 8px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: none;
+}
+
+.card-header {
+    border-radius: 8px 8px 0 0 !important;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    background-color: #343a40;
+    color: #fff;
+}
+
+.card-header a.btn-light {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #fff;
+}
+
+.card-header a.btn-light:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: #fff;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Estilos para los botones */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+}
+
+.btn-sm {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.8125rem;
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+    color: #fff;
+}
+
+.btn-light {
+    background-color: #f8f9fa;
+    border-color: #f8f9fa;
+    color: #212529;
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+}
+
+.btn-info {
+    background-color: #0dcaf0;
+    border-color: #0dcaf0;
+    color: #fff;
+}
+
+.btn-success {
+    background-color: #198754;
+    border-color: #198754;
+    color: #fff;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: #fff;
+}
+
+.btn-outline-secondary {
+    color: #6c757d;
+    border-color: #6c757d;
+}
+
+.btn-outline-secondary:hover {
+    background-color: rgba(108, 117, 125, 0.1);
+}
+
+/* Estilo para los form-select y form-control */
+.form-select, .form-control {
+    border-radius: 6px;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.875rem;
+    border: 1px solid #ced4da;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-select:focus, .form-control:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Estilos para las tarjetas internas */
+.card .card {
+    border-radius: 8px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 1rem;
+    border: none;
+}
+
+.card .card-header {
+    border-radius: 8px 8px 0 0;
+    padding: 0.75rem 1rem;
+    background-color: #f8f9fa;
+    font-weight: 600;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.card .card-body {
+    padding: 1rem;
+}
+
+/* Estilos para las listas de descripción (dl) */
+dl {
+    margin-bottom: 0;
+}
+
+dt {
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.875rem;
+}
+
+dd {
+    color: #212529;
+    font-size: 0.875rem;
+}
+
+/* Estilos para la cámara y preview */
+#cameraPreview, #photoPreviewContainer {
+    border: 2px dashed #ced4da;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    background-color: #f8f9fa;
+    margin-bottom: 15px;
+}
+
+#photoPreview {
+    max-height: 200px;
+    max-width: 100%;
+    border-radius: 6px;
+}
+
+.camera-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+    justify-content: center;
+}
+
+.btn-camera {
+    padding: 8px 15px;
+    font-size: 0.9rem;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+#photoNameDisplay {
+    font-family: monospace;
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 5px;
+}
+
+.btn-group-camera {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+/* Estilos para el modal de la cámara */
+#cameraModal .modal-dialog {
+    max-width: 900px;
+}
+
+#cameraModal .modal-header {
+    border-radius: 8px 8px 0 0;
+    padding: 1rem 1.5rem;
+}
+
+#cameraModal .modal-body {
+    padding: 1.5rem;
+}
+
+#cameraModal .modal-footer {
+    border-radius: 0 0 8px 8px;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #dee2e6;
+}
+
+/* Estilos para el input-group */
+.input-group {
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.input-group .form-control {
+    border-radius: 6px 0 0 6px;
+}
+
+.input-group .btn {
+    border-radius: 0 6px 6px 0;
+}
+
+/* Estilos para el form-check */
+.form-check-input {
+    margin-top: 0.2rem;
+}
+
+/* Estilos para el spinner */
+.spinner-border {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-width: 0.2em;
+}
+
+/* Estilos para las alertas */
+.alert {
+    border-radius: 6px;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1rem;
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+/* Estilos para el campo de período de medición */
+.input-group .form-control:readonly {
+    background-color: #f8f9fa;
+    color: #495057;
+}
+
+/* Estilos para el botón de info en el input-group */
+.input-group .btn-outline-secondary {
+    padding: 0.375rem 0.5rem;
+    font-size: 0.8125rem;
+}
+
+/* Estilos para el texto pequeño */
+.text-muted {
+    font-size: 0.8125rem;
+    color: #6c757d !important;
+}
+
+/* Estilos para los íconos en los botones */
+.btn-icon {
+    margin-right: 0.3rem;
+}
+
+/* =============================================
+   ESTILOS PARA EL COPYRIGHT
+   ============================================= */
+
+ /* Estilos para el contenedor del copyright */
+ .main-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    padding: 1rem;
+    text-align: center;
+    z-index: 1000;
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+/* Asegurar que el contenido principal no se superponga con el copyright */
+.container {
+    padding-bottom: 60px; /* Espacio para el copyright */
+}
+
+/* =============================================
+   ESTILOS PARA LA PÁGINA DE EDICIÓN DE MEDICIONES
+   ============================================= */
+
+   /* Estilos para el card principal */
+   .card {
+    border-radius: 8px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: none;
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    border-radius: 8px 8px 0 0 !important;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    background-color: #343a40;
+    color: #fff;
+}
+
+.card-header a.btn-light {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #fff;
+}
+
+.card-header a.btn-light:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: #fff;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Estilos para los botones */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+}
+
+.btn-sm {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.8125rem;
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+    color: #fff;
+}
+
+.btn-light {
+    background-color: #f8f9fa;
+    border-color: #f8f9fa;
+    color: #212529;
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+}
+
+.btn-info {
+    background-color: #0dcaf0;
+    border-color: #0dcaf0;
+    color: #fff;
+}
+
+.btn-success {
+    background-color: #198754;
+    border-color: #198754;
+    color: #fff;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: #fff;
+}
+
+.btn-outline-secondary {
+    color: #6c757d;
+    border-color: #6c757d;
+}
+
+.btn-outline-secondary:hover {
+    background-color: rgba(108, 117, 125, 0.1);
+}
+
+/* Estilo para los form-select y form-control */
+.form-select, .form-control {
+    border-radius: 6px;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.875rem;
+    border: 1px solid #ced4da;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-select:focus, .form-control:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Estilos para las tarjetas internas */
+.card .card {
+    border-radius: 8px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 1rem;
+    border: none;
+}
+
+.card .card-header {
+    border-radius: 8px 8px 0 0;
+    padding: 0.75rem 1rem;
+    background-color: #f8f9fa;
+    font-weight: 600;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.card .card-body {
+    padding: 1rem;
+}
+
+/* Estilos para las listas de descripción (dl) */
+dl {
+    margin-bottom: 0;
+}
+
+dt {
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.875rem;
+}
+
+dd {
+    color: #212529;
+    font-size: 0.875rem;
+}
+
+/* Estilos para la cámara y preview */
+#cameraPreview, #photoPreviewContainer {
+    border: 2px dashed #ced4da;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    background-color: #f8f9fa;
+    margin-bottom: 15px;
+    width: 100%; /* Asegurar que ocupe todo el ancho */
+}
+
+#photoPreview {
+    max-height: 200px;
+    max-width: 100%;
+    border-radius: 6px;
+}
+
+.camera-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+    justify-content: center;
+}
+
+.btn-camera {
+    padding: 8px 15px;
+    font-size: 0.9rem;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+#photoNameDisplay {
+    font-family: monospace;
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 5px;
+}
+
+.btn-group-camera {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+/* Estilos para el modal de la cámara */
+#cameraModal .modal-dialog {
+    max-width: 900px;
+}
+
+#cameraModal .modal-header {
+    border-radius: 8px 8px 0 0;
+    padding: 1rem 1.5rem;
+}
+
+#cameraModal .modal-body {
+    padding: 1.5rem;
+}
+
+#cameraModal .modal-footer {
+    border-radius: 0 0 8px 8px;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #dee2e6;
+}
+
+/* Estilos para el input-group */
+.input-group {
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.input-group .form-control {
+    border-radius: 6px 0 0 6px;
+}
+
+.input-group .btn {
+    border-radius: 0 6px 6px 0;
+}
+
+/* Estilos para el form-check */
+.form-check-input {
+    margin-top: 0.2rem;
+}
+
+/* Estilos para el spinner */
+.spinner-border {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-width: 0.2em;
+}
+
+/* Estilos para las alertas */
+.alert {
+    border-radius: 6px;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1rem;
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+/* Estilos para el campo de período de medición */
+.input-group .form-control:readonly {
+    background-color: #f8f9fa;
+    color: #495057;
+}
+
+/* Estilos para el botón de info en el input-group */
+.input-group .btn-outline-secondary {
+    padding: 0.375rem 0.5rem;
+    font-size: 0.8125rem;
+}
+
+/* Estilos para el texto pequeño */
+.text-muted {
+    font-size: 0.8125rem;
+    color: #6c757d !important;
+}
+
+/* Estilos para los íconos en los botones */
+.btn-icon {
+    margin-right: 0.3rem;
+}
+
+/* Estilos para el contenedor principal */
+.container {
+    padding-bottom: 3rem; /* Espacio para el footer */
+}
+
+/* Estilos para el row de la sección de foto */
+#photoSection .row {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+/* Estilos para las columnas de la sección de foto */
+#photoSection .col-md-6 {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/* Asegurar que el fondo gris cubra todo el ancho */
+#photoPreviewContainer, #cameraPreview {
+    width: 100%;
+    padding: 15px;
+    margin: 0;
+}

@@ -1,0 +1,275 @@
+/* =============================================
+   ESTILOS PARA LA PÁGINA DE DETALLES DEL SENSOR
+   ============================================= */
+
+   /* Estilos para el card principal */
+   .card {
+    border-radius: 8px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: none;
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    border-radius: 8px 8px 0 0 !important;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Estilos para los botones */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+}
+
+.btn-sm {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.8125rem;
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+    color: #fff;
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+}
+
+.btn-warning:hover {
+    background-color: #e0a800;
+    border-color: #d39e00;
+    color: #212529;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: #fff;
+}
+
+.btn-danger:hover {
+    background-color: #bb2d3b;
+    border-color: #b02a37;
+    color: #fff;
+}
+
+/* Estilos para los encabezados (h4, h5) */
+h4 {
+    margin-bottom: 1rem;
+    font-weight: 600;
+    color: #212529;
+}
+
+h5 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: #212529;
+}
+
+h5 i {
+    margin-right: 0.5rem;
+    color: #0d6efd;
+}
+
+/* Estilos para las líneas divisorias (hr) */
+hr {
+    margin: 0.75rem 0;
+    color: inherit;
+    background-color: currentColor;
+    border: 0;
+    opacity: 0.25;
+    height: 1px;
+}
+
+/* Estilos para los rows y cols */
+.row {
+    margin-right: -0.75rem;
+    margin-left: -0.75rem;
+}
+
+.row.mb-4 {
+    margin-bottom: 1.5rem !important;
+}
+
+.col-md-6, .col-md-12 {
+    padding-right: 0.75rem;
+    padding-left: 0.75rem;
+}
+
+/* Estilos para los textos fuertes (strong) */
+strong {
+    font-weight: 600;
+    color: #495057;
+}
+
+/* Estilos para los textos normales */
+.col-md-8, .col-md-10, .col-md-4, .col-md-2 {
+    color: #212529;
+    font-size: 0.875rem;
+}
+
+/* Estilos para las alertas */
+.alert {
+    border-radius: 6px;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1rem;
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.alert i {
+    margin-right: 0.5rem;
+}
+
+/* Estilos para los badges de plantilla */
+.template-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-left: 0.5rem;
+}
+
+.template-type-agua {
+    background-color: #0d6efd;
+    color: #fff;
+}
+
+.template-type-gas {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.template-type-electricidad {
+    background-color: #fd7e14;
+    color: #fff;
+}
+
+.template-type-personalizado {
+    background-color: #6c757d;
+    color: #fff;
+}
+
+/* Estilos para las listas (ul) */
+ul {
+    padding-left: 1.5rem;
+    margin-bottom: 0;
+}
+
+ul li {
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    color: #212529;
+}
+
+/* Estilos para los campos personalizados */
+#customFieldsContainer .mb-3 {
+    margin-bottom: 0.75rem !important;
+}
+
+#customFieldsContainer .form-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.3rem;
+}
+
+#customFieldsContainer .form-control {
+    font-size: 0.875rem;
+    padding: 0.45rem 0.75rem;
+    border-radius: 6px;
+}
+
+/* Estilos para los modales */
+.modal-content {
+    border-radius: 8px;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+    border-radius: 8px 8px 0 0;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    border-radius: 0 0 8px 8px;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #dee2e6;
+}
+
+/* Estilos para los inputs y selects en los modales */
+.modal-body .form-select,
+.modal-body .form-control {
+    border-radius: 6px;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.875rem;
+    border: 1px solid #ced4da;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.modal-body .form-select:focus,
+.modal-body .form-control:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Estilos para los botones en los modales */
+.modal-footer .btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.875rem;
+}
+
+/* Estilos para el botón de cerrar en los modales */
+.btn-close {
+    padding: 0.75rem;
+    margin: -0.5rem -0.5rem -0.5rem auto;
+}
+
+/* Estilos para las acciones (d-flex gap-2) */
+.d-flex.gap-2 {
+    gap: 0.5rem;
+}
+
+/* Estilos para el texto mutado */
+.text-muted {
+    color: #6c757d !important;
+}
+
+/* Estilos para el texto de peligro */
+.text-danger {
+    color: #dc3545 !important;
+}

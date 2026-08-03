@@ -1,0 +1,374 @@
+/* =============================================
+   ESTILOS PARA LA PÁGINA DE TOMAR MEDICIÓN
+   ============================================= */
+
+   /* Estilos para el card principal */
+   .card {
+    border-radius: 8px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: none;
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    border-radius: 8px 8px 0 0 !important;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    background-color: #343a40;
+    color: #fff;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Estilos para los botones */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.btn-sm {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.8125rem;
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+    color: #fff;
+}
+
+.btn-light {
+    background-color: #f8f9fa;
+    border-color: #f8f9fa;
+    color: #212529;
+}
+
+.btn-light:hover {
+    background-color: #f9fafb;
+    border-color: #f9fafb;
+    color: #212529;
+}
+
+.btn-success {
+    background-color: #198754;
+    border-color: #198754;
+    color: #fff;
+}
+
+.btn-success:hover {
+    background-color: #157347;
+    border-color: #146c43;
+    color: #fff;
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+}
+
+.btn-warning:hover {
+    background-color: #e0a800;
+    border-color: #d39e00;
+    color: #212529;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: #fff;
+}
+
+.btn-danger:hover {
+    background-color: #bb2d3b;
+    border-color: #b02a37;
+    color: #fff;
+}
+
+.btn-info {
+    background-color: #0dcaf0;
+    border-color: #0dcaf0;
+    color: #fff;
+}
+
+.btn-info:hover {
+    background-color: #31d2f2;
+    border-color: #25cff2;
+    color: #fff;
+}
+
+/* Estilos para los form-select y form-control */
+.form-select, .form-control {
+    border-radius: 6px;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.85rem;
+    border: 1px solid #ced4da;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-select:focus, .form-control:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Estilos para los labels */
+.form-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #495057;
+}
+
+/* Estilos para las alertas */
+.alert {
+    border-radius: 6px;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1rem;
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    font-size: 0.85rem;
+}
+
+/* Estilos para el texto mutado */
+.text-muted {
+    color: #6c757d !important;
+    font-size: 0.85rem;
+}
+
+/* Estilos para el icono en los botones */
+.btn-icon, .me-2 {
+    margin-right: 0.3rem;
+}
+
+/* Estilos para el textarea */
+textarea.form-control {
+    font-size: 0.85rem;
+    resize: vertical;
+}
+
+/* Estilos para las tarjetas de información */
+.card-header.bg-light {
+    background-color: #f8f9fa !important;
+    border-bottom: 1px solid #dee2e6;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+}
+
+.card-body dl {
+    margin-bottom: 0;
+}
+
+.card-body dt {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #495057;
+}
+
+.card-body dd {
+    font-size: 0.85rem;
+    color: #212529;
+}
+
+/* Estilos para la sección de foto */
+.camera-preview-container {
+    border: 2px dashed #ced4da;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    background-color: #f8f9fa;
+    margin-bottom: 15px;
+}
+
+#photoPreview {
+    max-height: 200px;
+    max-width: 100%;
+    border-radius: 6px;
+}
+
+/* Estilos para los botones de acción de la foto */
+.d-flex.gap-2.flex-wrap {
+    margin-top: 10px;
+}
+
+/* Estilos para el modal de la cámara */
+#cameraModal .modal-dialog {
+    max-width: 900px;
+}
+
+#cameraModal .modal-content {
+    border-radius: 8px;
+}
+
+#cameraModal .modal-header {
+    border-radius: 8px 8px 0 0;
+    padding: 1rem 1.5rem;
+}
+
+#cameraModal .modal-body {
+    padding: 1.5rem;
+}
+
+#cameraModal .modal-footer {
+    border-radius: 0 0 8px 8px;
+    padding: 1rem 1.5rem;
+}
+
+/* Estilos para el modal de confirmación */
+#confirmActionModal .modal-dialog {
+    max-width: 500px;
+}
+
+#confirmActionModal .modal-content {
+    border-radius: 8px;
+}
+
+#confirmActionModal .modal-header {
+    border-radius: 8px 8px 0 0;
+    padding: 1rem 1.5rem;
+    background-color: #ffc107;
+    color: #212529;
+}
+
+#confirmActionModal .modal-body {
+    padding: 1.5rem;
+}
+
+#confirmActionModal .modal-footer {
+    border-radius: 0 0 8px 8px;
+    padding: 1rem 1.5rem;
+}
+
+/* Estilos para el input-group */
+.input-group {
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.input-group .form-control {
+    border-radius: 6px 0 0 6px;
+}
+
+.input-group .btn {
+    border-radius: 0 6px 6px 0;
+}
+
+/* Estilos para el form-check */
+.form-check-input {
+    margin-top: 0.2rem;
+}
+
+/* Estilos para el form-check-label */
+.form-check-label {
+    font-size: 0.85rem;
+    margin-left: 0.3rem;
+}
+
+/* Estilos para el spinner */
+.spinner-border {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-width: 0.2em;
+}
+
+/* Estilos para los campos personalizados */
+.mb-3:last-of-type {
+    margin-bottom: 0 !important;
+}
+
+/* Estilos para los botones del formulario */
+.d-flex.gap-2.mt-4 {
+    margin-top: 1.5rem;
+}
+
+/* =============================================
+   ESTILOS PARA EL CONTENEDOR PRINCIPAL
+   ============================================= */
+
+   /* Asegurar que el contenedor principal se expanda */
+   .container {
+    width: 100%;
+    padding-right: var(--bs-gutter-x, 0.75rem);
+    padding-left: var(--bs-gutter-x, 0.75rem);
+    margin-right: auto;
+    margin-left: auto;
+    max-width: 100%;
+    min-height: auto; /* Asegurar que no tenga altura fija */
+    overflow: visible; /* Permitir que el contenido se expanda */
+}
+
+/* Asegurar que el row no tenga altura limitada */
+.row {
+    --bs-gutter-x: 1.5rem;
+    --bs-gutter-y: 0;
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: calc(var(--bs-gutter-y) * -1);
+    margin-right: calc(var(--bs-gutter-x) / -2);
+    margin-left: calc(var(--bs-gutter-x) / -2);
+    min-height: auto; /* Asegurar que no tenga altura fija */
+}
+
+/* Asegurar que el col-md-10 no tenga altura limitada */
+.col-md-10 {
+    flex: 0 0 auto;
+    width: 83.333333%;
+    max-width: 83.333333%;
+    min-height: auto; /* Asegurar que no tenga altura fija */
+}
+
+/* Asegurar que el card no tenga altura limitada */
+.card {
+    border-radius: 8px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: none;
+    margin-bottom: 1.5rem;
+    min-height: auto; /* Asegurar que no tenga altura fija */
+    overflow: visible; /* Permitir que el contenido se expanda */
+}
+
+/* Asegurar que el card-body no tenga altura limitada */
+.card-body {
+    padding: 1.5rem;
+    min-height: auto; /* Asegurar que no tenga altura fija */
+    overflow: visible; /* Permitir que el contenido se expanda */
+}
+
+/* Asegurar que el form no tenga altura limitada */
+form {
+    min-height: auto; /* Asegurar que no tenga altura fija */
+    overflow: visible; /* Permitir que el contenido se expanda */
+}
+
+/* Asegurar que el modal no afecte el contenido principal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1055;
+    display: none;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    outline: 0;
+}

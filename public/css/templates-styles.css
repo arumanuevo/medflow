@@ -1,0 +1,228 @@
+/* =============================================
+   ESTILOS PARA LA PÁGINA DE PLANTILLAS
+   ============================================= */
+
+ /* Estilos para el card principal */
+ .card {
+    border-radius: 8px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: none;
+}
+
+.card-header {
+    border-radius: 8px 8px 0 0 !important;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Estilos para los botones */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+}
+
+.btn-sm {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.8125rem;
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+/* Estilos para las tarjetas de plantillas */
+.template-card {
+    border-radius: 8px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-bottom: 1rem;
+    border: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.template-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+}
+
+.template-card .card-body {
+    padding: 1.25rem;
+}
+
+.template-card .card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Estilos para los badges de tipo de plantilla */
+.template-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1;
+}
+
+.template-badge.template-type-agua {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.template-badge.template-type-gas {
+    background-color: #fd7e14;
+    color: white;
+}
+
+.template-badge.template-type-electricidad {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.template-badge.template-type-personalizado {
+    background-color: #6c757d;
+    color: white;
+}
+
+/* Estilos para el estado vacío */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+}
+
+.empty-state h4 {
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+}
+
+/* Estilos para el modal de confirmación */
+#deleteTemplateModal .modal-dialog {
+    max-width: 500px;
+}
+
+#deleteTemplateModal .modal-header {
+    border-radius: 8px 8px 0 0;
+    padding: 1rem 1.5rem;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+#deleteTemplateModal .modal-body {
+    padding: 1.5rem;
+}
+
+#deleteTemplateModal .modal-footer {
+    border-radius: 0 0 8px 8px;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #dee2e6;
+}
+
+/* Estilos para las alertas dentro del modal */
+#deleteTemplateModal .alert {
+    border-radius: 6px;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1rem;
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+/* Estilos para los textos dentro del modal */
+#deleteTemplateModal p {
+    margin-bottom: 1rem;
+    color: #212529;
+}
+
+/* Estilos para los encabezados dentro del modal */
+#deleteTemplateModal .modal-title {
+    font-weight: 600;
+    color: #212529;
+}
+
+/* Estilos para los botones dentro del modal */
+#deleteTemplateModal .btn {
+    border-radius: 6px;
+    font-weight: 500;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.875rem;
+}
+
+/* Estilos para el botón "Eliminar Plantilla" */
+#deleteTemplateModal #confirmDeleteTemplate {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+#deleteTemplateModal #confirmDeleteTemplate:hover {
+    background-color: #bb2d3b;
+    border-color: #b02a37;
+}
+
+/* Estilos para el botón "Cancelar" */
+#deleteTemplateModal .btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: #fff;
+}
+
+#deleteTemplateModal .btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+    color: #fff;
+}
+
+/* Estilos para los textos de información de la plantilla */
+.template-card .card-text {
+    color: #495057;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+/* Estilos para los textos mutados (información adicional) */
+.template-card small.text-muted {
+    font-size: 0.8rem;
+    color: #6c757d !important;
+}

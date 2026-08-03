@@ -1,0 +1,302 @@
+/* =============================================
+   ESTILOS PARA LA CARGA MASIVA DE SENSORES
+   ============================================= */
+
+   /* Estilos para el card principal */
+   .card {
+    border-radius: 8px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: none;
+}
+
+.card-header {
+    border-radius: 8px 8px 0 0 !important;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    background-color: #343a40;
+    color: #fff;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Estilos para los botones */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.btn-sm {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.85rem;
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: #fff;
+}
+
+.btn-success {
+    background-color: #198754;
+    border-color: #198754;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+}
+
+.btn-info {
+    background-color: #0dcaf0;
+    border-color: #0dcaf0;
+    color: #fff;
+}
+
+.btn-light {
+    background-color: #f8f9fa;
+    border-color: #f8f9fa;
+    color: #212529;
+}
+
+/* Estilos para los form-select y form-control */
+.form-select, .form-control {
+    border-radius: 6px;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.85rem;
+    border: 1px solid #ced4da;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-select:focus, .form-control:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Estilos para los labels */
+.form-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #495057;
+}
+
+/* Estilos para las alertas */
+.alert {
+    border-radius: 6px;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1rem;
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    font-size: 0.85rem;
+}
+
+/* Estilos para el área de subida de archivos */
+.drop-zone {
+    border: 2px dashed #ced4da;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background-color: #f8f9fa;
+    margin-bottom: 1.5rem;
+}
+
+.drop-zone:hover {
+    border-color: #0d6efd;
+    background-color: #e7f1ff;
+}
+
+.drop-zone.active {
+    border-color: #0d6efd;
+    background-color: #e7f1ff;
+}
+
+.drop-zone i {
+    font-size: 3rem;
+    color: #0d6efd;
+    margin-bottom: 1rem;
+}
+
+/* Estilos para la tabla de preview */
+.preview-table {
+    margin-top: 1.5rem;
+}
+
+.preview-table th {
+    background-color: #343a40;
+    color: #fff;
+    border-bottom: 2px solid #2e3235;
+    padding: 0.75rem;
+    vertical-align: middle;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.preview-table td {
+    padding: 0.75rem;
+    vertical-align: middle;
+    font-size: 0.85rem;
+}
+
+/* Estilos para el mapeo de campos */
+.field-mapping {
+    margin-top: 1.5rem;
+}
+
+.field-mapping .row {
+    margin-bottom: 0.75rem;
+}
+
+.field-mapping .col-md-5 {
+    padding-right: 0.5rem;
+    padding-left: 0.5rem;
+}
+
+/* Estilos para los selectores de mapeo */
+.field-mapping .form-select {
+    width: 100%;
+}
+
+/* Estilos para el resumen de importación */
+.import-summary {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.import-summary h5 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.import-summary ul {
+    padding-left: 1.5rem;
+    margin-bottom: 0;
+}
+
+.import-summary li {
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+}
+
+/* Estilos para el progreso de importación */
+.progress-container {
+    margin-top: 1.5rem;
+}
+
+.progress {
+    height: 20px;
+    border-radius: 6px;
+}
+
+/* Estilos para el botón de descarga de plantilla */
+.download-template-btn {
+    margin-top: 1rem;
+}
+
+/* Estilos para el icono en los botones */
+.btn-icon {
+    margin-right: 0.3rem;
+}
+
+/* Estilos para el spinner */
+.spinner-border {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-width: 0.2em;
+}
+
+/* Estilos para el modal de confirmación */
+.modal-content {
+    border-radius: 8px;
+}
+
+.modal-header {
+    border-radius: 8px 8px 0 0;
+    padding: 1rem 1.5rem;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    padding: 1rem 1.5rem;
+    border-radius: 0 0 8px 8px;
+}
+
+/* Estilos para los badges de estado */
+.badge {
+    padding: 0.45em 0.65em;
+    border-radius: 0.25rem;
+    font-size: 0.75em;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.badge-success {
+    background-color: #198754;
+    color: #fff;
+}
+
+.badge-danger {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+.badge-warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+/* Estilos para el contenedor de errores */
+.error-container {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: #f8d7da;
+    border-radius: 8px;
+    border: 1px solid #f5c6cb;
+}
+
+.error-container h5 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: #721c24;
+}
+
+.error-container ul {
+    padding-left: 1.5rem;
+    margin-bottom: 0;
+}
+
+.error-container li {
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+    color: #721c24;
+}
