@@ -212,7 +212,7 @@
             {{-- ✅ CONTENIDO --}}
             <div class="modern-content">
                 {{-- ✅ CONTENEDOR DE ALERTAS DE SUSCRIPCIÓN --}}
-                <div id="limitAlertContainer" class="container-fluid px-4 pt-3"></div>
+                <!-- <div id="limitAlertContainer" class="container-fluid px-4 pt-3"></div> -->
                 
                 @yield('content')
             </div>

@@ -261,6 +261,7 @@ class BulkMeasurementFlowController extends Controller
             'previousSensorId',
             'ownerName',
             'activeWorkspace',
+            'isSingleMeasurement',
             'isOwner'
         ));
     }
