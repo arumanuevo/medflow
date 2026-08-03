@@ -5,7 +5,7 @@
     // Obtener información de límites para badges
     $subscriptionInfo = null;
     if (auth()->check()) {
-        $subscriptionInfo = \App\Services\SubscriptionService::getSubscriptionInfo(auth()->user());
+        $subscriptionInfo = \App\Services\Subscription\SubscriptionService::getSubscriptionInfo(auth()->user());
     }
 @endphp
 

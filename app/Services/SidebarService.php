@@ -61,7 +61,7 @@ class SidebarService
                 'badge' => $this->getPendingInvitationsCount(),
             ],
             [
-                'icon' => 'bi bi-sensors',
+                'icon' => 'bi bi-speedometer',
                 'label' => 'Sensores',
                 'url' => '/sensors',
                 'active' => request()->is('sensors*') && !request()->is('sensors/create*'),
@@ -153,7 +153,7 @@ class SidebarService
                     'highlight' => true,
                 ],
                 [
-                    'icon' => 'bi bi-sensors',
+                    'icon' => 'bi bi-speedometer',
                     'label' => 'Sensores',
                     'url' => '/sensors',
                     'active' => request()->is('sensors*') && !request()->is('sensors/create*'),
@@ -208,7 +208,7 @@ class SidebarService
                     'active' => request()->is('dashboard') || request()->is('/'),
                 ],
                 [
-                    'icon' => 'bi bi-sensors',
+                    'icon' => 'bi bi-speedometer',
                     'label' => 'Sensores',
                     'url' => '/sensors',
                     'active' => request()->is('sensors*') && !request()->is('sensors/create*'),
