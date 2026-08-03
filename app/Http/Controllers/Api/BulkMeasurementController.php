@@ -478,7 +478,26 @@ public function toggleMarkForMeasurement(Request $request, Sensor $sensor)
             });
         }
 
-        $nextSensor = $query->orderBy('id')->first();
+        // \u2705 Obtener TODOS los sensores marcados ordenados por ID para mantener la secuencia
+        $allMarkedSensors = $query->orderBy('id')->get();
+        
+        // \u2705 Encontrar la posici\u00f3n del sensor actual en la lista ordenada
+        $nextSensor = null;
+        $foundCurrent = false;
+        foreach ($allMarkedSensors as $markedSensor) {
+            if ($foundCurrent) {
+                $nextSensor = $markedSensor;
+                break;
+            }
+            if ($markedSensor->id == $currentSensorId) {
+                $foundCurrent = true;
+            }
+        }
+        
+        // \u2705 Si no se encontr\u00f3 el sensor actual, devolver el primero (caso de error)
+        if (!$nextSensor && $allMarkedSensors->isNotEmpty()) {
+            $nextSensor = $allMarkedSensors->first();
+        }
 
         if (!$nextSensor) {
             return response()->json([
@@ -797,7 +816,26 @@ public function store(Request $request)
         });
     }
 
-    $nextSensor = $nextSensorQuery->orderBy('id')->first();
+    // \u2705 Obtener TODOS los sensores marcados ordenados por ID para mantener la secuencia
+    $allMarkedSensors = $nextSensorQuery->orderBy('id')->get();
+    
+    // \u2705 Encontrar la posici\u00f3n del sensor actual en la lista ordenada
+    $nextSensor = null;
+    $foundCurrent = false;
+    foreach ($allMarkedSensors as $markedSensor) {
+        if ($foundCurrent) {
+            $nextSensor = $markedSensor;
+            break;
+        }
+        if ($markedSensor->id == $sensor->id) {
+            $foundCurrent = true;
+        }
+    }
+    
+    // \u2705 Si no se encontr\u00f3 el sensor actual, devolver el primero (caso de error)
+    if (!$nextSensor && $allMarkedSensors->isNotEmpty()) {
+        $nextSensor = $allMarkedSensors->first();
+    }
 
     $nextSensorUrl = null;
     if ($nextSensor) {
