@@ -209,9 +209,19 @@
                     @foreach($sensors as $sensor)
                         @php
                             $lastMeasurement = $sensor->lastMeasurement;
-                            $lastValue = $lastMeasurement ? ($sensor->group->template && isset($sensor->group->template->schema['campos']) ? 
-                                ($lastMeasurement->data[$this->getMainField($sensor)] ?? 'N/A') : 
-                                ($lastMeasurement->data['consumo_m3'] ?? $lastMeasurement->data['valor'] ?? 'N/A')) : 'N/A';
+                            
+                            // Obtener el campo principal de la plantilla
+                            $mainField = 'valor';
+                            if ($sensor->group && $sensor->group->template && isset($sensor->group->template->schema['campos'])) {
+                                foreach ($sensor->group->template->schema['campos'] as $campo) {
+                                    if ($campo['tipo'] === 'numero' && ($campo['requerido'] ?? false)) {
+                                        $mainField = $campo['nombre'];
+                                        break;
+                                    }
+                                }
+                            }
+                            
+                            $lastValue = $lastMeasurement ? ($lastMeasurement->data[$mainField] ?? $lastMeasurement->data['consumo_m3'] ?? $lastMeasurement->data['valor'] ?? 'N/A') : 'N/A';
                             $lastDate = $lastMeasurement ? \Carbon\Carbon::parse($lastMeasurement->measured_at)->format('d/m/Y') : 'N/A';
                             
                             // Calcular estado
