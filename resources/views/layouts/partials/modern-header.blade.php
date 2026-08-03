@@ -12,18 +12,18 @@
 
 <header class="modern-header">
     <div class="modern-header-left">
-        {{-- \u2705 BOT\u00d3N HAMBURGUESA - SOLO VISIBLE EN M\u00d3VIL --}}
-        <button class="modern-header-toggle" id="sidebarToggle" title="Abrir men\u00fa">
+        {{-- \u2705 BOTÓN HAMBURGUESA - SOLO VISIBLE EN MÓVIL --}}
+        <button class="modern-header-toggle" id="sidebarToggle" title="Abrir menú">
             <i class="bi bi-list"></i>
         </button>
         <h1 class="modern-header-title">@yield('title', 'MedFlow')</h1>
     </div>
     
     <div class="modern-header-right">
-        {{-- Badges de alerta de suscripci\u00f3n --}}
+        {{-- Badges de alerta de suscripción --}}
         @if($subscriptionInfo && isset($subscriptionInfo['limits']))
             <div class="modern-header-alerts dropdown" style="margin-right: 1rem;">
-                <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" id="alertsDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Alertas de suscripci\u00f3n">
+                <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" id="alertsDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Alertas de suscripción">
                     <i class="bi bi-bell"></i>
                     @php
                         $alertCount = 0;
@@ -32,21 +32,26 @@
                         if (!$subscriptionInfo['has_active_subscription']) $alertCount++;
                     @endphp
                     @if($alertCount > 0)
-                        <span class="badge bg-danger ms-1">{{ $alertCount }}</span>
+                        <span class="badge bg-danger ms-1" style="font-size: 0.65rem; padding: 0.2rem 0.45rem;">{{ $alertCount }}</span>
                     @endif
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="alertsDropdown" style="min-width: 300px;">
                     <li class="dropdown-header">
                         <i class="bi bi-info-circle me-2"></i>
-                        Estado de Suscripci\u00f3n
+                        Estado de Suscripción
                     </li>
                     
                     @if(!$subscriptionInfo['has_active_subscription'])
                         <li>
-                            <div class="dropdown-item-text">
-                                <span class="badge bg-warning text-dark me-2">!</span>
-                                <strong>Sin suscripci\u00f3n activa</strong><br>
-                                <small>Est\u00e1s usando el plan <strong>{{ $subscriptionInfo['plan']['name'] }}</strong> con l\u00edmites b\u00e1sicos.</small>
+                            <div class="dropdown-item-text d-flex justify-content-between align-items-start">
+                                <div>
+                                    <span class="badge bg-warning text-dark me-2">!</span>
+                                    <strong>Sin suscripción activa</strong>
+                                    <small class="d-block">Estás usando el plan <strong>{{ $subscriptionInfo['plan']['name'] }}</strong> con límites básicos.</small>
+                                </div>
+                                <button class="btn btn-sm btn-outline-secondary dismiss-alert" data-alert-type="subscription" style="padding: 0.2rem 0.4rem; font-size: 0.7rem;">
+                                    <i class="bi bi-x"></i>
+                                </button>
                             </div>
                         </li>
                         <li><hr class="dropdown-divider"></li>
@@ -54,36 +59,46 @@
                     
                     @if(!$subscriptionInfo['limits']['sensors']['is_unlimited'] && $subscriptionInfo['limits']['sensors']['remaining'] <= 1)
                         <li>
-                            <div class="dropdown-item-text">
-                                <span class="badge bg-{{ $subscriptionInfo['limits']['sensors']['remaining'] === 0 ? 'danger' : 'warning' }} me-2">
-                                    {{ $subscriptionInfo['limits']['sensors']['remaining'] === 0 ? '\u274c' : '\u26a0\ufe0f' }}
-                                </span>
-                                <strong>L\u00edmite de sensores</strong><br>
-                                <small>Has usado <strong>{{ $subscriptionInfo['limits']['sensors']['used'] }}</strong> de <strong>{{ $subscriptionInfo['limits']['sensors']['max'] }}</strong>.
-                                @if($subscriptionInfo['limits']['sensors']['remaining'] === 0)
-                                    <a href="/profile" class="alert-link">Actualizar plan</a>
-                                @else
-                                    Te queda <strong>{{ $subscriptionInfo['limits']['sensors']['remaining'] }}</strong>.
-                                @endif
-                                </small>
+                            <div class="dropdown-item-text d-flex justify-content-between align-items-start">
+                                <div>
+                                    <span class="badge bg-{{ $subscriptionInfo['limits']['sensors']['remaining'] === 0 ? 'danger' : 'warning' }} me-2">
+                                        {{ $subscriptionInfo['limits']['sensors']['remaining'] === 0 ? '❌' : '⚠️' }}
+                                    </span>
+                                    <strong>Límite de sensores</strong>
+                                    <small class="d-block">Has usado <strong>{{ $subscriptionInfo['limits']['sensors']['used'] }}</strong> de <strong>{{ $subscriptionInfo['limits']['sensors']['max'] }}</strong>.
+                                    @if($subscriptionInfo['limits']['sensors']['remaining'] === 0)
+                                        <a href="/profile" class="alert-link">Actualizar plan</a>
+                                    @else
+                                        Te queda <strong>{{ $subscriptionInfo['limits']['sensors']['remaining'] }}</strong>.
+                                    @endif
+                                    </small>
+                                </div>
+                                <button class="btn btn-sm btn-outline-secondary dismiss-alert" data-alert-type="sensor" style="padding: 0.2rem 0.4rem; font-size: 0.7rem;">
+                                    <i class="bi bi-x"></i>
+                                </button>
                             </div>
                         </li>
                     @endif
                     
                     @if(!$subscriptionInfo['limits']['groups']['is_unlimited'] && $subscriptionInfo['limits']['groups']['remaining'] <= 1)
                         <li>
-                            <div class="dropdown-item-text">
-                                <span class="badge bg-{{ $subscriptionInfo['limits']['groups']['remaining'] === 0 ? 'danger' : 'warning' }} me-2">
-                                    {{ $subscriptionInfo['limits']['groups']['remaining'] === 0 ? '\u274c' : '\u26a0\ufe0f' }}
-                                </span>
-                                <strong>L\u00edmite de grupos</strong><br>
-                                <small>Has usado <strong>{{ $subscriptionInfo['limits']['groups']['used'] }}</strong> de <strong>{{ $subscriptionInfo['limits']['groups']['max'] }}</strong>.
-                                @if($subscriptionInfo['limits']['groups']['remaining'] === 0)
-                                    <a href="/profile" class="alert-link">Actualizar plan</a>
-                                @else
-                                    Te queda <strong>{{ $subscriptionInfo['limits']['groups']['remaining'] }}</strong>.
-                                @endif
-                                </small>
+                            <div class="dropdown-item-text d-flex justify-content-between align-items-start">
+                                <div>
+                                    <span class="badge bg-{{ $subscriptionInfo['limits']['groups']['remaining'] === 0 ? 'danger' : 'warning' }} me-2">
+                                        {{ $subscriptionInfo['limits']['groups']['remaining'] === 0 ? '❌' : '⚠️' }}
+                                    </span>
+                                    <strong>Límite de grupos</strong>
+                                    <small class="d-block">Has usado <strong>{{ $subscriptionInfo['limits']['groups']['used'] }}</strong> de <strong>{{ $subscriptionInfo['limits']['groups']['max'] }}</strong>.
+                                    @if($subscriptionInfo['limits']['groups']['remaining'] === 0)
+                                        <a href="/profile" class="alert-link">Actualizar plan</a>
+                                    @else
+                                        Te queda <strong>{{ $subscriptionInfo['limits']['groups']['remaining'] }}</strong>.
+                                    @endif
+                                    </small>
+                                </div>
+                                <button class="btn btn-sm btn-outline-secondary dismiss-alert" data-alert-type="group" style="padding: 0.2rem 0.4rem; font-size: 0.7rem;">
+                                    <i class="bi bi-x"></i>
+                                </button>
                             </div>
                         </li>
                     @endif
@@ -98,7 +113,7 @@
                         <li>
                             <a class="dropdown-item" href="/profile">
                                 <i class="bi bi-gear me-2"></i>
-                                Gestionar suscripci\u00f3n
+                                Gestionar suscripción
                             </a>
                         </li>
                     @endif
@@ -113,7 +128,7 @@
                 <div class="modern-header-user-role">{{ $userRole }}</div>
             </div>
         </a>
-        <button class="modern-header-logout" onclick="event.preventDefault(); document.getElementById('logout-form-header').submit();" title="Cerrar sesi\u00f3n">
+        <button class="modern-header-logout" onclick="event.preventDefault(); document.getElementById('logout-form-header').submit();" title="Cerrar sesión">
             <i class="bi bi-box-arrow-right"></i>
         </button>
         <form id="logout-form-header" action="{{ route('logout') }}" method="POST" style="display: none;">

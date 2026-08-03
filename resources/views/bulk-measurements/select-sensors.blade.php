@@ -248,7 +248,7 @@
                                             <span class="badge bg-{{ $estadoClass }}">{{ $estado }}</span>
                                         </td>
                                         <td style="width: 80px;">
-                                            <a href="{{ route('bulk-measurements.create', $sensor->id) }}" 
+                                            <a href="{{ route('measurements.create', $sensor->id) }}" 
                                                class="btn btn-sm btn-success" 
                                                title="Tomar medición individual">
                                                 <i class="bi bi-rulers"></i>
