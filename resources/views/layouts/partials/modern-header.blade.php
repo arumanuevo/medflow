@@ -170,47 +170,46 @@
 </style>
 
 <script>
-$(document).ready(function() {
-    // Funcionalidad para descartar alertas del dropdown
-    $('.modern-header-alerts .dismiss-alert').click(function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        const $button = $(this);
-        const alertType = $button.data('alert-type');
-        const $listItem = $button.closest('li');
+// Funcionalidad para descartar alertas del dropdown (Vanilla JS)
+document.addEventListener('DOMContentLoaded', function() {
+    // Función para ocultar alerta con animación
+    function dismissAlert(button) {
+        const alertType = button.dataset.alertType;
+        const listItem = button.closest('li');
         
         // Animación de fade out
-        $listItem.fadeOut(300, function() {
-            $(this).remove();
-            
-            // Actualizar el contador de alertas
+        listItem.style.transition = 'opacity 0.3s ease';
+        listItem.style.opacity = '0';
+        
+        setTimeout(function() {
+            listItem.remove();
             updateAlertCounter();
-            
-            // Guardar el estado en localStorage para persistir
             saveDismissedAlert(alertType);
             
             // Si no quedan alertas, mostrar mensaje "Todo en orden"
-            if ($('.modern-header-alerts .dropdown-item-text').length === 0) {
-                $('.modern-header-alerts .dropdown-menu').prepend(`
-                    <li class="dropdown-header text-success">
-                        <i class="bi bi-check-circle me-2"></i>
-                        Todo en orden
-                    </li>
-                `);
+            const remainingAlerts = document.querySelectorAll('.modern-header-alerts .dropdown-item-text');
+            if (remainingAlerts.length === 0) {
+                const dropdownMenu = document.querySelector('.modern-header-alerts .dropdown-menu');
+                const header = document.createElement('li');
+                header.className = 'dropdown-header text-success';
+                header.innerHTML = '<i class="bi bi-check-circle me-2"></i> Todo en orden';
+                dropdownMenu.prepend(header);
             }
-        });
-    });
+        }, 300);
+    }
 
     // Actualizar el contador de alertas en el badge
     function updateAlertCounter() {
-        const remainingAlerts = $('.modern-header-alerts .dropdown-item-text').length;
-        const $badge = $('.modern-header-alerts .badge');
+        const remainingAlerts = document.querySelectorAll('.modern-header-alerts .dropdown-item-text').length;
+        const badge = document.querySelector('.modern-header-alerts .badge');
         
-        if (remainingAlerts === 0) {
-            $badge.hide();
-        } else {
-            $badge.text(remainingAlerts).show();
+        if (badge) {
+            if (remainingAlerts === 0) {
+                badge.style.display = 'none';
+            } else {
+                badge.textContent = remainingAlerts;
+                badge.style.display = 'inline-block';
+            }
         }
     }
 
@@ -229,11 +228,27 @@ $(document).ready(function() {
         const dismissedAlerts = JSON.parse(localStorage.getItem('dismissedSubscriptionAlerts') || '[]');
         
         dismissedAlerts.forEach(function(alertType) {
-            $('.modern-header-alerts .dismiss-alert[data-alert-type="' + alertType + '"]').closest('li').hide();
+            const buttons = document.querySelectorAll('.modern-header-alerts .dismiss-alert[data-alert-type="' + alertType + '"]');
+            buttons.forEach(function(button) {
+                const listItem = button.closest('li');
+                if (listItem) {
+                    listItem.style.display = 'none';
+                }
+            });
         });
         
         updateAlertCounter();
     }
+
+    // Agregar event listeners a los botones de cierre
+    const dismissButtons = document.querySelectorAll('.modern-header-alerts .dismiss-alert');
+    dismissButtons.forEach(function(button) {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dismissAlert(this);
+        });
+    });
 
     // Inicializar al cargar la página
     checkDismissedAlerts();
