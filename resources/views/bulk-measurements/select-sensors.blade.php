@@ -182,6 +182,7 @@
                                     <th>Última Medición</th>
                                     <th>Valor</th>
                                     <th>Estado</th>
+                                    <th style="width: 80px;">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -246,6 +247,13 @@
                                         <td>
                                             <span class="badge bg-{{ $estadoClass }}">{{ $estado }}</span>
                                         </td>
+                                        <td style="width: 80px;">
+                                            <a href="{{ route('bulk-measurements.create', $sensor->id) }}" 
+                                               class="btn btn-sm btn-success" 
+                                               title="Tomar medición individual">
+                                                <i class="bi bi-rulers"></i>
+                                            </a>
+                                        </td>
                                     </tr>
                                 @empty
                                     <tr>
@@ -296,7 +304,7 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                     Cancelar
                 </button>
-                <button type="submit" form="bulkMeasurementForm" class="btn btn-primary">
+                <button type="button" id="confirmStartBtn" class="btn btn-primary">
                     <i class="bi bi-rulers"></i> Comenzar
                 </button>
             </div>
@@ -405,6 +413,11 @@ $(document).ready(function() {
         
         $modalSelectedCount.text(selectedCount);
         $('#confirmModal').modal('show');
+    });
+    
+    // Confirmar desde el modal
+    $('#confirmStartBtn').click(function() {
+        $('#bulkMeasurementForm').submit();
     });
 
     // Limpiar filtros

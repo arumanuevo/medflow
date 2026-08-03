@@ -61,43 +61,43 @@ class SidebarService
                 'badge' => $this->getPendingInvitationsCount(),
             ],
             [
-                'icon' => 'fas fa-tachometer-alt',
+                'icon' => 'bi bi-sensors',
                 'label' => 'Sensores',
                 'url' => '/sensors',
                 'active' => request()->is('sensors*') && !request()->is('sensors/create*'),
             ],
             [
-                'icon' => 'fas fa-ruler',
+                'icon' => 'bi bi-graph-up',
                 'label' => 'Mediciones',
                 'url' => '/mediciones',
                 'active' => request()->is('mediciones'),
             ],
             [
-                'icon' => 'fas fa-chart-line',
+                'icon' => 'bi bi-bar-chart-line',
                 'label' => 'Consumos',
                 'url' => '/consumptions',
                 'active' => request()->is('consumptions*'),
             ],
             [
-                'icon' => 'fas fa-folder',
+                'icon' => 'bi bi-folder',
                 'label' => 'Grupos',
                 'url' => '/sensor-groups',
                 'active' => request()->is('sensor-groups*'),
             ],
             [
-                'icon' => 'fas fa-file-alt',
+                'icon' => 'bi bi-file-earmark-text',
                 'label' => 'Plantillas',
                 'url' => '/templates',
                 'active' => request()->is('templates*'),
             ],
             [
-                'icon' => 'fas fa-user-circle',
+                'icon' => 'bi bi-person-circle',
                 'label' => 'Mi Perfil',
                 'url' => '/profile',
                 'active' => request()->is('profile*'),
             ],
             [
-                'icon' => 'fas fa-cogs',
+                'icon' => 'bi bi-gear',
                 'label' => 'Administración',
                 'url' => '/admin',
                 'active' => request()->is('admin*'),
@@ -115,20 +115,20 @@ class SidebarService
         if ($role === 'inspector') {
             return [
                 [
-                    'icon' => 'fas fa-home',
+                    'icon' => 'bi bi-house',
                     'label' => 'Dashboard',
                     'url' => '/dashboard',
                     'active' => request()->is('dashboard') || request()->is('/'),
                 ],
                 [
-                    'icon' => 'fas fa-ruler-combined',
+                    'icon' => 'bi bi-rulers',
                     'label' => 'Tomar Mediciones',
                     'url' => '/mediciones/inspector',  // ✅ NUEVA RUTA
                     'active' => request()->is('mediciones/inspector*'),
                     'highlight' => true,
                 ],
                 [
-                    'icon' => 'fas fa-user-circle',
+                    'icon' => 'bi bi-person-circle',
                     'label' => 'Mi Perfil',
                     'url' => '/profile',
                     'active' => request()->is('profile*'),
@@ -140,57 +140,57 @@ class SidebarService
         if ($role === 'admin') {
             return [
                 [
-                    'icon' => 'fas fa-home',
+                    'icon' => 'bi bi-house',
                     'label' => 'Dashboard',
                     'url' => '/dashboard',
                     'active' => request()->is('dashboard') || request()->is('/'),
                 ],
                 [
-                    'icon' => 'fas fa-ruler-combined',
+                    'icon' => 'bi bi-rulers',
                     'label' => 'Tomar Mediciones',
                     'url' => '/mediciones/select-sensor',
                     'active' => request()->is('mediciones/select-sensor*'),
                     'highlight' => true,
                 ],
                 [
-                    'icon' => 'fas fa-tachometer-alt',
+                    'icon' => 'bi bi-sensors',
                     'label' => 'Sensores',
                     'url' => '/sensors',
                     'active' => request()->is('sensors*') && !request()->is('sensors/create*'),
                 ],
                 [
-                    'icon' => 'fas fa-ruler',
+                    'icon' => 'bi bi-graph-up',
                     'label' => 'Mediciones',
                     'url' => '/mediciones',
                     'active' => request()->is('mediciones'),
                 ],
                 [
-                    'icon' => 'fas fa-chart-line',
+                    'icon' => 'bi bi-bar-chart-line',
                     'label' => 'Consumos',
                     'url' => '/consumptions',
                     'active' => request()->is('consumptions*'),
                 ],
                 [
-                    'icon' => 'fas fa-folder',
+                    'icon' => 'bi bi-folder',
                     'label' => 'Grupos',
                     'url' => '/sensor-groups',
                     'active' => request()->is('sensor-groups*'),
                 ],
                 [
-                    'icon' => 'fas fa-file-alt',
+                    'icon' => 'bi bi-file-earmark-text',
                     'label' => 'Plantillas',
                     'url' => '/templates',
                     'active' => request()->is('templates*'),
                 ],
                 [
-                    'icon' => 'fas fa-people-arrows',
+                    'icon' => 'bi bi-people',
                     'label' => 'Colaboraciones',
                     'url' => '/collaborations',
                     'active' => request()->is('collaborations*'),
                     'badge' => $this->getPendingInvitationsCount(),
                 ],
                 [
-                    'icon' => 'fas fa-user-circle',
+                    'icon' => 'bi bi-person-circle',
                     'label' => 'Mi Perfil',
                     'url' => '/profile',
                     'active' => request()->is('profile*'),
@@ -202,38 +202,38 @@ class SidebarService
         if ($role === 'consumidor') {
             return [
                 [
-                    'icon' => 'fas fa-home',
+                    'icon' => 'bi bi-house',
                     'label' => 'Dashboard',
                     'url' => '/dashboard',
                     'active' => request()->is('dashboard') || request()->is('/'),
                 ],
                 [
-                    'icon' => 'fas fa-tachometer-alt',
+                    'icon' => 'bi bi-sensors',
                     'label' => 'Sensores',
                     'url' => '/sensors',
                     'active' => request()->is('sensors*') && !request()->is('sensors/create*'),
                 ],
                 [
-                    'icon' => 'fas fa-ruler',
+                    'icon' => 'bi bi-graph-up',
                     'label' => 'Mediciones',
                     'url' => '/mediciones',
                     'active' => request()->is('mediciones'),
                 ],
                 [
-                    'icon' => 'fas fa-chart-line',
+                    'icon' => 'bi bi-bar-chart-line',
                     'label' => 'Consumos',
                     'url' => '/consumptions',
                     'active' => request()->is('consumptions*'),
                 ],
                 [
-                    'icon' => 'fas fa-people-arrows',
+                    'icon' => 'bi bi-people',
                     'label' => 'Colaboraciones',
                     'url' => '/collaborations',
                     'active' => request()->is('collaborations*'),
                     'badge' => $this->getPendingInvitationsCount(),
                 ],
                 [
-                    'icon' => 'fas fa-user-circle',
+                    'icon' => 'bi bi-person-circle',
                     'label' => 'Mi Perfil',
                     'url' => '/profile',
                     'active' => request()->is('profile*'),
@@ -251,13 +251,13 @@ class SidebarService
     {
         return [
             [
-                'icon' => 'fas fa-home',
+                'icon' => 'bi bi-house',
                 'label' => 'Dashboard',
                 'url' => '/dashboard',
                 'active' => request()->is('dashboard') || request()->is('/'),
             ],
             [
-                'icon' => 'fas fa-user-circle',
+                'icon' => 'bi bi-person-circle',
                 'label' => 'Mi Perfil',
                 'url' => '/profile',
                 'active' => request()->is('profile*'),
