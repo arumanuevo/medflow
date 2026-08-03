@@ -5,7 +5,8 @@
     // Obtener información de límites para badges
     $subscriptionInfo = null;
     if (auth()->check()) {
-        $subscriptionInfo = \App\Services\Subscription\SubscriptionService::getSubscriptionInfo(auth()->user());
+        $subscriptionService = app(\App\Services\Subscription\SubscriptionService::class, ['user' => auth()->user()]);
+        $subscriptionInfo = $subscriptionService->getFullStatus();
     }
 @endphp
 
@@ -28,7 +29,7 @@
                         $alertCount = 0;
                         if (!$subscriptionInfo['limits']['sensors']['is_unlimited'] && $subscriptionInfo['limits']['sensors']['remaining'] <= 1) $alertCount++;
                         if (!$subscriptionInfo['limits']['groups']['is_unlimited'] && $subscriptionInfo['limits']['groups']['remaining'] <= 1) $alertCount++;
-                        if (!$subscriptionInfo['plan']['is_active']) $alertCount++;
+                        if (!$subscriptionInfo['has_active_subscription']) $alertCount++;
                     @endphp
                     @if($alertCount > 0)
                         <span class="badge bg-danger ms-1">{{ $alertCount }}</span>
@@ -40,7 +41,7 @@
                         Estado de Suscripci\u00f3n
                     </li>
                     
-                    @if(!$subscriptionInfo['plan']['is_active'])
+                    @if(!$subscriptionInfo['has_active_subscription'])
                         <li>
                             <div class="dropdown-item-text">
                                 <span class="badge bg-warning text-dark me-2">!</span>
