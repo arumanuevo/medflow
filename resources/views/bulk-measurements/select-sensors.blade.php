@@ -167,9 +167,14 @@
                         </div>
                     </div>
 
-                    {{-- Tabla de Sensores --}}
-                    <div class="sensor-table-wrapper">
-                        <table class="table table-bordered table-striped table-hover" id="sensorsTable">
+                    {{-- Formulario para medición masiva --}}
+                    <form id="bulkMeasurementForm" method="POST" action="{{ route('bulk-measurements.start') }}">
+                        @csrf
+                        <input type="hidden" name="sensor_ids" id="sensorIdsInput" value="">
+                        
+                        {{-- Tabla de Sensores --}}
+                        <div class="sensor-table-wrapper">
+                            <table class="table table-bordered table-striped table-hover" id="sensorsTable">
                             <thead>
                                 <tr>
                                     <th style="width: 40px;">
@@ -273,6 +278,7 @@
                             <i class="bi bi-arrow-left"></i> Volver
                         </a>
                     </div>
+                        </form>
                 </div>
             </div>
         </div>
@@ -396,16 +402,22 @@ $(document).ready(function() {
             return;
         }
         
-        // Guardar el orden de selección en un campo oculto
+        // Obtener los IDs de los sensores seleccionados
+        const selectedSensorIds = $sensorCheckboxes.filter(':checked').map(function() {
+            return $(this).data('sensor-id');
+        }).get();
+        
+        // Guardar los IDs en el campo oculto
+        $('#sensorIdsInput').val(selectedSensorIds.join(','));
+        
+        // Guardar el orden de selección
         const useSelectionOrder = $useSelectionOrder.is(':checked');
         if (useSelectionOrder && selectionOrder.length > 0) {
-            // Crear campo oculto con el orden de selección
             $('#bulkMeasurementForm').append(`
                 <input type="hidden" name="selection_order" value="${selectionOrder.join(',')}">
                 <input type="hidden" name="use_selection_order" value="1">
             `);
         } else {
-            // Usar orden por ID (por defecto)
             $('#bulkMeasurementForm').append(`
                 <input type="hidden" name="use_selection_order" value="0">
             `);

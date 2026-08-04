@@ -19,13 +19,17 @@
         font-weight: 600;
     }
 
-    /* Estilo para los botones */
+    /* Estilo para los botones - consistente con bulk-measurements */
     .btn {
         border-radius: 6px;
-        font-weight: 500;
-        padding: 0.4rem 0.8rem;
-        font-size: 0.875rem;
+        font-weight: 600;
+        padding: 0.65rem 1.5rem;
+        font-size: 0.9rem;
         transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
     }
 
     .btn-sm {
@@ -35,11 +39,10 @@
 
     /* Estilo para iconos en botones - consistente con otras vistas */
     .btn i {
-        font-size: 0.9rem;
-        margin-right: 3px;
+        font-size: 1rem;
     }
     .btn-sm i {
-        font-size: 0.8rem;
+        font-size: 0.85rem;
     }
 
     .btn-primary {
@@ -135,7 +138,7 @@
         margin-top: 0.25rem;
     }
 
-    /* Estilo para la tabla de mediciones */
+    /* Estilo para la tabla de mediciones - consistente con bulk-measurements */
     .table {
         --bs-table-bg: transparent;
         --bs-table-accent-bg: transparent;
@@ -156,18 +159,30 @@
         background-color: #343a40;
         color: #fff;
         border-bottom: 2px solid #2e3235;
-        padding: 0.75rem;
+        padding: 0.5rem 0.6rem;
         vertical-align: middle;
-        font-size: 0.85rem;
+        font-size: 0.75rem;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        user-select: none;
+        position: relative;
+    }
+
+    .table th:hover {
+        background-color: rgba(13, 110, 253, 0.08);
     }
 
     .table td {
-        padding: 0.75rem;
+        padding: 0.5rem 0.6rem;
         vertical-align: middle;
         font-size: 0.85rem;
+        text-align: center;
+    }
+
+    .table td.text-left {
+        text-align: left;
     }
 
     .table-striped > tbody > tr:nth-of-type(odd) > * {
@@ -182,11 +197,11 @@
         background-color: rgba(255, 206, 86, 0.1) !important;
     }
 
-    /* Estilo para los badges */
+    /* Estilo para los badges - consistente con bulk-measurements */
     .badge {
-        padding: 0.45em 0.65em;
-        border-radius: 0.25rem;
-        font-size: 0.75em;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
         font-weight: 600;
         line-height: 1;
     }
