@@ -30,8 +30,11 @@
     position: relative;
     transition: background-color 0.15s;
     border-bottom: 2px solid #dee2e6;
-    background-color: #343a40;
-    color: #fff;
+    background-color: #f8f9fa;
+    color: #495057;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.05em;
 }
 
 .table-wrapper .table th:hover {
@@ -493,4 +496,31 @@
     .card-header-tools > * {
         margin-bottom: 0.5rem;
     }
+}
+
+/* =============================================
+   ESTILOS PARA CARD HEADERS
+   ============================================= */
+
+.card-header {
+    border-radius: 8px 8px 0 0 !important;
+    padding: 0.75rem 1.5rem !important;
+    font-weight: 600;
+    background-color: #2c3e50 !important;
+    color: #fff !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125) !important;
+}
+
+.card-header h4,
+.card-header h5,
+.card-header h6 {
+    margin-bottom: 0;
+    color: inherit;
+}
+
+/* Estilo específico para card-headers en tablas de consumptions */
+.consumption-table-wrapper .table th {
+    text-transform: uppercase !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.05em !important;
 }
