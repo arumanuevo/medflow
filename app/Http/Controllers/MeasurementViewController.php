@@ -126,6 +126,18 @@ class MeasurementViewController extends Controller
             abort(403, 'No tienes permiso para tomar mediciones en este sensor.');
         }
 
+        // ✅ Verificar que el usuario puede medir este sensor según su plan
+        $subscriptionService = new \App\Services\Subscription\SubscriptionService($user);
+        if (!$subscriptionService->canMeasureSensor($sensor)) {
+            $planName = $subscriptionService->getPlan()->getPlanName();
+            $maxSensors = $subscriptionService->getPlan()->getMaxSensors();
+            $measurableSensors = $subscriptionService->getMeasurableSensorIds();
+            
+            abort(403, "No puedes tomar mediciones en este sensor con tu plan {$planName}. " .
+                  "Tu plan permite medir solo en los primeros {$maxSensors} sensores. " .
+                  "Actualiza tu plan para medir en todos tus sensores.");
+        }
+
         // Verificar plantilla
         if (!$sensor->group || !$sensor->group->template) {
             return redirect()->route('measurements.select-sensor')
