@@ -499,9 +499,11 @@ class SubscriptionPaymentController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => $durationMinutes !== null 
-                    ? "Suscripción {$plan} activada por {$durationMinutes} minutos para pruebas." 
-                    : "Suscripción {$plan} activada (permanente en modo debug).",
+                'message' => ($plan === 'free')
+                    ? "Suscripción Free activada (permanente)."
+                    : (($durationMinutes !== null) 
+                        ? "Suscripción {$plan} activada por {$durationMinutes} minutos para pruebas."
+                        : "Suscripción {$plan} activada por 5 minutos para pruebas."),
                 'data' => [
                     'subscription' => $subscription,
                     'expires_at' => $subscription->expires_at->toDateTimeString()
