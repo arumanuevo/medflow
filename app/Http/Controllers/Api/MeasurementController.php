@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use App\Models\UserSetting;
+use App\Services\Subscription\SubscriptionService;
 
 class MeasurementController extends Controller
 {
@@ -1485,6 +1486,33 @@ public function store(Request $request)
             'success' => false,
             'message' => 'No tienes permiso para acceder a este sensor'
         ], 403);
+
+    // Verificar limites de suscripcion para toma de mediciones
+    $subscriptionService = new SubscriptionService($user);
+    $plan = $subscriptionService->getPlan();
+    
+    // Verificar si el sensor pertenece al usuario y si el plan permite tomar mediciones
+    if ($sensor->group && $sensor->group->user_id === $user->id) {
+        // Si el sensor es del usuario, verificar que el plan permita crear mediciones
+        // Para planes Free y Basico, verificar que no se exceda el limite de sensores activos
+        $currentSensorCount = $subscriptionService->getCurrentSensorCount();
+        $maxSensors = $plan->getMaxSensors();
+        
+        if ($currentSensorCount > $maxSensors) {
+            return response()->json([
+                'success' => false,
+                'message' => "Tu plan {$plan->getPlanName()} permite solo {$maxSensors} sensor(es). " .
+                            "Tienes {$currentSensorCount} sensores. " .
+                            "Elimina algunos sensores o actualiza tu plan para tomar mediciones.",
+                'code' => 'sensor_limit_exceeded_for_measurements',
+                'data' => [
+                    'current_sensors' => $currentSensorCount,
+                    'max_sensors' => $maxSensors,
+                    'plan' => $plan->getPlanKey()
+                ]
+            ], 403);
+        }
+    }
     }
 
     // ✅ Validación básica
