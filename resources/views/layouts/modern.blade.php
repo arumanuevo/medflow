@@ -15,6 +15,8 @@
     
     <!-- Modern Sidebar CSS -->
     <link rel="stylesheet" href="{{ asset('css/modern-sidebar.css') }}">
+    <!-- Shared Styles CSS -->
+    <link rel="stylesheet" href="{{ asset('css/shared-styles.css') }}">
 
     @stack('styles')
 
