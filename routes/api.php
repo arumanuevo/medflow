@@ -330,6 +330,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/', [ProfileController::class, 'update'])->name('api.profile.update');
         Route::put('/subscription', [ProfileController::class, 'updateSubscription'])->name('api.profile.subscription');
         Route::get('/stats', [ProfileController::class, 'getStats'])->name('api.profile.stats');
+        
+        // Eliminacion de todos los datos del usuario
+        Route::post('/delete-all-data/confirmation-token', [ProfileController::class, 'generateDeleteConfirmationToken'])
+            ->name('api.profile.delete-all-data.token');
+        Route::delete('/delete-all-data', [ProfileController::class, 'deleteAllData'])
+            ->name('api.profile.delete-all-data');
     });
 
     // =====================================================

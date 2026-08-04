@@ -5,6 +5,11 @@
 @push('styles')
 <style>
     /* Estilos existentes */
+    /* Estilo para el boton close blanco en modal de peligro */
+    .btn-close-white {
+        filter: brightness(0) invert(1);
+    }
+
     
     /* ✅ Estilos para la sección de suscripción */
     #subscriptionStatus .alert {
@@ -284,7 +289,72 @@
                         </div>
                     </div>
                     @endif
+
+                    {{-- SECCI\u00d3N DE ELIMINACI\u00d3N DE DATOS --}}
+                    <div class="mt-4 pt-3 border-top">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0 text-danger">
+                                <i class="bi bi-exclamation-triangle-fill"></i> 
+                                Eliminar todos mis datos
+                            </h6>
+                        </div>
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <strong>\u26a0\ufe0f Advertencia:</strong> Esta acci\u00f3n eliminar\u00e1 
+                            <strong>TODOS</strong> tus datos: sensores, mediciones, fotos asociadas, grupos, 
+                            colaboraciones, suscripciones y configuraciones. 
+                            <strong>No podr\u00e1s recuperar esta informaci\u00f3n.</strong>
+                        </div>
+                        <button type="button" class="btn btn-danger w-100" id="deleteAllDataBtn">
+                            <i class="bi bi-trash-fill me-2"></i> 
+                            Eliminar todos mis datos
+                        </button>
+                    </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmaci\u00f3n para eliminar todos los datos -->
+<div class="modal fade" id="confirmDeleteAllDataModal" tabindex="-1" aria-labelledby="confirmDeleteAllDataModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="confirmDeleteAllDataModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> 
+                    \u00bfEst\u00e1s seguro de que deseas eliminar TODOS tus datos?
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>Esta acci\u00f3n es irreversible.</strong>
+                </div>
+                <p>Se eliminar\u00e1n:</p>
+                <ul>
+                    <li><i class="bi bi-check-circle-fill text-danger me-2"></i> Todos tus sensores</li>
+                    <li><i class="bi bi-check-circle-fill text-danger me-2"></i> Todas tus mediciones</li>
+                    <li><i class="bi bi-check-circle-fill text-danger me-2"></i> Todas las fotos asociadas a mediciones</li>
+                    <li><i class="bi bi-check-circle-fill text-danger me-2"></i> Todos tus grupos de sensores</li>
+                    <li><i class="bi bi-check-circle-fill text-danger me-2"></i> Todas tus colaboraciones y accesos compartidos</li>
+                    <li><i class="bi bi-check-circle-fill text-danger me-2"></i> Tus suscripciones</li>
+                    <li><i class="bi bi-check-circle-fill text-danger me-2"></i> Tus configuraciones personales</li>
+                </ul>
+                <p>Tu cuenta ser\u00e1 anonimizada (nombre y email cambiados).</p>
+                <div class="form-group">
+                    <label for="confirmationText" class="form-label">Para confirmar, escribe <strong>"ELIMINAR TODO"</strong>:</label>
+                    <input type="text" class="form-control" id="confirmationText" placeholder="ELIMINAR TODO">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-1"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteAllData">
+                    <i class="bi bi-trash-fill me-1"></i> S\u00ed, eliminar todo
+                </button>
             </div>
         </div>
     </div>
@@ -854,3 +924,92 @@ $(document).ready(function() {
 });
 </script>
 @endpush
+    // =============================================
+    // \u2705 FUNCIONALIDAD PARA ELIMINAR TODOS LOS DATOS
+    // =============================================
+    
+    // Evento para abrir el modal de confirmaci\u00f3n
+    $('#deleteAllDataBtn').click(function() {
+        $('#confirmDeleteAllDataModal').modal('show');
+        $('#confirmationText').val('');
+    });
+
+    // Evento para confirmar la eliminaci\u00f3n
+    $('#confirmDeleteAllData').click(function() {
+        const confirmationText = $('#confirmationText').val().trim();
+        
+        if (confirmationText !== 'ELIMINAR TODO') {
+            showAlert('Debes escribir exactamente "ELIMINAR TODO" para confirmar.', 'danger');
+            return;
+        }
+
+        // Obtener token de confirmaci\u00f3n
+        $.ajax({
+            url: '/api/profile/delete-all-data/confirmation-token',
+            type: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                'Accept': 'application/json'
+            },
+            beforeSend: function() {
+                $('#confirmDeleteAllData').prop('disabled', true).html(`
+                    <span class="spinner-border spinner-border-sm" role="status"></span> Procesando...
+                `);
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Ahora ejecutar la eliminaci\u00f3n con el token
+                    deleteAllUserData(response.token);
+                } else {
+                    showAlert(response.message || 'Error al generar token', 'danger');
+                    $('#confirmDeleteAllData').prop('disabled', false).html(`
+                        <i class="bi bi-trash-fill me-1"></i> S\u00ed, eliminar todo
+                    `);
+                }
+            },
+            error: function(xhr) {
+                showAlert('Error: ' + (xhr.responseJSON?.message || xhr.statusText), 'danger');
+                $('#confirmDeleteAllData').prop('disabled', false).html(`
+                    <i class="bi bi-trash-fill me-1"></i> S\u00ed, eliminar todo
+                `);
+            }
+        });
+    });
+
+    // Funci\u00f3n para eliminar todos los datos del usuario
+    function deleteAllUserData(token) {
+        $.ajax({
+            url: '/api/profile/delete-all-data',
+            type: 'DELETE',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify({
+                confirm_token: token
+            }),
+            success: function(response) {
+                if (response.success) {
+                    $('#confirmDeleteAllDataModal').modal('hide');
+                    showAlert(response.message, 'success');
+                    
+                    // Redirigir al login despu\u00e9s de 3 segundos
+                    setTimeout(function() {
+                        window.location.href = '/login';
+                    }, 3000);
+                } else {
+                    showAlert(response.message || 'Error al eliminar datos', 'danger');
+                }
+            },
+            error: function(xhr) {
+                const errorMessage = xhr.responseJSON?.message || xhr.statusText;
+                showAlert('Error: ' + errorMessage, 'danger');
+            },
+            complete: function() {
+                $('#confirmDeleteAllData').prop('disabled', false).html(`
+                    <i class="bi bi-trash-fill me-1"></i> S\u00ed, eliminar todo
+                `);
+            }
+        });
+    }
