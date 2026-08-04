@@ -96,6 +96,11 @@ class BulkMeasurementFlowController extends Controller
         // Validar que hay sensores seleccionados
         $sensorIds = $request->input('sensor_ids', []);
         
+        // Convertir a array si viene como string (separado por comas)
+        if (is_string($sensorIds)) {
+            $sensorIds = explode(',', $sensorIds);
+        }
+        
         if (empty($sensorIds)) {
             return redirect()->back()->with('error', 'Debes seleccionar al menos un sensor.');
         }
