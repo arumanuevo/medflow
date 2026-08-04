@@ -1,18 +1,14 @@
 @extends('layouts.modern')
 
-@section('title', 'Medición - ' . ($sensor->name ?? 'Sensor'))
+@section('title', 'Medición Masiva - ' . ($sensor->name ?? 'Sensor'))
 
 @push('styles')
 <style>
-    .measurement-container {
-        max-width: 900px;
-        margin: 0 auto;
-    }
-    .card-progress {
-        border-left: 4px solid #0d6efd;
-        background: linear-gradient(90deg, #e7f1ff 0%, #f8f9fa 100%);
+    .bulk-progress {
+        background: #f8f9fa;
+        padding: 1rem;
         border-radius: 8px;
-        padding: 1.25rem;
+        border: 1px solid #e9ecef;
         margin-bottom: 1.5rem;
     }
     .progress-info {
@@ -24,9 +20,10 @@
     .progress-text {
         font-weight: 600;
         color: #1a202c;
+        font-size: 0.9rem;
     }
     .progress-value {
-        font-size: 1.25rem;
+        font-size: 1rem;
         font-weight: 700;
         color: #0d6efd;
     }
@@ -42,22 +39,16 @@
         border-radius: 4px;
         transition: width 0.5s ease;
     }
-    .sensor-header {
-        background: linear-gradient(135deg, #0d6efd, #0a5fd9);
-        color: white;
-        border-radius: 12px 12px 0 0;
-        padding: 1.25rem 1.5rem;
-    }
     .sensor-info-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         gap: 1rem;
         margin-bottom: 1.5rem;
     }
     .sensor-info-item {
         background: #f8f9fa;
         padding: 0.75rem 1rem;
-        border-radius: 8px;
+        border-radius: 6px;
         border: 1px solid #e9ecef;
     }
     .sensor-info-label {
@@ -71,6 +62,7 @@
     .sensor-info-value {
         font-weight: 600;
         color: #1a202c;
+        font-size: 0.9rem;
     }
     .previous-measurement-box {
         background: #e7f1ff;
@@ -90,7 +82,7 @@
     .previous-measurement-box .value {
         font-weight: 700;
         color: #0d6efd;
-        font-size: 1.25rem;
+        font-size: 1.1rem;
     }
     .previous-measurement-box .date {
         font-size: 0.85rem;
@@ -99,28 +91,39 @@
     }
     .form-section {
         background: white;
-        padding: 1.5rem;
-        border-radius: 12px;
+        padding: 1.25rem;
+        border-radius: 8px;
         border: 1px solid #e9ecef;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1.25rem;
     }
     .form-section h6 {
         font-weight: 600;
         color: #1a202c;
         margin-bottom: 1rem;
         padding-bottom: 0.75rem;
-        border-bottom: 2px solid #e9ecef;
+        border-bottom: 1px solid #e9ecef;
+        font-size: 0.9rem;
     }
-    .btn-action {
-        padding: 0.75rem 2rem;
+    .form-section .form-label {
         font-weight: 600;
-        border-radius: 8px;
-        transition: all 0.3s ease;
+        color: #495057;
+        font-size: 0.9rem;
+    }
+    .action-buttons {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-top: 1.5rem;
+    }
+    .action-buttons .btn {
+        padding: 0.65rem 1.5rem;
+        font-weight: 600;
+        border-radius: 6px;
+        font-size: 0.9rem;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         gap: 0.5rem;
-        min-height: 48px;
     }
     .btn-save {
         background: linear-gradient(135deg, #28a745, #20c997);
@@ -128,8 +131,8 @@
         color: white;
     }
     .btn-save:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(40, 167, 69, 0.35);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.35);
         color: white;
     }
     .btn-next {
@@ -138,8 +141,8 @@
         color: white;
     }
     .btn-next:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(13, 110, 253, 0.35);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.35);
         color: white;
     }
     .btn-previous {
@@ -160,39 +163,24 @@
         background: #c82333;
         color: white;
     }
-    .action-buttons {
-        display: flex;
-        gap: 0.75rem;
-        flex-wrap: wrap;
-        margin-top: 1.5rem;
-    }
-    .action-buttons .btn {
-        flex: 1;
-        min-width: 150px;
-    }
-    @media (max-width: 768px) {
-        .action-buttons .btn {
-            flex: 1 1 100%;
-        }
-    }
     .camera-preview-container {
         position: relative;
         background: #f8f9fa;
-        border-radius: 8px;
+        border-radius: 6px;
         overflow: hidden;
-        min-height: 200px;
+        min-height: 180px;
         display: flex;
         align-items: center;
         justify-content: center;
     }
     .camera-preview-container video {
         width: 100%;
-        max-height: 300px;
+        max-height: 250px;
         object-fit: cover;
     }
     .photo-preview {
-        max-height: 150px;
-        border-radius: 8px;
+        max-height: 120px;
+        border-radius: 6px;
         object-fit: cover;
         margin-top: 0.5rem;
     }
@@ -204,284 +192,286 @@
         color: #6c757d;
         font-weight: normal;
     }
+    @media (max-width: 768px) {
+        .action-buttons .btn {
+            flex: 1 1 100%;
+        }
+        .sensor-info-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
 </style>
 @endpush
 
 @section('content')
-<div class="container py-4">
-    <div class="measurement-container">
-        <!-- Progreso -->
-        <div class="card-progress">
-            <div class="progress-info">
-                <span class="progress-text">
-                    <i class="bi bi-list-check me-2"></i>
-                    Sensor {{ $currentPosition }} de {{ $totalSensors }}
-                </span>
-                <span class="progress-value">
-                    {{ round(($currentPosition / $totalSensors) * 100) }}%
-                </span>
-            </div>
-            <div class="progress-bar-custom">
-                <div class="fill" style="width: {{ ($currentPosition / $totalSensors) * 100 }}%;"></div>
-            </div>
-        </div>
-
-        <!-- Tarjeta principal -->
-        <div class="card shadow-sm">
-            <!-- Header -->
-            <div class="sensor-header">
-                <div class="d-flex justify-content-between align-items-center">
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <div>
-                        <h4 class="mb-0">
-                            <i class="bi bi-rulers me-2"></i>
-                            Tomar Medición
-                        </h4>
-                        <small class="opacity-75">
-                            Espacio de: <strong>{{ $ownerName }}</strong>
-                        </small>
+                        <h5 class="mb-0">
+                            <i class="bi bi-rulers me-2"></i> Medición Masiva
+                        </h5>
+                        <small>Espacio de: <strong>{{ $ownerName }}</strong></small>
                     </div>
                     <div>
-                        @if($hasNext)
-                            <span class="badge bg-light text-dark">
-                                <i class="bi bi-arrow-right"></i> Siguiente disponible
+                        <a href="{{ route('bulk-measurements.select') }}" class="btn btn-light btn-sm">
+                            <i class="bi bi-arrow-left me-1"></i> Volver
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {{-- Alertas --}}
+                    <div id="alertContainer"></div>
+
+                    {{-- Progreso --}}
+                    <div class="bulk-progress">
+                        <div class="progress-info">
+                            <span class="progress-text">
+                                <i class="bi bi-list-check me-1"></i>
+                                Sensor {{ $currentPosition }} de {{ $totalSensors }}
                             </span>
-                        @endif
-                    </div>
-                </div>
-            </div>
-
-            <div class="card-body">
-                <!-- Alertas -->
-                <div id="alertContainer"></div>
-
-                <!-- Información del sensor -->
-                <div class="sensor-info-grid">
-                    <div class="sensor-info-item">
-                        <span class="sensor-info-label">Sensor</span>
-                        <span class="sensor-info-value">{{ $sensor->name }}</span>
-                    </div>
-                    <div class="sensor-info-item">
-                        <span class="sensor-info-label">Identificador</span>
-                        <span class="sensor-info-value"><code>{{ $sensor->identifier }}</code></span>
-                    </div>
-                    <div class="sensor-info-item">
-                        <span class="sensor-info-label">Grupo</span>
-                        <span class="sensor-info-value">{{ $sensor->group->name ?? 'Sin grupo' }}</span>
-                    </div>
-                    <div class="sensor-info-item">
-                        <span class="sensor-info-label">Período</span>
-                        <span class="sensor-info-value">{{ $periodoMedicion }} días</span>
-                    </div>
-                </div>
-
-                <!-- Medición anterior -->
-                @if($previousMeasurement)
-                    <div class="previous-measurement-box">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <span class="label">Última medición</span>
-                                <span class="value">{{ is_numeric($lastValue) ? number_format($lastValue, 2) : ($lastValue ?? 'N/A') }}</span>
-                            </div>
-                            <div class="text-end">
-                                <span class="date">
-                                    <i class="bi bi-calendar3"></i> 
-                                    {{ $previousMeasurement->measured_at->format('d/m/Y H:i') }}
-                                </span>
-                                <small class="text-muted d-block mt-1">
-                                    <i class="bi bi-info-circle"></i> 
-                                    El nuevo valor debe ser <strong>mayor</strong>
-                                </small>
-                            </div>
+                            <span class="progress-value">
+                                {{ round(($currentPosition / $totalSensors) * 100) }}%
+                            </span>
                         </div>
-                    </div>
-                @else
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i> 
-                        No hay mediciones anteriores para este sensor. Puedes ingresar cualquier valor.
-                    </div>
-                @endif
-
-                <!-- Formulario -->
-                <form id="measurementForm">
-                    @csrf
-                    <input type="hidden" name="sensor_id" value="{{ $sensor->id }}">
-                    <input type="hidden" id="groupName" value="{{ str_replace(' ', '_', $sensor->group->name ?? 'SinGrupo') }}">
-
-                    <!-- Campo principal (Valor) -->
-                    <div class="form-section">
-                        <h6>
-                            <i class="bi bi-hash me-2 text-primary"></i>
-                            Valor de Medición
-                        </h6>
-                        <div class="mb-3">
-                            <label for="main_value" class="form-label fw-semibold">
-                                {{ ucfirst($mainField ?? 'Valor') }}
-                                <span class="field-required">*</span>
-                                @if($sensor->group && $sensor->group->template)
-                                    @php
-                                        $unit = null;
-                                        if (isset($sensor->group->template->schema['campos'])) {
-                                            foreach ($sensor->group->template->schema['campos'] as $campo) {
-                                                if ($campo['nombre'] === $mainField && isset($campo['unidad'])) {
-                                                    $unit = $campo['unidad'];
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                    @endphp
-                                    @if($unit)
-                                        <span class="field-unit">({{ $unit }})</span>
-                                    @endif
-                                @endif
-                            </label>
-                            <input type="number" step="0.01" class="form-control form-control-lg" 
-                                   id="main_value" 
-                                   name="data[{{ $mainField ?? 'valor' }}]" 
-                                   placeholder="Ingresa el valor medido"
-                                   autofocus required>
-                            @if($lastValue !== null)
-                                <small class="text-muted">
-                                    <i class="bi bi-arrow-up"></i> 
-                                    Debe ser mayor que <strong>{{ is_numeric($lastValue) ? number_format($lastValue, 2) : $lastValue }}</strong>
-                                </small>
-                            @endif
+                        <div class="progress-bar-custom">
+                            <div class="fill" style="width: {{ ($currentPosition / $totalSensors) * 100 }}%;"></div>
                         </div>
                     </div>
 
-                    <!-- Fecha -->
-                    <div class="form-section">
-                        <h6>
-                            <i class="bi bi-calendar me-2 text-primary"></i>
-                            Fecha de Medición
-                        </h6>
-                        <div class="mb-3">
-                            <label for="measured_at" class="form-label fw-semibold">
-                                Fecha y Hora <span class="field-required">*</span>
-                            </label>
-                            <input type="datetime-local" class="form-control form-control-lg" 
-                                   id="measured_at" name="measured_at" required>
+                    {{-- Información del sensor --}}
+                    <div class="sensor-info-grid">
+                        <div class="sensor-info-item">
+                            <span class="sensor-info-label">Sensor</span>
+                            <span class="sensor-info-value">{{ $sensor->name }}</span>
+                        </div>
+                        <div class="sensor-info-item">
+                            <span class="sensor-info-label">Identificador</span>
+                            <span class="sensor-info-value"><code>{{ $sensor->identifier }}</code></span>
+                        </div>
+                        <div class="sensor-info-item">
+                            <span class="sensor-info-label">Grupo</span>
+                            <span class="sensor-info-value">{{ $sensor->group->name ?? 'Sin grupo' }}</span>
+                        </div>
+                        <div class="sensor-info-item">
+                            <span class="sensor-info-label">Período</span>
+                            <span class="sensor-info-value">{{ $periodoMedicion }} días</span>
                         </div>
                     </div>
 
-                    <!-- Foto -->
-                    <div class="form-section">
-                        <h6>
-                            <i class="bi bi-camera me-2 text-primary"></i>
-                            Foto (Opcional)
-                        </h6>
-                        <div class="mb-3">
-                            <div class="row g-2 align-items-center">
-                                <div class="col-md-8">
-                                    <input type="text" class="form-control" id="photo" name="data[foto]" 
-                                           placeholder="Nombre de la foto" value="Sin Foto">
+                    {{-- Medición anterior --}}
+                    @if($previousMeasurement)
+                        <div class="previous-measurement-box">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="label">Última medición</span>
+                                    <span class="value">{{ is_numeric($lastValue) ? number_format($lastValue, 2) : ($lastValue ?? 'N/A') }}</span>
                                 </div>
-                                <div class="col-md-4">
-                                    <button type="button" class="btn btn-outline-primary w-100" id="btnActivarCamara">
-                                        <i class="bi bi-camera"></i> Tomar Foto
-                                    </button>
+                                <div class="text-end">
+                                    <span class="date">
+                                        <i class="bi bi-calendar3"></i> 
+                                        {{ $previousMeasurement->measured_at->format('d/m/Y H:i') }}
+                                    </span>
+                                    <small class="text-muted d-block mt-1">
+                                        <i class="bi bi-info-circle"></i> 
+                                        El nuevo valor debe ser <strong>mayor</strong>
+                                    </small>
                                 </div>
                             </div>
-                            <div id="photoPreview" class="mt-2 d-none">
-                                <img id="photoPreviewImg" class="photo-preview" alt="Foto de la medición">
-                                <button type="button" class="btn btn-sm btn-danger mt-1" id="btnRemovePhoto">
-                                    <i class="bi bi-x"></i> Quitar foto
-                                </button>
-                            </div>
-                            <div class="camera-preview-container d-none" id="cameraPreview">
-                                <video id="webcam" autoplay playsinline></video>
-                                <button type="button" class="btn btn-sm btn-success position-absolute bottom-0 start-50 translate-middle-x mb-2" id="btnTakePhoto">
-                                    <i class="bi bi-camera"></i> Capturar
-                                </button>
-                                <canvas id="canvas" class="d-none"></canvas>
-                            </div>
                         </div>
-                    </div>
-
-                    <!-- Campos personalizados -->
-                    @php
-                        $customFields = [];
-                        if (isset($sensor->group) && isset($sensor->group->template) && isset($sensor->group->template->schema['campos'])) {
-                            $customFields = array_filter($sensor->group->template->schema['campos'], function($campo) use ($mainField) {
-                                return $campo['nombre'] !== ($mainField ?? 'valor') && 
-                                       $campo['nombre'] !== 'foto' && 
-                                       $campo['nombre'] !== 'fecha_medicion';
-                            });
-                        }
-                    @endphp
-
-                    @if(count($customFields) > 0)
-                        <div class="form-section">
-                            <h6>
-                                <i class="bi bi-file-earmark-text me-2 text-primary"></i>
-                                Campos Adicionales
-                            </h6>
-                            <div class="row g-3">
-                                @foreach($customFields as $campo)
-                                    <div class="col-md-6">
-                                        <label for="field_{{ $campo['nombre'] }}" class="form-label">
-                                            {{ ucfirst(str_replace('_', ' ', $campo['nombre'])) }}
-                                            @if($campo['requerido'] ?? false) <span class="field-required">*</span> @endif
-                                            @if(isset($campo['unidad']) && $campo['unidad'])
-                                                <span class="field-unit">({{ $campo['unidad'] }})</span>
-                                            @endif
-                                        </label>
-                                        @if($campo['tipo'] === 'numero')
-                                            <input type="number" step="0.01" class="form-control"
-                                                   id="field_{{ $campo['nombre'] }}" 
-                                                   name="data[campos_personalizados][{{ $campo['nombre'] }}]"
-                                                   placeholder="Ingresa {{ $campo['nombre'] }}"
-                                                   {{ ($campo['requerido'] ?? false) ? 'required' : '' }}>
-                                        @elseif($campo['tipo'] === 'texto' || $campo['tipo'] === 'string')
-                                            <input type="text" class="form-control"
-                                                   id="field_{{ $campo['nombre'] }}" 
-                                                   name="data[campos_personalizados][{{ $campo['nombre'] }}]"
-                                                   placeholder="Ingresa {{ $campo['nombre'] }}"
-                                                   {{ ($campo['requerido'] ?? false) ? 'required' : '' }}>
-                                        @elseif($campo['tipo'] === 'fecha')
-                                            <input type="date" class="form-control"
-                                                   id="field_{{ $campo['nombre'] }}" 
-                                                   name="data[campos_personalizados][{{ $campo['nombre'] }}]"
-                                                   {{ ($campo['requerido'] ?? false) ? 'required' : '' }}>
-                                        @elseif($campo['tipo'] === 'booleano')
-                                            <select class="form-select" id="field_{{ $campo['nombre'] }}"
-                                                    name="data[campos_personalizados][{{ $campo['nombre'] }}]"
-                                                    {{ ($campo['requerido'] ?? false) ? 'required' : '' }}>
-                                                <option value="1">Sí</option>
-                                                <option value="0">No</option>
-                                            </select>
-                                        @endif
-                                    </div>
-                                @endforeach
-                            </div>
+                    @else
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> 
+                            No hay mediciones anteriores para este sensor. Puedes ingresar cualquier valor.
                         </div>
                     @endif
 
-                    <!-- Botones de acción -->
-                    <div class="action-buttons">
-                        <a href="{{ route('bulk-measurements.select') }}" 
-                           class="btn btn-cancel btn-action" 
-                           onclick="return confirm('¿Estás seguro de que deseas cancelar el flujo de medición masiva?');">
-                            <i class="bi bi-x-lg"></i> Cancelar
-                        </a>
-                        
-                        @if($hasPrevious)
-                            <a href="{{ route('bulk-measurements.previous', $sensor->id) }}" 
-                               class="btn btn-previous btn-action">
-                                <i class="bi bi-arrow-left"></i> Anterior
+                    {{-- Formulario --}}
+                    <form id="measurementForm">
+                        @csrf
+                        <input type="hidden" name="sensor_id" value="{{ $sensor->id }}">
+                        <input type="hidden" id="groupName" value="{{ str_replace(' ', '_', $sensor->group->name ?? 'SinGrupo') }}">
+
+                        {{-- Campo principal (Valor) --}}
+                        <div class="form-section">
+                            <h6>
+                                <i class="bi bi-hash me-2 text-primary"></i>
+                                Valor de Medición
+                            </h6>
+                            <div class="mb-3">
+                                <label for="main_value" class="form-label">
+                                    {{ ucfirst($mainField ?? 'Valor') }}
+                                    <span class="field-required">*</span>
+                                    @if($sensor->group && $sensor->group->template)
+                                        @php
+                                            $unit = null;
+                                            if (isset($sensor->group->template->schema['campos'])) {
+                                                foreach ($sensor->group->template->schema['campos'] as $campo) {
+                                                    if ($campo['nombre'] === $mainField && isset($campo['unidad'])) {
+                                                        $unit = $campo['unidad'];
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        @endphp
+                                        @if($unit)
+                                            <span class="field-unit">({{ $unit }})</span>
+                                        @endif
+                                    @endif
+                                </label>
+                                <input type="number" step="0.01" class="form-control" 
+                                       id="main_value" 
+                                       name="data[{{ $mainField ?? 'valor' }}]" 
+                                       placeholder="Ingresa el valor medido"
+                                       autofocus required>
+                                @if($lastValue !== null)
+                                    <small class="text-muted">
+                                        <i class="bi bi-arrow-up"></i> 
+                                        Debe ser mayor que <strong>{{ is_numeric($lastValue) ? number_format($lastValue, 2) : $lastValue }}</strong>
+                                    </small>
+                                @endif
+                            </div>
+                        </div>
+
+                        {{-- Fecha --}}
+                        <div class="form-section">
+                            <h6>
+                                <i class="bi bi-calendar me-2 text-primary"></i>
+                                Fecha de Medición
+                            </h6>
+                            <div class="mb-3">
+                                <label for="measured_at" class="form-label">
+                                    Fecha y Hora <span class="field-required">*</span>
+                                </label>
+                                <input type="datetime-local" class="form-control" 
+                                       id="measured_at" name="measured_at" required>
+                            </div>
+                        </div>
+
+                        {{-- Foto --}}
+                        <div class="form-section">
+                            <h6>
+                                <i class="bi bi-camera me-2 text-primary"></i>
+                                Foto (Opcional)
+                            </h6>
+                            <div class="mb-3">
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-md-8">
+                                        <input type="text" class="form-control" id="photo" name="data[foto]" 
+                                               placeholder="Nombre de la foto" value="Sin Foto">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <button type="button" class="btn btn-outline-primary w-100 btn-sm" id="btnActivarCamara">
+                                            <i class="bi bi-camera"></i> Tomar Foto
+                                        </button>
+                                    </div>
+                                </div>
+                                <div id="photoPreview" class="mt-2 d-none">
+                                    <img id="photoPreviewImg" class="photo-preview" alt="Foto de la medición">
+                                    <button type="button" class="btn btn-sm btn-danger mt-1" id="btnRemovePhoto">
+                                        <i class="bi bi-x"></i> Quitar foto
+                                    </button>
+                                </div>
+                                <div class="camera-preview-container d-none" id="cameraPreview">
+                                    <video id="webcam" autoplay playsinline></video>
+                                    <button type="button" class="btn btn-sm btn-success position-absolute bottom-0 start-50 translate-middle-x mb-2" id="btnTakePhoto">
+                                        <i class="bi bi-camera"></i> Capturar
+                                    </button>
+                                    <canvas id="canvas" class="d-none"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Campos personalizados --}}
+                        @php
+                            $customFields = [];
+                            if (isset($sensor->group) && isset($sensor->group->template) && isset($sensor->group->template->schema['campos'])) {
+                                $customFields = array_filter($sensor->group->template->schema['campos'], function($campo) use ($mainField) {
+                                    return $campo['nombre'] !== ($mainField ?? 'valor') && 
+                                           $campo['nombre'] !== 'foto' && 
+                                           $campo['nombre'] !== 'fecha_medicion';
+                                });
+                            }
+                        @endphp
+
+                        @if(count($customFields) > 0)
+                            <div class="form-section">
+                                <h6>
+                                    <i class="bi bi-file-earmark-text me-2 text-primary"></i>
+                                    Campos Adicionales
+                                </h6>
+                                <div class="row g-3">
+                                    @foreach($customFields as $campo)
+                                        <div class="col-md-6">
+                                            <label for="field_{{ $campo['nombre'] }}" class="form-label">
+                                                {{ ucfirst(str_replace('_', ' ', $campo['nombre'])) }}
+                                                @if($campo['requerido'] ?? false) <span class="field-required">*</span> @endif
+                                                @if(isset($campo['unidad']) && $campo['unidad'])
+                                                    <span class="field-unit">({{ $campo['unidad'] }})</span>
+                                                @endif
+                                            </label>
+                                            @if($campo['tipo'] === 'numero')
+                                                <input type="number" step="0.01" class="form-control form-control-sm"
+                                                       id="field_{{ $campo['nombre'] }}" 
+                                                       name="data[campos_personalizados][{{ $campo['nombre'] }}]"
+                                                       placeholder="Ingresa {{ $campo['nombre'] }}"
+                                                       {{ ($campo['requerido'] ?? false) ? 'required' : '' }}>
+                                            @elseif($campo['tipo'] === 'texto' || $campo['tipo'] === 'string')
+                                                <input type="text" class="form-control form-control-sm"
+                                                       id="field_{{ $campo['nombre'] }}" 
+                                                       name="data[campos_personalizados][{{ $campo['nombre'] }}]"
+                                                       placeholder="Ingresa {{ $campo['nombre'] }}"
+                                                       {{ ($campo['requerido'] ?? false) ? 'required' : '' }}>
+                                            @elseif($campo['tipo'] === 'fecha')
+                                                <input type="date" class="form-control form-control-sm"
+                                                       id="field_{{ $campo['nombre'] }}" 
+                                                       name="data[campos_personalizados][{{ $campo['nombre'] }}]"
+                                                       {{ ($campo['requerido'] ?? false) ? 'required' : '' }}>
+                                            @elseif($campo['tipo'] === 'booleano')
+                                                <select class="form-select form-select-sm" id="field_{{ $campo['nombre'] }}"
+                                                        name="data[campos_personalizados][{{ $campo['nombre'] }}]"
+                                                        {{ ($campo['requerido'] ?? false) ? 'required' : '' }}>
+                                                    <option value="1">Sí</option>
+                                                    <option value="0">No</option>
+                                                </select>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        {{-- Botones de acción --}}
+                        <div class="action-buttons">
+                            <a href="{{ route('bulk-measurements.select') }}" 
+                               class="btn btn-cancel" 
+                               onclick="return confirm('¿Estás seguro de que deseas cancelar el flujo de medición masiva?');">
+                                <i class="bi bi-x-lg"></i> Cancelar
                             </a>
-                        @endif
-                        
-                        <button type="submit" class="btn btn-save btn-action">
-                            <i class="bi bi-check-circle"></i> Guardar Medición
-                        </button>
-                        
-                        @if($hasNext)
-                            <button type="button" class="btn btn-next btn-action" id="saveAndContinueBtn">
-                                <i class="bi bi-arrow-right"></i> Guardar y Continuar
+                            
+                                <button type="submit" class="btn btn-save">
+                                <i class="bi bi-check-circle"></i> Guardar Medición
                             </button>
-                        @endif
-                    </div>
-                </form>
+                            
+                            @if(!$isSingleMeasurement)
+                                @if($hasPrevious)
+                                    <a href="{{ route('bulk-measurements.previous', $sensor->id) }}" 
+                                       class="btn btn-previous">
+                                        <i class="bi bi-arrow-left"></i> Anterior
+                                    </a>
+                                @endif
+                                
+                                @if($hasNext)
+                                    <button type="button" class="btn btn-next" id="saveAndContinueBtn">
+                                        <i class="bi bi-arrow-right"></i> Guardar y Continuar
+                                    </button>
+                                @endif
+                            @endif
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -843,6 +833,40 @@ $(document).ready(function() {
                 $(this).remove();
             });
         }, 5000);
+    }
+
+    // =============================================
+    // TOGGLE DE FOTO
+    // =============================================
+    const photoToggle = document.getElementById('photoToggle');
+    const photoSection = document.getElementById('photoSection');
+    
+    if (photoToggle && photoSection) {
+        // Inicialmente mostrar/ocultar según el estado del toggle
+        updatePhotoSection();
+        
+        // Evento para el toggle
+        photoToggle.addEventListener('change', updatePhotoSection);
+    }
+    
+    function updatePhotoSection() {
+        if (!photoToggle || !photoSection) return;
+        
+        const isChecked = photoToggle.checked;
+        photoSection.style.display = isChecked ? 'block' : 'none';
+        
+        // Si se deshabilita la foto, establecer valor a "Sin Foto"
+        if (!isChecked) {
+            document.getElementById('photo').value = 'Sin Foto';
+            document.getElementById('photoNameDisplay').textContent = 'Sin foto';
+            const previewImg = document.getElementById('photoPreviewImg');
+            const placeholder = document.getElementById('photoPlaceholder');
+            const btnRemove = document.getElementById('btnRemovePhoto');
+            
+            if (previewImg) previewImg.classList.add('d-none');
+            if (placeholder) placeholder.classList.remove('d-none');
+            if (btnRemove) btnRemove.style.display = 'none';
+        }
     }
 });
 </script>

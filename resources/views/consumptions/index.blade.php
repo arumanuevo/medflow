@@ -361,9 +361,31 @@ function renderConsumptionDetails(consumption) {
         '   </div>' +
         '</div>';
 
+    // Función para obtener el valor de una medición (soporta diferentes campos)
+    function getMeasurementValue(measurement) {
+        if (!measurement || !measurement.data) return 'N/A';
+        
+        // Intentar con campos comunes
+        const fields = ['valor', 'consumo_m3', 'consumo', 'value', 'medicion'];
+        for (const field of fields) {
+            if (measurement.data[field] !== undefined) {
+                return measurement.data[field];
+            }
+        }
+        
+        // Si no se encuentra ningún campo conocido, devolver el primer valor numérico
+        for (const [key, value] of Object.entries(measurement.data)) {
+            if (typeof value === 'number') {
+                return value;
+            }
+        }
+        
+        return 'N/A';
+    }
+
     // Agregar información de las mediciones si están disponibles
     if (consumption.start_measurement) {
-        const startValue = consumption.start_measurement.data?.valor || 'N/A';
+        const startValue = getMeasurementValue(consumption.start_measurement) || 'N/A';
         const startMeasurementDate = new Date(consumption.start_measurement.measured_at).toLocaleString('es-ES');
 
         html += '<div class="row mt-3">' +
@@ -386,7 +408,7 @@ function renderConsumptionDetails(consumption) {
             '   </div>';
 
         if (consumption.end_measurement) {
-            const endValue = consumption.end_measurement.data?.valor || 'N/A';
+            const endValue = getMeasurementValue(consumption.end_measurement) || 'N/A';
             const endMeasurementDate = new Date(consumption.end_measurement.measured_at).toLocaleString('es-ES');
 
             html += '   <div class="col-md-6">' +
