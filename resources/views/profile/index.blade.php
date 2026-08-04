@@ -335,6 +335,108 @@
                         </div>
                     </div>
 
+                    {{-- SECCIÓN DE INFORMACIÓN DE PLANES --}}
+                    <div class="mt-4 pt-3 border-top">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0"><i class="bi bi-info-circle"></i> Alcances de los Planes</h6>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <div class="card h-100 border-primary">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0"><i class="bi bi-gift"></i> Plan Free</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-unstyled mb-0">
+                                            <li class="d-flex align-items-center mb-1">
+                                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                                <small>1 grupo máximo</small>
+                                            </li>
+                                            <li class="d-flex align-items-center mb-1">
+                                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                                <small>1 sensor máximo</small>
+                                            </li>
+                                            <li class="d-flex align-items-center mb-1">
+                                                <i class="bi bi-x-circle-fill text-danger me-2"></i>
+                                                <small>Sin colaboradores</small>
+                                            </li>
+                                            <li class="d-flex align-items-center mb-1">
+                                                <i class="bi bi-x-circle-fill text-danger me-2"></i>
+                                                <small>Sin importación masiva</small>
+                                            </li>
+                                            <li class="d-flex align-items-center mb-1">
+                                                <i class="bi bi-x-circle-fill text-danger me-2"></i>
+                                                <small>Mediciones limitadas</small>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100 border-success">
+                                    <div class="card-header bg-success text-white">
+                                        <h6 class="mb-0"><i class="bi bi-gem"></i> Plan Básico</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-unstyled mb-0">
+                                            <li class="d-flex align-items-center mb-1">
+                                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                                <small>2 grupos máximo</small>
+                                            </li>
+                                            <li class="d-flex align-items-center mb-1">
+                                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                                <small>2 sensores máximo</small>
+                                            </li>
+                                            <li class="d-flex align-items-center mb-1">
+                                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                                <small>1 colaborador</small>
+                                            </li>
+                                            <li class="d-flex align-items-center mb-1">
+                                                <i class="bi bi-x-circle-fill text-danger me-2"></i>
+                                                <small>Sin importación masiva</small>
+                                            </li>
+                                            <li class="d-flex align-items-center mb-1">
+                                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                                <small>Mediciones ilimitadas</small>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100 border-warning">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h6 class="mb-0"><i class="bi bi-stars"></i> Plan Premium</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-unstyled mb-0">
+                                            <li class="d-flex align-items-center mb-1">
+                                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                                <small>Grupos ilimitados</small>
+                                            </li>
+                                            <li class="d-flex align-items-center mb-1">
+                                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                                <small>Sensores ilimitados</small>
+                                            </li>
+                                            <li class="d-flex align-items-center mb-1">
+                                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                                <small>Colaboradores ilimitados</small>
+                                            </li>
+                                            <li class="d-flex align-items-center mb-1">
+                                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                                <small>Importación masiva</small>
+                                            </li>
+                                            <li class="d-flex align-items-center mb-1">
+                                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                                <small>Todas las funciones</small>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     {{-- ✅ SECCIÓN DE DEPURACIÓN (SOLO LOCAL) --}}
                     @if(app()->environment('local'))
                     <div class="mt-4 pt-3 border-top debug-section">
@@ -412,7 +514,7 @@
                             <strong>\u26a0\ufe0f Advertencia:</strong> Esta acci\u00f3n eliminar\u00e1 
                             <strong>TODOS</strong> tus datos: sensores, mediciones, fotos asociadas, grupos, 
                             colaboraciones, suscripciones y configuraciones. 
-                            <strong>No podr\u00e1s recuperar esta informaci\u00f3n.</strong>
+                            <strong>No podrás recuperar esta información.</strong>
                         </div>
                         <button type="button" class="btn btn-danger w-100" id="deleteAllDataBtn">
                             <i class="bi bi-trash-fill me-2"></i> 
@@ -505,6 +607,10 @@ $(document).ready(function() {
     // =============================================
     
     @if(app()->environment('local'))
+    $('#debugActivateFree').click(function() {
+        debugActivateSubscription('free');
+    });
+    
     $('#debugActivateFree').click(function() {
         debugActivateSubscription('free');
     });
