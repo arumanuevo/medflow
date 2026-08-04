@@ -1,0 +1,312 @@
+/* =============================================
+   ESTILOS UNIFICADOS PARA TODAS LAS TABLAS
+   Este archivo fuerza que todas las tablas en el sistema tengan
+   el mismo estilo que la vista sensors/index.blade.php
+   ============================================= */
+
+/* ============================================
+   ESTILOS BASE PARA TABLAS (idéntico a sensors)
+   ============================================ */
+
+/* Wrapper para tablas responsivas */
+.sensor-table-wrapper,
+.table-wrapper,
+.table-responsive {
+    overflow-x: auto;
+}
+
+/* Estilos para todas las tablas */
+.sensor-table-wrapper table,
+.table-wrapper table,
+.table-responsive table,
+.table {
+    min-width: 600px;
+    margin-bottom: 0;
+    --bs-table-bg: transparent;
+    --bs-table-accent-bg: transparent;
+    --bs-table-striped-color: #212529;
+    --bs-table-striped-bg: rgba(0, 0, 0, 0.02);
+    --bs-table-active-color: #212529;
+    --bs-table-active-bg: rgba(0, 0, 0, 0.05);
+    --bs-table-hover-color: #212529;
+    --bs-table-hover-bg: rgba(0, 0, 0, 0.05);
+    width: 100%;
+    color: #212529;
+    vertical-align: top;
+    border-color: #dee2e6;
+}
+
+/* Encabezados de tabla - IDÉNTICO A SENSORS */
+.sensor-table-wrapper .table th,
+.table-wrapper .table th,
+.table-responsive .table th,
+.table th {
+    white-space: nowrap;
+    font-size: 0.72rem !important;
+    padding: 0.5rem 0.5rem !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    transition: background-color 0.15s;
+    border-bottom: 2px solid #dee2e6 !important;
+    background-color: #343a40 !important;
+    color: #fff !important;
+}
+
+.sensor-table-wrapper .table th:hover,
+.table-wrapper .table th:hover,
+.table-responsive .table th:hover,
+.table th:hover {
+    background-color: rgba(13, 110, 253, 0.08) !important;
+}
+
+.sensor-table-wrapper .table th:not(.no-sort):hover,
+.table-wrapper .table th:not(.no-sort):hover,
+.table-responsive .table th:not(.no-sort):hover,
+.table th:not(.no-sort):hover {
+    background-color: rgba(13, 110, 253, 0.08) !important;
+}
+
+/* Celdas de tabla - IDÉNTICO A SENSORS */
+.sensor-table-wrapper .table td,
+.table-wrapper .table td,
+.table-responsive .table td,
+.table td {
+    font-size: 0.82rem !important;
+    padding: 0.4rem 0.5rem !important;
+    vertical-align: middle !important;
+    text-align: center !important;
+}
+
+.sensor-table-wrapper .table td:first-child,
+.table-wrapper .table td:first-child,
+.table-responsive .table td:first-child,
+.table td:first-child {
+    text-align: center !important;
+}
+
+.sensor-table-wrapper .table td:last-child,
+.table-wrapper .table td:last-child,
+.table-responsive .table td:last-child,
+.table td:last-child {
+    text-align: center !important;
+}
+
+.sensor-table-wrapper .table td.text-left,
+.table-wrapper .table td.text-left,
+.table-responsive .table td.text-left,
+.table td.text-left {
+    text-align: left !important;
+}
+
+/* Estilos para filas alternadas */
+.sensor-table-wrapper .table-striped > tbody > tr:nth-of-type(odd) > *,
+.table-wrapper .table-striped > tbody > tr:nth-of-type(odd) > *,
+.table-responsive .table-striped > tbody > tr:nth-of-type(odd) > *,
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+    --bs-table-bg-type: rgba(0, 0, 0, 0.02) !important;
+}
+
+.sensor-table-wrapper .table-hover > tbody > tr:hover > *,
+.table-wrapper .table-hover > tbody > tr:hover > *,
+.table-responsive .table-hover > tbody > tr:hover > *,
+.table-hover > tbody > tr:hover > * {
+    --bs-table-bg-type: rgba(0, 0, 0, 0.05) !important;
+}
+
+/* ============================================
+   ESTILOS PARA BOTONES EN TABLAS (idéntico a sensors)
+   ============================================ */
+
+.table-actions {
+    display: flex;
+    gap: 3px;
+    justify-content: center;
+    flex-wrap: nowrap;
+}
+
+.table-actions .btn {
+    padding: 0.15rem 0.3rem !important;
+    font-size: 0.65rem !important;
+    line-height: 1.2;
+    border-radius: 4px !important;
+    min-width: 26px;
+}
+
+/* ============================================
+   ESTILOS PARA BADGES (idéntico a sensors)
+   ============================================ */
+
+.badge {
+    padding: 0.3rem 0.8rem !important;
+    border-radius: 20px !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    line-height: 1 !important;
+}
+
+.badge-extra-field {
+    display: inline-block;
+    font-size: 0.7rem;
+    padding: 0.15rem 0.5rem;
+    background: #f1f3f5;
+    color: #495057;
+    border-radius: 4px;
+    border: 1px solid #e9ecef;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ============================================
+   ESTILOS PARA CARDS (idéntico a sensors)
+   ============================================ */
+
+.card {
+    border-radius: 8px !important;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+    border: none !important;
+    margin-bottom: 1.5rem !important;
+}
+
+.card-header {
+    border-radius: 8px 8px 0 0 !important;
+    padding: 1rem 1.5rem !important;
+    font-weight: 600 !important;
+    background-color: #343a40 !important;
+    color: #fff !important;
+}
+
+.card-body {
+    padding: 1.5rem !important;
+}
+
+/* ============================================
+   ESTILOS PARA FORMULARIOS (idéntico a sensors)
+   ============================================ */
+
+.form-select, .form-control {
+    border-radius: 6px !important;
+    padding: 0.45rem 0.75rem !important;
+    font-size: 0.875rem !important;
+    border: 1px solid #ced4da !important;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
+}
+
+.form-select:focus, .form-control:focus {
+    border-color: #86b7fe !important;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25) !important;
+}
+
+.form-select-sm, .form-control-sm {
+    padding: 0.375rem 0.75rem !important;
+    font-size: 0.8125rem !important;
+    border-radius: 5px !important;
+}
+
+/* ============================================
+   ESTILOS PARA BOTONES (idéntico a sensors)
+   ============================================ */
+
+.btn {
+    border-radius: 6px !important;
+    font-weight: 500 !important;
+    padding: 0.4rem 0.8rem !important;
+    font-size: 0.875rem !important;
+    transition: all 0.2s !important;
+}
+
+.btn-sm {
+    padding: 0.35rem 0.7rem !important;
+    font-size: 0.8125rem !important;
+}
+
+.btn i {
+    font-size: 0.9rem !important;
+    margin-right: 3px !important;
+}
+
+.btn-sm i {
+    font-size: 0.8rem !important;
+}
+
+/* ============================================
+   ESTILOS PARA ORDENAMIENTO (idéntico a sensors)
+   ============================================ */
+
+.sortable-header {
+    cursor: pointer;
+}
+
+.sortable-header.no-sort {
+    cursor: default;
+}
+
+.sortable-header.no-sort:hover {
+    background-color: transparent !important;
+}
+
+.table th .sort-icon {
+    display: inline-block;
+    margin-left: 3px;
+    font-size: 0.55rem;
+    opacity: 0.35;
+    transition: all 0.2s;
+}
+
+.table th .sort-icon.active {
+    opacity: 1;
+    color: #0d6efd;
+}
+
+.table th .sort-icon.asc {
+    opacity: 1;
+    color: #0d6efd;
+}
+
+.table th .sort-icon.desc {
+    opacity: 1;
+    color: #0d6efd;
+    transform: rotate(180deg);
+}
+
+/* ============================================
+   ESTILOS ADICIONALES PARA COMPATIBILIDAD
+   ============================================ */
+
+/* Asegurar que las tablas en modales también tengan los estilos */
+.modal-body .table {
+    min-width: 100% !important;
+}
+
+.modal-body .table th {
+    font-size: 0.72rem !important;
+    padding: 0.5rem 0.5rem !important;
+    background-color: #343a40 !important;
+    color: #fff !important;
+}
+
+.modal-body .table td {
+    font-size: 0.82rem !important;
+    padding: 0.4rem 0.5rem !important;
+}
+
+/* Estilos para tablas en acordeones */
+.accordion-body .table {
+    min-width: 100% !important;
+}
+
+.accordion-body .table th {
+    font-size: 0.72rem !important;
+    padding: 0.5rem 0.5rem !important;
+    background-color: #343a40 !important;
+    color: #fff !important;
+}
+
+.accordion-body .table td {
+    font-size: 0.82rem !important;
+    padding: 0.4rem 0.5rem !important;
+}

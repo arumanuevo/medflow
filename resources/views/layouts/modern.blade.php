@@ -17,6 +17,8 @@
     <link rel="stylesheet" href="{{ asset('css/modern-sidebar.css') }}">
     <!-- Shared Styles CSS -->
     <link rel="stylesheet" href="{{ asset('css/shared-styles.css') }}">
+    <!-- Table Styles CSS (fuerza consistencia en todas las tablas) -->
+    <link rel="stylesheet" href="{{ asset('css/table-styles.css') }}">
 
     @stack('styles')
 
