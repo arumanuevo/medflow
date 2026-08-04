@@ -187,7 +187,7 @@ document.addEventListener('DOMContentLoaded', function() {
             saveDismissedAlert(alertType);
             
             // Si no quedan alertas, mostrar mensaje "Todo en orden"
-            const remainingAlerts = document.querySelectorAll('.modern-header-alerts .dropdown-item-text');
+            const remainingAlerts = document.querySelectorAll('.modern-header-alerts .dropdown-item-text:not([style*="display: none"])');
             if (remainingAlerts.length === 0) {
                 const dropdownMenu = document.querySelector('.modern-header-alerts .dropdown-menu');
                 const header = document.createElement('li');
@@ -200,14 +200,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Actualizar el contador de alertas en el badge
     function updateAlertCounter() {
-        const remainingAlerts = document.querySelectorAll('.modern-header-alerts .dropdown-item-text').length;
+        // Contar solo las alertas visibles (no ocultas por CSS)
+        const allAlertItems = document.querySelectorAll('.modern-header-alerts .dropdown-item-text');
+        let visibleCount = 0;
+        
+        allAlertItems.forEach(function(item) {
+            if (item.closest('li').style.display !== 'none') {
+                visibleCount++;
+            }
+        });
+        
         const badge = document.querySelector('.modern-header-alerts .badge');
         
         if (badge) {
-            if (remainingAlerts === 0) {
+            if (visibleCount === 0) {
                 badge.style.display = 'none';
             } else {
-                badge.textContent = remainingAlerts;
+                badge.textContent = visibleCount;
                 badge.style.display = 'inline-block';
             }
         }
@@ -237,6 +246,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
         
+        // Actualizar contador después de ocultar las alertas
         updateAlertCounter();
     }
 
