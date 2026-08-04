@@ -516,7 +516,7 @@ class SubscriptionPaymentController extends Controller
                         : "Suscripción {$plan} activada por 5 minutos para pruebas."),
                 'data' => [
                     'subscription' => $subscription,
-                    'expires_at' => $subscription->expires_at->toDateTimeString()
+                    'expires_at' => $subscription->expires_at ? $subscription->expires_at->toDateTimeString() : null
                 ]
             ]);
 
