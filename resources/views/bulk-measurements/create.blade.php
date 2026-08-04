@@ -834,6 +834,40 @@ $(document).ready(function() {
             });
         }, 5000);
     }
+
+    // =============================================
+    // TOGGLE DE FOTO
+    // =============================================
+    const photoToggle = document.getElementById('photoToggle');
+    const photoSection = document.getElementById('photoSection');
+    
+    if (photoToggle && photoSection) {
+        // Inicialmente mostrar/ocultar según el estado del toggle
+        updatePhotoSection();
+        
+        // Evento para el toggle
+        photoToggle.addEventListener('change', updatePhotoSection);
+    }
+    
+    function updatePhotoSection() {
+        if (!photoToggle || !photoSection) return;
+        
+        const isChecked = photoToggle.checked;
+        photoSection.style.display = isChecked ? 'block' : 'none';
+        
+        // Si se deshabilita la foto, establecer valor a "Sin Foto"
+        if (!isChecked) {
+            document.getElementById('photo').value = 'Sin Foto';
+            document.getElementById('photoNameDisplay').textContent = 'Sin foto';
+            const previewImg = document.getElementById('photoPreviewImg');
+            const placeholder = document.getElementById('photoPlaceholder');
+            const btnRemove = document.getElementById('btnRemovePhoto');
+            
+            if (previewImg) previewImg.classList.add('d-none');
+            if (placeholder) placeholder.classList.remove('d-none');
+            if (btnRemove) btnRemove.style.display = 'none';
+        }
+    }
 });
 </script>
 @endpush
