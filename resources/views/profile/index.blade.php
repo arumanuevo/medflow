@@ -355,7 +355,7 @@
                             <div class="col-md-4">
                                 <button type="button" class="btn btn-outline-secondary w-100 debug-btn" id="debugActivateFree">
                                     <i class="bi bi-play-circle"></i> 
-                                    Emular Plan Free (5 min)
+                                    Emular Plan Free (Permanente)
                                     <small class="d-block text-muted" style="font-size: 0.65rem;">Gratis - 1 grupo, 1 sensor</small>
                                 </button>
                             </div>

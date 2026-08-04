@@ -466,14 +466,24 @@ class SubscriptionPaymentController extends Controller
                 ->update(['status' => 'expired']);
 
             // ✅ Crear nueva suscripción de prueba
+            // EL PLAN FREE SIEMPRE ES PERMANENTE (expires_at = null)
+            $expiresAt = ($plan === 'free') ? null : now()->addMinutes($durationMinutes);
+            
+            $amount = 0.00;
+            if ($plan === 'premium') {
+                $amount = 25.00;
+            } elseif ($plan === 'basico') {
+                $amount = 10.00;
+            }
+            
             $subscription = Subscription::create([
                 'user_id' => $user->id,
                 'plan' => $plan,
                 'status' => 'active',
-                'amount' => $plan === 'premium' ? 25.00 : 10.00,
+                'amount' => $amount,
                 'currency' => 'ARS',
                 'paid_at' => now(),
-                'expires_at' => now()->addMinutes($durationMinutes),
+                'expires_at' => $expiresAt,
                 'payment_id' => 'debug_' . uniqid(),
                 'preference_id' => 'debug_' . uniqid(),
             ]);
