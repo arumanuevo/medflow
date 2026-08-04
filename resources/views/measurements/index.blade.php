@@ -5,21 +5,317 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/measurements-styles.css') }}">
 <style>
-    /* Estilos específicos para esta vista que no están en shared-styles.css */
-    /* Estilos para los inputs de fecha */
-    input[type="date"] {
+    /* ============================================
+       ESTILOS PRINCIPALES PARA TABLA DE MEDICIONES
+       ============================================ */
+    .measurement-table-wrapper {
+        overflow-x: auto;
+    }
+    .measurement-table-wrapper table {
+        min-width: 800px;
+        margin-bottom: 0;
+    }
+    .measurement-table-wrapper .table th {
+        white-space: nowrap;
+        font-size: 0.72rem;
+        padding: 0.5rem 0.5rem;
+        text-align: center !important;
+        vertical-align: middle;
+        cursor: pointer;
+        user-select: none;
+        position: relative;
+        transition: background-color 0.15s;
+        border-bottom: 2px solid #dee2e6;
+        background-color: #343a40;
+        color: #fff;
+    }
+    .measurement-table-wrapper .table th:hover {
+        background-color: rgba(13, 110, 253, 0.08);
+    }
+    .measurement-table-wrapper .table td {
+        font-size: 0.82rem;
+        padding: 0.4rem 0.5rem;
+        vertical-align: middle;
+        text-align: center;
+    }
+    .measurement-table-wrapper .table td.text-left {
+        text-align: left;
+    }
+
+    /* ============================================
+       ACCIONES
+       ============================================ */
+    .table-actions {
+        display: flex;
+        gap: 3px;
+        justify-content: center;
+        flex-wrap: nowrap;
+    }
+    .table-actions .btn {
+        padding: 0.15rem 0.3rem;
+        font-size: 0.65rem;
+        line-height: 1.2;
+        border-radius: 4px;
+        min-width: 26px;
+    }
+
+    /* ============================================
+       HEADER MEJORADO
+       ============================================ */
+    .card-header-tools {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .card-header-tools .btn-group .btn {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.6rem;
+    }
+    .card-header-tools .btn-group .btn i {
+        margin-right: 3px;
+    }
+    .card-header-tools .dropdown-menu {
+        min-width: 200px;
+        font-size: 0.8rem;
+    }
+    .card-header-tools .dropdown-menu .dropdown-item {
+        padding: 0.4rem 1rem;
+    }
+    .card-header-tools .dropdown-menu .dropdown-item i {
+        margin-right: 8px;
+        width: 18px;
+        text-align: center;
+    }
+    .card-header-tools .dropdown-toggle::after {
+        margin-left: 0.4rem;
+    }
+
+    /* ============================================
+       BUSCADOR
+       ============================================ */
+    .search-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex: 1;
+        min-width: 200px;
+        max-width: 400px;
+    }
+    .search-wrapper .form-control {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.6rem;
+        border-radius: 6px;
+        border: 1px solid #ced4da;
+        transition: all 0.2s;
+        height: 32px;
+    }
+    .search-wrapper .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.15);
+    }
+    .search-wrapper .btn {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.6rem;
+        height: 32px;
+        border-radius: 6px;
+    }
+    .search-wrapper .btn i {
+        font-size: 0.85rem;
+    }
+    .search-clear {
+        cursor: pointer;
+        opacity: 0.5;
+        transition: opacity 0.2s;
+        font-size: 1.1rem;
+        padding: 0 4px;
+    }
+    .search-clear:hover {
+        opacity: 1;
+    }
+
+    /* ============================================
+       PAGINACION
+       ============================================ */
+    .pagination-wrapper {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid #e9ecef;
+    }
+    .pagination-info {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    .pagination-info strong {
+        color: #212529;
+    }
+    .pagination-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .pagination-controls .btn-group .btn {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.6rem;
+        min-width: 32px;
+    }
+    .pagination-controls .btn-group .btn.active {
+        background-color: #0d6efd;
+        color: #fff;
+        border-color: #0d6efd;
+    }
+    .pagination-controls .per-page-select {
+        font-size: 0.75rem;
+        padding: 0.2rem 0.4rem;
+        border-radius: 4px;
+        border: 1px solid #ced4da;
+        height: 30px;
+        background-color: #fff;
+    }
+    .pagination-controls .per-page-select:focus {
+        border-color: #0d6efd;
+        outline: none;
+    }
+
+    /* ============================================
+       EMPTY STATE
+       ============================================ */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1.5rem;
+        color: #6c757d;
+    }
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    .empty-state h4 {
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+    }
+    .empty-state .btn {
+        margin: 0.25rem;
+    }
+
+    /* ============================================
+       ESTILOS PARA FILTROS
+       ============================================ */
+    .filter-section {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        border: 1px solid #e9ecef;
+    }
+    .filter-section .form-label {
+        font-weight: 600;
+        color: #495057;
+        font-size: 0.85rem;
+        margin-bottom: 0.5rem;
+    }
+    .filter-section .form-select,
+    .filter-section .form-control {
+        font-size: 0.85rem;
+        padding: 0.4rem 0.75rem;
+        border-radius: 6px;
+        border: 1px solid #ced4da;
+    }
+    .filter-section input[type="date"] {
         padding: 0.45rem 0.75rem;
         border-radius: 6px;
         font-size: 0.875rem;
     }
-    
-    /* Estilos para el contenedor de tarjetas */
+
+    /* ============================================
+       ESTILOS PARA TARJETAS DE ERRORES
+       ============================================ */
     #errorStatsContainer .row > div {
         margin-bottom: 10px;
     }
 
     #errorStatsContainer .card {
         height: 100%;
+    }
+    
+    .error-card {
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        height: 100%;
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+
+    .error-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+    }
+
+    .error-card .card-body {
+        padding: 1.25rem;
+    }
+
+    .error-card .card-title {
+        font-size: 0.95rem;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+    }
+
+    .error-card .card-title i {
+        font-size: 0.95rem;
+    }
+
+    .error-card .card-text.h4 {
+        font-size: 1.75rem;
+        font-weight: bold;
+        margin: 0.5rem 0;
+    }
+
+    .error-card small {
+        font-size: 0.8rem;
+        opacity: 0.8;
+        display: block;
+        margin-top: 0.25rem;
+    }
+
+    /* ============================================
+       RESPONSIVE
+       ============================================ */
+    @media (max-width: 992px) {
+        .card-header-tools {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .search-wrapper {
+            max-width: 100%;
+        }
+        .pagination-wrapper {
+            flex-direction: column;
+            align-items: center;
+        }
+    }
+    @media (max-width: 768px) {
+        .table-actions {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .measurement-table-wrapper .table th,
+        .measurement-table-wrapper .table td {
+            padding: 0.3rem 0.3rem;
+            font-size: 0.7rem;
+        }
+        .pagination-controls {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
     }
 </style>
 @endpush
@@ -29,15 +325,22 @@
     <div class="row justify-content-center">
         <div class="col-md-12">
             <div class="card">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h4><i class="bi bi-graph-up me-2"></i> Listado de Mediciones</h4>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-warning" id="toggleErrors">
-                            <i class="bi bi-exclamation-triangle me-1"></i> Mostrar/Ocultar Errores
-                        </button>
-                        <a href="{{ route('sensor-groups.index') }}" class="btn btn-light">
-                            <i class="bi bi-arrow-left me-1"></i> Volver a Grupos
-                        </a>
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                        <h4 class="mb-0 d-flex align-items-center gap-2">
+                            <i class="bi bi-graph-up"></i>
+                            <span>Listado de Mediciones</span>
+                            <span id="totalCountBadge" class="badge bg-light text-dark ms-2" style="font-size: 0.7rem;">0</span>
+                        </h4>
+
+                        <div class="card-header-tools">
+                            <button class="btn btn-warning" id="toggleErrors">
+                                <i class="bi bi-exclamation-triangle me-1"></i> Mostrar/Ocultar Errores
+                            </button>
+                            <a href="{{ route('sensor-groups.index') }}" class="btn btn-light">
+                                <i class="bi bi-arrow-left me-1"></i> Volver a Grupos
+                            </a>
+                        </div>
                     </div>
                 </div>
                 <div class="card-body">
@@ -148,9 +451,9 @@
                     </div>
 
                     <!-- Tabla de Mediciones -->
-                    <div class="table-responsive">
+                    <div class="measurement-table-wrapper p-2">
                         <table class="table table-bordered table-striped table-hover" id="measurementsTable">
-                            <thead class="table-dark">
+                            <thead>
                                 <tr>
                                     <th>ID</th>
                                     <th>Sensor</th>
@@ -392,17 +695,19 @@ $(document).ready(function() {
                                 <i class="bi bi-image me-1"></i> Ver
                             </button>` : 'Sin Foto'}
                     </td>
-                    <td class="text-nowrap">
-                        <a href="{{ url('/mediciones/edit') }}/${measurement.id}" class="btn btn-sm btn-warning" title="Editar">
-                            <i class="bi bi-pencil"></i>
-                        </a>
-                        <button class="btn btn-sm btn-danger deleteMeasurementBtn" title="Eliminar" data-measurement-id="${measurement.id}">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                        ${status !== 'valid' ?
-                            `<button class="btn btn-sm btn-info viewErrorBtn" title="Ver detalles del error" data-measurement-id="${measurement.id}">
-                                <i class="bi bi-exclamation-triangle"></i>
-                            </button>` : ''}
+                    <td>
+                        <div class="table-actions">
+                            <a href="{{ url('/mediciones/edit') }}/${measurement.id}" class="btn btn-sm btn-warning" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <button class="btn btn-sm btn-danger deleteMeasurementBtn" title="Eliminar" data-measurement-id="${measurement.id}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            ${status !== 'valid' ?
+                                `<button class="btn btn-sm btn-info viewErrorBtn" title="Ver detalles del error" data-measurement-id="${measurement.id}">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                </button>` : ''}
+                        </div>
                     </td>
                 </tr>
             `;
