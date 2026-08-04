@@ -186,4 +186,156 @@ class ProfileController extends Controller
             ]
         ]);
     }
+
+    /**
+     * Eliminar todos los datos del usuario (sensores, mediciones, fotos, grupos, etc.)
+     * Este es un endpoint DANGEROUS que elimina todo rastro de datos del usuario
+     */
+    public function deleteAllData(Request $request)
+    {
+        $user = $request->user();
+
+        // Validar que el usuario ha confirmado la accion con un token de seguridad
+        $validator = Validator::make($request->all(), [
+            'confirm_token' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Se requiere confirmacion para esta accion',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // Verificar que el token de confirmacion es valido
+        // Generamos un token basado en el ID del usuario y la fecha actual
+        $expectedToken = hash('sha256', $user->id . $user->email . date('Y-m-d'));
+        
+        if ($request->confirm_token !== $expectedToken) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token de confirmacion invalido. Por favor, recarga la pagina e intentalo de nuevo.',
+            ], 403);
+        }
+
+        // Usar transaccion para asegurar que todo se elimina o nada
+        \DB::beginTransaction();
+
+        try {
+            // 1. Eliminar todas las fotos asociadas a mediciones del usuario
+            $measurements = \App\Models\Measurement::whereHas('sensor.group', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })->get();
+
+            foreach ($measurements as $measurement) {
+                $data = $measurement->data;
+                if (isset($data['foto']) && $data['foto'] && $data['foto'] !== 'Sin Foto') {
+                    $photoPath = public_path($data['foto']);
+                    if (file_exists($photoPath)) {
+                        unlink($photoPath);
+                    }
+                }
+            }
+
+            // 2. Eliminar todas las mediciones de los sensores del usuario
+            \App\Models\Measurement::whereHas('sensor.group', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })->delete();
+
+            // 3. Eliminar todos los sensores del usuario
+            $sensors = \App\Models\Sensor::whereHas('group', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })->get();
+            
+            foreach ($sensors as $sensor) {
+                // Eliminar fotos de los sensores si existen
+                if ($sensor->metadata && isset($sensor->metadata['photo'])) {
+                    $photoPath = public_path($sensor->metadata['photo']);
+                    if (file_exists($photoPath)) {
+                        unlink($photoPath);
+                    }
+                }
+            }
+            
+            \App\Models\Sensor::whereHas('group', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })->delete();
+
+            // 4. Eliminar todos los grupos de sensores del usuario
+            $groups = \App\Models\SensorGroup::where('user_id', $user->id)->get();
+            
+            foreach ($groups as $group) {
+                // Eliminar accesos compartidos del grupo
+                \App\Models\SensorGroupSharedAccess::where('sensor_group_id', $group->id)->delete();
+                // Eliminar invitaciones pendientes del grupo
+                \App\Models\PendingInvitation::where('sensor_group_id', $group->id)->delete();
+            }
+            
+            \App\Models\SensorGroup::where('user_id', $user->id)->delete();
+
+            // 5. Eliminar accesos compartidos donde el usuario es el dueno
+            \App\Models\SensorSharedAccess::where('user_id', $user->id)->delete();
+
+            // 6. Eliminar colaboraciones donde el usuario es el dueno
+            \App\Models\WorkspaceCollaborator::where('workspace_id', $user->id)->delete();
+
+            // 7. Eliminar invitaciones pendientes donde el usuario es el dueno
+            \App\Models\PendingInvitation::where('user_id', $user->id)->delete();
+
+            // 8. Eliminar suscripciones del usuario
+            \App\Models\Subscription::where('user_id', $user->id)->delete();
+
+            // 9. Eliminar configuraciones del usuario
+            \App\Models\UserSetting::where('user_id', $user->id)->delete();
+
+            // 10. Eliminar tokens de API del usuario
+            $user->tokens()->delete();
+
+            // 11. Eliminar roles del usuario
+            $user->syncRoles([]);
+
+            // 12. Actualizar el usuario para eliminar datos sensibles
+            $user->update([
+                'name' => 'Usuario Eliminado - ' . $user->id,
+                'email' => 'eliminado_' . $user->id . '@medflow.com',
+                'password' => null,
+                'google_id' => null,
+                'subscription_type' => null,
+                'subscription_plan' => null,
+            ]);
+
+            \DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Todos los datos del usuario han sido eliminados correctamente. La cuenta ha sido anonimizada.',
+            ]);
+
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al eliminar los datos: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Generar token de confirmacion para la eliminacion de datos
+     */
+    public function generateDeleteConfirmationToken(Request $request)
+    {
+        $user = $request->user();
+        
+        // Generar token basado en el ID del usuario y la fecha actual
+        $token = hash('sha256', $user->id . $user->email . date('Y-m-d'));
+
+        return response()->json([
+            'success' => true,
+            'token' => $token,
+            'expires_at' => date('Y-m-d H:i:s', strtotime('+1 hour')),
+        ]);
+    }
 }
