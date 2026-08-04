@@ -2,9 +2,11 @@
 
 @section('title', 'Mis Consumos - MeasureFlow')
 
-@section('content')
-<!-- Incluir el archivo CSS externo -->
+@push('styles')
 <link rel="stylesheet" href="{{ asset('css/consumptions-styles.css') }}">
+@endpush
+
+@section('content')
 
 <div class="container-fluid mt-4">
     <div class="row">
