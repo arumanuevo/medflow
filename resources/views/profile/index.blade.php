@@ -921,8 +921,6 @@ $(document).ready(function() {
             });
         }, 8000);
     }
-});
-</script>
     // =============================================
     // \u2705 FUNCIONALIDAD PARA ELIMINAR TODOS LOS DATOS
     // =============================================
@@ -1012,4 +1010,6 @@ $(document).ready(function() {
             }
         });
     }
+});
+</script>
 @endpush
