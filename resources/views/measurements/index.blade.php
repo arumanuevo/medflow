@@ -33,6 +33,15 @@
         font-size: 0.8125rem;
     }
 
+    /* Estilo para iconos en botones - consistente con otras vistas */
+    .btn i {
+        font-size: 0.9rem;
+        margin-right: 3px;
+    }
+    .btn-sm i {
+        font-size: 0.8rem;
+    }
+
     .btn-primary {
         background-color: #0d6efd;
         border-color: #0d6efd;
@@ -315,13 +324,13 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <h4><i class="bi bi-graph-up"></i> Listado de Mediciones</h4>
+                    <h4><i class="bi bi-graph-up me-2"></i> Listado de Mediciones</h4>
                     <div class="d-flex gap-2">
                         <button class="btn btn-warning" id="toggleErrors">
-                            <i class="bi bi-exclamation-triangle"></i> Mostrar/Ocultar Errores
+                            <i class="bi bi-exclamation-triangle me-1"></i> Mostrar/Ocultar Errores
                         </button>
                         <a href="{{ route('sensor-groups.index') }}" class="btn btn-light">
-                            <i class="bi bi-arrow-left"></i> Volver a Grupos
+                            <i class="bi bi-arrow-left me-1"></i> Volver a Grupos
                         </a>
                     </div>
                 </div>
@@ -338,7 +347,7 @@
                         <div class="col-md-3 col-6">
                             <div class="card text-white bg-danger error-card h-100" data-error-type="negative_consumption">
                                 <div class="card-body">
-                                    <h5 class="card-title"><i class="bi bi-graph-down"></i> Consumos Negativos</h5>
+                                    <h5 class="card-title"><i class="bi bi-graph-down me-2"></i> Consumos Negativos</h5>
                                     <p class="card-text h4" id="negativeConsumptionCount">0</p>
                                     <small>Mediciones con valor menor a la anterior</small>
                                 </div>
@@ -347,7 +356,7 @@
                         <div class="col-md-3 col-6">
                             <div class="card text-white bg-warning error-card h-100" data-error-type="inconsistent_date">
                                 <div class="card-body">
-                                    <h5 class="card-title"><i class="bi bi-calendar-date"></i> Fechas Inconsistentes</h5>
+                                    <h5 class="card-title"><i class="bi bi-calendar-date me-2"></i> Fechas Inconsistentes</h5>
                                     <p class="card-text h4" id="inconsistentDateCount">0</p>
                                     <small>Mediciones con fecha anterior a la última</small>
                                 </div>
@@ -356,7 +365,7 @@
                         <div class="col-md-3 col-6">
                             <div class="card text-white bg-info error-card h-100" data-error-type="first_measurement">
                                 <div class="card-body">
-                                    <h5 class="card-title"><i class="bi bi-clock-history"></i> Primera Medición</h5>
+                                    <h5 class="card-title"><i class="bi bi-clock-history me-2"></i> Primera Medición</h5>
                                     <p class="card-text h4" id="noPreviousCount">0</p>
                                     <small>Primera medición de un sensor</small>
                                 </div>
@@ -365,7 +374,7 @@
                         <div class="col-md-3 col-6">
                             <div class="card text-white bg-success h-100">
                                 <div class="card-body">
-                                    <h5 class="card-title"><i class="bi bi-check-circle"></i> Mediciones Válidas</h5>
+                                    <h5 class="card-title"><i class="bi bi-check-circle me-2"></i> Mediciones Válidas</h5>
                                     <p class="card-text h4" id="validMeasurementsCount">0</p>
                                     <small>Mediciones sin errores</small>
                                 </div>

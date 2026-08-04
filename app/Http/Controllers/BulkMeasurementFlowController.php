@@ -101,7 +101,6 @@ class BulkMeasurementFlowController extends Controller
         }
 
         // Validar permisos para cada sensor
-        $measurableSensorIds = [];
         foreach ($sensorIds as $sensorId) {
             $sensor = Sensor::find($sensorId);
             if (!$sensor) continue;
@@ -109,39 +108,10 @@ class BulkMeasurementFlowController extends Controller
             if (!$this->canAccessSensor($user, $sensor, $activeWorkspace, $isOwner)) {
                 return redirect()->back()->with('error', "No tienes permiso para el sensor {$sensor->name}.");
             }
-
-            // ✅ Verificar que el usuario puede medir este sensor según su plan
-            $subscriptionService = new \App\Services\Subscription\SubscriptionService($user);
-            if ($subscriptionService->canMeasureSensor($sensor)) {
-                $measurableSensorIds[] = $sensorId;
-            }
         }
 
-        // Si no hay sensores en los que pueda medir, mostrar error
-        if (empty($measurableSensorIds)) {
-            $planName = (new \App\Services\Subscription\SubscriptionService($user))->getPlan()->getPlanName();
-            $maxSensors = (new \App\Services\Subscription\SubscriptionService($user))->getPlan()->getMaxSensors();
-            return redirect()->back()->with('error', 
-                "No puedes tomar mediciones en ninguno de los sensores seleccionados con tu plan {$planName}. " .
-                "Tu plan permite medir solo en los primeros {$maxSensors} sensores.");
-        }
-
-        // Usar solo los sensores que el usuario puede medir
-        $sensorIds = $measurableSensorIds;
-
-        // Obtener el orden de selección si el usuario lo eligió
-        $useSelectionOrder = $request->input('use_selection_order', 0);
-        $selectionOrder = $request->input('selection_order', '');
-        
-        if ($useSelectionOrder && !empty($selectionOrder)) {
-            // Usar el orden de selección manual del usuario
-            $sensorIds = explode(',', $selectionOrder);
-            // Filtrar solo los IDs que están en la selección original (por seguridad)
-            $sensorIds = array_intersect($sensorIds, $request->input('sensor_ids', []));
-        } else {
-            // Ordenar por ID ascendente (orden por defecto)
-            sort($sensorIds, SORT_NUMERIC);
-        }
+        // Ordenar los sensores por ID ascendente para mantener secuencia consistente
+        sort($sensorIds, SORT_NUMERIC);
 
         // Marcar todos los sensores seleccionados
         Sensor::whereIn('id', $sensorIds)->update(['marcado_para_medicion' => true]);
@@ -157,8 +127,7 @@ class BulkMeasurementFlowController extends Controller
             'user_id' => $user->id,
             'sensor_ids' => $sensorIds,
             'first_sensor_id' => $firstSensorId,
-            'active_workspace' => $activeWorkspace,
-            'use_selection_order' => $useSelectionOrder
+            'active_workspace' => $activeWorkspace
         ]);
 
         return redirect()->route('bulk-measurements.create', $firstSensorId);
@@ -176,17 +145,6 @@ class BulkMeasurementFlowController extends Controller
         // Verificar permisos
         if (!$this->canAccessSensor($user, $sensor, $activeWorkspace, $isOwner)) {
             abort(403, 'No tienes permiso para acceder a este sensor.');
-        }
-
-        // ✅ Verificar que el usuario puede medir este sensor según su plan
-        $subscriptionService = new \App\Services\Subscription\SubscriptionService($user);
-        if (!$subscriptionService->canMeasureSensor($sensor)) {
-            $planName = $subscriptionService->getPlan()->getPlanName();
-            $maxSensors = $subscriptionService->getPlan()->getMaxSensors();
-            
-            abort(403, "No puedes tomar mediciones en este sensor con tu plan {$planName}. " .
-                  "Tu plan permite medir solo en los primeros {$maxSensors} sensores. " .
-                  "Actualiza tu plan para medir en todos tus sensores.");
         }
 
         // Obtener la secuencia de sensores de la sesión
@@ -235,10 +193,6 @@ class BulkMeasurementFlowController extends Controller
         $currentIndex = array_search($sensor->id, $sequence);
         session(['bulk_measurement_current_index' => $currentIndex]);
 
-        // Detectar si es una medición individual (acceso directo sin flujo masivo)
-        // Si la secuencia tiene solo 1 sensor y no hay índice guardado previamente, es individual
-        $isSingleMeasurement = (count($sequence) === 1 && !session('bulk_measurement_from_bulk', false));
-
         // Obtener información del sensor
         $previousMeasurement = Measurement::where('sensor_id', $sensor->id)
             ->orderBy('measured_at', 'desc')
@@ -259,12 +213,6 @@ class BulkMeasurementFlowController extends Controller
         $hasPrevious = $currentIndex > 0;
         $nextSensorId = $hasNext ? $sequence[$currentIndex + 1] : null;
         $previousSensorId = $hasPrevious ? $sequence[$currentIndex - 1] : null;
-        
-        // Para mediciones individuales, deshabilitar navegación
-        if ($isSingleMeasurement) {
-            $hasNext = false;
-            $hasPrevious = false;
-        }
 
         $ownerName = $isOwner ? $user->name : ($this->getWorkspaceOwnerName($activeWorkspace) ?? 'Propietario');
 
@@ -272,8 +220,7 @@ class BulkMeasurementFlowController extends Controller
             'sensor_id' => $sensor->id,
             'position' => $currentPosition,
             'total' => $totalSensors,
-            'sequence' => $sequence,
-            'is_single' => $isSingleMeasurement
+            'sequence' => $sequence
         ]);
 
         return view('bulk-measurements.create', compact(
@@ -291,7 +238,6 @@ class BulkMeasurementFlowController extends Controller
             'previousSensorId',
             'ownerName',
             'activeWorkspace',
-            'isSingleMeasurement',
             'isOwner'
         ));
     }
@@ -456,17 +402,6 @@ class BulkMeasurementFlowController extends Controller
             abort(403, 'No tienes permiso para acceder a este sensor.');
         }
 
-        // ✅ Verificar que el usuario puede medir este sensor según su plan
-        $subscriptionService = new \App\Services\Subscription\SubscriptionService($user);
-        if (!$subscriptionService->canMeasureSensor($sensor)) {
-            $planName = $subscriptionService->getPlan()->getPlanName();
-            $maxSensors = $subscriptionService->getPlan()->getMaxSensors();
-            
-            abort(403, "No puedes tomar mediciones en este sensor con tu plan {$planName}. " .
-                  "Tu plan permite medir solo en los primeros {$maxSensors} sensores. " .
-                  "Actualiza tu plan para medir en todos tus sensores.");
-        }
-
         // Obtener la secuencia de la sesión
         $sequence = session('bulk_measurement_sequence', []);
         
@@ -510,17 +445,6 @@ class BulkMeasurementFlowController extends Controller
         // Verificar permisos
         if (!$this->canAccessSensor($user, $sensor, $activeWorkspace, $isOwner)) {
             abort(403, 'No tienes permiso para acceder a este sensor.');
-        }
-
-        // ✅ Verificar que el usuario puede medir este sensor según su plan
-        $subscriptionService = new \App\Services\Subscription\SubscriptionService($user);
-        if (!$subscriptionService->canMeasureSensor($sensor)) {
-            $planName = $subscriptionService->getPlan()->getPlanName();
-            $maxSensors = $subscriptionService->getPlan()->getMaxSensors();
-            
-            abort(403, "No puedes tomar mediciones en este sensor con tu plan {$planName}. " .
-                  "Tu plan permite medir solo en los primeros {$maxSensors} sensores. " .
-                  "Actualiza tu plan para medir en todos tus sensores.");
         }
 
         // Obtener la secuencia de la sesión

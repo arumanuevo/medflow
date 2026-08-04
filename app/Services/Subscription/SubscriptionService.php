@@ -247,56 +247,6 @@ class SubscriptionService
         }
     }
 
-
-    /**
-     * Verificar si el usuario puede tomar mediciones en un sensor específico
-     * Basado en el límite de su plan actual
-     */
-    public function canMeasureSensor(Sensor $sensor): bool
-    {
-        $plan = $this->getPlan();
-        $maxSensors = $plan->getMaxSensors();
-        
-        // Si el plan es ilimitado, puede medir cualquier sensor
-        if ($maxSensors === PHP_INT_MAX) {
-            return true;
-        }
-        
-        // Obtener todos los sensores del usuario ordenados por fecha de creación (ascendente)
-        $userSensors = Sensor::whereHas('group', function($q) {
-            $q->where('user_id', $this->user->id);
-        })->orderBy('created_at', 'asc')->get();
-        
-        // Encontrar la posición del sensor en la lista ordenada
-        $sensorIndex = $userSensors->search(function($s) use ($sensor) {
-            return $s->id === $sensor->id;
-        });
-        
-        // Si el sensor está dentro de los primeros N (donde N = maxSensors), puede medir
-        return $sensorIndex !== false && $sensorIndex < $maxSensors;
-    }
-
-    /**
-     * Obtener los IDs de los sensores en los que el usuario puede tomar mediciones
-     */
-    public function getMeasurableSensorIds(): array
-    {
-        $plan = $this->getPlan();
-        $maxSensors = $plan->getMaxSensors();
-        
-        // Si el plan es ilimitado, puede medir todos sus sensores
-        if ($maxSensors === PHP_INT_MAX) {
-            return Sensor::whereHas('group', function($q) {
-                $q->where('user_id', $this->user->id);
-            })->pluck('id')->toArray();
-        }
-        
-        // Obtener los primeros N sensores ordenados por fecha de creación
-        return Sensor::whereHas('group', function($q) {
-            $q->where('user_id', $this->user->id);
-        })->orderBy('created_at', 'asc')->limit($maxSensors)->pluck('id')->toArray();
-    }
-
     /**
      * Verificar y lanzar excepción si no puede agregar colaborador
      */

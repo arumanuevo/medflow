@@ -50,8 +50,8 @@ class SidebarService
             [
                 'icon' => 'bi bi-rulers',  // antes fas fa-ruler-combined
                 'label' => 'Tomar Mediciones',
-                'url' => '/bulk-measurements/select',
-                'active' => request()->is('bulk-measurements*') || request()->is('mediciones/select-sensor*'),
+                'url' => '/mediciones/select-sensor',
+                'active' => request()->is('mediciones/select-sensor*'),
             ],
             [
                 'icon' => 'bi bi-people',
@@ -61,43 +61,43 @@ class SidebarService
                 'badge' => $this->getPendingInvitationsCount(),
             ],
             [
-                'icon' => 'bi bi-speedometer',
+                'icon' => 'fas fa-tachometer-alt',
                 'label' => 'Sensores',
                 'url' => '/sensors',
                 'active' => request()->is('sensors*') && !request()->is('sensors/create*'),
             ],
             [
-                'icon' => 'bi bi-graph-up',
+                'icon' => 'fas fa-ruler',
                 'label' => 'Mediciones',
                 'url' => '/mediciones',
                 'active' => request()->is('mediciones'),
             ],
             [
-                'icon' => 'bi bi-bar-chart-line',
+                'icon' => 'fas fa-chart-line',
                 'label' => 'Consumos',
                 'url' => '/consumptions',
                 'active' => request()->is('consumptions*'),
             ],
             [
-                'icon' => 'bi bi-folder',
+                'icon' => 'fas fa-folder',
                 'label' => 'Grupos',
                 'url' => '/sensor-groups',
                 'active' => request()->is('sensor-groups*'),
             ],
             [
-                'icon' => 'bi bi-file-earmark-text',
+                'icon' => 'fas fa-file-alt',
                 'label' => 'Plantillas',
                 'url' => '/templates',
                 'active' => request()->is('templates*'),
             ],
             [
-                'icon' => 'bi bi-person-circle',
+                'icon' => 'fas fa-user-circle',
                 'label' => 'Mi Perfil',
                 'url' => '/profile',
                 'active' => request()->is('profile*'),
             ],
             [
-                'icon' => 'bi bi-gear',
+                'icon' => 'fas fa-cogs',
                 'label' => 'Administración',
                 'url' => '/admin',
                 'active' => request()->is('admin*'),
@@ -115,20 +115,20 @@ class SidebarService
         if ($role === 'inspector') {
             return [
                 [
-                    'icon' => 'bi bi-house',
+                    'icon' => 'fas fa-home',
                     'label' => 'Dashboard',
                     'url' => '/dashboard',
                     'active' => request()->is('dashboard') || request()->is('/'),
                 ],
                 [
-                    'icon' => 'bi bi-rulers',
+                    'icon' => 'fas fa-ruler-combined',
                     'label' => 'Tomar Mediciones',
                     'url' => '/mediciones/inspector',  // ✅ NUEVA RUTA
                     'active' => request()->is('mediciones/inspector*'),
                     'highlight' => true,
                 ],
                 [
-                    'icon' => 'bi bi-person-circle',
+                    'icon' => 'fas fa-user-circle',
                     'label' => 'Mi Perfil',
                     'url' => '/profile',
                     'active' => request()->is('profile*'),
@@ -140,57 +140,57 @@ class SidebarService
         if ($role === 'admin') {
             return [
                 [
-                    'icon' => 'bi bi-house',
+                    'icon' => 'fas fa-home',
                     'label' => 'Dashboard',
                     'url' => '/dashboard',
                     'active' => request()->is('dashboard') || request()->is('/'),
                 ],
                 [
-                    'icon' => 'bi bi-rulers',
+                    'icon' => 'fas fa-ruler-combined',
                     'label' => 'Tomar Mediciones',
                     'url' => '/mediciones/select-sensor',
                     'active' => request()->is('mediciones/select-sensor*'),
                     'highlight' => true,
                 ],
                 [
-                    'icon' => 'bi bi-speedometer',
+                    'icon' => 'fas fa-tachometer-alt',
                     'label' => 'Sensores',
                     'url' => '/sensors',
                     'active' => request()->is('sensors*') && !request()->is('sensors/create*'),
                 ],
                 [
-                    'icon' => 'bi bi-graph-up',
+                    'icon' => 'fas fa-ruler',
                     'label' => 'Mediciones',
                     'url' => '/mediciones',
                     'active' => request()->is('mediciones'),
                 ],
                 [
-                    'icon' => 'bi bi-bar-chart-line',
+                    'icon' => 'fas fa-chart-line',
                     'label' => 'Consumos',
                     'url' => '/consumptions',
                     'active' => request()->is('consumptions*'),
                 ],
                 [
-                    'icon' => 'bi bi-folder',
+                    'icon' => 'fas fa-folder',
                     'label' => 'Grupos',
                     'url' => '/sensor-groups',
                     'active' => request()->is('sensor-groups*'),
                 ],
                 [
-                    'icon' => 'bi bi-file-earmark-text',
+                    'icon' => 'fas fa-file-alt',
                     'label' => 'Plantillas',
                     'url' => '/templates',
                     'active' => request()->is('templates*'),
                 ],
                 [
-                    'icon' => 'bi bi-people',
+                    'icon' => 'fas fa-people-arrows',
                     'label' => 'Colaboraciones',
                     'url' => '/collaborations',
                     'active' => request()->is('collaborations*'),
                     'badge' => $this->getPendingInvitationsCount(),
                 ],
                 [
-                    'icon' => 'bi bi-person-circle',
+                    'icon' => 'fas fa-user-circle',
                     'label' => 'Mi Perfil',
                     'url' => '/profile',
                     'active' => request()->is('profile*'),
@@ -202,38 +202,38 @@ class SidebarService
         if ($role === 'consumidor') {
             return [
                 [
-                    'icon' => 'bi bi-house',
+                    'icon' => 'fas fa-home',
                     'label' => 'Dashboard',
                     'url' => '/dashboard',
                     'active' => request()->is('dashboard') || request()->is('/'),
                 ],
                 [
-                    'icon' => 'bi bi-speedometer',
+                    'icon' => 'fas fa-tachometer-alt',
                     'label' => 'Sensores',
                     'url' => '/sensors',
                     'active' => request()->is('sensors*') && !request()->is('sensors/create*'),
                 ],
                 [
-                    'icon' => 'bi bi-graph-up',
+                    'icon' => 'fas fa-ruler',
                     'label' => 'Mediciones',
                     'url' => '/mediciones',
                     'active' => request()->is('mediciones'),
                 ],
                 [
-                    'icon' => 'bi bi-bar-chart-line',
+                    'icon' => 'fas fa-chart-line',
                     'label' => 'Consumos',
                     'url' => '/consumptions',
                     'active' => request()->is('consumptions*'),
                 ],
                 [
-                    'icon' => 'bi bi-people',
+                    'icon' => 'fas fa-people-arrows',
                     'label' => 'Colaboraciones',
                     'url' => '/collaborations',
                     'active' => request()->is('collaborations*'),
                     'badge' => $this->getPendingInvitationsCount(),
                 ],
                 [
-                    'icon' => 'bi bi-person-circle',
+                    'icon' => 'fas fa-user-circle',
                     'label' => 'Mi Perfil',
                     'url' => '/profile',
                     'active' => request()->is('profile*'),
@@ -251,13 +251,13 @@ class SidebarService
     {
         return [
             [
-                'icon' => 'bi bi-house',
+                'icon' => 'fas fa-home',
                 'label' => 'Dashboard',
                 'url' => '/dashboard',
                 'active' => request()->is('dashboard') || request()->is('/'),
             ],
             [
-                'icon' => 'bi bi-person-circle',
+                'icon' => 'fas fa-user-circle',
                 'label' => 'Mi Perfil',
                 'url' => '/profile',
                 'active' => request()->is('profile*'),

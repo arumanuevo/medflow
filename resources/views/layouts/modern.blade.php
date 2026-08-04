@@ -102,61 +102,24 @@
             50% { opacity: 0.3; }
         }
 
-        /* Alertas de límites - Estilo más sutil y elegante */
-        #limitAlertContainer {
-            padding-top: 0.5rem !important;
-            padding-bottom: 0.5rem !important;
-        }
+        /* Alertas de límites */
         #limitAlertContainer .alert {
-            border-radius: 6px;
-            padding: 0.65rem 0.9rem;
-            margin-bottom: 0.4rem;
-            font-size: 0.8rem;
-            border: none;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            background-color: rgba(255,255,255,0.95);
-            backdrop-filter: blur(10px);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
         }
         #limitAlertContainer .alert i {
-            margin-right: 0;
-            font-size: 0.9rem;
-            flex-shrink: 0;
-        }
-        #limitAlertContainer .alert strong {
-            font-size: 0.85rem;
+            margin-right: 0.5rem;
         }
         #limitAlertContainer .alert-warning {
-            border-left: 3px solid #ffc107;
-            color: #856404;
-            background-color: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid #ffc107;
         }
         #limitAlertContainer .alert-info {
-            border-left: 3px solid #0dcaf0;
-            color: #055160;
-            background-color: rgba(13, 202, 240, 0.1);
+            border-left: 4px solid #0dcaf0;
         }
         #limitAlertContainer .alert-danger {
-            border-left: 3px solid #dc3545;
-            color: #491217;
-            background-color: rgba(220, 53, 69, 0.1);
-        }
-        #limitAlertContainer .alert a.alert-link {
-            font-weight: 600;
-            text-decoration: none;
-        }
-        #limitAlertContainer .alert a.alert-link:hover {
-            text-decoration: underline;
-        }
-        #limitAlertContainer .btn-close {
-            padding: 0.5rem 0.75rem;
-            margin-left: 0.5rem;
-            opacity: 0.7;
-        }
-        #limitAlertContainer .btn-close:hover {
-            opacity: 1;
+            border-left: 4px solid #dc3545;
         }
 
         /* Toggle de sidebar en móvil */
@@ -212,7 +175,7 @@
             {{-- ✅ CONTENIDO --}}
             <div class="modern-content">
                 {{-- ✅ CONTENEDOR DE ALERTAS DE SUSCRIPCIÓN --}}
-                <!-- <div id="limitAlertContainer" class="container-fluid px-4 pt-3"></div> -->
+                <div id="limitAlertContainer" class="container-fluid px-4 pt-3"></div>
                 
                 @yield('content')
             </div>

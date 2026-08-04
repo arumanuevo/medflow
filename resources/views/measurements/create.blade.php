@@ -469,52 +469,41 @@ ADVERTENCIA DE PERÍODO (CON REDONDEO)
 
                 <!-- Foto -->
                 <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <label class="form-label">
-                            <i class="bi bi-camera me-1 text-primary"></i>
-                            Foto
-                        </label>
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="photoToggle" checked>
-                            <label class="form-check-label small" for="photoToggle">
-                                <span class="text-success">Habilitado</span>
-                                <span class="text-muted">Deshabilitado</span>
-                            </label>
-                        </div>
-                    </div>
-                    <div id="photoSection">
-                        <div class="row g-2 align-items-center">
-                            <div class="col-md-7">
-                                <div class="photo-preview-box" id="photoPreviewBox">
-                                    <div class="placeholder" id="photoPlaceholder">
-                                        <i class="bi bi-camera"></i>
-                                        <span>Tomar foto</span>
-                                    </div>
-                                    <img id="photoPreviewImg" class="d-none" alt="Foto">
-                                    <button type="button" class="btn-remove-photo" id="btnRemovePhoto" style="display:none;">
-                                        <i class="bi bi-x"></i>
-                                    </button>
+                    <label class="form-label">
+                        <i class="bi bi-camera me-1 text-primary"></i>
+                        Foto <span class="text-danger">*</span>
+                    </label>
+                    <div class="row g-2 align-items-center">
+                        <div class="col-md-7">
+                            <div class="photo-preview-box" id="photoPreviewBox">
+                                <div class="placeholder" id="photoPlaceholder">
+                                    <i class="bi bi-camera"></i>
+                                    <span>Tomar foto</span>
                                 </div>
+                                <img id="photoPreviewImg" class="d-none" alt="Foto">
+                                <button type="button" class="btn-remove-photo" id="btnRemovePhoto" style="display:none;">
+                                    <i class="bi bi-x"></i>
+                                </button>
                             </div>
-                            <div class="col-md-5">
-                                <div class="d-flex flex-column gap-2">
-                                    <button type="button" class="btn btn-primary w-100" id="btnActivarCamara">
-                                        <i class="bi bi-camera me-1"></i> Tomar Foto
-                                    </button>
-                                    
-                                    {{-- Nombre de la foto --}}
-                                    <div class="photo-name-display">
-                                        <i class="bi bi-tag me-1 text-primary"></i>
-                                        <span id="photoNameDisplay">Sin foto</span>
-                                    </div>
-                                    
-                                    <input type="hidden" id="photo" name="data[foto]" value="Sin Foto">
-                                    
-                                    <small class="text-muted text-center">
-                                        <i class="bi bi-info-circle"></i>
-                                        Formato: <code>(grupo)_(sensor)_(fecha).png</code>
-                                    </small>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="d-flex flex-column gap-2">
+                                <button type="button" class="btn btn-primary w-100" id="btnActivarCamara">
+                                    <i class="bi bi-camera me-1"></i> Tomar Foto
+                                </button>
+                                
+                                {{-- Nombre de la foto --}}
+                                <div class="photo-name-display">
+                                    <i class="bi bi-tag me-1 text-primary"></i>
+                                    <span id="photoNameDisplay">Sin foto</span>
                                 </div>
+                                
+                                <input type="hidden" id="photo" name="data[foto]" value="Sin Foto">
+                                
+                                <small class="text-muted text-center">
+                                    <i class="bi bi-info-circle"></i>
+                                    Formato: <code>(grupo)_(sensor)_(fecha).png</code>
+                                </small>
                             </div>
                         </div>
                     </div>
@@ -1112,36 +1101,6 @@ $(document).ready(function() {
                 $(this).remove();
             });
         }, 8000);
-    }
-
-    // =============================================
-    // TOGGLE DE FOTO
-    // =============================================
-    const photoToggle = document.getElementById('photoToggle');
-    const photoSection = document.getElementById('photoSection');
-    
-    if (photoToggle && photoSection) {
-        // Inicialmente mostrar/ocultar según el estado del toggle
-        updatePhotoSection();
-        
-        // Evento para el toggle
-        photoToggle.addEventListener('change', updatePhotoSection);
-    }
-    
-    function updatePhotoSection() {
-        if (!photoToggle || !photoSection) return;
-        
-        const isChecked = photoToggle.checked;
-        photoSection.style.display = isChecked ? 'block' : 'none';
-        
-        // Si se deshabilita la foto, establecer valor a "Sin Foto"
-        if (!isChecked) {
-            document.getElementById('photo').value = 'Sin Foto';
-            document.getElementById('photoNameDisplay').textContent = 'Sin foto';
-            document.getElementById('photoPreviewImg').classList.add('d-none');
-            document.getElementById('photoPlaceholder').classList.remove('d-none');
-            document.getElementById('btnRemovePhoto').style.display = 'none';
-        }
     }
 });
 </script>
