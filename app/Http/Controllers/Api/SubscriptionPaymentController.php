@@ -54,7 +54,7 @@ class SubscriptionPaymentController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'plan' => 'required|in:basico,premium',
+            'plan' => 'required|in:free,basico,premium',
         ]);
 
         if ($validator->fails()) {
@@ -453,10 +453,10 @@ class SubscriptionPaymentController extends Controller
             $durationMinutes = $request->input('duration_minutes', 5);
 
             // Validar plan
-            if (!in_array($plan, ['basico', 'premium'])) {
+            if (!in_array($plan, ['free', 'basico', 'premium'])) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Plan inválido. Debe ser "basico" o "premium".'
+                    'message' => 'Plan inválido. Debe ser "free", "basico" o "premium".'
                 ], 422);
             }
 
@@ -499,7 +499,9 @@ class SubscriptionPaymentController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => "Suscripción {$plan} activada por {$durationMinutes} minutos para pruebas.",
+                'message' => $durationMinutes !== null 
+                    ? "Suscripción {$plan} activada por {$durationMinutes} minutos para pruebas." 
+                    : "Suscripción {$plan} activada (permanente en modo debug).",
                 'data' => [
                     'subscription' => $subscription,
                     'expires_at' => $subscription->expires_at->toDateTimeString()

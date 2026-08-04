@@ -36,7 +36,7 @@ class PlanFactory
         }
 
         // ✅ 2. Verificar si tiene un plan asignado en el campo subscription_plan
-        if ($user->subscription_plan && in_array($user->subscription_plan, ['basico', 'premium'])) {
+        if ($user->subscription_plan && in_array($user->subscription_plan, ['free', 'basico', 'premium'])) {
             return self::make($user->subscription_plan);
         }
 
