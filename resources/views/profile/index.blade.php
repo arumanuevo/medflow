@@ -508,10 +508,6 @@ $(document).ready(function() {
         debugActivateSubscription('free');
     });
     
-    $('#debugActivateFree').click(function() {
-        debugActivateSubscription('free');
-    });
-    
     $('#debugActivateBasico').click(function() {
         debugActivateSubscription('basico');
     });
@@ -914,18 +910,18 @@ $(document).ready(function() {
             }),
             success: function(response) {
                 if (response.success) {
-                    showAlert(
-                        `✅ ${planIcons[plan]} ${planNames[plan]} activado por 5 minutos para pruebas.`,
+                    addNotification(
+                        `✅ ${planIcons[plan] || '✅'} ${planNames[plan] || plan} activado por ${duration} minutos para pruebas.`,
                         'success'
                     );
                     loadSubscriptionStatus();
                     loadStats();
                 } else {
-                    showAlert('❌ ' + (response.message || 'Error al activar'), 'danger');
+                    addNotification('❌ ' + (response.message || 'Error al activar'), 'danger');
                 }
             },
             error: function(xhr) {
-                showAlert(
+                addNotification(
                     '❌ Error: ' + (xhr.responseJSON?.message || xhr.statusText),
                     'danger'
                 );
@@ -934,7 +930,7 @@ $(document).ready(function() {
     }
     
     function debugExpireSubscription() {
-        showAlert('⏰ Forzando expiración de la suscripción...', 'warning');
+        addNotification('⏰ Forzando expiración de la suscripción...', 'warning');
         
         $.ajax({
             url: '/api/subscription/debug/expire',
@@ -945,15 +941,15 @@ $(document).ready(function() {
             },
             success: function(response) {
                 if (response.success) {
-                    showAlert('✅ Suscripción expirada correctamente', 'success');
+                    addNotification('✅ Suscripción expirada correctamente', 'success');
                     loadSubscriptionStatus();
                     loadStats();
                 } else {
-                    showAlert('❌ ' + (response.message || 'Error al expirar'), 'danger');
+                    addNotification('❌ ' + (response.message || 'Error al expirar'), 'danger');
                 }
             },
             error: function(xhr) {
-                showAlert(
+                addNotification(
                     '❌ Error: ' + (xhr.responseJSON?.message || xhr.statusText),
                     'danger'
                 );
@@ -1128,4 +1124,77 @@ $(document).ready(function() {
     }
 });
 </script>
+
+
+    // =============================================
+    // FUNCIÓN PARA AGREGAR NOTIFICACIONES AL DROPDOWN
+    // =============================================
+    function addNotification(message, type = 'info') {
+        const dropdown = $('#alertsDropdown').next('.dropdown-menu');
+        if (dropdown.length === 0) return;
+        
+        const icons = {
+            'info': '<i class="bi bi-info-circle"></i>',
+            'success': '<i class="bi bi-check-circle"></i>',
+            'warning': '<i class="bi bi-exclamation-triangle"></i>',
+            'danger': '<i class="bi bi-exclamation-circle"></i>'
+        };
+        
+        const badgeClasses = {
+            'info': 'bg-info',
+            'success': 'bg-success',
+            'warning': 'bg-warning',
+            'danger': 'bg-danger'
+        };
+        
+        const notificationHtml = `
+            <li class="notification-item">
+                <div class="dropdown-item-text d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="badge ${badgeClasses[type]} me-2">${icons[type] || icons['info']}</span>
+                        <strong>${message}</strong>
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary dismiss-notification" style="padding: 0.2rem 0.4rem; font-size: 0.7rem;">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+            </li>
+        `;
+        
+        // Agregar la notificación al dropdown
+        dropdown.prepend(notificationHtml);
+        
+        // Mostrar el badge de notificaciones
+        const bellButton = $('#alertsDropdown');
+        let currentCount = parseInt(bellButton.find('.badge').text()) || 0;
+        bellButton.find('.badge').text(currentCount + 1);
+        
+        // Auto-dismiss después de 10 segundos
+        setTimeout(() => {
+            dropdown.find('.notification-item').first().fadeOut(500, function() {
+                $(this).remove();
+                // Actualizar el contador
+                currentCount = Math.max(0, currentCount - 1);
+                if (currentCount === 0) {
+                    bellButton.find('.badge').remove();
+                } else {
+                    bellButton.find('.badge').text(currentCount);
+                }
+            });
+        }, 10000);
+        
+        // Event handler para el botón de dismiss
+        dropdown.find('.dismiss-notification').last().click(function() {
+            $(this).closest('.notification-item').fadeOut(500, function() {
+                $(this).remove();
+                currentCount = Math.max(0, currentCount - 1);
+                if (currentCount === 0) {
+                    bellButton.find('.badge').remove();
+                } else {
+                    bellButton.find('.badge').text(currentCount);
+                }
+            });
+        });
+    }
+
 @endpush
