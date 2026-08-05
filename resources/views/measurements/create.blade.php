@@ -163,7 +163,7 @@ ADVERTENCIA DE PERÍODO (CON REDONDEO)
                             @php
                                 $diff = $lastValue ? (float)old('consumo_m3', 0) - $lastValue : null;
                             @endphp
-                            <span id="consumptionDiff" class="badge bg-secondary ms-1">
+                            <span id="consumptionDiff" class="badge bg-light text-dark ms-1">
                                 Diferencia: 0.00 m³
                             </span>
                         </small>
@@ -760,9 +760,12 @@ $(document).ready(function() {
             return;
         }
 
-        // Validar foto
-        if (!hasRealPhoto) {
-            showAlert('⚠️ La foto es obligatoria. Usa el botón "Tomar Foto".', 'danger');
+        // Validar foto solo si el toggle está activado
+        const photoToggle = document.getElementById('photoToggle');
+        const photoRequired = photoToggle ? photoToggle.checked : true;
+        
+        if (photoRequired && !hasRealPhoto) {
+            showAlert('⚠️ La foto es obligatoria cuando el toggle está activado. Usa el botón "Tomar Foto".', 'danger');
             return;
         }
 
@@ -877,13 +880,15 @@ $(document).ready(function() {
         const isChecked = photoToggle.checked;
         photoSection.style.display = isChecked ? 'block' : 'none';
         
-        // Si se deshabilita la foto, establecer valor a "Sin Foto"
+        // Si se deshabilita la foto, establecer valor a "Sin Foto" y actualizar estado
         if (!isChecked) {
             document.getElementById('photo').value = 'Sin Foto';
             document.getElementById('photoNameDisplay').textContent = 'Sin foto';
             document.getElementById('photoPreviewImg').classList.add('d-none');
             document.getElementById('photoPlaceholder').classList.remove('d-none');
             document.getElementById('btnRemovePhoto').style.display = 'none';
+            hasRealPhoto = false; // Importante: actualizar el estado
+            photoBlob = null;
         }
     }
 });
