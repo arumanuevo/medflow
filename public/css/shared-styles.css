@@ -1,0 +1,602 @@
+/* =============================================
+   ESTILOS COMPARTIDOS PARA TODAS LAS VISTAS
+   Este archivo centraliza los estilos comunes entre sensors, measurements, consumptions, etc.
+   ============================================= */
+
+/* =============================================
+   ESTILOS BASE PARA TABLAS
+   ============================================= */
+
+/* Wrapper para tablas responsivas */
+.table-wrapper {
+    overflow-x: auto;
+}
+
+/* Estilos base para tablas */
+.table-wrapper table {
+    min-width: 600px;
+    margin-bottom: 0;
+}
+
+/* Encabezados de tabla */
+.table-wrapper .table th {
+    white-space: nowrap;
+    font-size: 0.72rem;
+    padding: 0.5rem 0.5rem;
+    text-align: center !important;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    transition: background-color 0.15s;
+    border-bottom: 2px solid #dee2e6;
+    background-color: #f8f9fa;
+    color: #495057;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+}
+
+.table-wrapper .table th:hover {
+    background-color: rgba(13, 110, 253, 0.08);
+}
+
+.table-wrapper .table th:not(.no-sort):hover {
+    background-color: rgba(13, 110, 253, 0.08);
+}
+
+/* Celdas de tabla */
+.table-wrapper .table td {
+    font-size: 0.82rem;
+    padding: 0.4rem 0.5rem;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.table-wrapper .table td.text-left {
+    text-align: left;
+}
+
+.table-wrapper .table td:first-child {
+    text-align: center;
+}
+
+.table-wrapper .table td:last-child {
+    text-align: center;
+}
+
+/* =============================================
+   ESTILOS PARA BADGES
+   ============================================= */
+
+.badge {
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.badge-extra-field {
+    display: inline-block;
+    font-size: 0.7rem;
+    padding: 0.15rem 0.5rem;
+    background: #f1f3f5;
+    color: #495057;
+    border-radius: 4px;
+    border: 1px solid #e9ecef;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* =============================================
+   ESTILOS PARA BOTONES
+   ============================================= */
+
+/* Botones principales */
+.btn {
+    border-radius: 6px;
+    font-weight: 600;
+    padding: 0.65rem 1.5rem;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn-sm {
+    padding: 0.35rem 0.7rem;
+    font-size: 0.8125rem;
+}
+
+/* Botones en tablas (acciones) */
+.table-actions {
+    display: flex;
+    gap: 3px;
+    justify-content: center;
+    flex-wrap: nowrap;
+}
+
+.table-actions .btn {
+    padding: 0.15rem 0.3rem;
+    font-size: 0.65rem;
+    line-height: 1.2;
+    border-radius: 4px;
+    min-width: 26px;
+}
+
+/* Iconos en botones */
+.btn i {
+    font-size: 1rem;
+}
+
+.btn-sm i {
+    font-size: 0.85rem;
+}
+
+/* =============================================
+   ESTILOS PARA CARDS
+   ============================================= */
+
+.card {
+    border-radius: 8px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: none;
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    border-radius: 8px 8px 0 0 !important;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    background-color: #343a40;
+    color: #fff;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Header con herramientas */
+.card-header-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.card-header-tools .btn-group .btn {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.6rem;
+}
+
+.card-header-tools .btn-group .btn i {
+    margin-right: 3px;
+}
+
+.card-header-tools .dropdown-menu {
+    min-width: 200px;
+    font-size: 0.8rem;
+}
+
+.card-header-tools .dropdown-menu .dropdown-item {
+    padding: 0.4rem 1rem;
+}
+
+.card-header-tools .dropdown-menu .dropdown-item i {
+    margin-right: 8px;
+    width: 18px;
+    text-align: center;
+}
+
+.card-header-tools .dropdown-toggle::after {
+    margin-left: 0.4rem;
+}
+
+/* =============================================
+   ESTILOS PARA FORMULARIOS
+   ============================================= */
+
+.form-select, .form-control {
+    border-radius: 6px;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.875rem;
+    border: 1px solid #ced4da;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-select:focus, .form-control:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.form-select-sm, .form-control-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8125rem;
+    border-radius: 5px;
+}
+
+/* =============================================
+   ESTILOS PARA BUSCADOR
+   ============================================= */
+
+.search-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 200px;
+    max-width: 400px;
+}
+
+.search-wrapper .form-control {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    transition: all 0.2s;
+    height: 32px;
+}
+
+.search-wrapper .form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.15);
+}
+
+.search-wrapper .btn {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.6rem;
+    height: 32px;
+    border-radius: 6px;
+}
+
+.search-wrapper .btn i {
+    font-size: 0.85rem;
+}
+
+.search-clear {
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+    font-size: 1.1rem;
+    padding: 0 4px;
+}
+
+.search-clear:hover {
+    opacity: 1;
+}
+
+/* =============================================
+   ESTILOS PARA ORDENAMIENTO
+   ============================================= */
+
+.sortable-header {
+    cursor: pointer;
+}
+
+.sortable-header.no-sort {
+    cursor: default;
+}
+
+.sortable-header.no-sort:hover {
+    background-color: transparent !important;
+}
+
+.table th .sort-icon {
+    display: inline-block;
+    margin-left: 3px;
+    font-size: 0.55rem;
+    opacity: 0.35;
+    transition: all 0.2s;
+}
+
+.table th .sort-icon.active {
+    opacity: 1;
+    color: #0d6efd;
+}
+
+.table th .sort-icon.asc {
+    opacity: 1;
+    color: #0d6efd;
+}
+
+.table th .sort-icon.desc {
+    opacity: 1;
+    color: #0d6efd;
+    transform: rotate(180deg);
+}
+
+/* =============================================
+   ESTILOS PARA SUSCRIPCIÓN
+   ============================================= */
+
+.subscription-info-bar {
+    background: #f8f9fa;
+    border-bottom: 2px solid #e9ecef;
+    padding: 0.5rem 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+}
+
+.subscription-info-bar .limit-item {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    background: #fff;
+    border: 1px solid #dee2e6;
+}
+
+.subscription-info-bar .limit-item .count {
+    font-weight: 600;
+    color: #0d6efd;
+}
+
+.subscription-info-bar .limit-item .count.danger {
+    color: #dc3545;
+}
+
+.subscription-info-bar .limit-item .count.warning {
+    color: #ffc107;
+}
+
+.subscription-info-bar .limit-item .badge-plan {
+    font-size: 0.65rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 12px;
+}
+
+.subscription-info-bar .limit-item .badge-plan.premium {
+    background: #ffd700;
+    color: #000;
+}
+
+.subscription-info-bar .limit-item .badge-plan.basico {
+    background: #cfe2ff;
+    color: #084298;
+}
+
+.subscription-info-bar .limit-item .badge-plan.free {
+    background: #f8d9da;
+    color: #721c24;
+}
+
+/* =============================================
+   ESTILOS PARA BLOQUEO POR PLAN
+   ============================================= */
+
+.gate-blocked {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+    position: relative;
+}
+
+.gate-blocked::after {
+    content: '\ud83d\udd12 Premium';
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    font-size: 0.5rem;
+    background: #ffc107;
+    color: #000;
+    padding: 0.1rem 0.4rem;
+    border-radius: 10px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.btn-disabled-by-plan {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.premium-badge {
+    font-size: 0.5rem;
+    background: #ffc107;
+    color: #000;
+    padding: 0.1rem 0.4rem;
+    border-radius: 10px;
+    font-weight: 600;
+    margin-left: 0.3rem;
+    vertical-align: middle;
+}
+
+/* =============================================
+   ESTILOS PARA DATOS VACÍOS
+   ============================================= */
+
+.no-data {
+    color: #adb5bd;
+    font-style: italic;
+}
+
+.sensor-id-badge {
+    font-weight: 600;
+    color: #0d6efd;
+}
+
+/* =============================================
+   ESTILOS PARA PAGINACIÓN
+   ============================================= */
+
+.pagination {
+    --bs-pagination-padding-x: 0.75rem;
+    --bs-pagination-padding-y: 0.375rem;
+    --bs-pagination-font-size: 0.875rem;
+    --bs-pagination-color: #6c757d;
+    --bs-pagination-bg: #fff;
+    --bs-pagination-border-width: 1px;
+    --bs-pagination-border-color: #dee2e6;
+    --bs-pagination-border-radius: 0.25rem;
+    --bs-pagination-hover-color: #6c757d;
+    --bs-pagination-hover-bg: #e9ecef;
+    --bs-pagination-hover-border-color: #dee2e6;
+    --bs-pagination-active-color: #fff;
+    --bs-pagination-active-bg: #0d6efd;
+    --bs-pagination-active-border-color: #0d6efd;
+    --bs-pagination-disabled-color: #6c757d;
+    --bs-pagination-disabled-bg: #fff;
+    --bs-pagination-disabled-border-color: #dee2e6;
+}
+
+.pagination-sm {
+    --bs-pagination-padding-x: 0.5rem;
+    --bs-pagination-padding-y: 0.25rem;
+    --bs-pagination-font-size: 0.75rem;
+}
+
+/* =============================================
+   ESTILOS PARA ALERTAS
+   ============================================= */
+
+.alert {
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    border: none;
+}
+
+.alert-dismissible .btn-close {
+    padding: 0.75rem;
+    margin: -0.5rem -0.5rem -0.5rem auto;
+}
+
+/* =============================================
+   ESTILOS RESPONSIVOS
+   ============================================= */
+
+@media (max-width: 768px) {
+    .table-wrapper .table th,
+    .table-wrapper .table td {
+        padding: 0.3rem 0.25rem;
+        font-size: 0.75rem;
+    }
+    
+    .btn {
+        padding: 0.45rem 1rem;
+        font-size: 0.85rem;
+    }
+    
+    .card-header-tools {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .card-header-tools > * {
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* =============================================
+   ESTILOS PARA CARDS
+   ============================================= */
+
+.card {
+    border-radius: 8px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: none;
+    margin-bottom: 1.5rem;
+    background-color: #0f172a !important;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* =============================================
+   ESTILOS PARA CARD HEADERS
+   ============================================= */
+
+.card-header {
+    border-radius: 8px 8px 0 0 !important;
+    padding: 0.75rem 1.5rem !important;
+    font-weight: 600;
+    background-color: #2c3e50 !important;
+    color: #fff !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125) !important;
+}
+
+.card-header h4,
+.card-header h5,
+.card-header h6 {
+    margin-bottom: 0;
+    color: inherit;
+}
+
+/* Asegurar que card-body NO tenga fondo oscuro */
+.card-body {
+    background-color: transparent !important;
+    color: inherit !important;
+}
+
+/* Estilo específico para card-headers en tablas de consumptions */
+.consumption-table-wrapper .table th {
+    text-transform: uppercase !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.05em !important;
+}
+
+
+/* =============================================
+   ESTILOS PARA CARD HEADERS
+   ============================================= */
+
+.card-header {
+    border-radius: 8px 8px 0 0 !important;
+    padding: 0.75rem 1.5rem !important;
+    font-weight: 600;
+    background-color: #2c3e50 !important;
+    color: #fff !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125) !important;
+}
+
+.card-header h4,
+.card-header h5,
+.card-header h6 {
+    margin-bottom: 0;
+    color: inherit;
+}
+
+/* Asegurar que card-body NO tenga fondo oscuro */
+.card-body {
+    background-color: transparent !important;
+    color: inherit !important;
+}
+
+
+/* =============================================
+   ESTILOS PARA CARDS - SIN FONDO OSCURO
+   ============================================= */
+
+.card {
+    background-color: #fff !important;
+    border-radius: 8px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: none;
+    margin-bottom: 1.5rem;
+}
+
+/* Card-body SIN fondo oscuro */
+.card-body {
+    background-color: #fff !important;
+    color: #212529 !important;
+    padding: 1.5rem;
+}
+
+/* Para cards anidados (como group-card) */
+.group-card,
+.sensor-card,
+.measurement-card {
+    background-color: #fff !important;
+}

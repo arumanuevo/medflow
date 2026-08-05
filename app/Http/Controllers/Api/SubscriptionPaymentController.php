@@ -54,7 +54,7 @@ class SubscriptionPaymentController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'plan' => 'required|in:basico,premium',
+            'plan' => 'required|in:free,basico,premium',
         ]);
 
         if ($validator->fails()) {
@@ -453,10 +453,10 @@ class SubscriptionPaymentController extends Controller
             $durationMinutes = $request->input('duration_minutes', 5);
 
             // Validar plan
-            if (!in_array($plan, ['basico', 'premium'])) {
+            if (!in_array($plan, ['free', 'basico', 'premium'])) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Plan inválido. Debe ser "basico" o "premium".'
+                    'message' => 'Plan inválido. Debe ser "free", "basico" o "premium".'
                 ], 422);
             }
 
@@ -466,14 +466,24 @@ class SubscriptionPaymentController extends Controller
                 ->update(['status' => 'expired']);
 
             // ✅ Crear nueva suscripción de prueba
+            // EL PLAN FREE SIEMPRE ES PERMANENTE (expires_at = null)
+            $expiresAt = ($plan === 'free') ? null : now()->addMinutes($durationMinutes);
+            
+            $amount = 0.00;
+            if ($plan === 'premium') {
+                $amount = 25.00;
+            } elseif ($plan === 'basico') {
+                $amount = 10.00;
+            }
+            
             $subscription = Subscription::create([
                 'user_id' => $user->id,
                 'plan' => $plan,
                 'status' => 'active',
-                'amount' => $plan === 'premium' ? 25.00 : 10.00,
+                'amount' => $amount,
                 'currency' => 'ARS',
                 'paid_at' => now(),
-                'expires_at' => now()->addMinutes($durationMinutes),
+                'expires_at' => $expiresAt,
                 'payment_id' => 'debug_' . uniqid(),
                 'preference_id' => 'debug_' . uniqid(),
             ]);
@@ -499,10 +509,14 @@ class SubscriptionPaymentController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => "Suscripción {$plan} activada por {$durationMinutes} minutos para pruebas.",
+                'message' => ($plan === 'free')
+                    ? "Suscripción Free activada (permanente)."
+                    : (($durationMinutes !== null) 
+                        ? "Suscripción {$plan} activada por {$durationMinutes} minutos para pruebas."
+                        : "Suscripción {$plan} activada por 5 minutos para pruebas."),
                 'data' => [
                     'subscription' => $subscription,
-                    'expires_at' => $subscription->expires_at->toDateTimeString()
+                    'expires_at' => $subscription->expires_at ? $subscription->expires_at->toDateTimeString() : null
                 ]
             ]);
 
