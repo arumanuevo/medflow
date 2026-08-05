@@ -573,3 +573,30 @@
     background-color: transparent !important;
     color: inherit !important;
 }
+
+
+/* =============================================
+   ESTILOS PARA CARDS - SIN FONDO OSCURO
+   ============================================= */
+
+.card {
+    background-color: #fff !important;
+    border-radius: 8px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: none;
+    margin-bottom: 1.5rem;
+}
+
+/* Card-body SIN fondo oscuro */
+.card-body {
+    background-color: #fff !important;
+    color: #212529 !important;
+    padding: 1.5rem;
+}
+
+/* Para cards anidados (como group-card) */
+.group-card,
+.sensor-card,
+.measurement-card {
+    background-color: #fff !important;
+}
