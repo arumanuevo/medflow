@@ -13,6 +13,40 @@ use Carbon\Carbon;
 
 class ConsumptionController extends Controller
 {
+
+    /**
+     * Obtener el valor de una medición de manera robusta.
+     * Soporta múltiples nombres de campos: valor, consumo_m3, consumo, value, medicion.
+     * Si no se encuentra ningún campo conocido, devuelve el primer valor numérico.
+     *
+     * @param array $data Array de datos de la medición
+     * @return float Valor de la medición
+     */
+    private function getMeasurementValue($data)
+    {
+        if (!is_array($data)) {
+            return 0;
+        }
+
+        // Intentar con campos comunes
+        $fields = ['valor', 'consumo_m3', 'consumo', 'value', 'medicion'];
+        foreach ($fields as $field) {
+            if (isset($data[$field]) && is_numeric($data[$field])) {
+                return (float) $data[$field];
+            }
+        }
+
+        // Si no se encuentra ningún campo conocido, buscar el primer valor numérico
+        foreach ($data as $value) {
+            if (is_numeric($value)) {
+                return (float) $value;
+            }
+        }
+
+        return 0;
+    }
+
+
    /**
  * Listar consumos con filtros opcionales.
  * Si no hay consumos calculados, los calcula automáticamente para todos los sensores del usuario.
@@ -133,12 +167,11 @@ public function index(Request $request)
             }
 
             // Validar que el valor final sea mayor al inicial
-            if ((float)$end->data['valor'] <= (float)$start->data['valor']) {
+            $startValue = $this->getMeasurementValue($start->data);
+            $endValue = $this->getMeasurementValue($end->data);
+            if ($endValue <= $startValue) {
                 continue;
             }
-
-            $startValue = (float) $start->data['valor'];
-            $endValue = (float) $end->data['valor'];
             $consumptionValue = round($endValue - $startValue, 2);
             $daysBetween = Carbon::parse($end->measured_at)->diffInDays(Carbon::parse($start->measured_at));
 
@@ -229,7 +262,9 @@ public function index(Request $request)
         }
 
         // Verificar que el valor final sea mayor al inicial
-        if ((float)$endMeasurement->data['valor'] <= (float)$startMeasurement->data['valor']) {
+        $startValue = $this->getMeasurementValue($startMeasurement->data);
+        $endValue = $this->getMeasurementValue($endMeasurement->data);
+        if ($endValue <= $startValue) {
             return response()->json([
                 'success' => false,
                 'message' => 'El valor de la medición final debe ser mayor al inicial',
@@ -237,8 +272,6 @@ public function index(Request $request)
         }
 
         // Calcular consumo
-        $startValue = (float) $startMeasurement->data['valor'];
-        $endValue = (float) $endMeasurement->data['valor'];
         $consumptionValue = round($endValue - $startValue, 2);
         $daysBetween = Carbon::parse($endMeasurement->measured_at)
                           ->diffInDays(Carbon::parse($startMeasurement->measured_at));

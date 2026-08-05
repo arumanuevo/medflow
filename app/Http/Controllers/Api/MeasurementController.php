@@ -13,6 +13,40 @@ use App\Services\Subscription\SubscriptionService;
 
 class MeasurementController extends Controller
 {
+
+    /**
+     * Obtener el valor de una medición de manera robusta.
+     * Soporta múltiples nombres de campos: valor, consumo_m3, consumo, value, medicion.
+     * Si no se encuentra ningún campo conocido, devuelve el primer valor numérico.
+     *
+     * @param array $data Array de datos de la medición
+     * @return float Valor de la medición
+     */
+    private function getMeasurementValue($data)
+    {
+        if (!is_array($data)) {
+            return 0;
+        }
+
+        // Intentar con campos comunes
+        $fields = ['valor', 'consumo_m3', 'consumo', 'value', 'medicion'];
+        foreach ($fields as $field) {
+            if (isset($data[$field]) && is_numeric($data[$field])) {
+                return (float) $data[$field];
+            }
+        }
+
+        // Si no se encuentra ningún campo conocido, buscar el primer valor numérico
+        foreach ($data as $value) {
+            if (is_numeric($value)) {
+                return (float) $value;
+            }
+        }
+
+        return 0;
+    }
+
+
     /**
  * Listar todas las mediciones con filtrado y paginación.
  * Solo muestra mediciones de sensores a los que el usuario tiene acceso.
@@ -382,7 +416,7 @@ private function getMainFieldFromSensor($sensor)
 
         try {
             // Normalizar los datos
-            $valor = $request->value ?? $request->data['valor'] ?? null;
+            $valor = $request->value ?? ($request->data['valor'] ?? $request->data['consumo_m3'] ?? $request->data['consumo'] ?? $request->data['value'] ?? $request->data['medicion'] ?? null);
             $foto = $request->photo ?? $request->data['foto'] ?? 'Sin Foto';
             $camposPersonalizados = $request->custom_fields ?? $request->data['campos_personalizados'] ?? [];
             $measuredAt = $request->measured_at;
@@ -417,7 +451,7 @@ private function getMainFieldFromSensor($sensor)
 
             // Validar valor: no puede ser menor al de la última medición (a menos que se fuerce)
             if ($lastMeasurement && !$force) {
-                $lastValue = $lastMeasurement->data['valor'] ?? 0;
+                $lastValue = $this->getMeasurementValue($lastMeasurement->data) ?? 0;
                 if ($valor < $lastValue) {
                     return response()->json([
                         'success' => false,
@@ -605,11 +639,11 @@ public function update(Request $request, Measurement $measurement)
     }
 
     // Validar valor: el nuevo valor no puede ser mayor al valor de la medición siguiente
-    if ($request->has('data.valor')) {
-        $newValue = $request->data['valor'];
+    if ($request->has('data.valor') || $request->has('data.consumo_m3') || $request->has('data.consumo') || $request->has('data.value') || $request->has('data.medicion')) {
+        $newValue = $request->data['valor'] ?? $request->data['consumo_m3'] ?? $request->data['consumo'] ?? $request->data['value'] ?? $request->data['medicion'];
 
         if ($nextMeasurement && !$request->force) {
-            $nextValue = $nextMeasurement->data['valor'] ?? 0;
+            $nextValue = $this->getMeasurementValue($nextMeasurement->data) ?? 0;
             if ($newValue > $nextValue) {
                 return response()->json([
                     'success' => false,
@@ -812,8 +846,8 @@ public function getMeasurementErrors(Request $request, Measurement $measurement)
         }
 
         // Validar consumo
-        $lastValue = $previousMeasurement->data['valor'] ?? 0;
-        $currentValue = $measurement->data['valor'] ?? 0;
+        $lastValue = $this->getMeasurementValue($previousMeasurement->data) ?? 0;
+        $currentValue = $this->getMeasurementValue($measurement->data) ?? 0;
         $consumption = $currentValue - $lastValue;
 
         if ($consumption < 0) {
@@ -833,7 +867,7 @@ public function getMeasurementErrors(Request $request, Measurement $measurement)
             'sensor_id' => $measurement->sensor_id,
             'previous_measurement_id' => $previousMeasurement ? $previousMeasurement->id : null,
             'previous_measurement_date' => $previousMeasurement ? $previousMeasurement->measured_at : null,
-            'previous_measurement_value' => $previousMeasurement ? ($previousMeasurement->data['valor'] ?? 0) : null,
+            'previous_measurement_value' => $previousMeasurement ? ($this->getMeasurementValue($previousMeasurement->data) ?? 0) : null,
             'errors' => $errors,
             'warnings' => $warnings
         ]
@@ -925,8 +959,8 @@ public function getErrorStats(Request $request)
             }
 
             // Validar consumo
-            $lastValue = $previousMeasurement->data['valor'] ?? 0;
-            $currentValue = $measurement->data['valor'] ?? 0;
+            $lastValue = $this->getMeasurementValue($previousMeasurement->data) ?? 0;
+            $currentValue = $this->getMeasurementValue($measurement->data) ?? 0;
             $consumption = $currentValue - $lastValue;
 
             if ($consumption < 0) {
@@ -1018,8 +1052,8 @@ public function getMeasurementsByErrorType(Request $request, $errorType, $return
             }
 
             // Validar consumo
-            $lastValue = $previousMeasurement->data['valor'] ?? 0;
-            $currentValue = $measurement->data['valor'] ?? 0;
+            $lastValue = $this->getMeasurementValue($previousMeasurement->data) ?? 0;
+            $currentValue = $this->getMeasurementValue($measurement->data) ?? 0;
             $consumption = $currentValue - $lastValue;
 
             if ($consumption < 0 && $errorType === 'negative_consumption') {
@@ -1054,10 +1088,10 @@ public function getMeasurementsByErrorType(Request $request, $errorType, $return
         $previousMeasurement = ($currentIndex > 0) ? $sortedMeasurements->get($currentIndex - 1) : null;
 
         $data = $measurement->data ?? [];
-        $valor = $data['valor'] ?? 0;
+        $valor = $this->getMeasurementValue($data) ?? 0;
 
         if ($previousMeasurement) {
-            $lastValue = $previousMeasurement->data['valor'] ?? 0;
+            $lastValue = $this->getMeasurementValue($previousMeasurement->data) ?? 0;
             $consumption = $valor - $lastValue;
             $measurement->consumption = $consumption;
 
@@ -1148,19 +1182,19 @@ public function getErrorDetails(Request $request, $errorType)
                     'group_name' => $current->sensor->group->name ?? 'Sin grupo',
                     'current_measurement' => [
                         'id' => $current->id,
-                        'value' => $current->data['valor'] ?? 0,
+                        'value' => $this->getMeasurementValue($current->data) ?? 0,
                         'date' => $current->measured_at,
                         'consumption' => $current->consumption
                     ],
                     'previous_measurement' => $previous ? [
                         'id' => $previous->id,
-                        'value' => $previous->data['valor'] ?? 0,
+                        'value' => $this->getMeasurementValue($previous->data) ?? 0,
                         'date' => $previous->measured_at
                     ] : null,
                     'error_type' => $errorType,
                     'error_message' => $this->getErrorMessage($errorType, $current, $previous),
                     'difference' => $previous ? [
-                        'value' => ($current->data['valor'] ?? 0) - ($previous->data['valor'] ?? 0),
+                        'value' => ($this->getMeasurementValue($current->data) ?? 0) - ($this->getMeasurementValue($previous->data) ?? 0),
                         'days' => $previous ? Carbon::parse($current->measured_at)->diffInDays(Carbon::parse($previous->measured_at)) : null
                     ] : null
                 ];
@@ -1195,8 +1229,8 @@ private function getErrorMessage($errorType, $current, $previous)
 {
     switch ($errorType) {
         case 'negative_consumption':
-            $currentValue = $current->data['valor'] ?? 0;
-            $previousValue = $previous->data['valor'] ?? 0;
+            $currentValue = $this->getMeasurementValue($current->data) ?? 0;
+            $previousValue = $this->getMeasurementValue($previous->data) ?? 0;
             $consumption = $currentValue - $previousValue;
             return "Consumo negativo detectado: {$consumption} (Valor actual: {$currentValue}, Valor anterior: {$previousValue}).";
 
