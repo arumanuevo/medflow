@@ -9,7 +9,7 @@
 @section('content')
 <div class="measurement-container">
     <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">
                 <i class="bi bi-rulers me-2"></i>
                 Tomar Medición
@@ -243,15 +243,17 @@ ADVERTENCIA DE PERÍODO (CON REDONDEO)
                                     </button>
                                     
                                     {{-- Nombre de la foto --}}
-                                    <div class="photo-name-display">
-                                        <i class="bi bi-tag me-1 text-primary"></i>
-                                        <span id="photoNameDisplay">Sin foto</span>
+                                    <div class="photo-name-display mt-2">
+                                        <small class="text-muted">
+                                            <i class="bi bi-tag me-1"></i>
+                                            <span id="photoNameDisplay">Sin foto</span>
+                                        </small>
                                     </div>
                                     
                                     <input type="hidden" id="photo" name="data[foto]" value="Sin Foto">
                                     
-                                    <small class="text-muted text-center">
-                                        <i class="bi bi-info-circle"></i>
+                                    <small class="text-muted text-center mt-1">
+                                        <i class="bi bi-info-circle me-1"></i>
                                         Formato: <code>(grupo)_(sensor)_(fecha).png</code>
                                     </small>
                                 </div>
@@ -335,16 +337,17 @@ ADVERTENCIA DE PERÍODO (CON REDONDEO)
 MODAL DE CÁMARA
 ============================================ -->
 <div class="modal fade camera-modal" id="cameraModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-fullscreen-md-down modal-lg modal-dialog-centered">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-dark text-white py-2">
+            <div class="modal-header">
                 <h6 class="modal-title">
                     <i class="bi bi-camera me-2"></i> Tomar Foto
                 </h6>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body p-0 position-relative" id="cameraModalBody">
-                <video id="modalWebcam" autoplay playsinline muted></video>
+            <div class="modal-body position-relative" id="cameraModalBody">
+                <div class="camera-container">
+                    <video id="modalWebcam" autoplay playsinline muted></video>
                 <canvas id="modalCanvas" class="d-none"></canvas>
                 <div id="cameraError" class="camera-error d-none">
                     <i class="bi bi-camera-off"></i>
