@@ -534,6 +534,12 @@
     color: inherit;
 }
 
+/* Asegurar que card-body NO tenga fondo oscuro */
+.card-body {
+    background-color: transparent !important;
+    color: inherit !important;
+}
+
 /* Estilo específico para card-headers en tablas de consumptions */
 .consumption-table-wrapper .table th {
     text-transform: uppercase !important;
@@ -560,4 +566,10 @@
 .card-header h6 {
     margin-bottom: 0;
     color: inherit;
+}
+
+/* Asegurar que card-body NO tenga fondo oscuro */
+.card-body {
+    background-color: transparent !important;
+    color: inherit !important;
 }
