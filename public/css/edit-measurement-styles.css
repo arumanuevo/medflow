@@ -225,6 +225,68 @@ dd {
     border-top: 1px solid #dee2e6;
 }
 
+
+/* Estilos para el video de la cámara */
+#cameraModal .modal-body video {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 400px !important;
+    object-fit: contain !important;
+    display: block !important;
+    margin: 0 auto !important;
+}
+
+/* Estilos para los controles de la cámara */
+#cameraModal .camera-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding: 1rem 0;
+}
+
+#cameraModal .camera-controls .btn {
+    border-radius: 50% !important;
+    width: 50px !important;
+    height: 50px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 1.25rem !important;
+}
+
+#cameraModal .camera-controls .btn-take-photo {
+    width: 60px !important;
+    height: 60px !important;
+    border-radius: 50% !important;
+    background: #fff !important;
+    border: 3px solid #dc3545 !important;
+}
+
+#cameraModal .camera-controls .btn-take-photo:hover {
+    background: #f8d7da !important;
+}
+
+#cameraModal .camera-controls .btn-close,
+#cameraModal .camera-controls .btn-secondary {
+    background: rgba(0, 0, 0, 0.5) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    color: #fff !important;
+}
+
+#cameraModal .camera-controls .btn-close:hover,
+#cameraModal .camera-controls .btn-secondary:hover {
+    background: rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Asegurar que el modal-body tenga padding adecuado */
+#cameraModal .modal-body {
+    padding: 1rem !important;
+    position: relative !important;
+}
+
+
 /* Estilos para el input-group */
 .input-group {
     border-radius: 6px;
@@ -535,6 +597,68 @@ dd {
     padding: 1rem 1.5rem;
     border-top: 1px solid #dee2e6;
 }
+
+
+/* Estilos para el video de la cámara */
+#cameraModal .modal-body video {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 400px !important;
+    object-fit: contain !important;
+    display: block !important;
+    margin: 0 auto !important;
+}
+
+/* Estilos para los controles de la cámara */
+#cameraModal .camera-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding: 1rem 0;
+}
+
+#cameraModal .camera-controls .btn {
+    border-radius: 50% !important;
+    width: 50px !important;
+    height: 50px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 1.25rem !important;
+}
+
+#cameraModal .camera-controls .btn-take-photo {
+    width: 60px !important;
+    height: 60px !important;
+    border-radius: 50% !important;
+    background: #fff !important;
+    border: 3px solid #dc3545 !important;
+}
+
+#cameraModal .camera-controls .btn-take-photo:hover {
+    background: #f8d7da !important;
+}
+
+#cameraModal .camera-controls .btn-close,
+#cameraModal .camera-controls .btn-secondary {
+    background: rgba(0, 0, 0, 0.5) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    color: #fff !important;
+}
+
+#cameraModal .camera-controls .btn-close:hover,
+#cameraModal .camera-controls .btn-secondary:hover {
+    background: rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Asegurar que el modal-body tenga padding adecuado */
+#cameraModal .modal-body {
+    padding: 1rem !important;
+    position: relative !important;
+}
+
 
 /* Estilos para el input-group */
 .input-group {
