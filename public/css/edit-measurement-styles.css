@@ -4,6 +4,7 @@
 
    /* Estilos para el card principal */
    .card {
+    background-color: #0f172a !important;
     border-radius: 8px;
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
     border: none;
@@ -124,6 +125,7 @@
 
 /* Estilos para las tarjetas internas */
 .card .card {
+    background-color: #0f172a !important;
     border-radius: 8px;
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
     margin-bottom: 1rem;
@@ -311,6 +313,7 @@ dd {
 
    /* Estilos para el card principal */
    .card {
+    background-color: #0f172a !important;
     border-radius: 8px;
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
     border: none;
@@ -432,6 +435,7 @@ dd {
 
 /* Estilos para las tarjetas internas */
 .card .card {
+    background-color: #0f172a !important;
     border-radius: 8px;
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
     margin-bottom: 1rem;

@@ -30,7 +30,7 @@
 
 {{-- ✅ Indicador del espacio activo --}}
 <div class="card mb-4">
-    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+    <div class="card-header  d-flex justify-content-between align-items-center">
         <h5 class="mb-0">
             <i class="bi bi-briefcase me-2"></i> 
             Espacio activo: 
@@ -84,7 +84,7 @@
 
 {{-- Configuración Global --}}
 <div class="card mb-4">
-    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+    <div class="card-header  d-flex justify-content-between align-items-center">
         <h5 class="mb-0"><i class="bi bi-gear me-2"></i> Configuración Global</h5>
     </div>
     <div class="card-body">
@@ -128,7 +128,7 @@
 {{-- Prueba de Correo (solo para administradores) --}}
 @if(auth()->user()->hasRole('admin'))
 <div class="card mb-4">
-    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+    <div class="card-header  d-flex justify-content-between align-items-center">
         <h5 class="mb-0"><i class="bi bi-envelope me-2"></i> Prueba de Correo</h5>
     </div>
     <div class="card-body">

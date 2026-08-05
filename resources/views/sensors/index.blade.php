@@ -412,7 +412,7 @@
         <!-- ============================================
         HEADER MEJORADO
         ============================================ -->
-        <div class="card-header bg-primary text-white">
+        <div class="card-header ">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
                 <h4 class="mb-0 d-flex align-items-center gap-2">
                     <i class="fas fa-tachometer-alt"></i>

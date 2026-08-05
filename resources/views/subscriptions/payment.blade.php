@@ -57,7 +57,7 @@
     <div class="row justify-content-center">
         <div class="col-lg-6">
             <div class="card payment-card shadow-sm">
-                <div class="card-header bg-primary text-white text-center">
+                <div class="card-header  text-center">
                     <h4 class="mb-0"><i class="bi bi-credit-card"></i> Activar Suscripción</h4>
                 </div>
                 <div class="card-body text-center">

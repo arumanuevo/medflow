@@ -182,7 +182,7 @@
                     <!-- Tabla de Sensores -->
                     <div class="table-responsive" id="sensorsTableContainer">
                         <table class="table table-bordered table-striped table-hover" id="sensorsTable">
-                            <thead class="table-dark">
+                            <thead>
                                 <tr>
                                     <th>
                                         <input type="checkbox" id="selectAllSensors" data-bs-toggle="tooltip" title="Seleccionar/desseleccionar todos los sensores">
