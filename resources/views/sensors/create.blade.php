@@ -7,7 +7,7 @@
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card">
-                <div class="card-header bg-primary text-white">
+                <div class="card-header ">
                     <h4><i class="bi bi-sensors"></i> Crear Nuevo Sensor</h4>
                 </div>
                 <div class="card-body">

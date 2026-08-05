@@ -12,6 +12,7 @@
 }
 
 .measurement-container .card {
+    background-color: #0f172a !important;
     border-radius: 12px;
     overflow: hidden;
 }

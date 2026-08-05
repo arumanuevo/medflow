@@ -106,7 +106,7 @@
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <div class="card-header  d-flex justify-content-between align-items-center">
                     <h4><i class="fas fa-user-circle"></i> Mi Perfil</h4>
                     <span class="badge bg-light text-dark" id="userRole">
                         <i class="fas fa-id-badge"></i> Cargando...
@@ -180,7 +180,7 @@
                         <h6>Estadísticas de la cuenta</h6>
                         <div class="row">
                             <div class="col-md-4">
-                                <div class="card bg-light">
+                                <div class="card ">
                                     <div class="card-body text-center">
                                         <h5 id="totalSensors">-</h5>
                                         <small>Sensores</small>
@@ -188,7 +188,7 @@
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <div class="card bg-light">
+                                <div class="card ">
                                     <div class="card-body text-center">
                                         <h5 id="totalMeasurements">-</h5>
                                         <small>Mediciones</small>
@@ -196,7 +196,7 @@
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <div class="card bg-light">
+                                <div class="card ">
                                     <div class="card-body text-center">
                                         <h5 id="totalGroups">-</h5>
                                         <small>Grupos</small>
@@ -241,7 +241,7 @@
                         <div class="row g-2">
                             <div class="col-md-4">
                                 <div class="card h-100 border-primary">
-                                    <div class="card-header bg-primary text-white">
+                                    <div class="card-header ">
                                         <h6 class="mb-0"><i class="bi bi-gift"></i> Plan Free</h6>
                                     </div>
                                     <div class="card-body">

@@ -514,7 +514,7 @@ function showErrorDetailsModal(errors) {
         </div>
         <div class="table-responsive">
             <table class="table table-bordered table-striped table-hover">
-                <thead class="table-dark">
+                <thead>
                     <tr>
                         <th># Fila</th>
                         <th>Error</th>

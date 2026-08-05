@@ -65,7 +65,7 @@
                         @if($group->sensors->count() > 0)
                         <div class="table-responsive">
                             <table class="table table-bordered table-striped">
-                                <thead class="table-dark">
+                                <thead>
                                     <tr>
                                         <th>ID</th>
                                         <th>Nombre</th>
