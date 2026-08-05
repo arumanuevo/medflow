@@ -692,7 +692,7 @@ $(document).ready(function() {
     // =============================================
     function loadSubscriptionStatus() {
         $.ajax({
-            url: '/api/subscription/status',
+            url: '/api/subscription/plan/status',
             type: 'GET',
             headers: {
                 'Authorization': 'Bearer ' + localStorage.getItem('token'),
@@ -993,7 +993,7 @@ $(document).ready(function() {
     window.debugRenewSubscription = function() {
         // Obtener el plan actual
         $.ajax({
-            url: '/api/subscription/status',
+            url: '/api/subscription/plan/status',
             type: 'GET',
             headers: {
                 'Authorization': 'Bearer ' + localStorage.getItem('token'),
