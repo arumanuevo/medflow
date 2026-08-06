@@ -10,6 +10,7 @@ use App\Models\WorkspaceCollaborator;
 use App\Models\Subscription;
 use App\Services\Subscription\Plans\PlanFactory;
 use App\Services\Subscription\Plans\PlanInterface;
+use App\Services\Subscription\Plans\FreePlan;
 use App\Services\Subscription\Exceptions\LimitExceededException;
 use Illuminate\Support\Facades\Log;
 
@@ -66,7 +67,17 @@ class SubscriptionService
         if ($this->ownerPlan) {
             return $this->ownerPlan;
         }
-        return $this->plan;
+        
+        // ✅ Verificar si hay suscripción activa REAL
+        $activeSubscription = $this->user->getActiveSubscription();
+        
+        if ($activeSubscription) {
+            // Si hay suscripción activa, usar el plan correspondiente
+            return PlanFactory::make($activeSubscription->plan);
+        }
+        
+        // ✅ SIN suscripción activa → PLAN FREE
+        return new FreePlan();
     }
 
     /**

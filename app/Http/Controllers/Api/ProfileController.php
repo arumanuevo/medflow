@@ -13,9 +13,30 @@ class ProfileController extends Controller
     /**
      * Obtener el perfil del usuario autenticado
      */
+    // En ProfileController.php - MODIFICAR show() para incluir plan actual
     public function show(Request $request)
     {
         $user = $request->user();
+
+        // ✅ Verificar si hay una suscripción activa REAL
+        $activeSubscription = \App\Models\Subscription::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->where(function($q) {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })
+            ->latest()
+            ->first();
+
+        // ✅ Determinar el plan REAL
+        if ($activeSubscription) {
+            // Si hay suscripción activa, usar el plan de la suscripción
+            $plan = $activeSubscription->plan;
+            $subscriptionType = $plan === 'premium' ? 'corporativo' : 'domiciliario';
+        } else {
+            // ✅ SIN suscripción activa → PLAN FREE
+            $plan = 'free';
+            $subscriptionType = 'domiciliario';
+        }
 
         return response()->json([
             'success' => true,
@@ -23,8 +44,8 @@ class ProfileController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'subscription_type' => $user->subscription_type ?? 'domiciliario',
-                'subscription_plan' => $user->subscription_plan ?? 'básico',
+                'subscription_type' => $subscriptionType,
+                'subscription_plan' => $plan, // ✅ Plan REAL (free si no hay suscripción)
                 'google_id' => $user->google_id,
                 'roles' => $user->getRoleNames(),
                 'created_at' => $user->created_at,
@@ -103,6 +124,7 @@ class ProfileController extends Controller
     /**
      * Cambiar el tipo de suscripción del usuario (endpoint específico)
      */
+    // En ProfileController.php - MODIFICAR el método updateSubscription
     public function updateSubscription(Request $request)
     {
         $user = $request->user();

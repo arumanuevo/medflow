@@ -10,7 +10,6 @@
         filter: brightness(0) invert(1);
     }
 
-    
     /* ✅ Estilos para la sección de suscripción */
     #subscriptionStatus .alert {
         padding: 0.75rem 1rem;
@@ -98,6 +97,18 @@
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
+
+    /* ✅ Estilos para la sección de eliminación de datos */
+    #confirmDeleteAllDataModal .modal-header {
+        border-bottom: none;
+    }
+    #confirmDeleteAllDataModal .modal-footer {
+        border-top: none;
+    }
+    #confirmDeleteAllDataModal .form-control:focus {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    }
 </style>
 @endpush
 
@@ -106,7 +117,7 @@
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card">
-                <div class="card-header  d-flex justify-content-between align-items-center">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h4><i class="fas fa-user-circle"></i> Mi Perfil</h4>
                     <span class="badge bg-light text-dark" id="userRole">
                         <i class="fas fa-id-badge"></i> Cargando...
@@ -180,7 +191,7 @@
                         <h6>Estadísticas de la cuenta</h6>
                         <div class="row">
                             <div class="col-md-4">
-                                <div class="card ">
+                                <div class="card bg-light">
                                     <div class="card-body text-center">
                                         <h5 id="totalSensors">-</h5>
                                         <small>Sensores</small>
@@ -188,7 +199,7 @@
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <div class="card ">
+                                <div class="card bg-light">
                                     <div class="card-body text-center">
                                         <h5 id="totalMeasurements">-</h5>
                                         <small>Mediciones</small>
@@ -196,7 +207,7 @@
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <div class="card ">
+                                <div class="card bg-light">
                                     <div class="card-body text-center">
                                         <h5 id="totalGroups">-</h5>
                                         <small>Grupos</small>
@@ -241,7 +252,7 @@
                         <div class="row g-2">
                             <div class="col-md-4">
                                 <div class="card h-100 border-primary">
-                                    <div class="card-header ">
+                                    <div class="card-header bg-primary text-white">
                                         <h6 class="mb-0"><i class="bi bi-gift"></i> Plan Free</h6>
                                     </div>
                                     <div class="card-body">
@@ -399,7 +410,7 @@
                     </div>
                     @endif
 
-                    {{-- SECCI\u00d3N DE ELIMINACI\u00d3N DE DATOS --}}
+                    {{-- SECCIÓN DE ELIMINACIÓN DE DATOS --}}
                     <div class="mt-4 pt-3 border-top">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <h6 class="mb-0 text-danger">
@@ -424,14 +435,14 @@
     </div>
 </div>
 
-<!-- Modal de confirmaci\u00f3n para eliminar todos los datos -->
+<!-- Modal de confirmación para eliminar todos los datos -->
 <div class="modal fade" id="confirmDeleteAllDataModal" tabindex="-1" aria-labelledby="confirmDeleteAllDataModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
                 <h5 class="modal-title" id="confirmDeleteAllDataModalLabel">
                     <i class="bi bi-exclamation-triangle-fill me-2"></i> 
-                    \u00bfEst\u00e1s seguro de que deseas eliminar TODOS tus datos?
+                    ¿Estás seguro de que deseas eliminar TODOS tus datos?
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -440,7 +451,7 @@
                     <i class="bi bi-exclamation-triangle-fill me-2"></i>
                     <strong>¡Advertencia: Esta acción eliminará TODOS tus datos:</strong> sensores, mediciones, fotos asociadas, grupos, colaboraciones, suscripciones y configuraciones. No podrás recuperar esta información.
                 </div>
-                <p>Se eliminar\u00e1n:</p>
+                <p>Se eliminarán:</p>
                 <ul>
                     <li><i class="bi bi-check-circle-fill text-danger me-2"></i> Todos tus sensores</li>
                     <li><i class="bi bi-check-circle-fill text-danger me-2"></i> Todas tus mediciones</li>
@@ -450,7 +461,7 @@
                     <li><i class="bi bi-check-circle-fill text-danger me-2"></i> Tus suscripciones</li>
                     <li><i class="bi bi-check-circle-fill text-danger me-2"></i> Tus configuraciones personales</li>
                 </ul>
-                <p>Tu cuenta ser\u00e1 anonimizada (nombre y email cambiados).</p>
+                <p>Tu cuenta será anonimizada (nombre y email cambiados).</p>
                 <div class="form-group">
                     <label for="confirmationText" class="form-label">Para confirmar, escribe <strong>"ELIMINAR TODO"</strong>:</label>
                     <input type="text" class="form-control" id="confirmationText" placeholder="ELIMINAR TODO">
@@ -461,7 +472,7 @@
                     <i class="bi bi-x-circle me-1"></i> Cancelar
                 </button>
                 <button type="button" class="btn btn-danger" id="confirmDeleteAllData">
-                    <i class="bi bi-trash-fill me-1"></i> S\u00ed, eliminar todo
+                    <i class="bi bi-trash-fill me-1"></i> Sí, eliminar todo
                 </button>
             </div>
         </div>
@@ -633,7 +644,14 @@ $(document).ready(function() {
                     $('#email').val(user.email);
                     $('#subscription_type').val(user.subscription_type || 'domiciliario');
                     $('#userId').text(user.id);
-                    $('#userPlan').text(user.subscription_plan || 'básico');
+                    
+                    // ✅ Mostrar el plan correctamente
+                    const planDisplay = user.subscription_plan === 'free' ? 'Free' : 
+                                    user.subscription_plan === 'basico' ? 'Básico' : 
+                                    user.subscription_plan === 'premium' ? 'Premium' : 
+                                    user.subscription_plan || 'Free';
+                    $('#userPlan').text(planDisplay);
+                    
                     $('#userCreatedAt').text(new Date(user.created_at).toLocaleString('es-ES'));
                     $('#userUpdatedAt').text(new Date(user.updated_at).toLocaleString('es-ES'));
 
@@ -880,141 +898,166 @@ $(document).ready(function() {
     // ✅ FUNCIONES DE DEPURACIÓN (SOLO LOCAL)
     // =============================================
     
-    if (appEnvironment === 'local') {
+    @if(app()->environment('local'))
+        // En index.blade.js - MODIFICAR debugActivateSubscription
         function debugActivateSubscription(plan) {
-        const planNames = {
-            'basico': 'Plan Básico',
-            'premium': 'Plan Premium'
-        };
-        
-        const planIcons = {
-            'basico': '📋',
-            'premium': '⭐'
-        };
-        const duration = 5;
-     
-        addNotification(
-            `🔄 Activando ${planNames[plan]} por ${duration} minutos...`,
-            'info'
-        );
-        
-        $.ajax({
-            url: '/api/subscription/debug/activate',
-            type: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            data: JSON.stringify({
-                plan: plan,
-                duration_minutes: duration
-            }),
-            success: function(response) {
-                if (response.success) {
-                    addNotification(
-                        `✅ ${planIcons[plan] || '✅'} ${planNames[plan] || plan} activado por ${duration} minutos para pruebas.`,
-        const duration = 5;
-                        'success'
+            const planNames = {
+                'free': 'Plan Free',
+                'basico': 'Plan Básico',
+                'premium': 'Plan Premium'
+            };
+            
+            const planIcons = {
+                'free': '🎁',
+                'basico': '📋',
+                'premium': '⭐'
+            };
+            
+            const duration = plan === 'free' ? 9999 : 5;
+            
+            showAlert(
+                `🔄 Activando ${planNames[plan]} por ${duration === 9999 ? 'tiempo indefinido' : duration + ' minutos'}...`,
+                'info'
+            );
+            
+            $.ajax({
+                url: '/api/subscription/debug/activate',
+                type: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                data: JSON.stringify({
+                    plan: plan,
+                    duration_minutes: duration
+                }),
+                success: function(response) {
+                    if (response.success) {
+                        showAlert(
+                            `✅ ${planIcons[plan]} ${planNames[plan]} activado correctamente para pruebas.`,
+                            'success'
+                        );
+                        // ✅ Recargar TODO
+                        loadSubscriptionStatus();
+                        loadStats();
+                        loadProfile();
+                        updatePlanInfo();
+                        
+                        if (typeof refreshSubscriptionStatus === 'function') {
+                            refreshSubscriptionStatus();
+                        }
+                    } else {
+                        showAlert('❌ ' + (response.message || 'Error al activar'), 'danger');
+                    }
+                },
+                error: function(xhr) {
+                    showAlert(
+                        '❌ Error: ' + (xhr.responseJSON?.message || xhr.statusText),
+                        'danger'
                     );
-                    loadSubscriptionStatus();
-                    loadStats();
-                } else {
-                    addNotification('❌ ' + (response.message || 'Error al activar'), 'danger');
                 }
-            },
-            error: function(xhr) {
-                addNotification(
-                    '❌ Error: ' + (xhr.responseJSON?.message || xhr.statusText),
-                    'danger'
-                );
-            }
-        });
-    }
-    
-    function debugExpireSubscription() {
-        addNotification('⏰ Forzando expiración de la suscripción...', 'warning');
-        
-        $.ajax({
-            url: '/api/subscription/debug/expire',
-            type: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                'Accept': 'application/json'
-            },
-            success: function(response) {
-                if (response.success) {
-                    addNotification('✅ Suscripción expirada correctamente', 'success');
-                    loadSubscriptionStatus();
-                    loadStats();
-                } else {
-                    addNotification('❌ ' + (response.message || 'Error al expirar'), 'danger');
-                }
-            },
-            error: function(xhr) {
-                addNotification(
-                    '❌ Error: ' + (xhr.responseJSON?.message || xhr.statusText),
-                    'danger'
-                );
-            }
-        });
-    }
-    
-    function debugClearSubscriptions() {
-        if (!confirm('⚠️ ¿Estás seguro de que quieres eliminar TODO el historial de suscripciones?')) {
-            return;
+            });
         }
         
-        showAlert('🧹 Limpiando historial de suscripciones...', 'warning');
+        function debugExpireSubscription() {
+            addNotification('⏰ Forzando expiración de la suscripción...', 'warning');
+            
+            $.ajax({
+                url: '/api/subscription/debug/expire',
+                type: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                    'Accept': 'application/json'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        addNotification('✅ Suscripción expirada correctamente', 'success');
+                        // ✅ Recargar TODO después de expirar
+                        loadSubscriptionStatus();
+                        loadStats();
+                        loadProfile();        // ✅ Esto actualiza el Plan en "Información de la cuenta"
+                        updatePlanInfo();      // ✅ Actualizar solo el plan
+                        
+                        // ✅ También recargar el badge del header
+                        if (typeof refreshSubscriptionStatus === 'function') {
+                            refreshSubscriptionStatus();
+                        }
+                    } else {
+                        addNotification('❌ ' + (response.message || 'Error al expirar'), 'danger');
+                    }
+                },
+                error: function(xhr) {
+                    addNotification(
+                        '❌ Error: ' + (xhr.responseJSON?.message || xhr.statusText),
+                        'danger'
+                    );
+                }
+            });
+        }
         
-        $.ajax({
-            url: '/api/subscription/debug/clear',
-            type: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                'Accept': 'application/json'
-            },
-            success: function(response) {
-                if (response.success) {
-                    showAlert('✅ Historial limpiado correctamente', 'success');
-                    loadSubscriptionStatus();
-                    loadStats();
-                } else {
-                    showAlert('❌ ' + (response.message || 'Error al limpiar'), 'danger');
-                }
-            },
-            error: function(xhr) {
-                showAlert(
-                    '❌ Error: ' + (xhr.responseJSON?.message || xhr.statusText),
-                    'danger'
-                );
+        function debugClearSubscriptions() {
+            if (!confirm('⚠️ ¿Estás seguro de que quieres eliminar TODO el historial de suscripciones?')) {
+                return;
             }
-        });
-    }
-    
-    // Función global para renovar desde el botón
-    window.debugRenewSubscription = function() {
-        // Obtener el plan actual
-        $.ajax({
-            url: '/api/subscription/plan/status',
-            type: 'GET',
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                'Accept': 'application/json'
-            },
-            success: function(response) {
-                if (response.success && response.data.has_active_subscription) {
-                    const currentPlan = response.data.subscription.plan;
-                    debugActivateSubscription(currentPlan);
-                } else {
-                    showAlert('❌ No hay suscripción activa para renovar', 'warning');
+            
+            showAlert('🧹 Limpiando historial de suscripciones...', 'warning');
+            
+            $.ajax({
+                url: '/api/subscription/debug/clear',
+                type: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                    'Accept': 'application/json'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        showAlert('✅ Historial limpiado correctamente', 'success');
+                        // ✅ Recargar TODO después de limpiar
+                        loadSubscriptionStatus();
+                        loadStats();
+                        loadProfile();        // ✅ Actualizar Plan en "Información de la cuenta"
+                        updatePlanInfo();      // ✅ Actualizar solo el plan
+                        
+                        if (typeof refreshSubscriptionStatus === 'function') {
+                            refreshSubscriptionStatus();
+                        }
+                    } else {
+                        showAlert('❌ ' + (response.message || 'Error al limpiar'), 'danger');
+                    }
+                },
+                error: function(xhr) {
+                    showAlert(
+                        '❌ Error: ' + (xhr.responseJSON?.message || xhr.statusText),
+                        'danger'
+                    );
                 }
-            },
-            error: function() {
-                showAlert('❌ Error al obtener el plan actual', 'danger');
-            }
-        });
-    };
+            });
+        }
+        
+        // Función global para renovar desde el botón
+        window.debugRenewSubscription = function() {
+            // Obtener el plan actual
+            $.ajax({
+                url: '/api/subscription/plan/status',
+                type: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                    'Accept': 'application/json'
+                },
+                success: function(response) {
+                    if (response.success && response.data.has_active_subscription) {
+                        const currentPlan = response.data.subscription.plan;
+                        debugActivateSubscription(currentPlan);
+                    } else {
+                        showAlert('❌ No hay suscripción activa para renovar', 'warning');
+                    }
+                },
+                error: function() {
+                    showAlert('❌ Error al obtener el plan actual', 'danger');
+                }
+            });
+        };
     @endif
 
     // =============================================
@@ -1036,17 +1079,18 @@ $(document).ready(function() {
             });
         }, 8000);
     }
+
     // =============================================
-    // \u2705 FUNCIONALIDAD PARA ELIMINAR TODOS LOS DATOS
+    // ✅ FUNCIONALIDAD PARA ELIMINAR TODOS LOS DATOS
     // =============================================
     
-    // Evento para abrir el modal de confirmaci\u00f3n
+    // Evento para abrir el modal de confirmación
     $('#deleteAllDataBtn').click(function() {
         $('#confirmDeleteAllDataModal').modal('show');
         $('#confirmationText').val('');
     });
 
-    // Evento para confirmar la eliminaci\u00f3n
+    // Evento para confirmar la eliminación
     $('#confirmDeleteAllData').click(function() {
         const confirmationText = $('#confirmationText').val().trim();
         
@@ -1055,7 +1099,7 @@ $(document).ready(function() {
             return;
         }
 
-        // Obtener token de confirmaci\u00f3n
+        // Obtener token de confirmación
         $.ajax({
             url: '/api/profile/delete-all-data/confirmation-token',
             type: 'POST',
@@ -1070,25 +1114,25 @@ $(document).ready(function() {
             },
             success: function(response) {
                 if (response.success) {
-                    // Ahora ejecutar la eliminaci\u00f3n con el token
+                    // Ahora ejecutar la eliminación con el token
                     deleteAllUserData(response.token);
                 } else {
                     showAlert(response.message || 'Error al generar token', 'danger');
                     $('#confirmDeleteAllData').prop('disabled', false).html(`
-                        <i class="bi bi-trash-fill me-1"></i> S\u00ed, eliminar todo
+                        <i class="bi bi-trash-fill me-1"></i> Sí, eliminar todo
                     `);
                 }
             },
             error: function(xhr) {
                 showAlert('Error: ' + (xhr.responseJSON?.message || xhr.statusText), 'danger');
                 $('#confirmDeleteAllData').prop('disabled', false).html(`
-                    <i class="bi bi-trash-fill me-1"></i> S\u00ed, eliminar todo
+                    <i class="bi bi-trash-fill me-1"></i> Sí, eliminar todo
                 `);
             }
         });
     });
 
-    // Funci\u00f3n para eliminar todos los datos del usuario
+    // Función para eliminar todos los datos del usuario
     function deleteAllUserData(token) {
         $.ajax({
             url: '/api/profile/delete-all-data',
@@ -1106,7 +1150,7 @@ $(document).ready(function() {
                     $('#confirmDeleteAllDataModal').modal('hide');
                     showAlert(response.message, 'success');
                     
-                    // Redirigir al login despu\u00e9s de 3 segundos
+                    // Redirigir al login después de 3 segundos
                     setTimeout(function() {
                         window.location.href = '/login';
                     }, 3000);
@@ -1120,21 +1164,27 @@ $(document).ready(function() {
             },
             complete: function() {
                 $('#confirmDeleteAllData').prop('disabled', false).html(`
-                    <i class="bi bi-trash-fill me-1"></i> S\u00ed, eliminar todo
+                    <i class="bi bi-trash-fill me-1"></i> Sí, eliminar todo
                 `);
             }
         });
     }
-});
-</script>
-<script>
 
     // =============================================
     // FUNCIÓN PARA AGREGAR NOTIFICACIONES AL DROPDOWN
     // =============================================
     function addNotification(message, type = 'info') {
+        // Si no existe el dropdown de notificaciones, usar showAlert
+        if ($('#alertsDropdown').length === 0) {
+            showAlert(message, type);
+            return;
+        }
+        
         const dropdown = $('#alertsDropdown').next('.dropdown-menu');
-        if (dropdown.length === 0) return;
+        if (dropdown.length === 0) {
+            showAlert(message, type);
+            return;
+        }
         
         const icons = {
             'info': '<i class="bi bi-info-circle"></i>',
@@ -1171,6 +1221,9 @@ $(document).ready(function() {
         const bellButton = $('#alertsDropdown');
         let currentCount = parseInt(bellButton.find('.badge').text()) || 0;
         bellButton.find('.badge').text(currentCount + 1);
+        if (currentCount === 0) {
+            bellButton.find('.badge').removeClass('d-none');
+        }
         
         // Auto-dismiss después de 10 segundos
         setTimeout(() => {
@@ -1179,7 +1232,7 @@ $(document).ready(function() {
                 // Actualizar el contador
                 currentCount = Math.max(0, currentCount - 1);
                 if (currentCount === 0) {
-                    bellButton.find('.badge').remove();
+                    bellButton.find('.badge').addClass('d-none');
                 } else {
                     bellButton.find('.badge').text(currentCount);
                 }
@@ -1192,14 +1245,42 @@ $(document).ready(function() {
                 $(this).remove();
                 currentCount = Math.max(0, currentCount - 1);
                 if (currentCount === 0) {
-                    bellButton.find('.badge').remove();
+                    bellButton.find('.badge').addClass('d-none');
                 } else {
                     bellButton.find('.badge').text(currentCount);
                 }
             });
         });
     }
+
+    // =============================================
+    // ✅ FUNCIÓN PARA ACTUALIZAR SOLO EL PLAN
+    // =============================================
+    function updatePlanInfo() {
+        $.ajax({
+            url: '/api/profile',
+            type: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                'Accept': 'application/json'
+            },
+            success: function(response) {
+                if (response.success) {
+                    const user = response.data;
+                    // ✅ Mostrar el plan correctamente
+                    const planDisplay = user.subscription_plan === 'free' ? 'Free' : 
+                                    user.subscription_plan === 'basico' ? 'Básico' : 
+                                    user.subscription_plan === 'premium' ? 'Premium' : 
+                                    user.subscription_plan || 'Free';
+                    $('#userPlan').text(planDisplay);
+                    $('#subscription_type').val(user.subscription_type || 'domiciliario');
+                }
+            },
+            error: function(xhr) {
+                console.error('Error al actualizar plan:', xhr);
+            }
+        });
+    }
+});
 </script>
-
-
 @endpush
