@@ -472,6 +472,7 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
+    const appEnvironment = '{{ app()->environment() }}';
     let countdownInterval = null;
     let subscriptionCheckInterval = null;
     
@@ -879,8 +880,8 @@ $(document).ready(function() {
     // ✅ FUNCIONES DE DEPURACIÓN (SOLO LOCAL)
     // =============================================
     
-    @if(app()->environment('local'))
-    function debugActivateSubscription(plan) {
+    if (appEnvironment === 'local') {
+        function debugActivateSubscription(plan) {
         const planNames = {
             'basico': 'Plan Básico',
             'premium': 'Plan Premium'
