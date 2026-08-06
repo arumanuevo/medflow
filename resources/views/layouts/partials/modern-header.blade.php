@@ -12,7 +12,7 @@
 
 <header class="modern-header">
     <div class="modern-header-left">
-        {{-- \u2705 BOTÓN HAMBURGUESA - SOLO VISIBLE EN MÓVIL --}}
+        {{-- ✅ BOTÓN HAMBURGUESA - SOLO VISIBLE EN MÓVIL --}}
         <button class="modern-header-toggle" id="sidebarToggle" title="Abrir menú">
             <i class="bi bi-list"></i>
         </button>
@@ -20,107 +20,6 @@
     </div>
     
     <div class="modern-header-right">
-        {{-- Badges de alerta de suscripción --}}
-        @if($subscriptionInfo && isset($subscriptionInfo['limits']))
-            <div class="modern-header-alerts dropdown" style="margin-right: 1rem;">
-                <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" id="alertsDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Alertas de suscripción">
-                    <i class="bi bi-bell"></i>
-                    @php
-                        $alertCount = 0;
-                        if (!$subscriptionInfo['limits']['sensors']['is_unlimited'] && $subscriptionInfo['limits']['sensors']['remaining'] <= 1) $alertCount++;
-                        if (!$subscriptionInfo['limits']['groups']['is_unlimited'] && $subscriptionInfo['limits']['groups']['remaining'] <= 1) $alertCount++;
-                        if (!$subscriptionInfo['has_active_subscription']) $alertCount++;
-                    @endphp
-                    @if($alertCount > 0)
-                        <span class="badge bg-danger ms-1" style="font-size: 0.65rem; padding: 0.2rem 0.45rem;">{{ $alertCount }}</span>
-                    @endif
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="alertsDropdown" style="min-width: 300px;">
-                    <li class="dropdown-header">
-                        <i class="bi bi-info-circle me-2"></i>
-                        Estado de Suscripción
-                    </li>
-                    
-                    @if(!$subscriptionInfo['has_active_subscription'])
-                        <li>
-                            <div class="dropdown-item-text d-flex justify-content-between align-items-start">
-                                <div>
-                                    <span class="badge bg-warning text-dark me-2">!</span>
-                                    <strong>Sin suscripción activa</strong>
-                                    <small class="d-block">Estás usando el plan <strong>{{ $subscriptionInfo['plan']['name'] }}</strong> con límites básicos.</small>
-                                </div>
-                                <button class="btn btn-sm btn-outline-secondary dismiss-alert" data-alert-type="subscription" style="padding: 0.2rem 0.4rem; font-size: 0.7rem;">
-                                    <i class="bi bi-x"></i>
-                                </button>
-                            </div>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                    @endif
-                    
-                    @if(!$subscriptionInfo['limits']['sensors']['is_unlimited'] && $subscriptionInfo['limits']['sensors']['remaining'] <= 1)
-                        <li>
-                            <div class="dropdown-item-text d-flex justify-content-between align-items-start">
-                                <div>
-                                    <span class="badge bg-{{ $subscriptionInfo['limits']['sensors']['remaining'] === 0 ? 'danger' : 'warning' }} me-2">
-                                        {{ $subscriptionInfo['limits']['sensors']['remaining'] === 0 ? '❌' : '⚠️' }}
-                                    </span>
-                                    <strong>Límite de sensores</strong>
-                                    <small class="d-block">Has usado <strong>{{ $subscriptionInfo['limits']['sensors']['used'] }}</strong> de <strong>{{ $subscriptionInfo['limits']['sensors']['max'] }}</strong>.
-                                    @if($subscriptionInfo['limits']['sensors']['remaining'] === 0)
-                                        <a href="/profile" class="alert-link">Actualizar plan</a>
-                                    @else
-                                        Te queda <strong>{{ $subscriptionInfo['limits']['sensors']['remaining'] }}</strong>.
-                                    @endif
-                                    </small>
-                                </div>
-                                <button class="btn btn-sm btn-outline-secondary dismiss-alert" data-alert-type="sensor" style="padding: 0.2rem 0.4rem; font-size: 0.7rem;">
-                                    <i class="bi bi-x"></i>
-                                </button>
-                            </div>
-                        </li>
-                    @endif
-                    
-                    @if(!$subscriptionInfo['limits']['groups']['is_unlimited'] && $subscriptionInfo['limits']['groups']['remaining'] <= 1)
-                        <li>
-                            <div class="dropdown-item-text d-flex justify-content-between align-items-start">
-                                <div>
-                                    <span class="badge bg-{{ $subscriptionInfo['limits']['groups']['remaining'] === 0 ? 'danger' : 'warning' }} me-2">
-                                        {{ $subscriptionInfo['limits']['groups']['remaining'] === 0 ? '❌' : '⚠️' }}
-                                    </span>
-                                    <strong>Límite de grupos</strong>
-                                    <small class="d-block">Has usado <strong>{{ $subscriptionInfo['limits']['groups']['used'] }}</strong> de <strong>{{ $subscriptionInfo['limits']['groups']['max'] }}</strong>.
-                                    @if($subscriptionInfo['limits']['groups']['remaining'] === 0)
-                                        <a href="/profile" class="alert-link">Actualizar plan</a>
-                                    @else
-                                        Te queda <strong>{{ $subscriptionInfo['limits']['groups']['remaining'] }}</strong>.
-                                    @endif
-                                    </small>
-                                </div>
-                                <button class="btn btn-sm btn-outline-secondary dismiss-alert" data-alert-type="group" style="padding: 0.2rem 0.4rem; font-size: 0.7rem;">
-                                    <i class="bi bi-x"></i>
-                                </button>
-                            </div>
-                        </li>
-                    @endif
-                    
-                    @if($alertCount === 0)
-                        <li class="dropdown-header text-success">
-                            <i class="bi bi-check-circle me-2"></i>
-                            Todo en orden
-                        </li>
-                    @else
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item" href="/profile">
-                                <i class="bi bi-gear me-2"></i>
-                                Gestionar suscripción
-                            </a>
-                        </li>
-                    @endif
-                </ul>
-            </div>
-        @endif
-        
         <a href="{{ route('profile.index') }}" class="modern-header-user">
             <div class="modern-header-user-avatar">{{ $userInitials }}</div>
             <div>
@@ -137,130 +36,146 @@
     </div>
 </header>
 
-<style>
-    .modern-header-alerts .dropdown-toggle {
-        padding: 0.4rem 0.6rem;
-        font-size: 1.1rem;
-        color: #6c757d;
-        border: none;
-    }
-    .modern-header-alerts .dropdown-toggle:hover {
-        color: #0d6efd;
-        background: rgba(13, 110, 253, 0.1);
-    }
-    .modern-header-alerts .dropdown-menu {
-        font-size: 0.85rem;
-    }
-    .modern-header-alerts .dropdown-header {
-        font-size: 0.8rem;
-        color: #6c757d;
-    }
-    .modern-header-alerts .dropdown-item-text {
-        padding: 0.5rem 1rem;
-        white-space: normal;
-    }
-    .modern-header-alerts .alert-link {
-        font-weight: 600;
-        color: #0d6efd;
-        text-decoration: none;
-    }
-    .modern-header-alerts .alert-link:hover {
-        text-decoration: underline;
-    }
-</style>
+{{-- Contenedor de toasts para alertas de suscripción --}}
+<div id="subscriptionToastContainer" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1100;"></div>
 
 <script>
-// Funcionalidad para descartar alertas del dropdown (Vanilla JS)
+// Funcionalidad para mostrar alertas de suscripción como toasts
 document.addEventListener('DOMContentLoaded', function() {
-    // Función para ocultar alerta con animación
-    function dismissAlert(button) {
-        const alertType = button.dataset.alertType;
-        const listItem = button.closest('li');
+    @if($subscriptionInfo && isset($subscriptionInfo['limits']))
+        // Configuración de toasts mostrados
+        const shownToasts = JSON.parse(localStorage.getItem('shownSubscriptionToasts') || '[]');
+        const toastContainer = document.getElementById('subscriptionToastContainer');
         
-        // Animación de fade out
-        listItem.style.transition = 'opacity 0.3s ease';
-        listItem.style.opacity = '0';
-        
-        setTimeout(function() {
-            listItem.remove();
-            updateAlertCounter();
-            saveDismissedAlert(alertType);
+        // Función para crear y mostrar un toast
+        function showToast(title, message, type, icon, linkText, linkUrl) {
+            const toastId = 'toast_' + type;
             
-            // Si no quedan alertas, mostrar mensaje "Todo en orden"
-            const remainingAlerts = document.querySelectorAll('.modern-header-alerts .dropdown-item-text:not([style*="display: none"])');
-            if (remainingAlerts.length === 0) {
-                const dropdownMenu = document.querySelector('.modern-header-alerts .dropdown-menu');
-                const header = document.createElement('li');
-                header.className = 'dropdown-header text-success';
-                header.innerHTML = '<i class="bi bi-check-circle me-2"></i> Todo en orden';
-                dropdownMenu.prepend(header);
+            // Verificar si ya se mostró este toast
+            if (shownToasts.includes(toastId)) {
+                return;
             }
-        }, 300);
-    }
-
-    // Actualizar el contador de alertas en el badge
-    function updateAlertCounter() {
-        // Contar solo las alertas visibles (no ocultas por CSS)
-        const allAlertItems = document.querySelectorAll('.modern-header-alerts .dropdown-item-text');
-        let visibleCount = 0;
-        
-        allAlertItems.forEach(function(item) {
-            if (item.closest('li').style.display !== 'none') {
-                visibleCount++;
+            
+            const toastElement = document.createElement('div');
+            toastElement.className = 'toast align-items-center text-white border-0';
+            toastElement.setAttribute('role', 'alert');
+            toastElement.setAttribute('aria-live', 'assertive');
+            toastElement.setAttribute('aria-atomic', 'true');
+            toastElement.setAttribute('data-bs-autohide', 'false');
+            toastElement.id = toastId;
+            
+            // Determinar clase de color según el tipo
+            const bgClass = type === 'danger' ? 'bg-danger' : 
+                           type === 'warning' ? 'bg-warning text-dark' : 
+                           type === 'success' ? 'bg-success' : 'bg-info';
+            
+            // Crear el HTML del toast
+            let toastHTML = `
+                <div class="d-flex">
+                    <div class="toast-body d-flex align-items-center">
+                        <span class="me-2">${icon}</span>
+                        <div>
+                            <strong>${title}</strong>
+                            <div class="mt-1">${message}</div>
+        `;
+            
+            // Agregar enlace si existe
+            if (linkText && linkUrl) {
+                toastHTML += `<a href="${linkUrl}" class="alert-link mt-1 d-inline-block">${linkText}</a>`;
             }
-        });
-        
-        const badge = document.querySelector('.modern-header-alerts .badge');
-        
-        if (badge) {
-            if (visibleCount === 0) {
-                badge.style.display = 'none';
-            } else {
-                badge.textContent = visibleCount;
-                badge.style.display = 'inline-block';
-            }
-        }
-    }
-
-    // Guardar alerta descartada en localStorage
-    function saveDismissedAlert(alertType) {
-        let dismissedAlerts = JSON.parse(localStorage.getItem('dismissedSubscriptionAlerts') || '[]');
-        
-        if (!dismissedAlerts.includes(alertType)) {
-            dismissedAlerts.push(alertType);
-            localStorage.setItem('dismissedSubscriptionAlerts', JSON.stringify(dismissedAlerts));
-        }
-    }
-
-    // Verificar alertas descartadas al cargar la página
-    function checkDismissedAlerts() {
-        const dismissedAlerts = JSON.parse(localStorage.getItem('dismissedSubscriptionAlerts') || '[]');
-        
-        dismissedAlerts.forEach(function(alertType) {
-            const buttons = document.querySelectorAll('.modern-header-alerts .dismiss-alert[data-alert-type="' + alertType + '"]');
-            buttons.forEach(function(button) {
-                const listItem = button.closest('li');
-                if (listItem) {
-                    listItem.style.display = 'none';
-                }
+            
+            toastHTML += `
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close" onclick="markToastAsShown('${toastId}')"></button>
+                </div>
+            `;
+            
+            toastElement.className += ' ' + bgClass;
+            toastElement.innerHTML = toastHTML;
+            
+            // Agregar toast al contenedor
+            toastContainer.appendChild(toastElement);
+            
+            // Inicializar el toast con Bootstrap
+            const toast = new bootstrap.Toast(toastElement, { autohide: false });
+            toast.show();
+            
+            // Marcar como mostrado cuando se cierra
+            toastElement.addEventListener('hidden.bs.toast', function() {
+                markToastAsShown('${toastId}');
             });
-        });
+        }
         
-        // Actualizar contador después de ocultar las alertas
-        updateAlertCounter();
-    }
-
-    // Agregar event listeners a los botones de cierre
-    const dismissButtons = document.querySelectorAll('.modern-header-alerts .dismiss-alert');
-    dismissButtons.forEach(function(button) {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            dismissAlert(this);
-        });
-    });
-
-    // Inicializar al cargar la página
-    checkDismissedAlerts();
+        // Función para marcar toast como mostrado
+        function markToastAsShown(toastId) {
+            let shown = JSON.parse(localStorage.getItem('shownSubscriptionToasts') || '[]');
+            if (!shown.includes(toastId)) {
+                shown.push(toastId);
+                localStorage.setItem('shownSubscriptionToasts', JSON.stringify(shown));
+            }
+        }
+        
+        // Mostrar toasts según el estado de suscripción
+        @if(!$subscriptionInfo['has_active_subscription'])
+            showToast(
+                '📋 Sin suscripción activa',
+                'Estás usando el plan {{ $subscriptionInfo["plan"]["name"] }} con límites básicos.',
+                'warning',
+                '<i class="bi bi-exclamation-triangle"></i>',
+                'Activa tu suscripción',
+                '/profile'
+            );
+        @endif
+        
+        @if(!$subscriptionInfo['limits']['sensors']['is_unlimited'] && $subscriptionInfo['limits']['sensors']['remaining'] <= 1)
+            showToast(
+                '{{ $subscriptionInfo["limits"]["sensors"]["remaining"] === 0 ? "❌ Límite de sensores alcanzado" : "⚠️ Límite de sensores casi alcanzado" }}',
+                'Has usado <strong>{{ $subscriptionInfo["limits"]["sensors"]["used"] }}</strong> de <strong>{{ $subscriptionInfo["limits"]["sensors"]["max"] }}</strong>. {{ $subscriptionInfo["limits"]["sensors"]["remaining"] === 0 ? "No puedes crear más sensores." : "Te queda solo 1 sensor." }}',
+                '{{ $subscriptionInfo["limits"]["sensors"]["remaining"] === 0 ? "danger" : "warning" }}',
+                '<i class="bi bi-{{ $subscriptionInfo["limits"]["sensors"]["remaining"] === 0 ? "exclamation-circle" : "exclamation-triangle" }}"></i>',
+                'Actualiza tu plan',
+                '/profile'
+            );
+        @endif
+        
+        @if(!$subscriptionInfo['limits']['groups']['is_unlimited'] && $subscriptionInfo['limits']['groups']['remaining'] <= 1)
+            showToast(
+                '{{ $subscriptionInfo["limits"]["groups"]["remaining"] === 0 ? "❌ Límite de grupos alcanzado" : "⚠️ Límite de grupos casi alcanzado" }}',
+                'Has usado <strong>{{ $subscriptionInfo["limits"]["groups"]["used"] }}</strong> de <strong>{{ $subscriptionInfo["limits"]["groups"]["max"] }}</strong>. {{ $subscriptionInfo["limits"]["groups"]["remaining"] === 0 ? "No puedes crear más grupos." : "Te queda solo 1 grupo." }}',
+                '{{ $subscriptionInfo["limits"]["groups"]["remaining"] === 0 ? "danger" : "warning" }}',
+                '<i class="bi bi-{{ $subscriptionInfo["limits"]["groups"]["remaining"] === 0 ? "exclamation-circle" : "exclamation-triangle" }}"></i>',
+                'Actualiza tu plan',
+                '/profile'
+            );
+        @endif
+        
+        // Estilos para los toasts
+        const style = document.createElement('style');
+        style.textContent = `
+            .toast-container {
+                max-width: 350px;
+            }
+            .toast {
+                min-width: 300px;
+                font-size: 0.9rem;
+            }
+            .toast .alert-link {
+                font-weight: 600;
+                color: inherit;
+                text-decoration: none;
+            }
+            .toast .alert-link:hover {
+                text-decoration: underline;
+            }
+            .toast.warning .alert-link {
+                color: #000 !important;
+            }
+            .btn-close-white {
+                filter: brightness(1.5);
+            }
+        `;
+        document.head.appendChild(style);
+    @endif
 });
 </script>
