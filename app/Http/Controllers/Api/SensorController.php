@@ -136,8 +136,7 @@ class SensorController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => "Has alcanzado el límite de {$status['max']} sensores para tu plan {$planName}. " .
-                             "Elimina algunos sensores o " .
-                             "<a href='/profile' class='alert-link'>actualiza tu plan</a> para crear más.",
+                             "Elimina algunos sensores o actualiza tu plan para crear más.",
                 'code' => 'sensor_limit_exceeded',
                 'data' => [
                     'limit_status' => $status,

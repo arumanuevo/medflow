@@ -12,19 +12,6 @@
 
     
     /* ✅ Estilos para la sección de suscripción */
-    #subscriptionStatus .alert {
-        padding: 0.75rem 1rem;
-        margin-bottom: 0.5rem;
-        border-radius: 8px;
-    }
-    #subscriptionStatus .alert i {
-        flex-shrink: 0;
-    }
-    #subscriptionStatus .btn {
-        border-radius: 6px;
-        font-weight: 500;
-    }
-    #subscriptionStatus .btn-outline-primary:hover {
         background: #0d6efd;
         color: #fff;
     }

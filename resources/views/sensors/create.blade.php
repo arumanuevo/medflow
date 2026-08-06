@@ -21,7 +21,7 @@
                                 <h5 class="alert-heading">¡Importante!</h5>
                                 <p class="mb-0">
                                     Para crear un sensor, necesitas seleccionar un <strong>grupo de sensores</strong> existente. 
-                                    Si no ves ningún grupo en el selector, debes <a href="{{ route('sensor-groups.create') }}" class="alert-link">crear un grupo primero</a>.
+                                    Si no ves ningún grupo en el selector, debes <a href="{{ route('sensor-groups.create') }}" >crear un grupo primero</a>.
                                 </p>
                             </div>
                         </div>

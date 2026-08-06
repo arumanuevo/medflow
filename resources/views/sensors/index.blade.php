@@ -710,8 +710,7 @@ $(document).ready(function() {
             createLink.on('click', function(e) {
                 e.preventDefault();
                 showNotification(
-                    `⚠️ Has alcanzado el límite de sensores para tu plan ${planName}. ` +
-                    `<a href="/profile" class="alert-link">Actualiza tu plan</a> para crear más sensores.`,
+                    `⚠️ Has alcanzado el límite de sensores para tu plan ${planName}. Actualiza tu plan para crear más sensores.`,
                     'warning'
                 );
             });
@@ -729,8 +728,8 @@ $(document).ready(function() {
     window.showGateBlockedNotification = function() {
         showNotification(
             '🔒 La importación masiva de sensores es una funcionalidad exclusiva para usuarios Premium. ' +
-            '<a href="/profile" class="alert-link">Activa tu suscripción Premium</a> para acceder.',
-            'warning'
+            '<a href="/profile" >Activa tu suscripción Premium</a> para acceder.',
+            'D83dDd12 La importaci00f3n masiva de sensores es una funcionalidad exclusiva para usuarios Premium. Activa tu suscripci00f3n Premium para acceder.',
         );
     };
 

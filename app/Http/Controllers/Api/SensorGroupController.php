@@ -67,8 +67,7 @@ class SensorGroupController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => "Has alcanzado el límite de {$status['max']} grupos para tu plan {$planName}. " .
-                             "Elimina algunos grupos o " .
-                             "<a href='/profile' class='alert-link'>actualiza tu plan</a> para crear más.",
+                             "Elimina algunos grupos o actualiza tu plan para crear más.",
                 'code' => 'group_limit_exceeded',
                 'data' => [
                     'limit_status' => $status,
