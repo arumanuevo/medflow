@@ -526,7 +526,7 @@ $(document).ready(function() {
     
     $('#debugCheckStatus').click(function() {
         loadSubscriptionStatus();
-        showAlert('✅ Estado actualizado', 'info');
+        addNotification('✅ Estado actualizado', 'info');
     });
     @endif
 
@@ -550,7 +550,7 @@ $(document).ready(function() {
             const passwordConf = passwordConfField.val();
 
             if ((password && !passwordConf) || (!password && passwordConf)) {
-                showAlert('Debes completar ambos campos de contraseña o dejarlos vacíos.', 'danger');
+                addNotification('Debes completar ambos campos de contraseña o dejarlos vacíos.', 'danger');
                 return;
             }
             
@@ -890,9 +890,10 @@ $(document).ready(function() {
             'basico': '📋',
             'premium': '⭐'
         };
-        
-        showAlert(
-            `🔄 Activando ${planNames[plan]} por 5 minutos...`,
+        const duration = 5;
+     
+        addNotification(
+            `🔄 Activando ${planNames[plan]} por ${duration} minutos...`,
             'info'
         );
         
@@ -912,6 +913,7 @@ $(document).ready(function() {
                 if (response.success) {
                     addNotification(
                         `✅ ${planIcons[plan] || '✅'} ${planNames[plan] || plan} activado por ${duration} minutos para pruebas.`,
+        const duration = 5;
                         'success'
                     );
                     loadSubscriptionStatus();
