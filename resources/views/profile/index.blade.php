@@ -1113,6 +1113,52 @@ $(document).ready(function() {
             }
         });
     }
+);
+
+/* Actualizar información de la cuenta cuando cambia la suscripción o workspace */
+$(document).ready(function() {
+    function updateAccountInfo() {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        $.ajax({
+            url: "/api/profile",
+            type: "GET",
+            headers: {
+                "Authorization": "Bearer " + token,
+                "Accept": "application/json"
+            },
+            success: function(response) {
+                if (response.success && response.data) {
+                    const user = response.data.user;
+                    const subscription = response.data.subscription;
+                    
+                    $("#userId").text(user.id || "-");
+                    $("#userCreatedAt").text(user.created_at ? new Date(user.created_at).toLocaleString("es-ES") : "-");
+                    $("#userUpdatedAt").text(user.updated_at ? new Date(user.updated_at).toLocaleString("es-ES") : "-");
+                    
+                    let planName = subscription?.plan?.name || user.plan || "Free";
+                    if (subscription && subscription.status === "expired") {
+                        planName += " (Expirado)";
+                    } else if (subscription && subscription.status === "pending") {
+                        planName += " (Pendiente)";
+                    }
+                    $("#userPlan").text(planName);
+                }
+            },
+            error: function(xhr) {
+                console.error("Error al cargar información de la cuenta:", xhr.status, xhr.statusText);
+            }
+        });
+    }
+
+    updateAccountInfo();
+
+    $(document).on("workspaceChanged subscriptionUpdated", function() {
+        updateAccountInfo();
+    });
+
+    setInterval(updateAccountInfo, 30000);
 });
 </script>
 @endpush

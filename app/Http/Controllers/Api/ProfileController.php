@@ -16,19 +16,26 @@ class ProfileController extends Controller
     public function show(Request $request)
     {
         $user = $request->user();
+        
+        // Obtener información de suscripción
+        $subscriptionService = new \App\Services\Subscription\SubscriptionService($user);
+        $subscriptionInfo = $subscriptionService->getFullStatus();
 
         return response()->json([
             'success' => true,
             'data' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'subscription_type' => $user->subscription_type ?? 'domiciliario',
-                'subscription_plan' => $user->subscription_plan ?? 'básico',
-                'google_id' => $user->google_id,
-                'roles' => $user->getRoleNames(),
-                'created_at' => $user->created_at,
-                'updated_at' => $user->updated_at,
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'subscription_type' => $user->subscription_type ?? 'domiciliario',
+                    'subscription_plan' => $user->subscription_plan ?? 'básico',
+                    'google_id' => $user->google_id,
+                    'roles' => $user->getRoleNames(),
+                    'created_at' => $user->created_at,
+                    'updated_at' => $user->updated_at,
+                ],
+                'subscription' => $subscriptionInfo
             ]
         ]);
     }

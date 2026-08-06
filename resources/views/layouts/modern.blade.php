@@ -41,6 +41,71 @@
             background: transparent;
         }
 
+        /* =============================================
+           ESTILOS DE SUSCRIPCIÓN - Badge
+           ============================================= */
+        .subscription-badge {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: #e9ecef;
+            color: #495057;
+            transition: all 0.3s ease;
+            cursor: default;
+        }
+        .subscription-badge i {
+            font-size: 0.8rem;
+        }
+        .subscription-badge.premium {
+            background: linear-gradient(135deg, #ffd700, #f0c000);
+            color: #000;
+            box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+        }
+        .subscription-badge.basico {
+            background: #cfe2ff;
+            color: #084298;
+        }
+        .subscription-badge.free {
+            background: #d1e7dd;
+            color: #0f5132;
+        }
+        .subscription-badge.expired {
+            background: #f8d9da;
+            color: #721c24;
+            animation: pulse-badge 2s infinite;
+        }
+        @keyframes pulse-badge {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        .subscription-badge .badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 4px;
+        }
+        .subscription-badge .badge-dot.active {
+            background: #28a745;
+        }
+        .subscription-badge .badge-dot.expired {
+            background: #dc3545;
+        }
+        .subscription-badge .badge-dot.pending {
+            background: #ffc107;
+            animation: blink-dot 1s infinite;
+        }
+        @keyframes blink-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
         /* Toggle de sidebar en móvil */
         .sidebar-toggle-btn {
             background: transparent;

@@ -1,6 +1,13 @@
 @php
     $userInitials = strtoupper(substr(auth()->user()->name ?? 'U', 0, 2));
     $userRole = auth()->user()->roles->pluck('name')->join(', ');
+    
+    // Obtener información de suscripción para el badge
+    $subscriptionInfo = null;
+    if (auth()->check()) {
+        $subscriptionService = app(\App\Services\Subscription\SubscriptionService::class, ['user' => auth()->user()]);
+        $subscriptionInfo = $subscriptionService->getFullStatus();
+    }
 @endphp
 
 <header class="modern-header">
@@ -13,6 +20,19 @@
     </div>
     
     <div class="modern-header-right">
+        @if($subscriptionInfo)
+        <span class="subscription-badge {{ $subscriptionInfo['plan']['key'] === 'premium' ? 'premium' : ($subscriptionInfo['plan']['key'] === 'basico' ? 'basico' : ($subscriptionInfo['has_active_subscription'] ? 'free' : 'expired')) }}" 
+              title="{{ $subscriptionInfo['has_active_subscription'] ? 'Suscripción activa - Plan ' . $subscriptionInfo['plan']['name'] : 'Sin suscripción activa' }}">
+            @if($subscriptionInfo['has_active_subscription'])
+                <span class="badge-dot active"></span>
+            @else
+                <span class="badge-dot expired"></span>
+            @endif
+            <i class="bi bi-{{ $subscriptionInfo['plan']['key'] === 'premium' ? 'star-fill' : ($subscriptionInfo['plan']['key'] === 'basico' ? 'credit-card' : 'gift') }}"></i>
+            {{ $subscriptionInfo['plan']['key'] === 'premium' ? '✨ Premium' : ($subscriptionInfo['plan']['key'] === 'basico' ? '📋 Básico' : ($subscriptionInfo['has_active_subscription'] ? '🎁 Free' : '⚠️ Sin suscripción')) }}
+        </span>
+        @endif
+        
         <a href="{{ route('profile.index') }}" class="modern-header-user">
             <div class="modern-header-user-avatar">{{ $userInitials }}</div>
             <div>
