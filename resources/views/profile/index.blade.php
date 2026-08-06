@@ -1124,7 +1124,7 @@ $(document).ready(function() {
     }
 });
 </script>
-
+<script>
 
     // =============================================
     // FUNCIÓN PARA AGREGAR NOTIFICACIONES AL DROPDOWN
@@ -1196,5 +1196,7 @@ $(document).ready(function() {
             });
         });
     }
+</script>
+
 
 @endpush
