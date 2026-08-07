@@ -761,13 +761,13 @@ $(document).ready(function() {
         }
 
         // Validar foto
-        if (!hasRealPhoto) {
-            showAlert('⚠️ La foto es obligatoria. Usa el botón "Tomar Foto".', 'danger');
+        const photoToggleChecked = document.getElementById('photoToggle').checked;
+        if (photoToggleChecked && !hasRealPhoto) {
+            showAlert('\u26a0\ufe0f La foto es obligatoria cuando está habilitada. Usa el botón "Tomar Foto".', 'danger');
             return;
         }
-
         // Subir foto si está pendiente
-        if (photoBlob && !photoUploaded) {
+        if (photoToggleChecked && photoBlob && !photoUploaded) {
             try {
                 const photoPath = await uploadPhoto();
                 $('#photo').val(photoPath);
