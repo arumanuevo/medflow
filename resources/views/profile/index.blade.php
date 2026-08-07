@@ -357,69 +357,7 @@
                         </div>
                     </div>
 
-                    {{-- SECCIÓN DE DEPURACIÓN (SOLO LOCAL) --}}
-                    @if(app()->environment('local'))
-                    <div class="mt-4 pt-3 border-top debug-section">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h6 class="mb-0 text-warning">
-                                <i class="bi bi-bug"></i> 
-                                Panel de Depuración
-                            </h6>
-                            <span class="badge bg-warning text-dark">SOLO DESARROLLO</span>
-                        </div>
-                        <p class="small text-muted mb-2">
-                            <i class="bi bi-info-circle"></i> 
-                            Los botones de depuración emulan suscripciones sin pasar por Mercado Pago. 
-                            <strong>La suscripción expira en 5 minutos</strong> para fines de prueba.
-                        </p>
-                        
-                        <div class="row g-2">
-                            <div class="col-md-4">
-                                <button type="button" class="btn btn-outline-secondary w-100 debug-btn" id="debugActivateFree">
-                                    <i class="bi bi-play-circle"></i> 
-                                    Emular Plan Free (Permanente)
-                                    <small class="d-block text-muted" style="font-size: 0.65rem;">Gratis - 1 grupo, 1 sensor</small>
-                                </button>
-                            </div>
-                            <div class="col-md-4">
-                                <button type="button" class="btn btn-outline-success w-100 debug-btn" id="debugActivateBasico">
-                                    <i class="bi bi-play-circle"></i> 
-                                    Emular Plan Básico (5 min)
-                                    <small class="d-block text-muted" style="font-size: 0.65rem;">$10 ARS - Sin pago real</small>
-                                </button>
-                            </div>
-                            <div class="col-md-4">
-                                <button type="button" class="btn btn-outline-warning w-100 debug-btn" id="debugActivatePremium">
-                                    <i class="bi bi-play-circle"></i> 
-                                    Emular Plan Premium (5 min)
-                                    <small class="d-block text-muted" style="font-size: 0.65rem;">$25 ARS - Sin pago real</small>
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="row g-2 mt-2">
-                            <div class="col-md-6">
-                                <button type="button" class="btn btn-outline-danger w-100 debug-btn" id="debugExpireNow">
-                                    <i class="bi bi-stop-circle"></i> 
-                                    Expirar Suscripción Ahora
-                                </button>
-                            </div>
-                            <div class="col-md-6">
-                                <button type="button" class="btn btn-outline-secondary w-100 debug-btn" id="debugClearSubscriptions">
-                                    <i class="bi bi-trash"></i> 
-                                    Limpiar Historial
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-2">
-                            <button type="button" class="btn btn-outline-info btn-sm w-100 debug-btn" id="debugCheckStatus">
-                                <i class="bi bi-arrow-repeat"></i> 
-                                Verificar Estado Manualmente
-                            </button>
-                        </div>
-                    </div>
-                    @endif
+                  
 
                     {{-- SECCIÓN DE ELIMINACIÓN DE DATOS --}}
                     <div class="mt-4 pt-3 border-top">
@@ -493,38 +431,811 @@
 
 @push('scripts')
 <script>
+// =============================================
+// ✅ FUNCIONES DE ACCIÓN DE SUSCRIPCIÓN (GLOBALES)
+// =============================================
+
+/**
+ * Subir de plan (Free → Básico, Free → Premium, Básico → Premium)
+ */
+function upgradePlan(targetPlan) {
+    const planNames = {
+        'basico': 'Básico ($10 ARS)',
+        'premium': 'Premium ($25 ARS)'
+    };
+    
+    const planIcons = {
+        'basico': '📋',
+        'premium': '⭐'
+    };
+    
+    if (!confirm(`¿Deseas cambiar al plan ${planIcons[targetPlan]} ${planNames[targetPlan]}?`)) {
+        return;
+    }
+    
+    @if(app()->environment('local'))
+        debugActivateSubscription(targetPlan);
+    @else
+        window.location.href = `/suscripcion/${targetPlan}/pagar`;
+    @endif
+}
+
+/**
+ * Bajar de plan (Premium → Básico)
+ */
+function downgradePlan(targetPlan) {
+    const planNames = {
+        'basico': 'Básico ($10 ARS)',
+        'free': 'Free (Gratuito)'
+    };
+    
+    const planIcons = {
+        'basico': '📋',
+        'free': '🎁'
+    };
+    
+    if (!confirm(`¿Deseas bajar al plan ${planIcons[targetPlan]} ${planNames[targetPlan]}?`)) {
+        return;
+    }
+    
+    @if(app()->environment('local'))
+        debugActivateSubscription(targetPlan);
+    @else
+        showAlert('⚠️ La bajada de plan se aplicará al finalizar el período actual.', 'warning');
+    @endif
+}
+
+/**
+ * Cancelar suscripción
+ */
+function cancelSubscription() {
+    if (!confirm('¿Estás seguro de que deseas cancelar tu suscripción? Perderás los beneficios al final del período actual.')) {
+        return;
+    }
+    
+    @if(app()->environment('local'))
+        debugExpireSubscription();
+    @else
+        $.ajax({
+            url: '/api/subscription/cancel',
+            type: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            success: function(response) {
+                if (response.success) {
+                    showAlert('✅ Suscripción cancelada correctamente.', 'success');
+                    loadSubscriptionStatus();
+                } else {
+                    showAlert('❌ ' + (response.message || 'Error al cancelar'), 'danger');
+                }
+            },
+            error: function(xhr) {
+                showAlert('❌ Error: ' + (xhr.responseJSON?.message || xhr.statusText), 'danger');
+            }
+        });
+    @endif
+}
+
+// =============================================
+// ✅ FUNCIONES DE DEPURACIÓN (SOLO LOCAL)
+// =============================================
+
+@if(app()->environment('local'))
+function debugActivateSubscription(plan) {
+    const planNames = {
+        'free': 'Plan Free',
+        'basico': 'Plan Básico',
+        'premium': 'Plan Premium'
+    };
+    
+    const planIcons = {
+        'free': '🎁',
+        'basico': '📋',
+        'premium': '⭐'
+    };
+    
+    const duration = plan === 'free' ? 9999 : 5;
+    
+    showAlert(
+        `🔄 Activando ${planNames[plan]} por ${duration === 9999 ? 'tiempo indefinido' : duration + ' minutos'}...`,
+        'info'
+    );
+    
+    $.ajax({
+        url: '/api/subscription/debug/activate',
+        type: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token'),
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        data: JSON.stringify({
+            plan: plan,
+            duration_minutes: duration
+        }),
+        success: function(response) {
+            if (response.success) {
+                showAlert(
+                    `✅ ${planIcons[plan]} ${planNames[plan]} activado correctamente para pruebas.`,
+                    'success'
+                );
+                loadSubscriptionStatus();
+                loadStats();
+                loadProfile();
+            } else {
+                showAlert('❌ ' + (response.message || 'Error al activar'), 'danger');
+            }
+        },
+        error: function(xhr) {
+            showAlert(
+                '❌ Error: ' + (xhr.responseJSON?.message || xhr.statusText),
+                'danger'
+            );
+        }
+    });
+}
+
+function debugExpireSubscription() {
+    showAlert('⏰ Forzando expiración de la suscripción...', 'warning');
+    
+    $.ajax({
+        url: '/api/subscription/debug/expire',
+        type: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token'),
+            'Accept': 'application/json'
+        },
+        success: function(response) {
+            if (response.success) {
+                showAlert('✅ Suscripción expirada correctamente', 'success');
+                loadSubscriptionStatus();
+                loadStats();
+                loadProfile();
+            } else {
+                showAlert('❌ ' + (response.message || 'Error al expirar'), 'danger');
+            }
+        },
+        error: function(xhr) {
+            showAlert(
+                '❌ Error: ' + (xhr.responseJSON?.message || xhr.statusText),
+                'danger'
+            );
+        }
+    });
+}
+
+function debugClearSubscriptions() {
+    if (!confirm('⚠️ ¿Estás seguro de que quieres eliminar TODO el historial de suscripciones?')) {
+        return;
+    }
+    
+    showAlert('🧹 Limpiando historial de suscripciones...', 'warning');
+    
+    $.ajax({
+        url: '/api/subscription/debug/clear',
+        type: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token'),
+            'Accept': 'application/json'
+        },
+        success: function(response) {
+            if (response.success) {
+                showAlert('✅ Historial limpiado correctamente', 'success');
+                loadSubscriptionStatus();
+                loadStats();
+                loadProfile();
+            } else {
+                showAlert('❌ ' + (response.message || 'Error al limpiar'), 'danger');
+            }
+        },
+        error: function(xhr) {
+            showAlert(
+                '❌ Error: ' + (xhr.responseJSON?.message || xhr.statusText),
+                'danger'
+            );
+        }
+    });
+}
+
+window.debugRenewSubscription = function() {
+    $.ajax({
+        url: '/api/subscription/plan/status',
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token'),
+            'Accept': 'application/json'
+        },
+        success: function(response) {
+            if (response.success && response.data.has_active_subscription) {
+                const currentPlan = response.data.subscription.plan;
+                debugActivateSubscription(currentPlan);
+            } else {
+                showAlert('❌ No hay suscripción activa para renovar', 'warning');
+            }
+        },
+        error: function() {
+            showAlert('❌ Error al obtener el plan actual', 'danger');
+        }
+    });
+};
+@endif
+
+// =============================================
+// ✅ FUNCIONES DE ALERTAS Y UTILIDADES
+// =============================================
+
+function showAlert(message, type) {
+    const alertHtml = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `;
+    $('#alertContainer').append(alertHtml);
+    
+    setTimeout(() => {
+        $('#alertContainer .alert').first().fadeOut(500, function() {
+            $(this).remove();
+        });
+    }, 8000);
+}
+
+// =============================================
+// ✅ RENDERIZAR ESTADO DE SUSCRIPCIÓN
+// =============================================
+
+function renderSubscriptionStatus(data) {
+    let html = '';
+    
+    // Limpiar intervalo anterior si existe
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+    }
+    
+    // =============================================
+    // OBTENER ESTADO REAL
+    // =============================================
+    const hasActive = data.has_active_subscription;
+    const sub = data.subscription;
+    const planKey = data.plan.key;
+    const planName = data.plan.name;
+    const isPremium = planKey === 'premium';
+    const isBasico = planKey === 'basico';
+    const isFree = planKey === 'free';
+    const isExpired = sub && sub.status === 'expired';
+    const isPending = sub && sub.status === 'pending';
+    
+    let statusText = 'Sin suscripción';
+    let statusClass = 'secondary';
+    let statusIcon = 'bi-x-circle';
+    let showRenew = false;
+    let showCancel = false;
+    let showUpgradeBasico = false;
+    let showUpgradePremium = false;
+    let showDowngrade = false;
+    let countdownHtml = '';
+    
+    if (hasActive) {
+        if (isPremium) {
+            statusText = '⭐ Premium Activo';
+            statusClass = 'success';
+            statusIcon = 'bi-star-fill';
+            showCancel = true;
+            showDowngrade = true;
+        } else if (isBasico) {
+            statusText = '📋 Básico Activo';
+            statusClass = 'primary';
+            statusIcon = 'bi-credit-card';
+            showCancel = true;
+            showUpgradePremium = true;
+        } else if (isFree) {
+            statusText = '🎁 Free Activo';
+            statusClass = 'info';
+            statusIcon = 'bi-gift';
+            showUpgradeBasico = true;
+            showUpgradePremium = true;
+        }
+        
+        if (sub && sub.expires_at) {
+            const expiresAt = new Date(sub.expires_at);
+            const now = new Date();
+            const diffMs = expiresAt - now;
+            
+            if (diffMs > 0) {
+                const diffMin = Math.floor(diffMs / 60000);
+                const diffSec = Math.floor((diffMs % 60000) / 1000);
+                const timeStr = `${diffMin}m ${diffSec}s`;
+                const isExpiring = diffMin < 1;
+                
+                countdownHtml = `
+                    <div class="mt-1">
+                        <span class="countdown-timer ${isExpiring ? 'expiring' : ''}" id="countdownDisplay">
+                            ⏱️ ${timeStr}
+                        </span>
+                        <small class="text-muted ms-2">tiempo restante</small>
+                    </div>
+                `;
+                
+                countdownInterval = setInterval(function() {
+                    const now2 = new Date();
+                    const diffMs2 = expiresAt - now2;
+                    
+                    if (diffMs2 <= 0) {
+                        clearInterval(countdownInterval);
+                        loadSubscriptionStatus();
+                        return;
+                    }
+                    
+                    const diffMin2 = Math.floor(diffMs2 / 60000);
+                    const diffSec2 = Math.floor((diffMs2 % 60000) / 1000);
+                    const timeStr2 = `${diffMin2}m ${diffSec2}s`;
+                    
+                    const display = $('#countdownDisplay');
+                    if (display.length) {
+                        display.text(`⏱️ ${timeStr2}`);
+                        if (diffMin2 < 1) {
+                            display.addClass('expiring');
+                        }
+                    }
+                }, 1000);
+            }
+        }
+        
+        const expiresDate = sub && sub.expires_at ? new Date(sub.expires_at).toLocaleString('es-ES') : 'No definida';
+        
+        html = `
+            <div class="card border-${statusClass}">
+                <div class="card-header bg-${statusClass} text-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="bi ${statusIcon} me-2"></i>
+                        <strong>${statusText}</strong>
+                    </div>
+                    <span class="badge bg-light text-dark">${planName}</span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-7">
+                            <div class="d-flex align-items-center gap-3 flex-wrap">
+                                <div>
+                                    <small class="text-muted d-block">Plan actual</small>
+                                    <strong>${planName}</strong>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Válido hasta</small>
+                                    <span>${expiresDate}</span>
+                                </div>
+                            </div>
+                            ${countdownHtml}
+                        </div>
+                        <div class="col-md-5 mt-2 mt-md-0">
+                            <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+                                ${showUpgradeBasico ? `
+                                    <button class="btn btn-primary btn-sm" onclick="upgradePlan('basico')">
+                                        <i class="bi bi-credit-card me-1"></i> Plan Básico
+                                    </button>
+                                ` : ''}
+                                ${showUpgradePremium ? `
+                                    <button class="btn btn-warning btn-sm" onclick="upgradePlan('premium')">
+                                        <i class="bi bi-star me-1"></i> Plan Premium
+                                    </button>
+                                ` : ''}
+                                ${showDowngrade ? `
+                                    <button class="btn btn-info btn-sm" onclick="downgradePlan('basico')">
+                                        <i class="bi bi-arrow-down-circle me-1"></i> Bajar a Básico
+                                    </button>
+                                ` : ''}
+                                ${showCancel ? `
+                                    <button class="btn btn-danger btn-sm" onclick="cancelSubscription()">
+                                        <i class="bi bi-x-circle me-1"></i> Cancelar
+                                    </button>
+                                ` : ''}
+                                ${showRenew ? `
+                                    <button class="btn btn-success btn-sm" onclick="debugRenewSubscription()">
+                                        <i class="bi bi-arrow-repeat me-1"></i> Renovar
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+    } else if (isPending) {
+        html = `
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <i class="bi bi-hourglass-split me-2"></i>
+                    <strong>Pago pendiente de confirmación</strong>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0 text-muted">
+                        Tu pago está siendo procesado. Esto puede tomar unos minutos.
+                        <br>
+                        <small>Si el problema persiste, contacta con soporte.</small>
+                    </p>
+                </div>
+            </div>
+        `;
+    } else if (isExpired) {
+        html = `
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Suscripción expirada</strong>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-7">
+                            <p class="mb-0">
+                                Tu suscripción <strong>${planName}</strong> ha expirado.
+                                <br>
+                                <small class="text-muted">Renueva para seguir disfrutando de los beneficios.</small>
+                            </p>
+                        </div>
+                        <div class="col-md-5 mt-2 mt-md-0">
+                            <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+                                <button class="btn btn-primary btn-sm" onclick="upgradePlan('basico')">
+                                    <i class="bi bi-credit-card me-1"></i> Plan Básico ($10 ARS)
+                                </button>
+                                <button class="btn btn-warning btn-sm" onclick="upgradePlan('premium')">
+                                    <i class="bi bi-star me-1"></i> Plan Premium ($25 ARS)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else {
+        html = `
+            <div class="card border-secondary">
+                <div class="card-header bg-secondary text-white">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>Sin suscripción activa</strong>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">
+                        Estás usando el plan <strong>${planName}</strong> con funcionalidades limitadas.
+                        <br>
+                        <small class="text-muted">Activa una suscripción para acceder a todas las funcionalidades.</small>
+                    </p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button class="btn btn-primary btn-sm" onclick="upgradePlan('basico')">
+                            <i class="bi bi-credit-card me-1"></i> Plan Básico ($10 ARS)
+                        </button>
+                        <button class="btn btn-warning btn-sm" onclick="upgradePlan('premium')">
+                            <i class="bi bi-star me-1"></i> Plan Premium ($25 ARS)
+                        </button>
+                        @if(app()->environment('local'))
+                        <button class="btn btn-secondary btn-sm" onclick="debugActivateSubscription('free')">
+                            <i class="bi bi-gift me-1"></i> Emular Free
+                        </button>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    $('#subscriptionStatus').html(html);
+}
+
+function renderSubscriptionError() {
+    $('#subscriptionStatus').html(`
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle"></i>
+            Error al cargar el estado de la suscripción.
+        </div>
+    `);
+}
+
+// =============================================
+// ✅ FUNCIONES DE CARGA DE DATOS
+// =============================================
+
+function loadSubscriptionStatus() {
+    $.ajax({
+        url: '/api/subscription/plan/status',
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token'),
+            'Accept': 'application/json'
+        },
+        success: function(response) {
+            if (response.success) {
+                renderSubscriptionStatus(response.data);
+            } else {
+                renderSubscriptionError();
+            }
+        },
+        error: function(xhr) {
+            console.error('Error al cargar estado de suscripción:', xhr);
+            renderSubscriptionError();
+        }
+    });
+}
+
+function loadStats() {
+    $('#totalSensors').text('...');
+    $('#totalMeasurements').text('...');
+    $('#totalGroups').text('...');
+
+    $.ajax({
+        url: '/api/profile/stats',
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token'),
+            'Accept': 'application/json'
+        },
+        success: function(response) {
+            if (response.success) {
+                const stats = response.data;
+                $('#totalSensors').text(stats.total_sensors);
+                $('#totalMeasurements').text(stats.total_measurements);
+                $('#totalGroups').text(stats.total_groups);
+            }
+        },
+        error: function(xhr) {
+            console.error('Error al cargar estadísticas:', xhr);
+        }
+    });
+}
+
+function loadProfile() {
+    $.ajax({
+        url: '/api/profile',
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token'),
+            'Accept': 'application/json'
+        },
+        success: function(response) {
+            if (response.success) {
+                const user = response.data.user;
+                const subscription = response.data.subscription;
+                
+                $('#name').val(user.name || '');
+                $('#email').val(user.email || '');
+                $('#subscription_type').val(user.subscription_type || 'domiciliario');
+                $('#userId').text(user.id || '-');
+                
+                let planDisplay = 'Free';
+                if (subscription && subscription.plan) {
+                    const planKey = subscription.plan.key || subscription.plan;
+                    if (planKey === 'premium') planDisplay = 'Premium';
+                    else if (planKey === 'basico') planDisplay = 'Básico';
+                    else if (planKey === 'free') planDisplay = 'Free';
+                } else {
+                    planDisplay = user.subscription_plan === 'basico' ? 'Básico' : 
+                                user.subscription_plan === 'premium' ? 'Premium' : 
+                                user.subscription_plan === 'free' ? 'Free' : 'Free';
+                }
+                $('#userPlan').text(planDisplay);
+                
+                $('#userCreatedAt').text(user.created_at ? new Date(user.created_at).toLocaleString('es-ES') : '-');
+                $('#userUpdatedAt').text(user.updated_at ? new Date(user.updated_at).toLocaleString('es-ES') : '-');
+
+                let rolesText = 'Sin roles';
+                if (user.roles) {
+                    if (Array.isArray(user.roles)) {
+                        rolesText = user.roles.join(', ');
+                    } else if (typeof user.roles === 'string') {
+                        rolesText = user.roles;
+                    } else if (typeof user.roles === 'object') {
+                        rolesText = Object.values(user.roles).join(', ');
+                    }
+                }
+                $('#userRole').html(`<i class="fas fa-id-badge"></i> ${rolesText}`);
+
+                if (user.google_id) {
+                    $('#passwordFields').addClass('d-none');
+                    $('#googleInfo').removeClass('d-none');
+                    $('#hasGoogleId').val('true');
+                } else {
+                    $('#passwordFields').removeClass('d-none');
+                    $('#googleInfo').addClass('d-none');
+                    $('#hasGoogleId').val('false');
+                }
+            } else {
+                showAlert(response.message || 'Error al cargar el perfil', 'danger');
+            }
+        },
+        error: function(xhr) {
+            showAlert('Error: ' + (xhr.responseJSON?.message || xhr.statusText), 'danger');
+        }
+    });
+}
+
+function updateAccountInfo() {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    $.ajax({
+        url: '/api/profile',
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token,
+            'Accept': 'application/json'
+        },
+        success: function(response) {
+            if (response.success && response.data) {
+                const user = response.data.user;
+                const subscription = response.data.subscription;
+                
+                $('#userId').text(user.id || '-');
+                $('#userCreatedAt').text(user.created_at ? new Date(user.created_at).toLocaleString('es-ES') : '-');
+                $('#userUpdatedAt').text(user.updated_at ? new Date(user.updated_at).toLocaleString('es-ES') : '-');
+                
+                let planDisplay = 'Free';
+                if (subscription && subscription.plan) {
+                    const planKey = subscription.plan.key || subscription.plan;
+                    if (planKey === 'premium') planDisplay = 'Premium';
+                    else if (planKey === 'basico') planDisplay = 'Básico';
+                    else if (planKey === 'free') planDisplay = 'Free';
+                } else {
+                    planDisplay = user.subscription_plan === 'basico' ? 'Básico' : 
+                                user.subscription_plan === 'premium' ? 'Premium' : 
+                                user.subscription_plan === 'free' ? 'Free' : 'Free';
+                }
+                $('#userPlan').text(planDisplay);
+            }
+        },
+        error: function(xhr) {
+            console.error('Error al cargar información de la cuenta:', xhr.status, xhr.statusText);
+        }
+    });
+}
+
+function saveProfile(e) {
+    e.preventDefault();
+
+    const formData = {
+        name: $('#name').val(),
+        email: $('#email').val(),
+        subscription_type: $('#subscription_type').val(),
+    };
+
+    const passwordField = $('#password');
+    const passwordConfField = $('#password_confirmation');
+    
+    if (passwordField.length > 0 && !passwordField.closest('#passwordFields').hasClass('d-none')) {
+        const password = passwordField.val();
+        const passwordConf = passwordConfField.val();
+
+        if ((password && !passwordConf) || (!password && passwordConf)) {
+            showAlert('Debes completar ambos campos de contraseña o dejarlos vacíos.', 'danger');
+            return;
+        }
+        
+        if (password && passwordConf) {
+            if (password !== passwordConf) {
+                showAlert('Las contraseñas no coinciden.', 'danger');
+                return;
+            }
+            
+            if (password.length < 8) {
+                showAlert('La contraseña debe tener al menos 8 caracteres.', 'danger');
+                return;
+            }
+            
+            formData.password = password;
+            formData.password_confirmation = passwordConf;
+        }
+    }
+
+    $.ajax({
+        url: '/api/profile',
+        type: 'PUT',
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token'),
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        data: JSON.stringify(formData),
+        beforeSend: function() {
+            $('#saveProfileBtn').prop('disabled', true).html(`
+                <span class="spinner-border spinner-border-sm" role="status"></span> Guardando...
+            `);
+        },
+        success: function(response) {
+            if (response.success) {
+                showAlert(response.message, 'success');
+                loadProfile();
+                loadStats();
+                loadSubscriptionStatus();
+                if (passwordField.length > 0) {
+                    passwordField.val('');
+                    passwordConfField.val('');
+                }
+            } else {
+                showAlert(response.message || 'Error al guardar', 'danger');
+            }
+        },
+        error: function(xhr) {
+            const errors = xhr.responseJSON?.errors;
+            let message = xhr.responseJSON?.message || 'Error al guardar';
+            if (errors) {
+                message = Object.values(errors).flat().join('<br>');
+            }
+            showAlert(message, 'danger');
+        },
+        complete: function() {
+            $('#saveProfileBtn').prop('disabled', false).html(`
+                <i class="fas fa-save"></i> Guardar cambios
+            `);
+        }
+    });
+}
+
+function deleteAllUserData(token) {
+    $.ajax({
+        url: '/api/profile/delete-all-data',
+        type: 'DELETE',
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('token'),
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        data: JSON.stringify({
+            confirm_token: token
+        }),
+        success: function(response) {
+            if (response.success) {
+                $('#confirmDeleteAllDataModal').modal('hide');
+                showAlert(response.message, 'success');
+                
+                setTimeout(function() {
+                    window.location.href = '/login';
+                }, 3000);
+            } else {
+                showAlert(response.message || 'Error al eliminar datos', 'danger');
+            }
+        },
+        error: function(xhr) {
+            const errorMessage = xhr.responseJSON?.message || xhr.statusText;
+            showAlert('Error: ' + errorMessage, 'danger');
+        },
+        complete: function() {
+            $('#confirmDeleteAllData').prop('disabled', false).html(`
+                <i class="bi bi-trash-fill me-1"></i> Sí, eliminar todo
+            `);
+        }
+    });
+}
+
+// =============================================
+// ✅ DOCUMENT READY - INICIALIZACIÓN
+// =============================================
 $(document).ready(function() {
     let countdownInterval = null;
     let subscriptionCheckInterval = null;
+    
+    // Exponer countdownInterval globalmente para renderSubscriptionStatus
+    window.countdownInterval = countdownInterval;
     
     // Cargar datos del perfil
     loadProfile();
     loadStats();
     loadSubscriptionStatus();
 
-    // =============================================
-    // ✅ CONFIGURACIÓN DE INTERVALOS
-    // =============================================
-    
-    // Verificar estado de suscripción cada 10 segundos
+    // Configuración de intervalos
     subscriptionCheckInterval = setInterval(function() {
         loadSubscriptionStatus();
     }, 10000);
 
-    // =============================================
-    // ✅ EVENTOS DEL FORMULARIO
-    // =============================================
-    
+    // Eventos del formulario
     $('#profileForm').submit(saveProfile);
     $('#refreshStatsBtn').click(function() {
         loadStats();
         loadSubscriptionStatus();
     });
 
-    // =============================================
-    // ✅ EVENTOS DE DEPURACIÓN (SOLO LOCAL)
-    // =============================================
-    
+    // Eventos de depuración (solo local)
     @if(app()->environment('local'))
     $('#debugActivateFree').click(function() {
         debugActivateSubscription('free');
@@ -552,705 +1263,7 @@ $(document).ready(function() {
     });
     @endif
 
-    // =============================================
-    // ✅ FUNCIÓN PARA GUARDAR PERFIL
-    // =============================================
-    function saveProfile(e) {
-        e.preventDefault();
-
-        const formData = {
-            name: $('#name').val(),
-            email: $('#email').val(),
-            subscription_type: $('#subscription_type').val(),
-        };
-
-        const passwordField = $('#password');
-        const passwordConfField = $('#password_confirmation');
-        
-        if (passwordField.length > 0 && !passwordField.closest('#passwordFields').hasClass('d-none')) {
-            const password = passwordField.val();
-            const passwordConf = passwordConfField.val();
-
-            if ((password && !passwordConf) || (!password && passwordConf)) {
-                showAlert('Debes completar ambos campos de contraseña o dejarlos vacíos.', 'danger');
-                return;
-            }
-            
-            if (password && passwordConf) {
-                if (password !== passwordConf) {
-                    showAlert('Las contraseñas no coinciden.', 'danger');
-                    return;
-                }
-                
-                if (password.length < 8) {
-                    showAlert('La contraseña debe tener al menos 8 caracteres.', 'danger');
-                    return;
-                }
-                
-                formData.password = password;
-                formData.password_confirmation = passwordConf;
-            }
-        }
-
-        $.ajax({
-            url: '/api/profile',
-            type: 'PUT',
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            data: JSON.stringify(formData),
-            beforeSend: function() {
-                $('#saveProfileBtn').prop('disabled', true).html(`
-                    <span class="spinner-border spinner-border-sm" role="status"></span> Guardando...
-                `);
-            },
-            success: function(response) {
-                if (response.success) {
-                    showAlert(response.message, 'success');
-                    loadProfile();
-                    loadStats();
-                    loadSubscriptionStatus();
-                    if (passwordField.length > 0) {
-                        passwordField.val('');
-                        passwordConfField.val('');
-                    }
-                } else {
-                    showAlert(response.message || 'Error al guardar', 'danger');
-                }
-            },
-            error: function(xhr) {
-                const errors = xhr.responseJSON?.errors;
-                let message = xhr.responseJSON?.message || 'Error al guardar';
-                if (errors) {
-                    message = Object.values(errors).flat().join('<br>');
-                }
-                showAlert(message, 'danger');
-            },
-            complete: function() {
-                $('#saveProfileBtn').prop('disabled', false).html(`
-                    <i class="fas fa-save"></i> Guardar cambios
-                `);
-            }
-        });
-    }
-
-    // =============================================
-    // ✅ FUNCIÓN PARA CARGAR PERFIL - CORREGIDA
-    // =============================================
-    function loadProfile() {
-        $.ajax({
-            url: '/api/profile',
-            type: 'GET',
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                'Accept': 'application/json'
-            },
-            success: function(response) {
-                if (response.success) {
-                    // ✅ ACCEDER A response.data.user (no a response.data directamente)
-                    const user = response.data.user;
-                    const subscription = response.data.subscription;
-                    
-                    $('#name').val(user.name || '');
-                    $('#email').val(user.email || '');
-                    $('#subscription_type').val(user.subscription_type || 'domiciliario');
-                    $('#userId').text(user.id || '-');
-                    
-                    // Mostrar el plan correctamente (desde la suscripción)
-                    let planDisplay = 'Free';
-                    if (subscription && subscription.plan) {
-                        const planKey = subscription.plan.key || subscription.plan;
-                        if (planKey === 'premium') planDisplay = 'Premium';
-                        else if (planKey === 'basico') planDisplay = 'Básico';
-                        else if (planKey === 'free') planDisplay = 'Free';
-                    } else {
-                        planDisplay = user.subscription_plan === 'basico' ? 'Básico' : 
-                                    user.subscription_plan === 'premium' ? 'Premium' : 
-                                    user.subscription_plan === 'free' ? 'Free' : 'Free';
-                    }
-                    $('#userPlan').text(planDisplay);
-                    
-                    $('#userCreatedAt').text(user.created_at ? new Date(user.created_at).toLocaleString('es-ES') : '-');
-                    $('#userUpdatedAt').text(user.updated_at ? new Date(user.updated_at).toLocaleString('es-ES') : '-');
-
-                    // ✅ roles está dentro de user
-                    let rolesText = 'Sin roles';
-                    if (user.roles) {
-                        if (Array.isArray(user.roles)) {
-                            rolesText = user.roles.join(', ');
-                        } else if (typeof user.roles === 'string') {
-                            rolesText = user.roles;
-                        } else if (typeof user.roles === 'object') {
-                            rolesText = Object.values(user.roles).join(', ');
-                        }
-                    }
-                    $('#userRole').html(`<i class="fas fa-id-badge"></i> ${rolesText}`);
-
-                    if (user.google_id) {
-                        $('#passwordFields').addClass('d-none');
-                        $('#googleInfo').removeClass('d-none');
-                        $('#hasGoogleId').val('true');
-                    } else {
-                        $('#passwordFields').removeClass('d-none');
-                        $('#googleInfo').addClass('d-none');
-                        $('#hasGoogleId').val('false');
-                        }
-                    } else {
-                        showAlert(response.message || 'Error al cargar el perfil', 'danger');
-                    }
-                },
-                error: function(xhr) {
-                    showAlert('Error: ' + (xhr.responseJSON?.message || xhr.statusText), 'danger');
-                }
-            });
-        }
-
-    // =============================================
-    // ✅ FUNCIÓN PARA CARGAR ESTADÍSTICAS
-    // =============================================
-    function loadStats() {
-        $('#totalSensors').text('...');
-        $('#totalMeasurements').text('...');
-        $('#totalGroups').text('...');
-
-        $.ajax({
-            url: '/api/profile/stats',
-            type: 'GET',
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                'Accept': 'application/json'
-            },
-            success: function(response) {
-                if (response.success) {
-                    const stats = response.data;
-                    $('#totalSensors').text(stats.total_sensors);
-                    $('#totalMeasurements').text(stats.total_measurements);
-                    $('#totalGroups').text(stats.total_groups);
-                }
-            },
-            error: function(xhr) {
-                console.error('Error al cargar estadísticas:', xhr);
-            }
-        });
-    }
-
-    // =============================================
-    // ✅ FUNCIÓN PARA CARGAR ESTADO DE SUSCRIPCIÓN
-    // =============================================
-    function loadSubscriptionStatus() {
-        $.ajax({
-            url: '/api/subscription/plan/status',
-            type: 'GET',
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                'Accept': 'application/json'
-            },
-            success: function(response) {
-                if (response.success) {
-                    renderSubscriptionStatus(response.data);
-                } else {
-                    renderSubscriptionError();
-                }
-            },
-            error: function(xhr) {
-                console.error('Error al cargar estado de suscripción:', xhr);
-                renderSubscriptionError();
-            }
-        });
-    }
-
-    // =============================================
-    // ✅ FUNCIÓN PARA RENDERIZAR ESTADO DE SUSCRIPCIÓN
-    // =============================================
-    function renderSubscriptionStatus(data) {
-        let html = '';
-        
-        // Limpiar intervalo anterior si existe
-        if (countdownInterval) {
-            clearInterval(countdownInterval);
-            countdownInterval = null;
-        }
-        
-        // =============================================
-        // OBTENER ESTADO REAL
-        // =============================================
-        const hasActive = data.has_active_subscription;
-        const sub = data.subscription;
-        const planKey = data.plan.key;
-        const planName = data.plan.name;
-        const isPremium = planKey === 'premium';
-        const isBasico = planKey === 'basico';
-        const isFree = planKey === 'free';
-        const isExpired = sub && sub.status === 'expired';
-        const isPending = sub && sub.status === 'pending';
-        
-        // Determinar estado real
-        let statusText = 'Sin suscripción';
-        let statusClass = 'secondary';
-        let statusIcon = 'bi-x-circle';
-        let showRenew = false;
-        let showCancel = false;
-        let showUpgrade = false;
-        let showDowngrade = false;
-        let showActivate = false;
-        let countdownHtml = '';
-        
-        if (hasActive) {
-            // ✅ Suscripción ACTIVA
-            if (isPremium) {
-                statusText = '⭐ Premium Activo';
-                statusClass = 'success';
-                statusIcon = 'bi-star-fill';
-                showCancel = true;      // Puede cancelar
-                showDowngrade = true;   // Puede bajar a Básico
-            } else if (isBasico) {
-                statusText = '📋 Básico Activo';
-                statusClass = 'success';
-                statusIcon = 'bi-credit-card';
-                showCancel = true;      // Puede cancelar (vuelve a Free)
-                showUpgrade = true;     // Puede subir a Premium
-            } else if (isFree) {
-                statusText = '🎁 Free Activo';
-                statusClass = 'info';
-                statusIcon = 'bi-gift';
-                showUpgrade = true;     // Puede subir a Básico o Premium
-            }
-            
-            // ✅ Contador regresivo (solo si hay fecha de expiración)
-            if (sub && sub.expires_at) {
-                const expiresAt = new Date(sub.expires_at);
-                const now = new Date();
-                const diffMs = expiresAt - now;
-                
-                if (diffMs > 0) {
-                    const diffMin = Math.floor(diffMs / 60000);
-                    const diffSec = Math.floor((diffMs % 60000) / 1000);
-                    const timeStr = `${diffMin}m ${diffSec}s`;
-                    const isExpiring = diffMin < 1;
-                    
-                    countdownHtml = `
-                        <div class="mt-1">
-                            <span class="countdown-timer ${isExpiring ? 'expiring' : ''}" id="countdownDisplay">
-                                ⏱️ ${timeStr}
-                            </span>
-                            <small class="text-muted ms-2">tiempo restante</small>
-                        </div>
-                    `;
-                    
-                    // Iniciar contador
-                    countdownInterval = setInterval(function() {
-                        const now2 = new Date();
-                        const diffMs2 = expiresAt - now2;
-                        
-                        if (diffMs2 <= 0) {
-                            clearInterval(countdownInterval);
-                            loadSubscriptionStatus();
-                            return;
-                        }
-                        
-                        const diffMin2 = Math.floor(diffMs2 / 60000);
-                        const diffSec2 = Math.floor((diffMs2 % 60000) / 1000);
-                        const timeStr2 = `${diffMin2}m ${diffSec2}s`;
-                        
-                        const display = $('#countdownDisplay');
-                        if (display.length) {
-                            display.text(`⏱️ ${timeStr2}`);
-                            if (diffMin2 < 1) {
-                                display.addClass('expiring');
-                            }
-                        }
-                    }, 1000);
-                }
-            }
-            
-            // Fecha de expiración
-            const expiresDate = sub && sub.expires_at ? new Date(sub.expires_at).toLocaleString('es-ES') : 'No definida';
-            
-            html = `
-                <div class="card border-${statusClass}">
-                    <div class="card-header bg-${statusClass} text-white d-flex justify-content-between align-items-center">
-                        <div>
-                            <i class="bi ${statusIcon} me-2"></i>
-                            <strong>${statusText}</strong>
-                        </div>
-                        <span class="badge bg-light text-dark">${planName}</span>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-7">
-                                <div class="d-flex align-items-center gap-3 flex-wrap">
-                                    <div>
-                                        <small class="text-muted d-block">Plan actual</small>
-                                        <strong>${planName}</strong>
-                                    </div>
-                                    <div>
-                                        <small class="text-muted d-block">Válido hasta</small>
-                                        <span>${expiresDate}</span>
-                                    </div>
-                                </div>
-                                ${countdownHtml}
-                            </div>
-                            <div class="col-md-5 mt-2 mt-md-0">
-                                <div class="d-flex flex-wrap gap-2 justify-content-md-end">
-                                    ${showUpgrade ? `
-                                        <button class="btn btn-warning btn-sm" onclick="upgradePlan('premium')">
-                                            <i class="bi bi-arrow-up-circle me-1"></i> Subir a Premium
-                                        </button>
-                                    ` : ''}
-                                    ${showDowngrade ? `
-                                        <button class="btn btn-info btn-sm" onclick="downgradePlan('basico')">
-                                            <i class="bi bi-arrow-down-circle me-1"></i> Bajar a Básico
-                                        </button>
-                                    ` : ''}
-                                    ${showCancel ? `
-                                        <button class="btn btn-danger btn-sm" onclick="cancelSubscription()">
-                                            <i class="bi bi-x-circle me-1"></i> Cancelar
-                                        </button>
-                                    ` : ''}
-                                    ${showRenew ? `
-                                        <button class="btn btn-success btn-sm" onclick="debugRenewSubscription()">
-                                            <i class="bi bi-arrow-repeat me-1"></i> Renovar
-                                        </button>
-                                    ` : ''}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-        } else if (isPending) {
-            // ⏳ PAGO PENDIENTE
-            html = `
-                <div class="card border-warning">
-                    <div class="card-header bg-warning text-dark">
-                        <i class="bi bi-hourglass-split me-2"></i>
-                        <strong>Pago pendiente de confirmación</strong>
-                    </div>
-                    <div class="card-body">
-                        <p class="mb-0 text-muted">
-                            Tu pago está siendo procesado. Esto puede tomar unos minutos.
-                            <br>
-                            <small>Si el problema persiste, contacta con soporte.</small>
-                        </p>
-                    </div>
-                </div>
-            `;
-            
-        } else if (isExpired) {
-            // ⚠️ SUSCRIPCIÓN EXPIRADA
-            html = `
-                <div class="card border-danger">
-                    <div class="card-header bg-danger text-white">
-                        <i class="bi bi-exclamation-triangle me-2"></i>
-                        <strong>Suscripción expirada</strong>
-                    </div>
-                    <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col-md-7">
-                                <p class="mb-0">
-                                    Tu suscripción <strong>${planName}</strong> ha expirado.
-                                    <br>
-                                    <small class="text-muted">Renueva para seguir disfrutando de los beneficios.</small>
-                                </p>
-                            </div>
-                            <div class="col-md-5 mt-2 mt-md-0">
-                                <div class="d-flex flex-wrap gap-2 justify-content-md-end">
-                                    <button class="btn btn-primary btn-sm" onclick="upgradePlan('basico')">
-                                        <i class="bi bi-credit-card me-1"></i> Plan Básico ($10 ARS)
-                                    </button>
-                                    <button class="btn btn-warning btn-sm" onclick="upgradePlan('premium')">
-                                        <i class="bi bi-star me-1"></i> Plan Premium ($25 ARS)
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-        } else {
-            // 📋 SIN SUSCRIPCIÓN ACTIVA
-            html = `
-                <div class="card border-secondary">
-                    <div class="card-header bg-secondary text-white">
-                        <i class="bi bi-info-circle me-2"></i>
-                        <strong>Sin suscripción activa</strong>
-                    </div>
-                    <div class="card-body">
-                        <p class="mb-3">
-                            Estás usando el plan <strong>${planName}</strong> con funcionalidades limitadas.
-                            <br>
-                            <small class="text-muted">Activa una suscripción para acceder a todas las funcionalidades.</small>
-                        </p>
-                        <div class="d-flex flex-wrap gap-2">
-                            <button class="btn btn-primary btn-sm" onclick="upgradePlan('basico')">
-                                <i class="bi bi-credit-card me-1"></i> Plan Básico ($10 ARS)
-                            </button>
-                            <button class="btn btn-warning btn-sm" onclick="upgradePlan('premium')">
-                                <i class="bi bi-star me-1"></i> Plan Premium ($25 ARS)
-                            </button>
-                            @if(app()->environment('local'))
-                            <button class="btn btn-secondary btn-sm" onclick="debugActivateSubscription('free')">
-                                <i class="bi bi-gift me-1"></i> Emular Free
-                            </button>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        $('#subscriptionStatus').html(html);
-    }
-
-    // =============================================
-    // ✅ FUNCIONES DE ACCIÓN DE SUSCRIPCIÓN
-    // =============================================
-
-    /**
-     * Subir de plan (Básico → Premium)
-     */
-    function upgradePlan(targetPlan) {
-        const planNames = {
-            'basico': 'Básico ($10 ARS)',
-            'premium': 'Premium ($25 ARS)'
-        };
-        
-        if (!confirm(`¿Deseas cambiar al plan ${planNames[targetPlan]}?`)) {
-            return;
-        }
-        
-        // ✅ Usar debug para emulación (en local) o redirigir a pago
-        @if(app()->environment('local'))
-            debugActivateSubscription(targetPlan);
-        @else
-            window.location.href = `/suscripcion/${targetPlan}/pagar`;
-        @endif
-    }
-
-    /**
-     * Bajar de plan (Premium → Básico)
-     */
-    function downgradePlan(targetPlan) {
-        const planNames = {
-            'basico': 'Básico ($10 ARS)',
-            'free': 'Free (Gratuito)'
-        };
-        
-        if (!confirm(`¿Deseas bajar al plan ${planNames[targetPlan]}?`)) {
-            return;
-        }
-        
-        // ✅ En emulación local, cambiar directamente
-        @if(app()->environment('local'))
-            debugActivateSubscription(targetPlan);
-        @else
-            // En producción, esto debería solicitar confirmación y aplicar al expirar
-            showAlert('⚠️ La bajada de plan se aplicará al finalizar el período actual.', 'warning');
-            // Aquí iría la lógica de solicitud de downgrade
-        @endif
-    }
-
-    /**
-     * Cancelar suscripción
-     */
-    function cancelSubscription() {
-        if (!confirm('¿Estás seguro de que deseas cancelar tu suscripción? Perderás los beneficios al final del período actual.')) {
-            return;
-        }
-        
-        @if(app()->environment('local'))
-            // En local, expirar directamente
-            debugExpireSubscription();
-        @else
-            // En producción, esto debería marcar la suscripción para cancelación
-            showAlert('⚠️ Tu suscripción se cancelará al final del período actual.', 'warning');
-            // Aquí iría la lógica de cancelación
-        @endif
-    }
-
-    // =============================================
-    // ✅ FUNCIÓN PARA RENDERIZAR ERROR
-    // =============================================
-    function renderSubscriptionError() {
-        $('#subscriptionStatus').html(`
-            <div class="alert alert-danger">
-                <i class="bi bi-exclamation-triangle"></i>
-                Error al cargar el estado de la suscripción.
-            </div>
-        `);
-    }
-
-    // =============================================
-    // ✅ FUNCIONES DE DEPURACIÓN (SOLO LOCAL)
-    // =============================================
-    
-    @if(app()->environment('local'))
-    function debugActivateSubscription(plan) {
-        const planNames = {
-            'free': 'Plan Free',
-            'basico': 'Plan Básico',
-            'premium': 'Plan Premium'
-        };
-        
-        const planIcons = {
-            'free': '🎁',
-            'basico': '📋',
-            'premium': '⭐'
-        };
-        
-        const duration = plan === 'free' ? 9999 : 5;
-        
-        showAlert(
-            `🔄 Activando ${planNames[plan]} por ${duration === 9999 ? 'tiempo indefinido' : duration + ' minutos'}...`,
-            'info'
-        );
-        
-        $.ajax({
-            url: '/api/subscription/debug/activate',
-            type: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            data: JSON.stringify({
-                plan: plan,
-                duration_minutes: duration
-            }),
-            success: function(response) {
-                if (response.success) {
-                    showAlert(
-                        `✅ ${planIcons[plan]} ${planNames[plan]} activado correctamente para pruebas.`,
-                        'success'
-                    );
-                    loadSubscriptionStatus();
-                    loadStats();
-                    loadProfile();
-                } else {
-                    showAlert('❌ ' + (response.message || 'Error al activar'), 'danger');
-                }
-            },
-            error: function(xhr) {
-                showAlert(
-                    '❌ Error: ' + (xhr.responseJSON?.message || xhr.statusText),
-                    'danger'
-                );
-            }
-        });
-    }
-    
-    function debugExpireSubscription() {
-        showAlert('⏰ Forzando expiración de la suscripción...', 'warning');
-        
-        $.ajax({
-            url: '/api/subscription/debug/expire',
-            type: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                'Accept': 'application/json'
-            },
-            success: function(response) {
-                if (response.success) {
-                    showAlert('✅ Suscripción expirada correctamente', 'success');
-                    loadSubscriptionStatus();
-                    loadStats();
-                    loadProfile();
-                } else {
-                    showAlert('❌ ' + (response.message || 'Error al expirar'), 'danger');
-                }
-            },
-            error: function(xhr) {
-                showAlert(
-                    '❌ Error: ' + (xhr.responseJSON?.message || xhr.statusText),
-                    'danger'
-                );
-            }
-        });
-    }
-    
-    function debugClearSubscriptions() {
-        if (!confirm('⚠️ ¿Estás seguro de que quieres eliminar TODO el historial de suscripciones?')) {
-            return;
-        }
-        
-        showAlert('🧹 Limpiando historial de suscripciones...', 'warning');
-        
-        $.ajax({
-            url: '/api/subscription/debug/clear',
-            type: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                'Accept': 'application/json'
-            },
-            success: function(response) {
-                if (response.success) {
-                    showAlert('✅ Historial limpiado correctamente', 'success');
-                    loadSubscriptionStatus();
-                    loadStats();
-                    loadProfile();
-                } else {
-                    showAlert('❌ ' + (response.message || 'Error al limpiar'), 'danger');
-                }
-            },
-            error: function(xhr) {
-                showAlert(
-                    '❌ Error: ' + (xhr.responseJSON?.message || xhr.statusText),
-                    'danger'
-                );
-            }
-        });
-    }
-    
-    window.debugRenewSubscription = function() {
-        $.ajax({
-            url: '/api/subscription/plan/status',
-            type: 'GET',
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                'Accept': 'application/json'
-            },
-            success: function(response) {
-                if (response.success && response.data.has_active_subscription) {
-                    const currentPlan = response.data.subscription.plan;
-                    debugActivateSubscription(currentPlan);
-                } else {
-                    showAlert('❌ No hay suscripción activa para renovar', 'warning');
-                }
-            },
-            error: function() {
-                showAlert('❌ Error al obtener el plan actual', 'danger');
-            }
-        });
-    };
-    @endif
-
-    // =============================================
-    // ✅ FUNCIÓN PARA MOSTRAR ALERTAS
-    // =============================================
-    function showAlert(message, type) {
-        const alertHtml = `
-            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        `;
-        $('#alertContainer').append(alertHtml);
-        
-        setTimeout(() => {
-            $('#alertContainer .alert').first().fadeOut(500, function() {
-                $(this).remove();
-            });
-        }, 8000);
-    }
-    
-    // =============================================
-    // ✅ FUNCIONALIDAD PARA ELIMINAR TODOS LOS DATOS
-    // =============================================
-    
+    // Funcionalidad para eliminar todos los datos
     $('#deleteAllDataBtn').click(function() {
         $('#confirmDeleteAllDataModal').modal('show');
         $('#confirmationText').val('');
@@ -1295,87 +1308,7 @@ $(document).ready(function() {
         });
     });
 
-    function deleteAllUserData(token) {
-        $.ajax({
-            url: '/api/profile/delete-all-data',
-            type: 'DELETE',
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            data: JSON.stringify({
-                confirm_token: token
-            }),
-            success: function(response) {
-                if (response.success) {
-                    $('#confirmDeleteAllDataModal').modal('hide');
-                    showAlert(response.message, 'success');
-                    
-                    setTimeout(function() {
-                        window.location.href = '/login';
-                    }, 3000);
-                } else {
-                    showAlert(response.message || 'Error al eliminar datos', 'danger');
-                }
-            },
-            error: function(xhr) {
-                const errorMessage = xhr.responseJSON?.message || xhr.statusText;
-                showAlert('Error: ' + errorMessage, 'danger');
-            },
-            complete: function() {
-                $('#confirmDeleteAllData').prop('disabled', false).html(`
-                    <i class="bi bi-trash-fill me-1"></i> Sí, eliminar todo
-                `);
-            }
-        });
-    }
-
-    // =============================================
-    // ✅ ACTUALIZAR INFORMACIÓN DE LA CUENTA
-    // =============================================
-    function updateAccountInfo() {
-        const token = localStorage.getItem('token');
-        if (!token) return;
-
-        $.ajax({
-            url: '/api/profile',
-            type: 'GET',
-            headers: {
-                'Authorization': 'Bearer ' + token,
-                'Accept': 'application/json'
-            },
-            success: function(response) {
-                if (response.success && response.data) {
-                    const user = response.data.user;
-                    const subscription = response.data.subscription;
-                    
-                    $('#userId').text(user.id || '-');
-                    $('#userCreatedAt').text(user.created_at ? new Date(user.created_at).toLocaleString('es-ES') : '-');
-                    $('#userUpdatedAt').text(user.updated_at ? new Date(user.updated_at).toLocaleString('es-ES') : '-');
-                    
-                    // Mostrar el plan correctamente
-                    let planDisplay = 'Free';
-                    if (subscription && subscription.plan) {
-                        const planKey = subscription.plan.key || subscription.plan;
-                        if (planKey === 'premium') planDisplay = 'Premium';
-                        else if (planKey === 'basico') planDisplay = 'Básico';
-                        else if (planKey === 'free') planDisplay = 'Free';
-                    } else {
-                        planDisplay = user.subscription_plan === 'basico' ? 'Básico' : 
-                                    user.subscription_plan === 'premium' ? 'Premium' : 
-                                    user.subscription_plan === 'free' ? 'Free' : 'Free';
-                    }
-                    $('#userPlan').text(planDisplay);
-                }
-            },
-            error: function(xhr) {
-                console.error('Error al cargar información de la cuenta:', xhr.status, xhr.statusText);
-            }
-        });
-    }
-
-    // Actualizar al cargar
+    // Actualizar información de la cuenta
     updateAccountInfo();
 
     // Escuchar eventos
@@ -1386,7 +1319,7 @@ $(document).ready(function() {
     // Actualizar cada 30 segundos
     setInterval(updateAccountInfo, 30000);
     
-    // ✅ FUNCIÓN PARA ACTUALIZAR SOLO EL PLAN
+    // Función para actualizar solo el plan
     window.updatePlanInfo = function() {
         updateAccountInfo();
     };
