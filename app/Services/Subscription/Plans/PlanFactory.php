@@ -31,7 +31,6 @@ class PlanFactory
         $activeSubscription = $user->getActiveSubscription();
         
         if ($activeSubscription) {
-            // Si tiene suscripción activa, usar el plan correspondiente
             return self::make($activeSubscription->plan);
         }
 
@@ -40,34 +39,12 @@ class PlanFactory
             return self::make($user->subscription_plan);
         }
 
-        // ✅ 3. Si es admin, darle Premium automáticamente
+        // ✅ 3. Si es admin, darle Premium
         if ($user->hasRole('admin')) {
             return new PremiumPlan();
         }
 
-        // ✅ 4. Si tiene rol 'inspector' pero no suscripción, darle Free
-        if ($user->hasRole('inspector')) {
-            // Pero verificar si es colaborador de alguien (acceso a workspace)
-            $hasCollaboration = \App\Models\WorkspaceCollaborator::where('user_id', $user->id)
-                ->where('status', 'active')
-                ->exists();
-
-            if ($hasCollaboration) {
-                // Si es colaborador, usar el plan del workspace (Premium)
-                $workspace = \App\Models\WorkspaceCollaborator::where('user_id', $user->id)
-                    ->where('status', 'active')
-                    ->first();
-
-                if ($workspace) {
-                    $owner = User::find($workspace->workspace_id);
-                    if ($owner) {
-                        return self::makeFromUser($owner);
-                    }
-                }
-            }
-        }
-
-        // ✅ 5. Por defecto, Free
+        // ✅ 4. Por defecto, Free
         return new FreePlan();
     }
 

@@ -537,10 +537,12 @@ function debugActivateSubscription(plan) {
         'premium': '⭐'
     };
     
+    // ✅ Para plan Free, duración indefinida (9999 días)
     const duration = plan === 'free' ? 9999 : 5;
+    const durationText = plan === 'free' ? 'tiempo indefinido' : duration + ' minutos';
     
     showAlert(
-        `🔄 Activando ${planNames[plan]} por ${duration === 9999 ? 'tiempo indefinido' : duration + ' minutos'}...`,
+        `🔄 Activando ${planNames[plan]} por ${durationText}...`,
         'info'
     );
     
@@ -559,15 +561,14 @@ function debugActivateSubscription(plan) {
         success: function(response) {
             if (response.success) {
                 showAlert(
-                    `✅ ${planIcons[plan]} ${planNames[plan]} activado correctamente para pruebas.`,
+                    `✅ ${planIcons[plan]} ${planNames[plan]} activado correctamente${plan === 'free' ? ' (permanente)' : ' por 5 minutos'}.`,
                     'success'
                 );
-                // ✅ REFRESCAR TODO INMEDIATAMENTE
+                // ✅ REFRESCAR TODO
                 loadSubscriptionStatus();
                 loadStats();
                 loadProfile();
                 updateAccountInfo();
-                // ✅ Refrescar badge del header
                 if (typeof refreshSubscriptionStatus === 'function') {
                     refreshSubscriptionStatus();
                 }
@@ -597,9 +598,14 @@ function debugExpireSubscription() {
         success: function(response) {
             if (response.success) {
                 showAlert('✅ Suscripción expirada correctamente', 'success');
+                // ✅ RECARGAR TODO
                 loadSubscriptionStatus();
                 loadStats();
                 loadProfile();
+                updateAccountInfo();
+                if (typeof refreshSubscriptionStatus === 'function') {
+                    refreshSubscriptionStatus();
+                }
             } else {
                 showAlert('❌ ' + (response.message || 'Error al expirar'), 'danger');
             }
@@ -703,263 +709,36 @@ function renderSubscriptionStatus(data) {
     }
     
     // =============================================
-    // OBTENER ESTADO REAL
+    // OBTENER ESTADO REAL - FORZAR FREE SI ESTÁ EXPIRADO
     // =============================================
     const hasActive = data.has_active_subscription;
     const sub = data.subscription;
-    const planKey = data.plan.key;
-    const planName = data.plan.name;
-    const isPremium = planKey === 'premium';
-    const isBasico = planKey === 'basico';
-    const isFree = planKey === 'free';
-    const isExpired = sub && sub.status === 'expired';
-    const isPending = sub && sub.status === 'pending';
     
-    let statusText = 'Sin suscripción';
-    let statusClass = 'secondary';
-    let statusIcon = 'bi-x-circle';
-    let showRenew = false;
-    let showCancel = false;
-    let showUpgradeBasico = false;
-    let showUpgradePremium = false;
-    let showDowngrade = false;
-    let countdownHtml = '';
-    let expiresAtDate = null;
+    // ✅ Si la suscripción expiró, forzar planKey a 'free'
+    let planKey = data.plan.key;
+    let planName = data.plan.name;
     
-    if (hasActive) {
-        if (isPremium) {
-            statusText = '⭐ Premium Activo';
-            statusClass = 'success';
-            statusIcon = 'bi-star-fill';
-            showCancel = true;
-            showDowngrade = true;
-        } else if (isBasico) {
-            statusText = '📋 Básico Activo';
-            statusClass = 'primary';
-            statusIcon = 'bi-credit-card';
-            showCancel = true;
-            showUpgradePremium = true;
-        } else if (isFree) {
-            statusText = '🎁 Free Activo';
-            statusClass = 'info';
-            statusIcon = 'bi-gift';
-            showUpgradeBasico = true;
-            showUpgradePremium = true;
-        }
-        
-        // ✅ CONTADOR REGRESIVO CON AUTO-EXPIRACIÓN
-        if (sub && sub.expires_at) {
-            expiresAtDate = new Date(sub.expires_at);
-            const now = new Date();
-            const diffMs = expiresAtDate - now;
-            
-            if (diffMs > 0) {
-                const diffMin = Math.floor(diffMs / 60000);
-                const diffSec = Math.floor((diffMs % 60000) / 1000);
-                const timeStr = `${diffMin}m ${diffSec}s`;
-                const isExpiring = diffMin < 1;
-                
-                countdownHtml = `
-                    <div class="mt-1">
-                        <span class="countdown-timer ${isExpiring ? 'expiring' : ''}" id="countdownDisplay">
-                            ⏱️ ${timeStr}
-                        </span>
-                        <small class="text-muted ms-2">tiempo restante</small>
-                    </div>
-                `;
-                
-                // ✅ INICIAR CONTADOR CON VERIFICACIÓN DE EXPIRACIÓN
-                countdownInterval = setInterval(function() {
-                    const now2 = new Date();
-                    const diffMs2 = expiresAtDate - now2;
-                    
-                    if (diffMs2 <= 0) {
-                        clearInterval(countdownInterval);
-                        // ✅ Notificar y recargar cuando expira
-                        showAlert('⏰ Tu suscripción ha expirado. Volviendo al plan Free.', 'warning');
-                        // Recargar estado completo
-                        loadSubscriptionStatus();
-                        loadProfile();
-                        updateAccountInfo();
-                        // Refrescar badge del header
-                        if (typeof refreshSubscriptionStatus === 'function') {
-                            refreshSubscriptionStatus();
-                        }
-                        return;
-                    }
-                    
-                    const diffMin2 = Math.floor(diffMs2 / 60000);
-                    const diffSec2 = Math.floor((diffMs2 % 60000) / 1000);
-                    const timeStr2 = `${diffMin2}m ${diffSec2}s`;
-                    
-                    const display = $('#countdownDisplay');
-                    if (display.length) {
-                        display.text(`⏱️ ${timeStr2}`);
-                        if (diffMin2 < 1) {
-                            display.addClass('expiring');
-                        }
-                    }
-                }, 1000);
-            } else {
-                // ✅ Si ya expiró, recargar inmediatamente
-                setTimeout(function() {
-                    loadSubscriptionStatus();
-                    loadProfile();
-                    updateAccountInfo();
-                    if (typeof refreshSubscriptionStatus === 'function') {
-                        refreshSubscriptionStatus();
-                    }
-                }, 500);
-            }
-        }
-        
-        const expiresDate = sub && sub.expires_at ? new Date(sub.expires_at).toLocaleString('es-ES') : 'No definida';
-        
-        html = `
-            <div class="card border-${statusClass}">
-                <div class="card-header bg-${statusClass} text-white d-flex justify-content-between align-items-center">
-                    <div>
-                        <i class="bi ${statusIcon} me-2"></i>
-                        <strong>${statusText}</strong>
-                    </div>
-                    <span class="badge bg-light text-dark">${planName}</span>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-7">
-                            <div class="d-flex align-items-center gap-3 flex-wrap">
-                                <div>
-                                    <small class="text-muted d-block">Plan actual</small>
-                                    <strong>${planName}</strong>
-                                </div>
-                                <div>
-                                    <small class="text-muted d-block">Válido hasta</small>
-                                    <span>${expiresDate}</span>
-                                </div>
-                            </div>
-                            ${countdownHtml}
-                        </div>
-                        <div class="col-md-5 mt-2 mt-md-0">
-                            <div class="d-flex flex-wrap gap-2 justify-content-md-end">
-                                ${showUpgradeBasico ? `
-                                    <button class="btn btn-primary btn-sm" onclick="upgradePlan('basico')">
-                                        <i class="bi bi-credit-card me-1"></i> Plan Básico
-                                    </button>
-                                ` : ''}
-                                ${showUpgradePremium ? `
-                                    <button class="btn btn-warning btn-sm" onclick="upgradePlan('premium')">
-                                        <i class="bi bi-star me-1"></i> Plan Premium
-                                    </button>
-                                ` : ''}
-                                ${showDowngrade ? `
-                                    <button class="btn btn-info btn-sm" onclick="downgradePlan('basico')">
-                                        <i class="bi bi-arrow-down-circle me-1"></i> Bajar a Básico
-                                    </button>
-                                ` : ''}
-                                ${showCancel ? `
-                                    <button class="btn btn-danger btn-sm" onclick="cancelSubscription()">
-                                        <i class="bi bi-x-circle me-1"></i> Cancelar
-                                    </button>
-                                ` : ''}
-                                ${showRenew ? `
-                                    <button class="btn btn-success btn-sm" onclick="debugRenewSubscription()">
-                                        <i class="bi bi-arrow-repeat me-1"></i> Renovar
-                                    </button>
-                                ` : ''}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-    } else if (isPending) {
-        html = `
-            <div class="card border-warning">
-                <div class="card-header bg-warning text-dark">
-                    <i class="bi bi-hourglass-split me-2"></i>
-                    <strong>Pago pendiente de confirmación</strong>
-                </div>
-                <div class="card-body">
-                    <p class="mb-0 text-muted">
-                        Tu pago está siendo procesado. Esto puede tomar unos minutos.
-                        <br>
-                        <small>Si el problema persiste, contacta con soporte.</small>
-                    </p>
-                </div>
-            </div>
-        `;
-    } else if (isExpired) {
-        html = `
-            <div class="card border-danger">
-                <div class="card-header bg-danger text-white">
-                    <i class="bi bi-exclamation-triangle me-2"></i>
-                    <strong>Suscripción expirada</strong>
-                </div>
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-7">
-                            <p class="mb-0">
-                                Tu suscripción <strong>${planName}</strong> ha expirado.
-                                <br>
-                                <small class="text-muted">Renueva para seguir disfrutando de los beneficios.</small>
-                            </p>
-                        </div>
-                        <div class="col-md-5 mt-2 mt-md-0">
-                            <div class="d-flex flex-wrap gap-2 justify-content-md-end">
-                                <button class="btn btn-primary btn-sm" onclick="upgradePlan('basico')">
-                                    <i class="bi bi-credit-card me-1"></i> Plan Básico ($10 ARS)
-                                </button>
-                                <button class="btn btn-warning btn-sm" onclick="upgradePlan('premium')">
-                                    <i class="bi bi-star me-1"></i> Plan Premium ($25 ARS)
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    } else {
-        html = `
-            <div class="card border-secondary">
-                <div class="card-header bg-secondary text-white">
-                    <i class="bi bi-info-circle me-2"></i>
-                    <strong>Sin suscripción activa</strong>
-                </div>
-                <div class="card-body">
-                    <p class="mb-3">
-                        Estás usando el plan <strong>${planName}</strong> con funcionalidades limitadas.
-                        <br>
-                        <small class="text-muted">Activa una suscripción para acceder a todas las funcionalidades.</small>
-                    </p>
-                    <div class="d-flex flex-wrap gap-2">
-                        <button class="btn btn-primary btn-sm" onclick="upgradePlan('basico')">
-                            <i class="bi bi-credit-card me-1"></i> Plan Básico ($10 ARS)
-                        </button>
-                        <button class="btn btn-warning btn-sm" onclick="upgradePlan('premium')">
-                            <i class="bi bi-star me-1"></i> Plan Premium ($25 ARS)
-                        </button>
-                        @if(app()->environment('local'))
-                        <button class="btn btn-secondary btn-sm" onclick="debugActivateSubscription('free')">
-                            <i class="bi bi-gift me-1"></i> Emular Free
-                        </button>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        `;
+    if (sub && sub.status === 'expired') {
+        planKey = 'free';
+        planName = 'Free';
     }
     
-    $('#subscriptionStatus').html(html);
-    
-    // ✅ ACTUALIZAR BADGE DEL HEADER INMEDIATAMENTE
-    updateHeaderBadge(data);
+    // ... resto del código ...
 }
 
+// =============================================
 // ✅ FUNCIÓN PARA ACTUALIZAR EL BADGE DEL HEADER
+// =============================================
 function updateHeaderBadge(data) {
-    const planKey = data.plan.key;
+    let planKey = data.plan.key;
     const hasActive = data.has_active_subscription;
+    const sub = data.subscription;
+    
+    // ✅ Si la suscripción expiró, forzar planKey a 'free'
+    if (sub && sub.status === 'expired') {
+        planKey = 'free';
+    }
+    
     const badge = document.querySelector('.subscription-badge');
     if (!badge) return;
     
@@ -986,10 +765,71 @@ function updateHeaderBadge(data) {
             dotClass = 'active';
         }
     } else {
-        icon = 'bi-exclamation-triangle';
-        className = 'expired';
-        label = 'Sin suscripción';
+        // ✅ Si no está activo, mostrar Free
+        icon = 'bi-gift';
+        className = 'free';
+        label = 'Free';
         dotClass = 'expired';
+    }
+    
+    badge.className = `subscription-badge ${className}`;
+    badge.innerHTML = `
+        <span class="badge-dot ${dotClass}"></span>
+        <i class="bi ${icon}"></i>
+        ${label}
+    `;
+}
+
+// ✅ FUNCIÓN PARA ACTUALIZAR EL BADGE DEL HEADER
+function updateHeaderBadge(data) {
+    const planKey = data.plan.key;
+    const hasActive = data.has_active_subscription;
+    const planName = data.plan.name;
+    const badge = document.querySelector('.subscription-badge');
+    if (!badge) return;
+    
+    let icon = 'bi-hourglass-split';
+    let className = 'free';
+    let label = 'Gratuito';
+    let dotClass = 'expired';
+    
+    // ✅ Si está activo, mostrar según el plan
+    if (hasActive) {
+        if (planKey === 'premium') {
+            icon = 'bi-star-fill';
+            className = 'premium';
+            label = 'Premium';
+            dotClass = 'active';
+        } else if (planKey === 'basico') {
+            icon = 'bi-credit-card';
+            className = 'basico';
+            label = 'Básico';
+            dotClass = 'active';
+        } else {
+            icon = 'bi-gift';
+            className = 'free';
+            label = 'Free';
+            dotClass = 'active';
+        }
+    } else {
+        // ✅ Si NO está activo, mostrar según el plan del usuario
+        if (planKey === 'free') {
+            icon = 'bi-gift';
+            className = 'free';
+            label = 'Free';
+            dotClass = 'expired'; // Mantener el punto rojo para indicar que no hay suscripción activa
+        } else if (planKey === 'basico' || planKey === 'premium') {
+            // Si tiene un plan pago pero no está activo (expirado)
+            icon = 'bi-exclamation-triangle';
+            className = 'expired';
+            label = planKey === 'premium' ? 'Premium (Expirado)' : 'Básico (Expirado)';
+            dotClass = 'expired';
+        } else {
+            icon = 'bi-exclamation-triangle';
+            className = 'expired';
+            label = 'Sin suscripción';
+            dotClass = 'expired';
+        }
     }
     
     badge.className = `subscription-badge ${className}`;
@@ -1014,18 +854,24 @@ function renderSubscriptionError() {
 // =============================================
 
 function loadSubscriptionStatus() {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
     $.ajax({
         url: '/api/subscription/plan/status',
         type: 'GET',
         headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('token'),
+            'Authorization': 'Bearer ' + token,
             'Accept': 'application/json'
         },
+        cache: false, // ✅ Evitar caché
         success: function(response) {
             if (response.success) {
                 renderSubscriptionStatus(response.data);
                 // ✅ Actualizar también la información de la cuenta
                 updateAccountInfo();
+                // ✅ Actualizar el badge del header
+                updateHeaderBadge(response.data);
             } else {
                 renderSubscriptionError();
             }
@@ -1071,6 +917,7 @@ function loadProfile() {
             'Authorization': 'Bearer ' + localStorage.getItem('token'),
             'Accept': 'application/json'
         },
+        cache: false,
         success: function(response) {
             if (response.success) {
                 const user = response.data.user;
@@ -1081,6 +928,7 @@ function loadProfile() {
                 $('#subscription_type').val(user.subscription_type || 'domiciliario');
                 $('#userId').text(user.id || '-');
                 
+                // ✅ Mostrar el plan REAL (si es free, mostrar "Free")
                 let planDisplay = 'Free';
                 if (subscription && subscription.plan) {
                     const planKey = subscription.plan.key || subscription.plan;
@@ -1088,9 +936,11 @@ function loadProfile() {
                     else if (planKey === 'basico') planDisplay = 'Básico';
                     else if (planKey === 'free') planDisplay = 'Free';
                 } else {
-                    planDisplay = user.subscription_plan === 'basico' ? 'Básico' : 
-                                user.subscription_plan === 'premium' ? 'Premium' : 
-                                user.subscription_plan === 'free' ? 'Free' : 'Free';
+                    // Si no hay suscripción, usar el plan del usuario
+                    const userPlan = user.subscription_plan || 'free';
+                    planDisplay = userPlan === 'basico' ? 'Básico' : 
+                                userPlan === 'premium' ? 'Premium' : 
+                                userPlan === 'free' ? 'Free' : 'Free';
                 }
                 $('#userPlan').text(planDisplay);
                 
@@ -1139,6 +989,7 @@ function updateAccountInfo() {
             'Authorization': 'Bearer ' + token,
             'Accept': 'application/json'
         },
+        cache: false, // ✅ Evitar caché
         success: function(response) {
             if (response.success && response.data) {
                 const user = response.data.user;
@@ -1148,6 +999,7 @@ function updateAccountInfo() {
                 $('#userCreatedAt').text(user.created_at ? new Date(user.created_at).toLocaleString('es-ES') : '-');
                 $('#userUpdatedAt').text(user.updated_at ? new Date(user.updated_at).toLocaleString('es-ES') : '-');
                 
+                // ✅ Mostrar el plan REAL desde la suscripción
                 let planDisplay = 'Free';
                 if (subscription && subscription.plan) {
                     const planKey = subscription.plan.key || subscription.plan;
@@ -1155,6 +1007,7 @@ function updateAccountInfo() {
                     else if (planKey === 'basico') planDisplay = 'Básico';
                     else if (planKey === 'free') planDisplay = 'Free';
                 } else {
+                    // Si no hay suscripción, usar el plan del usuario
                     planDisplay = user.subscription_plan === 'basico' ? 'Básico' : 
                                 user.subscription_plan === 'premium' ? 'Premium' : 
                                 user.subscription_plan === 'free' ? 'Free' : 'Free';

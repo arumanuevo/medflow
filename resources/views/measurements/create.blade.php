@@ -163,7 +163,7 @@ ADVERTENCIA DE PERÍODO (CON REDONDEO)
                             @php
                                 $diff = $lastValue ? (float)old('consumo_m3', 0) - $lastValue : null;
                             @endphp
-                            <span id="consumptionDiff" class="badge bg-secondary ms-1">
+                            <span id="consumptionDiff" class="badge bg-light text-dark border ms-1">
                                 Diferencia: 0.00 m³
                             </span>
                         </small>

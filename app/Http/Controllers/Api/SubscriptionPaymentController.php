@@ -529,60 +529,69 @@ class SubscriptionPaymentController extends Controller
         }
     }
 
-    /**
-     * Forzar expiración de la suscripción actual (debug)
-     */
-    public function debugExpire(Request $request)
-    {
-        // ✅ Solo permitir en entorno local
-        if (!app()->environment('local')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Esta acción solo está disponible en entorno de desarrollo.'
-            ], 403);
-        }
-
-        try {
-            $user = $request->user();
-
-            $subscription = Subscription::where('user_id', $user->id)
-                ->where('status', 'active')
-                ->latest()
-                ->first();
-
-            if (!$subscription) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No hay suscripción activa para expirar.'
-                ], 404);
-            }
-
-            $subscription->status = 'expired';
-            $subscription->expires_at = now()->subSecond();
-            $subscription->save();
-
-            Log::info('⏰ Suscripción expirada por depuración', [
-                'user_id' => $user->id,
-                'subscription_id' => $subscription->id
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Suscripción expirada correctamente.',
-                'data' => [
-                    'subscription_id' => $subscription->id,
-                    'expired_at' => now()->toDateTimeString()
-                ]
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('❌ Error en debugExpire: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al expirar suscripción: ' . $e->getMessage()
-            ], 500);
-        }
+/**
+ * Forzar expiración de la suscripción (debug)
+ */
+public function debugExpire(Request $request)
+{
+    // ✅ Solo permitir en entorno local
+    if (!app()->environment('local')) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Esta acción solo está disponible en entorno de desarrollo.'
+        ], 403);
     }
+
+    try {
+        $user = $request->user();
+
+        $subscription = Subscription::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->latest()
+            ->first();
+
+        if (!$subscription) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No hay suscripción activa para expirar.'
+            ], 404);
+        }
+
+        // ✅ 1. Marcar suscripción como expirada
+        $subscription->status = 'expired';
+        $subscription->expires_at = now()->subSecond();
+        $subscription->save();
+
+        // ✅ 2. ACTUALIZAR USUARIO A 'free' (MISMA LÓGICA QUE checkAndUpdate)
+        $user->subscription_type = 'domiciliario';
+        $user->subscription_plan = 'free';
+        $user->save();
+        $user->syncRoles(['consumidor']);
+
+        Log::info('⏰ Suscripción expirada por depuración', [
+            'user_id' => $user->id,
+            'subscription_id' => $subscription->id,
+            'new_plan' => 'free'
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Suscripción expirada correctamente. Usuario cambiado a Free.',
+            'data' => [
+                'subscription_id' => $subscription->id,
+                'expired_at' => now()->toDateTimeString(),
+                'new_plan' => 'free'
+            ]
+        ]);
+
+    } catch (\Exception $e) {
+        Log::error('❌ Error en debugExpire: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al expirar suscripción: ' . $e->getMessage()
+        ], 500);
+    }
+}
 
     /**
      * Limpiar todo el historial de suscripciones del usuario (debug)
