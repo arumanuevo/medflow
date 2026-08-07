@@ -562,9 +562,15 @@ function debugActivateSubscription(plan) {
                     `✅ ${planIcons[plan]} ${planNames[plan]} activado correctamente para pruebas.`,
                     'success'
                 );
+                // ✅ REFRESCAR TODO INMEDIATAMENTE
                 loadSubscriptionStatus();
                 loadStats();
                 loadProfile();
+                updateAccountInfo();
+                // ✅ Refrescar badge del header
+                if (typeof refreshSubscriptionStatus === 'function') {
+                    refreshSubscriptionStatus();
+                }
             } else {
                 showAlert('❌ ' + (response.message || 'Error al activar'), 'danger');
             }
@@ -718,6 +724,7 @@ function renderSubscriptionStatus(data) {
     let showUpgradePremium = false;
     let showDowngrade = false;
     let countdownHtml = '';
+    let expiresAtDate = null;
     
     if (hasActive) {
         if (isPremium) {
@@ -740,10 +747,11 @@ function renderSubscriptionStatus(data) {
             showUpgradePremium = true;
         }
         
+        // ✅ CONTADOR REGRESIVO CON AUTO-EXPIRACIÓN
         if (sub && sub.expires_at) {
-            const expiresAt = new Date(sub.expires_at);
+            expiresAtDate = new Date(sub.expires_at);
             const now = new Date();
-            const diffMs = expiresAt - now;
+            const diffMs = expiresAtDate - now;
             
             if (diffMs > 0) {
                 const diffMin = Math.floor(diffMs / 60000);
@@ -760,13 +768,23 @@ function renderSubscriptionStatus(data) {
                     </div>
                 `;
                 
+                // ✅ INICIAR CONTADOR CON VERIFICACIÓN DE EXPIRACIÓN
                 countdownInterval = setInterval(function() {
                     const now2 = new Date();
-                    const diffMs2 = expiresAt - now2;
+                    const diffMs2 = expiresAtDate - now2;
                     
                     if (diffMs2 <= 0) {
                         clearInterval(countdownInterval);
+                        // ✅ Notificar y recargar cuando expira
+                        showAlert('⏰ Tu suscripción ha expirado. Volviendo al plan Free.', 'warning');
+                        // Recargar estado completo
                         loadSubscriptionStatus();
+                        loadProfile();
+                        updateAccountInfo();
+                        // Refrescar badge del header
+                        if (typeof refreshSubscriptionStatus === 'function') {
+                            refreshSubscriptionStatus();
+                        }
                         return;
                     }
                     
@@ -782,6 +800,16 @@ function renderSubscriptionStatus(data) {
                         }
                     }
                 }, 1000);
+            } else {
+                // ✅ Si ya expiró, recargar inmediatamente
+                setTimeout(function() {
+                    loadSubscriptionStatus();
+                    loadProfile();
+                    updateAccountInfo();
+                    if (typeof refreshSubscriptionStatus === 'function') {
+                        refreshSubscriptionStatus();
+                    }
+                }, 500);
             }
         }
         
@@ -923,6 +951,53 @@ function renderSubscriptionStatus(data) {
     }
     
     $('#subscriptionStatus').html(html);
+    
+    // ✅ ACTUALIZAR BADGE DEL HEADER INMEDIATAMENTE
+    updateHeaderBadge(data);
+}
+
+// ✅ FUNCIÓN PARA ACTUALIZAR EL BADGE DEL HEADER
+function updateHeaderBadge(data) {
+    const planKey = data.plan.key;
+    const hasActive = data.has_active_subscription;
+    const badge = document.querySelector('.subscription-badge');
+    if (!badge) return;
+    
+    let icon = 'bi-hourglass-split';
+    let className = 'free';
+    let label = 'Gratuito';
+    let dotClass = 'expired';
+    
+    if (hasActive) {
+        if (planKey === 'premium') {
+            icon = 'bi-star-fill';
+            className = 'premium';
+            label = 'Premium';
+            dotClass = 'active';
+        } else if (planKey === 'basico') {
+            icon = 'bi-credit-card';
+            className = 'basico';
+            label = 'Básico';
+            dotClass = 'active';
+        } else {
+            icon = 'bi-gift';
+            className = 'free';
+            label = 'Free';
+            dotClass = 'active';
+        }
+    } else {
+        icon = 'bi-exclamation-triangle';
+        className = 'expired';
+        label = 'Sin suscripción';
+        dotClass = 'expired';
+    }
+    
+    badge.className = `subscription-badge ${className}`;
+    badge.innerHTML = `
+        <span class="badge-dot ${dotClass}"></span>
+        <i class="bi ${icon}"></i>
+        ${label}
+    `;
 }
 
 function renderSubscriptionError() {
@@ -949,6 +1024,8 @@ function loadSubscriptionStatus() {
         success: function(response) {
             if (response.success) {
                 renderSubscriptionStatus(response.data);
+                // ✅ Actualizar también la información de la cuenta
+                updateAccountInfo();
             } else {
                 renderSubscriptionError();
             }

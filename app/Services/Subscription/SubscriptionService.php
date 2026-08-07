@@ -311,4 +311,38 @@ class SubscriptionService
             );
         }
     }
+
+    /**
+ * Verificar si la suscripción ha expirado y actualizar el estado si es necesario
+ */
+public function checkAndUpdateExpiredSubscription(): bool
+{
+    $activeSubscription = $this->user->getActiveSubscription();
+    
+    if (!$activeSubscription) {
+        return false;
+    }
+    
+    // Si la suscripción expiró, actualizar estado
+    if ($activeSubscription->expires_at && $activeSubscription->expires_at->isPast()) {
+        $activeSubscription->status = 'expired';
+        $activeSubscription->save();
+        
+        // Actualizar el usuario a Free
+        $this->user->subscription_type = 'domiciliario';
+        $this->user->subscription_plan = 'free';
+        $this->user->save();
+        $this->user->syncRoles(['consumidor']);
+        
+        Log::info('🔄 Suscripción expirada automáticamente', [
+            'user_id' => $this->user->id,
+            'subscription_id' => $activeSubscription->id,
+            'expired_at' => $activeSubscription->expires_at
+        ]);
+        
+        return true;
+    }
+    
+    return false;
+}
 }

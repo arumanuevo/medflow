@@ -666,4 +666,20 @@ class SubscriptionPaymentController extends Controller
             'userStatus'
         ));
     }
+
+    /**
+     * Verificar si la suscripción ha expirado y actualizar
+     */
+    public function checkExpiration(Request $request)
+    {
+        $user = $request->user();
+        $service = new \App\Services\Subscription\SubscriptionService($user);
+        $expired = $service->checkAndUpdateExpiredSubscription();
+        
+        return response()->json([
+            'success' => true,
+            'expired' => $expired,
+            'plan' => $service->getFullStatus()
+        ]);
+    }
 }

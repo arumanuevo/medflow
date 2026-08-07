@@ -377,3 +377,5 @@ if (app()->environment('local')) {
         Route::post('/clear', [SubscriptionPaymentController::class, 'debugClear']);
     });
 }
+
+Route::middleware(['auth:sanctum'])->get('/subscription/check-expiration', [SubscriptionPaymentController::class, 'checkExpiration']);
