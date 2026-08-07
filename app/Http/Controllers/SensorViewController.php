@@ -25,11 +25,14 @@ class SensorViewController extends Controller
 
         if ($groups->isEmpty()) {
             return redirect()->route('sensor-groups.create')
-                ->with('info', '📋 Para crear un sensor, primero necesitas crear un grupo de sensores.')
+                ->with('info', '📋 Para crear un sensor, primero necesitas crear un grupo de sensores.') // ✅ Agregar punto y coma
+                ->with('alert_type', 'warning')
+                ->with('alert_title', '¡Atención!');
         }
 
         return view('sensors.create', compact('groups', 'groupId'));
     }
+
 
     public function edit(Sensor $sensor)
     {

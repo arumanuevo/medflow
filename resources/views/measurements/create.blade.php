@@ -760,22 +760,35 @@ $(document).ready(function() {
             return;
         }
 
-        // Validar foto
-        if (!hasRealPhoto) {
-            showAlert('⚠️ La foto es obligatoria. Usa el botón "Tomar Foto".', 'danger');
-            return;
-        }
+        // =============================================
+        // ✅ VALIDAR FOTO (CONSIDERANDO TOGGLE)
+        // =============================================
+        const photoToggle = document.getElementById('photoToggle');
+        const isPhotoEnabled = photoToggle ? photoToggle.checked : true;
 
-        // Subir foto si está pendiente
-        if (photoBlob && !photoUploaded) {
-            try {
-                const photoPath = await uploadPhoto();
-                $('#photo').val(photoPath);
-                photoUploaded = true;
-            } catch (error) {
-                showAlert('❌ Error al subir la foto: ' + error.message, 'danger');
+        if (isPhotoEnabled) {
+            // ✅ Foto habilitada: debe haber una foto real
+            if (!hasRealPhoto) {
+                showAlert('⚠️ La foto es obligatoria. Usa el botón "Tomar Foto" o deshabilita la foto en el toggle.', 'danger');
                 return;
             }
+            
+            // Subir foto si está pendiente
+            if (photoBlob && !photoUploaded) {
+                try {
+                    const photoPath = await uploadPhoto();
+                    $('#photo').val(photoPath);
+                    photoUploaded = true;
+                } catch (error) {
+                    showAlert('❌ Error al subir la foto: ' + error.message, 'danger');
+                    return;
+                }
+            }
+        } else {
+            // ✅ Foto deshabilitada: usar "Sin Foto"
+            $('#photo').val('Sin Foto');
+            photoUploaded = true;
+            hasRealPhoto = true; // Marcar como válido para que pase la validación
         }
 
         // Preparar datos
