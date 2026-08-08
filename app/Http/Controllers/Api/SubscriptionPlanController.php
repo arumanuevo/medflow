@@ -12,13 +12,34 @@ class SubscriptionPlanController extends Controller
 {
     public function status(Request $request)
     {
-        $user = $request->user();
-        $service = new SubscriptionService($user);
-
-        return response()->json([
-            'success' => true,
-            'data' => $service->getFullStatus()
-        ]);
+        try {
+            $user = $request->user();
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Usuario no autenticado'
+                ], 401);
+            }
+            
+            $service = new SubscriptionService($user);
+            $status = $service->getFullStatus();
+            
+            return response()->json([
+                'success' => true,
+                'data' => $status
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('❌ Error en SubscriptionPlanController@status: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener el estado de la suscripción: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function availablePlans(Request $request)

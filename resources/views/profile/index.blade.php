@@ -700,6 +700,8 @@ function showAlert(message, type) {
 // =============================================
 
 function renderSubscriptionStatus(data) {
+    console.log('📊 Renderizando estado de suscripción:', data);
+    
     let html = '';
     
     // Limpiar intervalo anterior si existe
@@ -709,21 +711,272 @@ function renderSubscriptionStatus(data) {
     }
     
     // =============================================
-    // OBTENER ESTADO REAL - FORZAR FREE SI ESTÁ EXPIRADO
+    // OBTENER ESTADO REAL
     // =============================================
     const hasActive = data.has_active_subscription;
     const sub = data.subscription;
+    const planKey = data.plan.key;
+    const planName = data.plan.name;
+    const isPremium = planKey === 'premium';
+    const isBasico = planKey === 'basico';
+    const isFree = planKey === 'free';
+    const isExpired = sub && sub.status === 'expired';
+    const isPending = sub && sub.status === 'pending';
     
-    // ✅ Si la suscripción expiró, forzar planKey a 'free'
-    let planKey = data.plan.key;
-    let planName = data.plan.name;
+    console.log('📊 Estado:', { hasActive, planKey, isExpired, isPending });
     
-    if (sub && sub.status === 'expired') {
-        planKey = 'free';
-        planName = 'Free';
+    // =============================================
+    // CASO 1: SUSCRIPCIÓN ACTIVA
+    // =============================================
+    if (hasActive) {
+        let statusText = '';
+        let statusClass = '';
+        let statusIcon = '';
+        let showCancel = false;
+        let showUpgradeBasico = false;
+        let showUpgradePremium = false;
+        let showDowngrade = false;
+        let countdownHtml = '';
+        let expiresAtDate = null;
+        
+        if (isPremium) {
+            statusText = '⭐ Premium Activo';
+            statusClass = 'success';
+            statusIcon = 'bi-star-fill';
+            showCancel = true;
+            showDowngrade = true;
+        } else if (isBasico) {
+            statusText = '📋 Básico Activo';
+            statusClass = 'primary';
+            statusIcon = 'bi-credit-card';
+            showCancel = true;
+            showUpgradePremium = true;
+        } else if (isFree) {
+            statusText = '🎁 Free Activo';
+            statusClass = 'info';
+            statusIcon = 'bi-gift';
+            showUpgradeBasico = true;
+            showUpgradePremium = true;
+        }
+        
+        // ✅ CONTADOR REGRESIVO CON AUTO-EXPIRACIÓN - LLAMA A debugActivateSubscription('free')
+        if (sub && sub.expires_at) {
+            expiresAtDate = new Date(sub.expires_at);
+            const now = new Date();
+            const diffMs = expiresAtDate - now;
+            
+            if (diffMs > 0) {
+                const diffMin = Math.floor(diffMs / 60000);
+                const diffSec = Math.floor((diffMs % 60000) / 1000);
+                const timeStr = `${diffMin}m ${diffSec}s`;
+                const isExpiring = diffMin < 1;
+                
+                countdownHtml = `
+                    <div class="mt-1">
+                        <span class="countdown-timer ${isExpiring ? 'expiring' : ''}" id="countdownDisplay">
+                            ⏱️ ${timeStr}
+                        </span>
+                        <small class="text-muted ms-2">tiempo restante</small>
+                    </div>
+                `;
+                
+                // ✅ INICIAR CONTADOR CON VERIFICACIÓN DE EXPIRACIÓN
+                countdownInterval = setInterval(function() {
+                    const now2 = new Date();
+                    const diffMs2 = expiresAtDate - now2;
+                    
+                    if (diffMs2 <= 0) {
+                        clearInterval(countdownInterval);
+                        
+                        // ✅ Mostrar notificación de expiración
+                        showAlert('⏰ Tu suscripción ha expirado. Volviendo al plan Free.', 'warning');
+                        
+                        // ✅ EJECUTAR LA MISMA LÓGICA QUE EL BOTÓN "EMULAR FREE"
+                        setTimeout(function() {
+                            // ✅ Esto es EXACTAMENTE lo que hace el botón "Emular Free"
+                            debugActivateSubscription('free');
+                        }, 500);
+                        return;
+                    }
+                    
+                    const diffMin2 = Math.floor(diffMs2 / 60000);
+                    const diffSec2 = Math.floor((diffMs2 % 60000) / 1000);
+                    const timeStr2 = `${diffMin2}m ${diffSec2}s`;
+                    
+                    const display = $('#countdownDisplay');
+                    if (display.length) {
+                        display.text(`⏱️ ${timeStr2}`);
+                        if (diffMin2 < 1) {
+                            display.addClass('expiring');
+                        }
+                    }
+                }, 1000);
+            } else {
+                // ✅ Si ya expiró, ejecutar inmediatamente
+                setTimeout(function() {
+                    debugActivateSubscription('free');
+                }, 500);
+            }
+        }
+        
+        const expiresDate = sub && sub.expires_at ? new Date(sub.expires_at).toLocaleString('es-ES') : 'No definida';
+        
+        html = `
+            <div class="card border-${statusClass}">
+                <div class="card-header bg-${statusClass} text-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="bi ${statusIcon} me-2"></i>
+                        <strong>${statusText}</strong>
+                    </div>
+                    <span class="badge bg-light text-dark">${planName}</span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-7">
+                            <div class="d-flex align-items-center gap-3 flex-wrap">
+                                <div>
+                                    <small class="text-muted d-block">Plan actual</small>
+                                    <strong>${planName}</strong>
+                                </div>
+                                <div>
+                                    <small class="text-muted d-block">Válido hasta</small>
+                                    <span>${expiresDate}</span>
+                                </div>
+                            </div>
+                            ${countdownHtml}
+                        </div>
+                        <div class="col-md-5 mt-2 mt-md-0">
+                            <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+                                ${showUpgradeBasico ? `
+                                    <button class="btn btn-primary btn-sm" onclick="upgradePlan('basico')">
+                                        <i class="bi bi-credit-card me-1"></i> Plan Básico
+                                    </button>
+                                ` : ''}
+                                ${showUpgradePremium ? `
+                                    <button class="btn btn-warning btn-sm" onclick="upgradePlan('premium')">
+                                        <i class="bi bi-star me-1"></i> Plan Premium
+                                    </button>
+                                ` : ''}
+                                ${showDowngrade ? `
+                                    <button class="btn btn-info btn-sm" onclick="downgradePlan('basico')">
+                                        <i class="bi bi-arrow-down-circle me-1"></i> Bajar a Básico
+                                    </button>
+                                ` : ''}
+                                ${showCancel ? `
+                                    <button class="btn btn-danger btn-sm" onclick="cancelSubscription()">
+                                        <i class="bi bi-x-circle me-1"></i> Cancelar
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+    // =============================================
+    // CASO 2: PAGO PENDIENTE
+    // =============================================
+    } else if (isPending) {
+        html = `
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <i class="bi bi-hourglass-split me-2"></i>
+                    <strong>Pago pendiente de confirmación</strong>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0 text-muted">
+                        Tu pago está siendo procesado. Esto puede tomar unos minutos.
+                        <br>
+                        <small>Si el problema persiste, contacta con soporte.</small>
+                    </p>
+                </div>
+            </div>
+        `;
+        
+    // =============================================
+    // CASO 3: SUSCRIPCIÓN EXPIRADA
+    // =============================================
+    } else if (isExpired) {
+        html = `
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Suscripción expirada</strong>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-7">
+                            <p class="mb-0">
+                                Tu suscripción <strong>${planName}</strong> ha expirado.
+                                <br>
+                                <small class="text-muted">Renueva para seguir disfrutando de los beneficios.</small>
+                            </p>
+                        </div>
+                        <div class="col-md-5 mt-2 mt-md-0">
+                            <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+                                <button class="btn btn-primary btn-sm" onclick="upgradePlan('basico')">
+                                    <i class="bi bi-credit-card me-1"></i> Plan Básico ($10 ARS)
+                                </button>
+                                <button class="btn btn-warning btn-sm" onclick="upgradePlan('premium')">
+                                    <i class="bi bi-star me-1"></i> Plan Premium ($25 ARS)
+                                </button>
+                                @if(app()->environment('local'))
+                                <button class="btn btn-secondary btn-sm" onclick="debugActivateSubscription('free')">
+                                    <i class="bi bi-gift me-1"></i> Emular Free
+                                </button>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+    // =============================================
+    // CASO 4: SIN SUSCRIPCIÓN ACTIVA (EL CASO ACTUAL)
+    // =============================================
+    } else {
+        html = `
+            <div class="card border-info">
+                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="bi bi-gift me-2"></i>
+                        <strong>🎁 Plan Free</strong>
+                    </div>
+                    <span class="badge bg-light text-dark">${planName}</span>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">
+                        ${planKey === 'basico' || planKey === 'premium' 
+                            ? `Tu suscripción <strong>${planName}</strong> no está activa actualmente.`
+                            : `Estás usando el plan <strong>${planName}</strong> con funcionalidades limitadas.`
+                        }
+                        <br>
+                        <small class="text-muted">Activa una suscripción para acceder a todas las funcionalidades.</small>
+                    </p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button class="btn btn-primary btn-sm" onclick="upgradePlan('basico')">
+                            <i class="bi bi-credit-card me-1"></i> Plan Básico ($10 ARS)
+                        </button>
+                        <button class="btn btn-warning btn-sm" onclick="upgradePlan('premium')">
+                            <i class="bi bi-star me-1"></i> Plan Premium ($25 ARS)
+                        </button>
+                        @if(app()->environment('local'))
+                        <button class="btn btn-secondary btn-sm" onclick="debugActivateSubscription('free')">
+                            <i class="bi bi-gift me-1"></i> Emular Free
+                        </button>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        `;
     }
     
-    // ... resto del código ...
+    $('#subscriptionStatus').html(html);
+    
+    // ✅ ACTUALIZAR BADGE DEL HEADER
+    updateHeaderBadge(data);
 }
 
 // =============================================
@@ -843,8 +1096,14 @@ function updateHeaderBadge(data) {
 function renderSubscriptionError() {
     $('#subscriptionStatus').html(`
         <div class="alert alert-danger">
-            <i class="bi bi-exclamation-triangle"></i>
-            Error al cargar el estado de la suscripción.
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <strong>Error al cargar el estado de la suscripción.</strong>
+            <br>
+            <small class="text-muted">Intenta recargar la página. Si el problema persiste, contacta con soporte.</small>
+            <br>
+            <button class="btn btn-sm btn-outline-danger mt-2" onclick="loadSubscriptionStatus()">
+                <i class="bi bi-arrow-repeat me-1"></i> Reintentar
+            </button>
         </div>
     `);
 }
@@ -855,7 +1114,11 @@ function renderSubscriptionError() {
 
 function loadSubscriptionStatus() {
     const token = localStorage.getItem('token');
-    if (!token) return;
+    if (!token) {
+        console.warn('⚠️ No hay token de autenticación');
+        renderSubscriptionError();
+        return;
+    }
 
     $.ajax({
         url: '/api/subscription/plan/status',
@@ -864,20 +1127,25 @@ function loadSubscriptionStatus() {
             'Authorization': 'Bearer ' + token,
             'Accept': 'application/json'
         },
-        cache: false, // ✅ Evitar caché
+        cache: false,
+        timeout: 10000,
         success: function(response) {
+            console.log('✅ Estado de suscripción recibido:', response);
             if (response.success) {
                 renderSubscriptionStatus(response.data);
-                // ✅ Actualizar también la información de la cuenta
                 updateAccountInfo();
-                // ✅ Actualizar el badge del header
                 updateHeaderBadge(response.data);
             } else {
+                console.error('❌ Respuesta sin éxito:', response);
                 renderSubscriptionError();
             }
         },
         error: function(xhr) {
-            console.error('Error al cargar estado de suscripción:', xhr);
+            console.error('❌ Error al cargar suscripción:', {
+                status: xhr.status,
+                statusText: xhr.statusText,
+                response: xhr.responseJSON
+            });
             renderSubscriptionError();
         }
     });
