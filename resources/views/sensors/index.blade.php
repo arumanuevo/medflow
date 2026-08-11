@@ -365,6 +365,56 @@
     }
 
     /* ============================================
+       SELECTOR DE GRUPOS
+       ============================================ */
+    .group-selector-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    .group-selector-wrapper .form-select {
+        font-size: 0.8rem;
+        padding: 0.25rem 1.5rem 0.25rem 0.6rem;
+        height: 32px;
+        border-radius: 6px;
+        border: 1px solid #ced4da;
+        min-width: 150px;
+        max-width: 280px;
+        background-color: #fff;
+        cursor: pointer;
+    }
+    .group-selector-wrapper .form-select:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.15);
+    }
+    .group-selector-wrapper .btn {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.6rem;
+        height: 32px;
+        border-radius: 6px;
+    }
+    .group-selector-wrapper .badge-group-count {
+        font-size: 0.65rem;
+        background: #e9ecef;
+        color: #495057;
+        padding: 0.15rem 0.5rem;
+        border-radius: 12px;
+    }
+    .filter-label {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #6c757d;
+        margin-right: 0.25rem;
+    }
+    .group-info-display {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    /* ============================================
        RESPONSIVE
        ============================================ */
     @media (max-width: 992px) {
@@ -384,6 +434,13 @@
             align-items: stretch;
             text-align: center;
         }
+        .group-selector-wrapper {
+            width: 100%;
+        }
+        .group-selector-wrapper .form-select {
+            max-width: 100%;
+            flex: 1;
+        }
     }
     @media (max-width: 768px) {
         .table-actions {
@@ -402,6 +459,13 @@
         .subscription-info-bar .limit-item {
             justify-content: center;
         }
+        .group-selector-wrapper {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .group-selector-wrapper .form-select {
+            max-width: 100%;
+        }
     }
 </style>
 @endpush
@@ -412,7 +476,7 @@
         <!-- ============================================
         HEADER MEJORADO
         ============================================ -->
-        <div class="card-header ">
+        <div class="card-header bg-primary text-white">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
                 <h4 class="mb-0 d-flex align-items-center gap-2">
                     <i class="fas fa-tachometer-alt"></i>
@@ -448,13 +512,33 @@
                                     </a>
                                 @else
                                     <a href="#" class="dropdown-item text-muted" id="importSensorsLink" 
-                                    onclick="showGateBlockedNotification(); return false;">
+                                       onclick="showGateBlockedNotification(); return false;">
                                         <i class="bi bi-file-earmark-excel text-info"></i> Importar Sensores
                                         <span class="badge bg-warning text-dark ms-1">Premium</span>
                                     </a>
                                 @endif
                             </li>
-                            <!-- ... resto del menú ... -->
+                            <li>
+                                <a href="{{ route('measurements.select-sensor') }}" class="dropdown-item">
+                                    <i class="bi bi-rulers text-primary"></i> Tomar Medición
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('sensors.extra-fields') }}" class="dropdown-item">
+                                    <i class="bi bi-tags text-secondary"></i> Campos Extras
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <button class="dropdown-item text-danger" id="deleteSelectedBtn" disabled>
+                                    <i class="bi bi-trash"></i> Eliminar Seleccionados (0)
+                                </button>
+                            </li>
+                            <li>
+                                <button class="dropdown-item" id="refreshBtn">
+                                    <i class="bi bi-arrow-clockwise"></i> Recargar
+                                </button>
+                            </li>
                         </ul>
                     </div>
 
@@ -492,6 +576,30 @@
                 <button class="btn btn-sm btn-outline-primary ms-2" id="refreshSubscriptionBtn">
                     <i class="bi bi-arrow-repeat"></i>
                 </button>
+            </div>
+        </div>
+
+        <!-- ============================================
+        FILTRO POR GRUPO (MEJORADO)
+        ============================================ -->
+        <div class="p-3 border-bottom bg-light">
+            <div class="d-flex flex-wrap align-items-center gap-3">
+                <div class="group-selector-wrapper">
+                    <span class="filter-label"><i class="bi bi-folder me-1"></i> Grupo:</span>
+                    <select class="form-select" id="groupFilter">
+                        <option value="">Todos los grupos</option>
+                        <!-- Los grupos se cargan dinámicamente -->
+                    </select>
+                    <button class="btn btn-outline-primary btn-sm" id="applyGroupFilter">
+                        <i class="bi bi-funnel"></i> Filtrar
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" id="clearGroupFilter">
+                        <i class="bi bi-x-circle"></i> Limpiar
+                    </button>
+                </div>
+                <div class="group-info-display" id="groupInfoDisplay">
+                    <!-- Información del grupo seleccionado se muestra aquí -->
+                </div>
             </div>
         </div>
 
@@ -551,6 +659,9 @@
 
 @push('scripts')
 <script>
+// ✅ VARIABLE GLOBAL PARA PERMISOS
+window.canImportSensors = @json($permissions['can_import_sensors'] ?? false);
+
 $(document).ready(function() {
     const token = localStorage.getItem('token');
     let selectedSensors = new Set();
@@ -561,6 +672,8 @@ $(document).ready(function() {
     let currentPage = 1;
     let perPage = 25;
     let searchTerm = '';
+    let selectedGroupId = '';
+    let allGroups = [];
 
     if (typeof bootstrap !== 'undefined') {
         const dropdownElements = document.querySelectorAll('[data-bs-toggle="dropdown"]');
@@ -582,6 +695,91 @@ $(document).ready(function() {
     }
 
     // ============================================
+    // FUNCIONES DE GRUPOS (CORREGIDO)
+    // ============================================
+
+    function loadGroups() {
+        $.ajax({
+            url: '/api/sensor-groups',
+            type: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Accept': 'application/json'
+            },
+            success: function(response) {
+                if (response.success) {
+                    allGroups = response.data;
+                    populateGroupFilter(response.data);
+                }
+            },
+            error: function(xhr) {
+                console.error('❌ Error al cargar grupos:', xhr);
+            }
+        });
+    }
+
+    function populateGroupFilter(groups) {
+        const select = $('#groupFilter');
+        select.empty();
+        select.append('<option value="">Todos los grupos</option>');
+        
+        // ✅ Calcular el conteo real de sensores por grupo desde los datos cargados
+        const sensorCountByGroup = {};
+        allSensorsData.forEach(sensor => {
+            const groupId = sensor.group_id || (sensor.group ? sensor.group.id : null);
+            if (groupId) {
+                sensorCountByGroup[groupId] = (sensorCountByGroup[groupId] || 0) + 1;
+            }
+        });
+        
+        groups.forEach(group => {
+            const count = sensorCountByGroup[group.id] || 0;
+            // Solo mostrar grupos que tienen sensores
+            if (count > 0 || group.id == selectedGroupId) {
+                select.append(`<option value="${group.id}">${group.name} (${count} sensores)</option>`);
+            }
+        });
+
+        // Si hay un grupo seleccionado previamente, restaurarlo
+        if (selectedGroupId) {
+            select.val(selectedGroupId);
+        }
+        
+        updateGroupInfo();
+    }
+
+    function updateGroupInfo() {
+        const groupId = $('#groupFilter').val();
+        const infoDisplay = $('#groupInfoDisplay');
+        
+        if (groupId) {
+            const group = allGroups.find(g => g.id == groupId);
+            if (group) {
+                // ✅ Contar sensores reales del grupo desde los datos cargados
+                const count = allSensorsData.filter(s => (s.group_id || (s.group ? s.group.id : null)) == groupId).length;
+                infoDisplay.html(`
+                    <span class="badge bg-primary">
+                        <i class="bi bi-folder me-1"></i> ${group.name}
+                        <span class="badge bg-light text-dark ms-1">${count}</span>
+                    </span>
+                    <span class="text-muted small ms-2">
+                        <i class="bi bi-info-circle"></i> Mostrando sensores de este grupo
+                    </span>
+                `);
+                return;
+            }
+        }
+        
+        const totalSensors = allSensorsData.length;
+        const totalGroups = allGroups.length;
+        infoDisplay.html(`
+            <span class="text-muted small">
+                <i class="bi bi-database"></i> Total: ${totalSensors} sensores en ${totalGroups} grupos
+            </span>
+        `);
+    }
+
+    // ============================================
     // FUNCIONES DE SUSCRIPCIÓN
     // ============================================
 
@@ -596,6 +794,7 @@ $(document).ready(function() {
             success: function(response) {
                 if (response.success) {
                     updateSubscriptionUI(response.data);
+                    updatePermissions(response.data);
                 }
             },
             error: function(xhr) {
@@ -604,11 +803,16 @@ $(document).ready(function() {
         });
     }
 
+    function updatePermissions(data) {
+        const planKey = data.plan.key;
+        window.canImportSensors = (planKey === 'premium');
+        applyFiltersAndSort();
+    }
+
     function updateSubscriptionUI(data) {
         const plan = data.plan;
         const limits = data.limits;
 
-        // Plan
         const planName = $('#planName');
         let planClass = 'free';
         let planLabel = '🎁 Gratuito';
@@ -628,7 +832,6 @@ $(document).ready(function() {
         planName.text(planLabel);
         planName.attr('class', `badge-plan ${planClass}`);
 
-        // Sensores
         const sensorLimit = $('#sensorLimit');
         if (limits.sensors.is_unlimited) {
             sensorLimit.text('∞');
@@ -646,7 +849,6 @@ $(document).ready(function() {
             }
         }
 
-        // Grupos
         const groupLimit = $('#groupLimit');
         if (limits.groups.is_unlimited) {
             groupLimit.text('∞');
@@ -664,7 +866,6 @@ $(document).ready(function() {
             }
         }
 
-        // Colaboradores
         const collaboratorLimit = $('#collaboratorLimit');
         if (limits.collaborators.is_unlimited) {
             collaboratorLimit.text('∞');
@@ -676,7 +877,6 @@ $(document).ready(function() {
             collaboratorLimit.removeClass('danger warning');
         }
 
-        // Estado
         const statusBadge = $('#planStatusBadge');
         if (data.has_active_subscription) {
             statusBadge.text('✅ Activa');
@@ -689,7 +889,6 @@ $(document).ready(function() {
             statusBadge.removeClass('bg-secondary bg-success bg-warning').addClass('bg-danger');
         }
 
-        // Botones según límites
         updateButtonsBasedOnLimits(data);
 
         if (!plan.can_add_collaborators && !plan.is_collaborator) {
@@ -710,7 +909,8 @@ $(document).ready(function() {
             createLink.on('click', function(e) {
                 e.preventDefault();
                 showNotification(
-                    `⚠️ Has alcanzado el límite de sensores para tu plan ${planName}. Actualiza tu plan para crear más sensores.`,
+                    `⚠️ Has alcanzado el límite de sensores para tu plan ${planName}. ` +
+                    `<a href="/profile" class="alert-link">Actualiza tu plan</a> para crear más sensores.`,
                     'warning'
                 );
             });
@@ -728,8 +928,8 @@ $(document).ready(function() {
     window.showGateBlockedNotification = function() {
         showNotification(
             '🔒 La importación masiva de sensores es una funcionalidad exclusiva para usuarios Premium. ' +
-            '<a href="/profile" >Activa tu suscripción Premium</a> para acceder.',
-            'D83dDd12 La importaci00f3n masiva de sensores es una funcionalidad exclusiva para usuarios Premium. Activa tu suscripci00f3n Premium para acceder.',
+            '<a href="/profile" class="alert-link">Activa tu suscripción Premium</a> para acceder.',
+            'warning'
         );
     };
 
@@ -770,6 +970,10 @@ $(document).ready(function() {
                     });
                     allExtraFields = [...extraFieldsSet];
                     allSensorsData = response.data;
+                    
+                    // ✅ Cargar grupos después de tener sensores
+                    loadGroups();
+                    
                     applyFiltersAndSort();
                     loadSubscriptionStatus();
                 } else {
@@ -783,12 +987,23 @@ $(document).ready(function() {
     }
 
     // ============================================
-    // FILTRADO Y BÚSQUEDA
+    // FILTRADO Y BÚSQUEDA (CORREGIDO)
     // ============================================
 
     function applyFiltersAndSort() {
         let data = [...allSensorsData];
 
+        // ✅ Filtrar por grupo - CORREGIDO: usar group_id correctamente
+        const groupId = $('#groupFilter').val();
+        if (groupId) {
+            data = data.filter(sensor => {
+                // El sensor puede tener group_id directamente o dentro de group
+                const sensorGroupId = sensor.group_id || (sensor.group ? sensor.group.id : null);
+                return sensorGroupId == groupId;
+            });
+        }
+
+        // ✅ Búsqueda
         if (searchTerm.trim() !== '') {
             const term = searchTerm.toLowerCase().trim();
             data = data.filter(sensor => {
@@ -815,6 +1030,7 @@ $(document).ready(function() {
         currentPage = 1;
         renderWithPagination();
         updatePaginationInfo();
+        updateGroupInfo();
     }
 
     // ============================================
@@ -972,9 +1188,7 @@ $(document).ready(function() {
 
         if (!sensors || sensors.length === 0) {
             const emptyColspan = allExtraFields.length + getBaseHeaders().length;
-            
-            // ✅ Verificar si puede importar desde PHP (permissions)
-            const canImport = @json($permissions['can_import_sensors'] ?? false);
+            const canImport = window.canImportSensors || false;
             
             tbody.html(`
                 <tr>
@@ -1004,7 +1218,6 @@ $(document).ready(function() {
                 </tr>
             `);
             
-            // Aplicar restricciones al botón de crear
             const createBtn = $('#emptyCreateSensor');
             if (createBtn.length) {
                 $.ajax({
@@ -1076,7 +1289,7 @@ $(document).ready(function() {
         const headers = getBaseHeaders();
         renderTableHeaders(headers);
         const emptyColspan = allExtraFields.length + getBaseHeaders().length;
-        const canImport = @json($permissions['can_import_sensors'] ?? false);
+        const canImport = window.canImportSensors || false;
         
         $('#sensorsTableBody').html(`
             <tr>
@@ -1188,6 +1401,27 @@ $(document).ready(function() {
         $('#refreshSubscriptionBtn').on('click', function() {
             loadSubscriptionStatus();
             showNotification('Estado de suscripción actualizado', 'info');
+        });
+
+        // ✅ EVENTOS DEL FILTRO DE GRUPOS (CORREGIDO)
+        $('#applyGroupFilter').on('click', function() {
+            selectedGroupId = $('#groupFilter').val();
+            applyFiltersAndSort();
+            // ✅ No mostrar notificación de filtro aplicado
+        });
+
+        $('#clearGroupFilter').on('click', function() {
+            $('#groupFilter').val('');
+            selectedGroupId = '';
+            applyFiltersAndSort();
+            // ✅ No mostrar notificación de filtro limpiado
+        });
+
+        // ✅ Filtrar al presionar Enter en el buscador
+        $('#searchInput').on('keypress', function(e) {
+            if (e.which === 13) {
+                applyFiltersAndSort();
+            }
         });
     }
 
@@ -1329,6 +1563,10 @@ $(document).ready(function() {
     // ============================================
 
     loadData();
+    
+    $(document).on('subscriptionUpdated', function() {
+        loadSubscriptionStatus();
+    });
 });
 </script>
 @endpush

@@ -16,71 +16,165 @@ use Carbon\Carbon;
 class BulkSensorImportController extends Controller
 {
    /**
- * Analizar el archivo Excel/CSV y devolver los campos detectados
- */
-public function analyzeFile(Request $request)
-{
-    try {
-        $user = $request->user();
+     * Analizar el archivo Excel/CSV y devolver los campos detectados
+     */
+    public function analyzeFile(Request $request)
+    {
+        try {
+            $user = $request->user();
 
-        if (!$request->hasFile('file')) {
+            if (!$request->hasFile('file')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se ha subido ningún archivo'
+                ], 400);
+            }
+
+            $file = $request->file('file');
+            $fileExtension = strtolower($file->getClientOriginalExtension());
+
+            $validExtensions = ['xlsx', 'csv'];
+            if (!in_array($fileExtension, $validExtensions)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Extensión de archivo no válida. Solo se permiten archivos .xlsx o .csv'
+                ], 400);
+            }
+
+            $tempPath = $file->getRealPath();
+
+            if ($fileExtension === 'csv') {
+                // ✅ DETECTAR CODIFICACIÓN
+                $encoding = $this->detectFileEncoding($tempPath);
+                
+                // ✅ LEER CON LA CODIFICACIÓN DETECTADA
+                $delimiter = $this->detectCsvDelimiter($tempPath);
+                $headers = $this->readCsvHeaders($tempPath, $delimiter, $encoding);
+                $allData = $this->readCsvAllData($tempPath, $delimiter, $encoding);
+            } else {
+                $headers = $this->readExcelHeaders($tempPath);
+                $allData = $this->readExcelAllData($tempPath);
+            }
+
+            // ✅ Limpiar encabezados (quitar comillas y espacios)
+            $headers = array_map(function($header) {
+                $header = trim($header);
+                $header = str_replace('"', '', $header);
+                $header = str_replace(';', '', $header);
+                return $header;
+            }, $headers);
+
+            // ✅ Obtener las primeras 5 filas para el preview
+            $sampleData = array_slice($allData, 1, 5);
+            
+            // ✅ Contar el total de filas (excluyendo encabezados)
+            $totalRows = max(0, count($allData) - 1);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Archivo analizado correctamente',
+                'data' => [
+                    'headers' => $headers,
+                    'sample_data' => $sampleData,
+                    'all_data' => $allData,
+                    'total_rows' => $totalRows,
+                    'preview_rows' => count($sampleData),
+                    'delimiter' => $delimiter ?? 'auto',
+                    'encoding' => $encoding ?? 'UTF-8'
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error al analizar el archivo: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'No se ha subido ningún archivo'
-            ], 400);
+                'message' => 'Error al analizar el archivo: ' . $e->getMessage()
+            ], 500);
         }
-
-        $file = $request->file('file');
-        $fileExtension = strtolower($file->getClientOriginalExtension());
-
-        $validExtensions = ['xlsx', 'csv'];
-        if (!in_array($fileExtension, $validExtensions)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Extensión de archivo no válida. Solo se permiten archivos .xlsx o .csv'
-            ], 400);
-        }
-
-        $tempPath = $file->getRealPath();
-
-        if ($fileExtension === 'csv') {
-            $headers = $this->readCsvHeaders($tempPath);
-            $allData = $this->readCsvAllData($tempPath);
-        } else {
-            $headers = $this->readExcelHeaders($tempPath);
-            $allData = $this->readExcelAllData($tempPath);
-        }
-
-        $headers = array_map(function($header) {
-            return trim($header);
-        }, $headers);
-
-        // ✅ Obtener las primeras 5 filas para el preview
-        $sampleData = array_slice($allData, 1, 5);
-        
-        // ✅ Contar el total de filas (excluyendo encabezados)
-        $totalRows = max(0, count($allData) - 1);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Archivo analizado correctamente',
-            'data' => [
-                'headers' => $headers,
-                'sample_data' => $sampleData,
-                'all_data' => $allData,        // ✅ TODOS los datos
-                'total_rows' => $totalRows,    // ✅ Total de filas
-                'preview_rows' => count($sampleData)
-            ]
-        ]);
-
-    } catch (\Exception $e) {
-        Log::error('Error al analizar el archivo: ' . $e->getMessage());
-        return response()->json([
-            'success' => false,
-            'message' => 'Error al analizar el archivo: ' . $e->getMessage()
-        ], 500);
     }
+
+    /**
+ * ✅ DETECTAR CODIFICACIÓN DEL ARCHIVO
+ */
+private function detectFileEncoding($filePath): string
+{
+    if (!file_exists($filePath)) {
+        return 'UTF-8';
+    }
+
+    // Leer los primeros 1000 bytes para detectar codificación
+    $handle = fopen($filePath, 'r');
+    $content = fread($handle, 1000);
+    fclose($handle);
+
+    // Intentar detectar la codificación
+    $encodings = ['UTF-8', 'ISO-8859-1', 'Windows-1252', 'CP1252'];
+    
+    foreach ($encodings as $encoding) {
+        if (mb_check_encoding($content, $encoding)) {
+            return $encoding;
+        }
+    }
+
+    // Si no se detecta, intentar convertir forzadamente
+    if (mb_check_encoding($content, 'UTF-8')) {
+        return 'UTF-8';
+    }
+
+    // Por defecto, intentar convertir desde ISO-8859-1
+    return 'ISO-8859-1';
 }
+
+/**
+ * ✅ CONVERTIR STRING A UTF-8
+ */
+private function convertToUtf8($string, $fromEncoding = 'ISO-8859-1')
+{
+    if (empty($string)) {
+        return $string;
+    }
+
+    // Si ya es UTF-8, devolver tal cual
+    if (mb_check_encoding($string, 'UTF-8')) {
+        return $string;
+    }
+
+    // Intentar convertir desde la codificación detectada
+    $converted = @mb_convert_encoding($string, 'UTF-8', $fromEncoding);
+    
+    if ($converted === false) {
+        // Fallback: eliminar caracteres no válidos
+        $converted = mb_convert_encoding($string, 'UTF-8', 'UTF-8');
+        $converted = preg_replace('/[^\x20-\x7E\xA0-\xFF]/', '', $converted);
+    }
+
+    return $converted;
+}
+    private function detectCsvDelimiter($filePath): string
+    {
+        $delimiters = [';', ',', "\t", '|'];
+        $firstLine = '';
+
+        if (($handle = fopen($filePath, 'r')) !== false) {
+            $firstLine = fgets($handle);
+            fclose($handle);
+        }
+
+        if (empty($firstLine)) {
+            return ';'; // Por defecto
+        }
+
+        $counts = [];
+        foreach ($delimiters as $delimiter) {
+            $counts[$delimiter] = substr_count($firstLine, $delimiter);
+        }
+
+        // Ordenar por cantidad de ocurrencias (descendente)
+        arsort($counts);
+        
+        // Devolver el delimitador con más ocurrencias
+        return key($counts);
+    }
 
 
 
@@ -88,7 +182,7 @@ public function analyzeFile(Request $request)
     /**
      * Leer encabezados de un archivo CSV
      */
-    private function readCsvHeaders($filePath)
+    private function readCsvHeaders($filePath, $delimiter = ';', $encoding = 'UTF-8')
     {
         if (!file_exists($filePath)) {
             throw new \Exception('El archivo no existe.');
@@ -99,15 +193,23 @@ public function analyzeFile(Request $request)
             throw new \Exception('No se pudo abrir el archivo CSV.');
         }
 
-        $headers = fgetcsv($file);
+        // Leer primera línea
+        $headers = fgetcsv($file, 0, $delimiter);
         fclose($file);
 
         if ($headers === false) {
             throw new \Exception('No se pudieron leer los encabezados del CSV.');
         }
 
+        // ✅ CONVERTIR CADA HEADER A UTF-8
+        $headers = array_map(function($header) use ($encoding) {
+            $header = $this->convertToUtf8($header, $encoding);
+            return trim(str_replace('"', '', $header));
+        }, $headers);
+
         return $headers;
     }
+
 
     /**
      * Obtener datos de ejemplo de un archivo CSV
@@ -193,7 +295,7 @@ public function analyzeFile(Request $request)
     /**
      * Leer todos los datos de un archivo CSV
      */
-    private function readCsvAllData($filePath)
+    private function readCsvAllData($filePath, $delimiter = ';', $encoding = 'UTF-8')
     {
         if (!file_exists($filePath)) {
             throw new \Exception('El archivo no existe.');
@@ -205,8 +307,13 @@ public function analyzeFile(Request $request)
             throw new \Exception('No se pudo abrir el archivo CSV.');
         }
 
-        while (($row = fgetcsv($file)) !== false) {
-            $data[] = $row;
+        while (($row = fgetcsv($file, 0, $delimiter)) !== false) {
+            // ✅ CONVERTIR CADA VALOR A UTF-8
+            $cleanedRow = array_map(function($value) use ($encoding) {
+                $value = $this->convertToUtf8($value, $encoding);
+                return trim(str_replace('"', '', $value));
+            }, $row);
+            $data[] = $cleanedRow;
         }
         
         fclose($file);
@@ -361,7 +468,7 @@ public function bulkImport(Request $request)
     try {
         $user = $request->user();
         
-        Log::info('Iniciando importación masiva de sensores', [
+        Log::info('📥 Iniciando importación masiva de sensores', [
             'user_id' => $user->id,
             'has_file' => $request->hasFile('file'),
             'group_id' => $request->input('group_id'),
@@ -369,22 +476,79 @@ public function bulkImport(Request $request)
             'extra_fields' => $request->input('extra_fields')
         ]);
 
+        // ✅ VERIFICAR QUE EL ARCHIVO EXISTA
         if (!$request->hasFile('file')) {
+            Log::error('❌ No se ha subido ningún archivo');
             return response()->json([
                 'success' => false,
-                'message' => 'No se ha subido ningún archivo'
+                'message' => 'No se ha subido ningún archivo. Por favor, selecciona un archivo .xlsx o .csv.'
             ], 400);
         }
 
+        $file = $request->file('file');
+        
+        // ✅ VERIFICAR QUE EL ARCHIVO SEA VÁLIDO
+        if (!$file->isValid()) {
+            Log::error('❌ El archivo no es válido', [
+                'error' => $file->getError(),
+                'error_message' => $file->getErrorMessage()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'El archivo no es válido. Intenta nuevamente.'
+            ], 400);
+        }
+
+        // ✅ OBTENER LA EXTENSIÓN REAL DEL ARCHIVO
+        $originalName = $file->getClientOriginalName();
+        $extension = strtolower($file->getClientOriginalExtension());
+        $mimeType = $file->getMimeType();
+        
+        Log::info('📄 Información del archivo', [
+            'original_name' => $originalName,
+            'extension' => $extension,
+            'mime_type' => $mimeType,
+            'size' => $file->getSize()
+        ]);
+
+        // ✅ VALIDAR EXTENSIÓN MANUALMENTE (más flexible)
+        $validExtensions = ['xlsx', 'csv'];
+        $validMimeTypes = [
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+            'application/vnd.ms-excel', // .xls
+            'text/csv', // .csv
+            'text/plain', // .csv
+            'application/csv', // .csv
+            'application/x-csv' // .csv
+        ];
+
+        if (!in_array($extension, $validExtensions)) {
+            Log::error('❌ Extensión no válida', ['extension' => $extension]);
+            return response()->json([
+                'success' => false,
+                'message' => "Extensión de archivo no válida: '{$extension}'. Solo se permiten archivos .xlsx o .csv."
+            ], 400);
+        }
+
+        // ✅ VALIDAR TAMAÑO (10MB máximo)
+        $maxSize = 10 * 1024 * 1024; // 10MB en bytes
+        if ($file->getSize() > $maxSize) {
+            Log::error('❌ Archivo demasiado grande', ['size' => $file->getSize()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'El archivo es demasiado grande. El tamaño máximo permitido es 10MB.'
+            ], 400);
+        }
+
+        // ✅ VALIDACIÓN DE CAMPOS
         $validator = Validator::make($request->all(), [
-            'file' => 'required|file|mimes:xlsx,csv|max:10240',
             'group_id' => 'required|exists:sensor_groups,id',
             'field_mapping' => 'required',
             'extra_fields' => 'nullable|string'
         ]);
 
         if ($validator->fails()) {
-            Log::error('❌ Error de validación', $validator->errors()->toArray());
+            Log::error('❌ Error de validación de campos', $validator->errors()->toArray());
             return response()->json([
                 'success' => false,
                 'message' => 'Error de validación',
@@ -398,7 +562,7 @@ public function bulkImport(Request $request)
             $fieldMapping = json_decode($fieldMapping, true);
         }
 
-        // ✅ Procesar extra_fields (puede ser string JSON o array)
+        // ✅ Procesar extra_fields
         $extraFieldsRaw = $request->input('extra_fields', []);
         if (is_string($extraFieldsRaw)) {
             $extraFieldsRaw = json_decode($extraFieldsRaw, true);
@@ -407,7 +571,6 @@ public function bulkImport(Request $request)
             $extraFieldsRaw = [];
         }
 
-        // ✅ Convertir array de objetos a array asociativo [nombre => columna]
         $extraFieldMapping = [];
         foreach ($extraFieldsRaw as $field) {
             if (isset($field['name']) && isset($field['column'])) {
@@ -443,13 +606,19 @@ public function bulkImport(Request $request)
             ], 403);
         }
 
-        // ✅ Leer archivo
-        $file = $request->file('file');
+        // ✅ Leer archivo con detección de codificación
         $tempPath = $file->getRealPath();
-        $fileExtension = strtolower($file->getClientOriginalExtension());
+        
+        // ✅ Si el archivo es CSV pero no tiene la extensión correcta, forzarlo
+        $detectedExtension = $extension;
+        if ($mimeType === 'text/csv' || $mimeType === 'text/plain' || $mimeType === 'application/csv') {
+            $detectedExtension = 'csv';
+        }
 
-        if ($fileExtension === 'csv') {
-            $allData = $this->readCsvAllData($tempPath);
+        if ($detectedExtension === 'csv' || $extension === 'csv') {
+            $encoding = $this->detectFileEncoding($tempPath);
+            $delimiter = $this->detectCsvDelimiter($tempPath);
+            $allData = $this->readCsvAllData($tempPath, $delimiter, $encoding);
         } else {
             $allData = $this->readExcelAllData($tempPath);
         }
@@ -461,21 +630,23 @@ public function bulkImport(Request $request)
             ], 400);
         }
 
+        // ... CONTINUAR CON EL RESTO DE LA IMPORTACIÓN ...
         $createdCount = 0;
         $updatedCount = 0;
         $errorCount = 0;
         $errors = [];
         $sensorsToCreate = [];
 
-        foreach ($allData as $index => $row) {
-            if ($index === 0) continue;
-
+        // Saltar encabezados (fila 0)
+        for ($i = 1; $i < count($allData); $i++) {
+            $row = $allData[$i];
+            
             if (empty($row) || count(array_filter($row)) === 0) {
                 continue;
             }
 
             try {
-                // ✅ Obtener campos base
+                // Obtener campos base
                 $name = $this->getMappedValue($row, $fieldMapping, 'name');
                 $identifier = $this->getMappedValue($row, $fieldMapping, 'identifier');
                 $description = $this->getMappedValue($row, $fieldMapping, 'description');
@@ -483,14 +654,14 @@ public function bulkImport(Request $request)
                 if (empty($name) || empty($identifier)) {
                     $errorCount++;
                     $errors[] = [
-                        'row' => $index + 1,
+                        'row' => $i + 1,
                         'error' => 'Faltan campos obligatorios (Nombre o Identificador)',
                         'data' => $row
                     ];
                     continue;
                 }
 
-                // ✅ Construir metadata con campos extras del archivo
+                // Construir metadata
                 $newMetadata = [];
                 foreach ($extraFieldMapping as $fieldName => $columnIndex) {
                     $value = $this->getMappedValueFromColumn($row, $columnIndex);
@@ -499,58 +670,41 @@ public function bulkImport(Request $request)
                     }
                 }
 
-                // ✅ BUSCAR POR IDENTIFICADOR (clave única)
+                // Buscar sensor existente por identificador
                 $existingSensor = Sensor::where('identifier', $identifier)
                     ->where('group_id', $request->group_id)
                     ->first();
 
                 if ($existingSensor) {
-                    // ✅ ACTUALIZAR sensor existente (SOLO campos que vienen en el archivo)
+                    // Actualizar sensor existente
                     $updateData = [];
                     
-                    // ✅ Actualizar 'name' solo si viene en el mapeo
                     if (isset($fieldMapping['name']) && $fieldMapping['name'] !== '') {
                         $updateData['name'] = $name;
                     }
                     
-                    // ✅ Actualizar 'description' solo si viene en el mapeo
                     if (isset($fieldMapping['description']) && $fieldMapping['description'] !== '') {
                         $updateData['description'] = $description ?? null;
                     }
                     
-                    // ✅ Manejar metadata (campos extras)
                     $currentMetadata = $existingSensor->metadata ?? [];
                     if (!is_array($currentMetadata)) {
                         $currentMetadata = json_decode($currentMetadata, true) ?? [];
                     }
                     
-                    // ✅ Si hay campos extras en el archivo, FUSIONAR (no sobrescribir todo)
                     if (!empty($newMetadata)) {
-                        // ✅ Fusionar: mantener campos existentes + actualizar/agregar nuevos
                         $updateData['metadata'] = array_merge($currentMetadata, $newMetadata);
-                    } else {
-                        // ✅ Si NO hay campos extras en el archivo, mantener los existentes
-                        // (No actualizar metadata)
                     }
                     
-                    // ✅ Solo actualizar si hay cambios
                     if (!empty($updateData)) {
                         $updateData['updated_at'] = Carbon::now();
                         $existingSensor->update($updateData);
                         $updatedCount++;
-                        
-                        Log::info('🔄 Sensor actualizado', [
-                            'identifier' => $identifier,
-                            'name' => $name,
-                            'group_id' => $request->group_id,
-                            'fields_updated' => array_keys($updateData)
-                        ]);
                     } else {
-                        // ✅ No hubo cambios, pero contamos como éxito
                         $updatedCount++;
                     }
                 } else {
-                    // ✅ CREAR nuevo sensor
+                    // Crear nuevo sensor
                     $sensorsToCreate[] = [
                         'name' => $name,
                         'identifier' => $identifier,
@@ -566,14 +720,14 @@ public function bulkImport(Request $request)
             } catch (\Exception $e) {
                 $errorCount++;
                 $errors[] = [
-                    'row' => $index + 1,
+                    'row' => $i + 1,
                     'error' => $e->getMessage(),
                     'data' => $row
                 ];
             }
         }
 
-        // ✅ Insertar nuevos sensores en lote
+        // Insertar nuevos sensores en lote
         if (!empty($sensorsToCreate)) {
             DB::beginTransaction();
             try {
@@ -582,19 +736,8 @@ public function bulkImport(Request $request)
                     Sensor::insert($chunk);
                 }
                 DB::commit();
-
-                Log::info('✅ Nuevos sensores creados', [
-                    'user_id' => $user->id,
-                    'group_id' => $request->group_id,
-                    'count' => count($sensorsToCreate)
-                ]);
-
             } catch (\Exception $e) {
                 DB::rollBack();
-                Log::error('❌ Error al importar sensores en lote', [
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
-                ]);
                 throw $e;
             }
         }
@@ -625,6 +768,7 @@ public function bulkImport(Request $request)
         ], 500);
     }
 }
+
 
 /**
  * Obtener valor de una columna específica (para campos extras)

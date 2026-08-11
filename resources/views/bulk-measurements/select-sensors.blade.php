@@ -129,6 +129,10 @@
                             <button class="btn btn-sm btn-primary" id="startBulkBtn" disabled>
                                 <i class="bi bi-rulers"></i> Comenzar Medición Masiva
                             </button>
+                            {{-- ✅ BOTÓN PARA IMPORTAR MEDICIONES --}}
+                            <a href="{{ route('measurements.bulk-import') }}" class="btn btn-sm btn-warning">
+                                <i class="bi bi-file-earmark-excel"></i> Importar Mediciones
+                            </a>
                         </div>
                     </div>
 

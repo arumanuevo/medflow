@@ -15,27 +15,76 @@ class TemplateController extends Controller
      */
     public function index(Request $request)
     {
-        $user = $request->user();
+        try {
+            $user = $request->user();
 
-        $defaultTemplates = Template::where('is_default', true)
-            ->orWhereNull('created_by')
-            ->orderBy('name')
-            ->get();
+            // ✅ Obtener plantillas por defecto
+            $defaultTemplates = Template::where('is_default', true)
+                ->orWhereNull('created_by')
+                ->orderBy('name')
+                ->get();
 
-        $userTemplates = Template::where('created_by', $user->id)
-            ->where('is_default', false)
-            ->orderBy('name')
-            ->get();
+            // ✅ Obtener plantillas personalizadas del usuario
+            $userTemplates = Template::where('created_by', $user->id)
+                ->where('is_default', false)
+                ->orderBy('name')
+                ->get();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Plantillas obtenidas correctamente',
-            'data' => [
-                'default' => $defaultTemplates->values(),
-                'custom' => $userTemplates->values(),
-            ],
-        ]);
+            // ✅ NORMALIZAR - Convertir a array y modificar la copia
+            $normalizedDefaults = $defaultTemplates->map(function($template) {
+                // Crear una copia del template como array
+                $templateArray = $template->toArray();
+                
+                // Obtener los campos normalizados
+                $normalizedFields = $template->getNormalizedFields();
+                
+                // Reemplazar el schema en la copia
+                $templateArray['schema'] = [
+                    'campos' => $normalizedFields
+                ];
+                
+                // Agregar campos adicionales para la vista
+                $templateArray['type_label'] = $template->getTypeLabel();
+                $templateArray['main_unit'] = $template->getMainUnit();
+                
+                return $templateArray;
+            });
+
+            $normalizedUser = $userTemplates->map(function($template) {
+                $templateArray = $template->toArray();
+                $normalizedFields = $template->getNormalizedFields();
+                
+                $templateArray['schema'] = [
+                    'campos' => $normalizedFields
+                ];
+                
+                $templateArray['type_label'] = $template->getTypeLabel();
+                $templateArray['main_unit'] = $template->getMainUnit();
+                
+                return $templateArray;
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Plantillas obtenidas correctamente',
+                'data' => [
+                    'default' => $normalizedDefaults->values(),
+                    'custom' => $normalizedUser->values(),
+                ],
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error al cargar plantillas: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al cargar plantillas: ' . $e->getMessage()
+            ], 500);
+        }
     }
+
 
     /**
      * Obtener los campos de una plantilla (incluyendo herencia)

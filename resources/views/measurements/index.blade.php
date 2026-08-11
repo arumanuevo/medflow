@@ -287,6 +287,23 @@
     }
 
     /* ============================================
+       ESTILO PARA IDENTIFICADOR DEL SENSOR
+       ============================================ */
+    .sensor-identifier {
+        display: block;
+        font-size: 0.65rem;
+        color: #6c757d;
+        font-weight: normal;
+        margin-top: 1px;
+    }
+    .sensor-name {
+        font-weight: 600;
+    }
+    .sensor-info {
+        line-height: 1.3;
+    }
+
+    /* ============================================
        RESPONSIVE
        ============================================ */
     @media (max-width: 992px) {
@@ -391,48 +408,48 @@
                         </div>
                     </div>
 
-              <!-- Filtros -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <label for="sensorFilter" class="form-label">Sensor</label>
-        <select class="form-select form-select-sm" id="sensorFilter" style="width: 100%; max-width: 250px;">
-            <option value="" selected>Todos los sensores</option>
-            @foreach($sensors as $sensor)
-                <option value="{{ $sensor->id }}" title="{{ $sensor->name }} ({{ $sensor->identifier }})">
-                    {{ Str::limit($sensor->name, 20) }} ({{ Str::limit($sensor->identifier, 10) }})
-                </option>
-            @endforeach
-        </select>
-    </div>
-    <div class="col-md-3">
-        <label for="groupFilter" class="form-label">Grupo</label>
-        <select class="form-select form-select-sm" id="groupFilter" style="width: 100%; max-width: 200px;">
-            <option value="" selected>Todos los grupos</option>
-            @foreach($groups as $group)
-                <option value="{{ $group->id }}" title="{{ $group->name }}">
-                    {{ Str::limit($group->name, 20) }}
-                </option>
-            @endforeach
-        </select>
-    </div>
-    <div class="col-md-2">
-        <label for="errorFilter" class="form-label">Estado</label>
-        <select class="form-select form-select-sm" id="errorFilter">
-            <option value="" selected>Todos</option>
-            <option value="negative_consumption">Consumo Negativo</option>
-            <option value="inconsistent_date">Fecha Inconsistente</option>
-            <option value="first_measurement">Primera Medición</option>
-        </select>
-    </div>
-    <div class="col-md-2">
-        <label for="dateFrom" class="form-label">Fecha desde</label>
-        <input type="date" class="form-control form-control-sm" id="dateFrom">
-    </div>
-    <div class="col-md-2">
-        <label for="dateTo" class="form-label">Fecha hasta</label>
-        <input type="date" class="form-control form-control-sm" id="dateTo">
-    </div>
-</div>
+                    <!-- Filtros -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <label for="sensorFilter" class="form-label">Sensor</label>
+                            <select class="form-select form-select-sm" id="sensorFilter" style="width: 100%; max-width: 250px;">
+                                <option value="" selected>Todos los sensores</option>
+                                @foreach($sensors as $sensor)
+                                    <option value="{{ $sensor->id }}" title="{{ $sensor->name }} ({{ $sensor->identifier }})">
+                                        {{ Str::limit($sensor->name, 20) }} ({{ Str::limit($sensor->identifier, 10) }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="groupFilter" class="form-label">Grupo</label>
+                            <select class="form-select form-select-sm" id="groupFilter" style="width: 100%; max-width: 200px;">
+                                <option value="" selected>Todos los grupos</option>
+                                @foreach($groups as $group)
+                                    <option value="{{ $group->id }}" title="{{ $group->name }}">
+                                        {{ Str::limit($group->name, 20) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="errorFilter" class="form-label">Estado</label>
+                            <select class="form-select form-select-sm" id="errorFilter">
+                                <option value="" selected>Todos</option>
+                                <option value="negative_consumption">Consumo Negativo</option>
+                                <option value="inconsistent_date">Fecha Inconsistente</option>
+                                <option value="first_measurement">Primera Medición</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="dateFrom" class="form-label">Fecha desde</label>
+                            <input type="date" class="form-control form-control-sm" id="dateFrom">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="dateTo" class="form-label">Fecha hasta</label>
+                            <input type="date" class="form-control form-control-sm" id="dateTo">
+                        </div>
+                    </div>
 
                     <div class="row mb-3">
                         <div class="col-md-8">
@@ -455,7 +472,6 @@
                         <table class="table table-bordered table-striped table-hover" id="measurementsTable">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
                                     <th>Sensor</th>
                                     <th>Grupo</th>
                                     <th>Valor</th>
@@ -469,7 +485,7 @@
                             </thead>
                             <tbody id="measurementsTableBody">
                                 <tr>
-                                    <td colspan="10" class="text-center">
+                                    <td colspan="9" class="text-center">
                                         <div class="spinner-border text-primary" role="status">
                                             <span class="visually-hidden">Cargando...</span>
                                         </div> Cargando mediciones...
@@ -478,28 +494,6 @@
                             </tbody>
                         </table>
                     </div>
-
-                    <!-- Leyenda de estados -->
-                    <!--<div class="mt-3">
-                        <div class="d-flex flex-wrap gap-3">
-                            <div class="d-flex align-items-center">
-                                <span class="badge bg-success me-2"></span>
-                                <small>Medición válida</small>
-                            </div>
-                            <div class="d-flex align-items-center">
-                                <span class="badge bg-warning text-dark me-2"></span>
-                                <small>Fecha inconsistente</small>
-                            </div>
-                            <div class="d-flex align-items-center">
-                                <span class="badge bg-danger me-2"></span>
-                                <small>Consumo negativo</small>
-                            </div>
-                            <div class="d-flex align-items-center">
-                                <span class="badge bg-info me-2"></span>
-                                <small>Primera medición</small>
-                            </div>
-                        </div>
-                    </div>-->
 
                     <!-- Paginación -->
                     <div class="d-flex justify-content-between align-items-center mt-3">
@@ -599,7 +593,7 @@ $(document).ready(function() {
             beforeSend: function() {
                 $('#measurementsTableBody').html(`
                     <tr>
-                        <td colspan="10" class="text-center">
+                        <td colspan="9" class="text-center">
                             <div class="spinner-border text-primary" role="status">
                                 <span class="visually-hidden">Cargando...</span>
                             </div> Cargando mediciones...
@@ -632,7 +626,7 @@ $(document).ready(function() {
     function showError(message) {
         $('#measurementsTableBody').html(`
             <tr>
-                <td colspan="10" class="text-center text-danger">
+                <td colspan="9" class="text-center text-danger">
                     <i class="bi bi-exclamation-triangle"></i> ${message}
                 </td>
             </tr>
@@ -647,12 +641,25 @@ $(document).ready(function() {
         $('#validMeasurementsCount').text(stats.valid || 0);
     }
 
+    // Función para obtener campos dinámicos del sensor
+    function getSensorDynamicFields(sensor) {
+        if (!sensor) return {};
+        // Aquí puedes mapear los campos dinámicos que tenga el sensor
+        // Por ejemplo: numero_lote, codigo_medidor, etc.
+        const fields = {};
+        if (sensor.numero_lote) fields.numero_lote = sensor.numero_lote;
+        if (sensor.codigo_medidor) fields.codigo_medidor = sensor.codigo_medidor;
+        if (sensor.numero_serie) fields.numero_serie = sensor.numero_serie;
+        return fields;
+    }
+
+    // Función para renderizar mediciones
     // Función para renderizar mediciones
     function renderMeasurements(measurements) {
         if (measurements.length === 0) {
             $('#measurementsTableBody').html(`
                 <tr>
-                    <td colspan="10" class="text-center">
+                    <td colspan="9" class="text-center">
                         <i class="bi bi-inbox"></i> No se encontraron mediciones
                     </td>
                 </tr>
@@ -679,11 +686,57 @@ $(document).ready(function() {
             const consumption = measurement.consumption !== undefined ? measurement.consumption : 'N/A';
             const consumptionClass = consumption < 0 ? 'text-danger fw-bold' : '';
 
+            // ✅ Obtener información del sensor con identificador y campos extra
+            const sensor = measurement.sensor || {};
+            const sensorName = sensor.name || 'N/A';
+            const sensorIdentifier = sensor.identifier || '';
+            
+            // ✅ OBTENER CAMPOS EXTRA DEL SENSOR (desde el campo que agregamos en el API)
+            const extraFields = measurement.sensor_extra_fields || {};
+            
+            // Construir el identificador compuesto del sensor
+            let sensorDisplay = `<span class="sensor-name">${sensorName}</span>`;
+            if (sensorIdentifier) {
+                sensorDisplay += `<span class="sensor-identifier">#${sensorIdentifier}</span>`;
+            }
+            
+            // ✅ Agregar campos extra del sensor (numero_lote, codigo_medidor, etc.)
+            let extraFieldsHtml = [];
+            if (extraFields.numero_lote) {
+                extraFieldsHtml.push(`Lote: ${extraFields.numero_lote}`);
+            }
+            if (extraFields.codigo_medidor) {
+                extraFieldsHtml.push(`Med: ${extraFields.codigo_medidor}`);
+            }
+            if (extraFields.numero_serie) {
+                extraFieldsHtml.push(`Serie: ${extraFields.numero_serie}`);
+            }
+            if (extraFields.marca) {
+                extraFieldsHtml.push(`Marca: ${extraFields.marca}`);
+            }
+            if (extraFields.modelo) {
+                extraFieldsHtml.push(`Modelo: ${extraFields.modelo}`);
+            }
+            
+            // ✅ Si hay más campos extra, mostrarlos genéricamente
+            Object.keys(extraFields).forEach(key => {
+                if (!['numero_lote', 'codigo_medidor', 'numero_serie', 'marca', 'modelo'].includes(key)) {
+                    if (extraFields[key] && extraFields[key] !== null && extraFields[key] !== '') {
+                        extraFieldsHtml.push(`${key}: ${extraFields[key]}`);
+                    }
+                }
+            });
+            
+            if (extraFieldsHtml.length > 0) {
+                sensorDisplay += `<span class="sensor-identifier">${extraFieldsHtml.join(' | ')}</span>`;
+            }
+
             html += `
                 <tr class="${status === 'valid' ? '' : 'table-warning'}">
-                    <td>${measurement.id}</td>
-                    <td>${measurement.sensor?.name || 'N/A'} (${measurement.sensor?.identifier || 'N/A'})</td>
-                    <td>${measurement.sensor?.group?.name || 'Sin grupo'}</td>
+                    <td>
+                        <div class="sensor-info">${sensorDisplay}</div>
+                    </td>
+                    <td>${sensor.group?.name || 'Sin grupo'}</td>
                     <td>${value} ${unit}</td>
                     <td>${data.tipo ?? 'N/A'}</td>
                     <td>${date}</td>
@@ -742,61 +795,57 @@ $(document).ready(function() {
         });
     }
 
-// ✅ Función para obtener el campo principal según la plantilla
-function getMainField(measurement) {
-    // Si la medición tiene un campo 'tipo', usarlo para determinar el campo principal
-    const tipo = measurement.data?.tipo || '';
-    
-    const fieldMap = {
-        'agua': 'consumo_m3',
-        'gas': 'consumo_m3',
-        'electricidad': 'energia_kwh',
-        'temperatura': 'temperatura_c',
-        'presion': 'presion_bar',
-        'caudal': 'caudal_lmin',
-        'luz': 'iluminacion_lux',
-        'personalizado': 'medicion'
-    };
-    
-    // ✅ Intentar obtener el campo principal del mapa
-    const mappedField = fieldMap[tipo] || 'valor';
-    
-    // ✅ Verificar si el campo existe en los datos
-    if (measurement.data && measurement.data[mappedField] !== undefined) {
-        return mappedField;
-    }
-    
-    // ✅ Si no existe, buscar cualquier campo número que no sea 'foto' ni 'tipo'
-    if (measurement.data) {
-        for (const key of Object.keys(measurement.data)) {
-            if (key !== 'foto' && key !== 'tipo' && key !== 'campos_personalizados' && key !== 'fecha_medicion') {
-                if (typeof measurement.data[key] === 'number' || !isNaN(measurement.data[key])) {
-                    return key;
+    // ✅ Función para obtener el campo principal según la plantilla
+    function getMainField(measurement) {
+        const tipo = measurement.data?.tipo || '';
+        
+        const fieldMap = {
+            'agua': 'consumo_m3',
+            'gas': 'consumo_m3',
+            'electricidad': 'energia_kwh',
+            'temperatura': 'temperatura_c',
+            'presion': 'presion_bar',
+            'caudal': 'caudal_lmin',
+            'luz': 'iluminacion_lux',
+            'personalizado': 'medicion'
+        };
+        
+        const mappedField = fieldMap[tipo] || 'valor';
+        
+        if (measurement.data && measurement.data[mappedField] !== undefined) {
+            return mappedField;
+        }
+        
+        if (measurement.data) {
+            for (const key of Object.keys(measurement.data)) {
+                if (key !== 'foto' && key !== 'tipo' && key !== 'campos_personalizados' && key !== 'fecha_medicion') {
+                    if (typeof measurement.data[key] === 'number' || !isNaN(measurement.data[key])) {
+                        return key;
+                    }
                 }
             }
         }
+        
+        return 'valor';
     }
-    
-    return 'valor'; // fallback
-}
 
-// ✅ Función para obtener la unidad según el tipo de plantilla
-function getUnit(measurement) {
-    const tipo = measurement.data?.tipo || '';
-    
-    const unitMap = {
-        'agua': 'm³',
-        'gas': 'm³',
-        'electricidad': 'kWh',
-        'temperatura': '°C',
-        'presion': 'bar',
-        'caudal': 'L/min',
-        'luz': 'lux',
-        'personalizado': ''
-    };
-    
-    return unitMap[tipo] || '';
-}
+    // ✅ Función para obtener la unidad según el tipo de plantilla
+    function getUnit(measurement) {
+        const tipo = measurement.data?.tipo || '';
+        
+        const unitMap = {
+            'agua': 'm³',
+            'gas': 'm³',
+            'electricidad': 'kWh',
+            'temperatura': '°C',
+            'presion': 'bar',
+            'caudal': 'L/min',
+            'luz': 'lux',
+            'personalizado': ''
+        };
+        
+        return unitMap[tipo] || '';
+    }
 
     // Función para mostrar el modal de detalles de error por tipo
     function showErrorDetailsModal(errorType) {
@@ -880,14 +929,14 @@ function getUnit(measurement) {
         Object.entries(groupedBySensor).forEach(([sensorKey, details]) => {
             const sensorDetail = details[0];
             const sensorName = sensorDetail.sensor_name;
-            const sensorIdentifier = sensorDetail.sensor_identifier;
+            const sensorIdentifier = sensorDetail.sensor_identifier || '';
             const groupName = sensorDetail.group_name;
 
             html += `
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="heading-${sensorKey}">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${sensorKey}" aria-expanded="false" aria-controls="collapse-${sensorKey}">
-                            <strong>${sensorName}</strong> (${sensorIdentifier}) - Grupo: ${groupName}
+                            <strong>${sensorName}</strong> ${sensorIdentifier ? `(#${sensorIdentifier})` : ''} - Grupo: ${groupName}
                             <span class="badge bg-warning ms-2">${details.length} registros</span>
                         </button>
                     </h2>

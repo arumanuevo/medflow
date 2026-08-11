@@ -136,6 +136,27 @@
             align-items: center;
             gap: 1rem;
         }
+
+        /* =============================================
+        ESTILOS PARA BADGE DE DOWNGRADE
+        ============================================= */
+        .subscription-badge.downgrade-alert {
+            background: linear-gradient(135deg, #fff3cd, #ffc107);
+            color: #856404;
+            border: 2px solid #ffc107;
+            cursor: pointer;
+            animation: pulse-downgrade 2s infinite;
+            font-weight: 600;
+        }
+        @keyframes pulse-downgrade {
+            0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4); }
+            50% { box-shadow: 0 0 0 8px rgba(255, 193, 7, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+        }
+        .subscription-badge.downgrade-alert:hover {
+            transform: scale(1.02);
+            background: linear-gradient(135deg, #ffe69b, #ffc107);
+        }
     </style>
 </head>
 <body>
@@ -171,6 +192,279 @@
     {{-- Scripts del sidebar moderno --}}
     @include('layouts.partials.modern-scripts')
     
+    {{-- =============================================
+     ✅ SISTEMA DE SUSCRIPCIÓN - SCRIPT PRINCIPAL
+     ============================================= --}}
+@auth
+<script>
+/**
+ * =============================================
+ * SISTEMA DE SUSCRIPCIÓN Y LÍMITES
+ * =============================================
+ */
+(function() {
+    'use strict';
+
+    let currentSubscriptionData = null;
+    let refreshInterval = null;
+
+    $(document).ready(function() {
+        // Cargar estado inicial
+        loadSubscriptionStatus();
+
+        // Actualizar cada 30 segundos
+        refreshInterval = setInterval(loadSubscriptionStatus, 30000);
+
+        // Si hay cambios de página con Turbolinks/HTMX, reiniciar
+        $(document).on('turbolinks:load', function() {
+            loadSubscriptionStatus();
+        });
+
+        // Escuchar eventos de cambio de workspace
+        $(document).on('workspaceChanged', function() {
+            loadSubscriptionStatus();
+        });
+    });
+
+    function loadSubscriptionStatus() {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            console.warn('⚠️ No hay token de autenticación');
+            return;
+        }
+
+        $.ajax({
+            url: '/api/subscription/plan/status',
+            type: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + token,
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            timeout: 10000,
+            cache: false,
+            success: function(response) {
+                if (response.success) {
+                    currentSubscriptionData = response.data;
+                    updateUI(response.data);
+                } else {
+                    console.warn('⚠️ Respuesta sin éxito:', response);
+                }
+            },
+            error: function(xhr) {
+                if (xhr.status !== 401) {
+                    console.error('❌ Error al cargar suscripción:', xhr.status, xhr.statusText);
+                }
+            }
+        });
+    }
+
+    function updateUI(data) {
+        // 1. Actualizar badge en el header
+        updateBadge(data);
+
+        // 2. ✅ Mostrar alertas de límites (solo si existe)
+        if (typeof showLimitAlerts === 'function') {
+            showLimitAlerts(data);
+        }
+
+        // 3. Actualizar botones y elementos UI
+        updateUIElements(data);
+
+        // 4. ✅ INCLUIR PLAN ANTERIOR EN LOS DATOS
+        const previousPlan = localStorage.getItem('previous_plan') || null;
+        if (previousPlan) {
+            data.previous_plan = previousPlan;
+        }
+        
+        // 5. ✅ DISPARAR EVENTO CON JAVASCRIPT PURO
+        document.dispatchEvent(new CustomEvent('subscriptionUpdated', { 
+            detail: data 
+        }));
+
+        // 6. Disparar evento para que otros scripts reaccionen
+        $(document).trigger('subscriptionUpdated', [data]);
+    }
+
+    function updateBadge(data) {
+        const plan = data.plan;
+        const badge = document.querySelector('.subscription-badge');
+        if (!badge) return;
+
+        let icon = 'bi-hourglass-split';
+        let className = 'free';
+        let label = 'Gratuito';
+        let dotClass = 'expired';
+
+        if (data.has_active_subscription) {
+            if (plan.key === 'premium') {
+                icon = 'bi-star-fill';
+                className = 'premium';
+                label = 'Premium';
+                dotClass = 'active';
+            } else if (plan.key === 'basico') {
+                icon = 'bi-credit-card';
+                className = 'basico';
+                label = 'Básico';
+                dotClass = 'active';
+            } else {
+                icon = 'bi-gift';
+                className = 'free';
+                label = 'Free';
+                dotClass = 'active';
+            }
+        } else {
+            const sub = data.subscription;
+            if (sub && sub.status === 'pending') {
+                icon = 'bi-hourglass-split';
+                className = 'expired';
+                label = 'Pendiente';
+                dotClass = 'pending';
+            } else {
+                icon = 'bi-exclamation-triangle';
+                className = 'expired';
+                label = 'Sin suscripción';
+                dotClass = 'expired';
+            }
+        }
+
+        if (plan.is_collaborator) {
+            label += ' 👥';
+        }
+
+        badge.className = `subscription-badge ${className}`;
+        badge.innerHTML = `
+            <span class="badge-dot ${dotClass}"></span>
+            <i class="bi ${icon}"></i>
+            ${label}
+        `;
+    }
+
+    /**
+     * Actualizar elementos UI según permisos
+     */
+    function updateUIElements(data) {
+        const features = data.features;
+        const plan = data.plan;
+
+        // ✅ Botón "Crear Plantilla Personalizada"
+        if (!features.custom_templates) {
+            $('.btn-create-template, [data-feature="create-template"]').each(function() {
+                $(this).addClass('d-none');
+                if ($(this).data('original-title')) {
+                    $(this).attr('title', 'Disponible en planes Premium');
+                }
+            });
+        } else {
+            $('.btn-create-template, [data-feature="create-template"]').removeClass('d-none');
+        }
+
+        // ✅ Botón "Exportar Datos"
+        if (!features.export_data) {
+            $('.btn-export-data, [data-feature="export-data"]').each(function() {
+                $(this).addClass('d-none');
+                if ($(this).data('original-title')) {
+                    $(this).attr('title', 'Disponible en planes Premium');
+                }
+            });
+        } else {
+            $('.btn-export-data, [data-feature="export-data"]').removeClass('d-none');
+        }
+
+        // ✅ Botón "Agregar Colaborador"
+        if (!features.add_collaborators) {
+            $('.btn-add-collaborator, [data-feature="add-collaborator"]').each(function() {
+                $(this).addClass('d-none');
+                if ($(this).data('original-title')) {
+                    $(this).attr('title', 'Disponible en planes Premium');
+                }
+            });
+        } else {
+            $('.btn-add-collaborator, [data-feature="add-collaborator"]').removeClass('d-none');
+        }
+
+        // ✅ Botón "Análisis Avanzados"
+        if (!features.view_analytics) {
+            $('.btn-view-analytics, [data-feature="view-analytics"]').each(function() {
+                $(this).addClass('d-none');
+                if ($(this).data('original-title')) {
+                    $(this).attr('title', 'Disponible en planes Premium');
+                }
+            });
+        } else {
+            $('.btn-view-analytics, [data-feature="view-analytics"]').removeClass('d-none');
+        }
+
+        // ✅ Actualizar contadores en el sidebar o UI
+        updateLimitCounters(data);
+    }
+
+    /**
+     * Actualizar contadores de límites en la UI
+     */
+    function updateLimitCounters(data) {
+        const sensors = data.limits.sensors;
+        const groups = data.limits.groups;
+        const collaborators = data.limits.collaborators;
+
+        $('.counter-sensors').text(
+            sensors.is_unlimited ? '∞' : `${sensors.used}/${sensors.max}`
+        );
+        
+        $('.counter-groups').text(
+            groups.is_unlimited ? '∞' : `${groups.used}/${groups.max}`
+        );
+        
+        $('.counter-collaborators').text(
+            collaborators.is_unlimited ? '∞' : `${collaborators.used}/${collaborators.max}`
+        );
+
+        $('.progress-sensors').each(function() {
+            const bar = $(this).find('.progress-bar');
+            if (sensors.is_unlimited) {
+                bar.css('width', '100%').text('Ilimitado').removeClass('bg-danger bg-warning').addClass('bg-success');
+            } else {
+                const percent = Math.min((sensors.used / sensors.max) * 100, 100);
+                bar.css('width', percent + '%')
+                   .text(`${sensors.used}/${sensors.max}`)
+                   .removeClass('bg-success bg-warning bg-danger')
+                   .addClass(percent >= 90 ? 'bg-danger' : percent >= 70 ? 'bg-warning' : 'bg-info');
+            }
+        });
+
+        $('.progress-groups').each(function() {
+            const bar = $(this).find('.progress-bar');
+            if (groups.is_unlimited) {
+                bar.css('width', '100%').text('Ilimitado').removeClass('bg-danger bg-warning').addClass('bg-success');
+            } else {
+                const percent = Math.min((groups.used / groups.max) * 100, 100);
+                bar.css('width', percent + '%')
+                   .text(`${groups.used}/${groups.max}`)
+                   .removeClass('bg-success bg-warning bg-danger')
+                   .addClass(percent >= 90 ? 'bg-danger' : percent >= 70 ? 'bg-warning' : 'bg-info');
+            }
+        });
+    }
+
+    window.refreshSubscriptionStatus = function() {
+        loadSubscriptionStatus();
+    };
+
+    window.getSubscriptionData = function() {
+        return currentSubscriptionData;
+    };
+
+    $(window).on('beforeunload', function() {
+        if (refreshInterval) {
+            clearInterval(refreshInterval);
+            refreshInterval = null;
+        }
+    });
+
+})();
+</script>
+@endauth
+
     @stack('scripts')
 </body>
 </html>

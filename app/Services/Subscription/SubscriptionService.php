@@ -329,25 +329,29 @@ class SubscriptionService
         }
         
         if ($activeSubscription->expires_at && $activeSubscription->expires_at->isPast()) {
-            // ✅ 1. Marcar suscripción como expirada
+            // ✅ 1. Guardar el plan anterior ANTES de actualizar
+            $previousPlan = $activeSubscription->plan;
+            
+            // ✅ 2. Marcar suscripción como expirada
             $activeSubscription->status = 'expired';
             $activeSubscription->save();
             
-            // ✅ 2. ACTUALIZAR USUARIO A 'free'
+            // ✅ 3. ACTUALIZAR USUARIO A 'free'
             $this->user->refresh();
             $this->user->subscription_type = 'domiciliario';
             $this->user->subscription_plan = 'free';
             $this->user->save();
             
-            // ✅ 3. ACTUALIZAR ROLES
+            // ✅ 4. ACTUALIZAR ROLES
             $this->user->syncRoles(['consumidor']);
             
-            // ✅ 4. RECARGAR EL USUARIO
+            // ✅ 5. RECARGAR EL USUARIO
             $this->user->refresh();
             
             Log::info('🔄 Suscripción expirada automáticamente - Usuario actualizado a Free', [
                 'user_id' => $this->user->id,
                 'subscription_id' => $activeSubscription->id,
+                'previous_plan' => $previousPlan,
                 'expired_at' => $activeSubscription->expires_at,
                 'new_plan' => 'free'
             ]);

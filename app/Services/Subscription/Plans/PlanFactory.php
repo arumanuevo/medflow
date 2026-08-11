@@ -31,11 +31,17 @@ class PlanFactory
         $activeSubscription = $user->getActiveSubscription();
         
         if ($activeSubscription) {
+            // Si tiene suscripción activa, usar el plan correspondiente
             return self::make($activeSubscription->plan);
         }
 
         // ✅ 2. Verificar si tiene un plan asignado en el campo subscription_plan
         if ($user->subscription_plan && in_array($user->subscription_plan, ['free', 'basico', 'premium'])) {
+            // Si el plan es 'basico' o 'premium' pero no hay suscripción activa, es un downgrade
+            if ($user->subscription_plan !== 'free') {
+                // ✅ Guardar en sesión para que el frontend lo use
+                session(['previous_plan' => $user->subscription_plan]);
+            }
             return self::make($user->subscription_plan);
         }
 

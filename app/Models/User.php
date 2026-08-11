@@ -234,4 +234,50 @@ public function getWorkspaceOwner(): ?User
 
     return null;
 }
+// app/Models/User.php
+
+/**
+ * Verificar si el usuario ha sido downgradeado (tenía plan pago y ahora está en Free)
+ */
+public function hasBeenDowngraded(): bool
+{
+    // Si no tiene suscripción activa pero su plan en BD es pago
+    $activeSubscription = $this->getActiveSubscription();
+    $userPlan = $this->subscription_plan;
+    
+    if (!$activeSubscription && ($userPlan === 'basico' || $userPlan === 'premium')) {
+        return true;
+    }
+    
+    // Si la suscripción expiró
+    $lastSubscription = Subscription::where('user_id', $this->id)
+        ->where('status', 'expired')
+        ->whereIn('plan', ['basico', 'premium'])
+        ->latest()
+        ->first();
+    
+    if ($lastSubscription) {
+        return true;
+    }
+    
+    return false;
+}
+
+/**
+ * Obtener el plan anterior (antes del downgrade)
+ */
+public function getPreviousPlan(): ?string
+{
+    $lastSubscription = Subscription::where('user_id', $this->id)
+        ->where('status', 'expired')
+        ->whereIn('plan', ['basico', 'premium'])
+        ->latest()
+        ->first();
+    
+    if ($lastSubscription) {
+        return $lastSubscription->plan;
+    }
+    
+    return null;
+}
 }

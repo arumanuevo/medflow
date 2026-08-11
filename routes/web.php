@@ -239,6 +239,10 @@ Route::middleware(['auth'])->group(function () {
     // Estado de suscripción (API)
     Route::get('/api/subscription/status', [SubscriptionPaymentController::class, 'getStatus'])
         ->name('subscription.status');
+
+    Route::get('/profile', [App\Http\Controllers\ProfileViewController::class, 'index'])
+        ->name('profile.index')
+        ->middleware('auth');
 });
 
 // =============================================

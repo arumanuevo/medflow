@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 use App\Models\UserSetting;
 use App\Services\Subscription\SubscriptionService;
+use Illuminate\Support\Facades\Log;
 
 class SensorGroupController extends Controller
 {

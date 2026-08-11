@@ -257,6 +257,11 @@ Route::middleware('auth:sanctum')->group(function () {
             ->name('api.measurements.bulk-import.report');
     });
 
+    // ✅ Obtener campos disponibles para identificar sensores
+    Route::get('/measurements/bulk-import/groups/{groupId}/sensor-fields', 
+        [BulkMeasurementImportController::class, 'getSensorFields'])
+        ->name('api.measurements.bulk-import.sensor-fields');
+
     // =====================================================
     // AYUDA
     // =====================================================

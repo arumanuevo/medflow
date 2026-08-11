@@ -24,37 +24,69 @@ class Template extends Model
         'is_default' => 'boolean',
     ];
 
-    /**
-     * Relación con el usuario que creó la plantilla.
-     */
+    // ✅ Mapeo de tipos de plantilla a nombres de campo principal
+    public static $mainFieldMapping = [
+        'agua' => 'valor',
+        'gas' => 'valor',
+        'electricidad' => 'valor',
+        'temperatura' => 'valor',
+        'presion' => 'valor',
+        'caudal' => 'valor',
+        'luz' => 'valor',
+        'personalizado' => 'valor',
+    ];
+
+    // ✅ Mapeo de tipos a unidades por defecto
+    public static $defaultUnits = [
+        'agua' => 'm³',
+        'gas' => 'm³',
+        'electricidad' => 'kWh',
+        'temperatura' => '°C',
+        'presion' => 'bar',
+        'caudal' => 'L/min',
+        'luz' => 'lux',
+        'personalizado' => '',
+    ];
+
+    // ✅ Mapeo de tipos a nombres descriptivos
+    public static $typeLabels = [
+        'agua' => 'Consumo de Agua',
+        'gas' => 'Consumo de Gas',
+        'electricidad' => 'Consumo Eléctrico',
+        'temperatura' => 'Temperatura',
+        'presion' => 'Presión',
+        'caudal' => 'Caudal',
+        'luz' => 'Iluminación',
+        'personalizado' => 'Personalizado',
+    ];
+
+    // =============================================
+    // RELACIONES
+    // =============================================
+
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    /**
-     * Relación con los grupos de sensores que usan esta plantilla.
-     */
     public function sensorGroups(): HasMany
     {
         return $this->hasMany(SensorGroup::class, 'template_id');
     }
 
-    /**
-     * Relación con la plantilla padre (de la que hereda).
-     */
     public function parent(): BelongsTo
     {
         return $this->belongsTo(Template::class, 'parent_template_id');
     }
 
-    /**
-     * Relación con las plantillas hijas (que heredan de esta).
-     */
     public function children(): HasMany
     {
         return $this->hasMany(Template::class, 'parent_template_id');
     }
+
+    // =============================================
+    // MÉTODOS DE CAMPOS
+    // =============================================
 
     /**
      * Obtener los campos de la plantilla (incluyendo los heredados)
@@ -71,33 +103,101 @@ class Template extends Model
     }
 
     /**
-     * Obtener el schema completo (incluyendo herencia)
+     * Obtener los campos normalizados (siempre con "valor" como principal)
      */
-    public function getFullSchema(): array
+    public function getNormalizedFields(): array
     {
         $fields = $this->getFields();
+        return $this->normalizeFields($fields);
+    }
+
+    /**
+     * Normalizar los campos para que el principal siempre sea "valor"
+     */
+    private function normalizeFields(array $fields): array
+    {
+        $normalized = [];
+        $mainFieldFound = false;
         
-        // Agregar campo "valor" si no existe
-        $hasValor = false;
         foreach ($fields as $field) {
-            if ($field['nombre'] === 'valor') {
-                $hasValor = true;
-                break;
+            // Si es un campo numérico requerido (el principal)
+            if (($field['tipo'] ?? '') === 'numero' && ($field['requerido'] ?? false)) {
+                // Si ya encontramos un campo principal, este es adicional
+                if ($mainFieldFound) {
+                    // Renombrar para evitar duplicados
+                    $field['nombre'] = 'campo_' . $field['nombre'];
+                    $normalized[] = $field;
+                } else {
+                    // Este es el campo principal → lo renombramos a "valor"
+                    $mainFieldFound = true;
+                    $field['nombre'] = 'valor';
+                    // Mantener la unidad original si existe
+                    if (!isset($field['unidad']) && isset(self::$defaultUnits[$this->type])) {
+                        $field['unidad'] = self::$defaultUnits[$this->type];
+                    }
+                    $normalized[] = $field;
+                }
+            } else {
+                // Campos que no son el principal
+                $normalized[] = $field;
             }
         }
         
-        if (!$hasValor) {
-            array_unshift($fields, [
+        // Si no se encontró un campo principal, agregarlo
+        if (!$mainFieldFound) {
+            array_unshift($normalized, [
                 'nombre' => 'valor',
                 'tipo' => 'numero',
-                'unidad' => null,
+                'unidad' => self::$defaultUnits[$this->type] ?? '',
                 'requerido' => true,
                 'valor_por_defecto' => null
             ]);
         }
         
+        return $normalized;
+    }
+
+    /**
+     * Obtener el nombre del campo principal (siempre "valor")
+     */
+    public function getMainField(): string
+    {
+        return 'valor';
+    }
+
+    /**
+     * Obtener la unidad del campo principal
+     */
+    public function getMainUnit(): string
+    {
+        $fields = $this->getFields();
+        foreach ($fields as $field) {
+            if ($field['nombre'] === 'valor') {
+                return $field['unidad'] ?? self::$defaultUnits[$this->type] ?? '';
+            }
+        }
+        return self::$defaultUnits[$this->type] ?? '';
+    }
+
+    /**
+     * Obtener la etiqueta descriptiva del tipo
+     */
+    public function getTypeLabel(): string
+    {
+        return self::$typeLabels[$this->type] ?? $this->type;
+    }
+
+    // =============================================
+    // MÉTODOS DE VALIDACIÓN
+    // =============================================
+
+    /**
+     * Obtener el schema completo (incluyendo herencia)
+     */
+    public function getFullSchema(): array
+    {
         return [
-            'campos' => $fields
+            'campos' => $this->getFields()
         ];
     }
 
@@ -153,5 +253,33 @@ class Template extends Model
         }
         
         return $required;
+    }
+
+    /**
+     * Verificar si un campo existe en la plantilla
+     */
+    public function hasField(string $fieldName): bool
+    {
+        $fields = $this->getFields();
+        foreach ($fields as $field) {
+            if ($field['nombre'] === $fieldName) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Obtener un campo específico por su nombre
+     */
+    public function getField(string $fieldName): ?array
+    {
+        $fields = $this->getFields();
+        foreach ($fields as $field) {
+            if ($field['nombre'] === $fieldName) {
+                return $field;
+            }
+        }
+        return null;
     }
 }

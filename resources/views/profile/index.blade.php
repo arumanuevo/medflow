@@ -234,7 +234,31 @@
                             <li><strong>Última actualización:</strong> <span id="userUpdatedAt">-</span></li>
                         </ul>
                     </div>
-
+                    {{-- ✅ ALERTA DE DOWNGRADE --}}
+                    @if(isset($showDowngradeAlert) && $showDowngradeAlert)
+                    <div class="alert alert-warning alert-dismissible fade show mt-3" role="alert" id="downgradeAlert">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-warning"></i>
+                            <div class="flex-grow-1">
+                                <strong>⚠️ Plan downgradeado</strong>
+                                <p class="mb-1 small">
+                                    Tu suscripción <strong>{{ $previousPlan ?? 'anterior' }}</strong> ha expirado o fue cancelada.
+                                    <br>
+                                    <span class="text-muted">Has perdido acceso a funcionalidades premium.</span>
+                                </p>
+                                <div class="d-flex gap-2 mt-2">
+                                    <a href="/suscripcion/basico/pagar" class="btn btn-sm btn-warning">
+                                        <i class="bi bi-arrow-right me-1"></i> Renovar ahora
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('downgradeAlert').remove()">
+                                        <i class="bi bi-x me-1"></i> Cerrar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    @endif
                     {{-- ✅ SECCIÓN DE SUSCRIPCIÓN --}}
                     <div class="mt-4 pt-3 border-top">
                         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -524,155 +548,174 @@ function cancelSubscription() {
 // =============================================
 
 @if(app()->environment('local'))
-function debugActivateSubscription(plan) {
-    const planNames = {
-        'free': 'Plan Free',
-        'basico': 'Plan Básico',
-        'premium': 'Plan Premium'
-    };
-    
-    const planIcons = {
-        'free': '🎁',
-        'basico': '📋',
-        'premium': '⭐'
-    };
-    
-    // ✅ Para plan Free, duración indefinida (9999 días)
-    const duration = plan === 'free' ? 9999 : 5;
-    const durationText = plan === 'free' ? 'tiempo indefinido' : duration + ' minutos';
-    
-    showAlert(
-        `🔄 Activando ${planNames[plan]} por ${durationText}...`,
-        'info'
-    );
-    
-    $.ajax({
-        url: '/api/subscription/debug/activate',
-        type: 'POST',
-        headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('token'),
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        data: JSON.stringify({
-            plan: plan,
-            duration_minutes: duration
-        }),
-        success: function(response) {
-            if (response.success) {
+    function debugActivateSubscription(plan) {
+        const planNames = {
+            'free': 'Plan Free',
+            'basico': 'Plan Básico',
+            'premium': 'Plan Premium'
+        };
+        
+        const planIcons = {
+            'free': '🎁',
+            'basico': '📋',
+            'premium': '⭐'
+        };
+        
+        // ✅ Cambiar duración: 30 días para planes de prueba (43200 minutos)
+        const duration = plan === 'free' ? 9999 : 43200; // 30 días = 43200 minutos
+        const durationText = plan === 'free' ? 'tiempo indefinido' : '30 días';
+        
+        showAlert(
+            `🔄 Activando ${planNames[plan]} por ${durationText}...`,
+            'info'
+        );
+        
+        $.ajax({
+            url: '/api/subscription/debug/activate',
+            type: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify({
+                plan: plan,
+                duration_minutes: duration
+            }),
+            success: function(response) {
+                if (response.success) {
+                    showAlert(
+                        `✅ ${planIcons[plan]} ${planNames[plan]} activado correctamente${plan === 'free' ? ' (permanente)' : ' por 30 días'}.`,
+                        'success'
+                    );
+                    
+                    // ✅ Si se activa Free, limpiar el plan anterior
+                    if (plan === 'free') {
+                        localStorage.removeItem('previous_plan');
+                    } else {
+                        localStorage.setItem('previous_plan', plan);
+                    }
+                    
+                    // ✅ REFRESCAR TODO
+                    loadSubscriptionStatus();
+                    loadStats();
+                    loadProfile();
+                    updateAccountInfo();
+                    
+                    // ✅ Eliminar alerta de downgrade si existe
+                    const downgradeAlert = document.getElementById('downgradeAlert');
+                    if (downgradeAlert) {
+                        downgradeAlert.remove();
+                    }
+                    
+                    if (typeof refreshSubscriptionStatus === 'function') {
+                        refreshSubscriptionStatus();
+                    }
+                } else {
+                    showAlert('❌ ' + (response.message || 'Error al activar'), 'danger');
+                }
+            },
+            error: function(xhr) {
                 showAlert(
-                    `✅ ${planIcons[plan]} ${planNames[plan]} activado correctamente${plan === 'free' ? ' (permanente)' : ' por 5 minutos'}.`,
-                    'success'
+                    '❌ Error: ' + (xhr.responseJSON?.message || xhr.statusText),
+                    'danger'
                 );
-                // ✅ REFRESCAR TODO
-                loadSubscriptionStatus();
-                loadStats();
-                loadProfile();
-                updateAccountInfo();
-                if (typeof refreshSubscriptionStatus === 'function') {
-                    refreshSubscriptionStatus();
-                }
-            } else {
-                showAlert('❌ ' + (response.message || 'Error al activar'), 'danger');
             }
-        },
-        error: function(xhr) {
-            showAlert(
-                '❌ Error: ' + (xhr.responseJSON?.message || xhr.statusText),
-                'danger'
-            );
-        }
-    });
-}
-
-function debugExpireSubscription() {
-    showAlert('⏰ Forzando expiración de la suscripción...', 'warning');
-    
-    $.ajax({
-        url: '/api/subscription/debug/expire',
-        type: 'POST',
-        headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('token'),
-            'Accept': 'application/json'
-        },
-        success: function(response) {
-            if (response.success) {
-                showAlert('✅ Suscripción expirada correctamente', 'success');
-                // ✅ RECARGAR TODO
-                loadSubscriptionStatus();
-                loadStats();
-                loadProfile();
-                updateAccountInfo();
-                if (typeof refreshSubscriptionStatus === 'function') {
-                    refreshSubscriptionStatus();
-                }
-            } else {
-                showAlert('❌ ' + (response.message || 'Error al expirar'), 'danger');
-            }
-        },
-        error: function(xhr) {
-            showAlert(
-                '❌ Error: ' + (xhr.responseJSON?.message || xhr.statusText),
-                'danger'
-            );
-        }
-    });
-}
-
-function debugClearSubscriptions() {
-    if (!confirm('⚠️ ¿Estás seguro de que quieres eliminar TODO el historial de suscripciones?')) {
-        return;
+        });
     }
-    
-    showAlert('🧹 Limpiando historial de suscripciones...', 'warning');
-    
-    $.ajax({
-        url: '/api/subscription/debug/clear',
-        type: 'POST',
-        headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('token'),
-            'Accept': 'application/json'
-        },
-        success: function(response) {
-            if (response.success) {
-                showAlert('✅ Historial limpiado correctamente', 'success');
-                loadSubscriptionStatus();
-                loadStats();
-                loadProfile();
-            } else {
-                showAlert('❌ ' + (response.message || 'Error al limpiar'), 'danger');
-            }
-        },
-        error: function(xhr) {
-            showAlert(
-                '❌ Error: ' + (xhr.responseJSON?.message || xhr.statusText),
-                'danger'
-            );
-        }
-    });
-}
 
-window.debugRenewSubscription = function() {
-    $.ajax({
-        url: '/api/subscription/plan/status',
-        type: 'GET',
-        headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('token'),
-            'Accept': 'application/json'
-        },
-        success: function(response) {
-            if (response.success && response.data.has_active_subscription) {
-                const currentPlan = response.data.subscription.plan;
-                debugActivateSubscription(currentPlan);
-            } else {
-                showAlert('❌ No hay suscripción activa para renovar', 'warning');
+    function debugExpireSubscription() {
+        showAlert('⏰ Forzando expiración de la suscripción...', 'warning');
+        
+        $.ajax({
+            url: '/api/subscription/debug/expire',
+            type: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                'Accept': 'application/json'
+            },
+            success: function(response) {
+                if (response.success) {
+                    showAlert('✅ Suscripción expirada correctamente', 'success');
+                    
+                    // ✅ RECARGAR TODO
+                    loadSubscriptionStatus();
+                    loadStats();
+                    loadProfile();
+                    updateAccountInfo();
+                    
+                    // ✅ La alerta de downgrade se mostrará automáticamente en renderSubscriptionStatus
+                    
+                    if (typeof refreshSubscriptionStatus === 'function') {
+                        refreshSubscriptionStatus();
+                    }
+                } else {
+                    showAlert('❌ ' + (response.message || 'Error al expirar'), 'danger');
+                }
+            },
+            error: function(xhr) {
+                showAlert(
+                    '❌ Error: ' + (xhr.responseJSON?.message || xhr.statusText),
+                    'danger'
+                );
             }
-        },
-        error: function() {
-            showAlert('❌ Error al obtener el plan actual', 'danger');
+        });
+    }
+
+    function debugClearSubscriptions() {
+        if (!confirm('⚠️ ¿Estás seguro de que quieres eliminar TODO el historial de suscripciones?')) {
+            return;
         }
-    });
-};
+        
+        showAlert('🧹 Limpiando historial de suscripciones...', 'warning');
+        
+        $.ajax({
+            url: '/api/subscription/debug/clear',
+            type: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                'Accept': 'application/json'
+            },
+            success: function(response) {
+                if (response.success) {
+                    showAlert('✅ Historial limpiado correctamente', 'success');
+                    loadSubscriptionStatus();
+                    loadStats();
+                    loadProfile();
+                } else {
+                    showAlert('❌ ' + (response.message || 'Error al limpiar'), 'danger');
+                }
+            },
+            error: function(xhr) {
+                showAlert(
+                    '❌ Error: ' + (xhr.responseJSON?.message || xhr.statusText),
+                    'danger'
+                );
+            }
+        });
+    }
+
+    window.debugRenewSubscription = function() {
+        $.ajax({
+            url: '/api/subscription/plan/status',
+            type: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                'Accept': 'application/json'
+            },
+            success: function(response) {
+                if (response.success && response.data.has_active_subscription) {
+                    const currentPlan = response.data.subscription.plan;
+                    debugActivateSubscription(currentPlan);
+                } else {
+                    showAlert('❌ No hay suscripción activa para renovar', 'warning');
+                }
+            },
+            error: function() {
+                showAlert('❌ Error al obtener el plan actual', 'danger');
+            }
+        });
+    };
 @endif
 
 // =============================================
@@ -759,17 +802,29 @@ function renderSubscriptionStatus(data) {
             showUpgradePremium = true;
         }
         
-        // ✅ CONTADOR REGRESIVO CON AUTO-EXPIRACIÓN - LLAMA A debugActivateSubscription('free')
+        // ✅ CONTADOR REGRESIVO - CUANDO TERMINA LLAMA A debugExpireSubscription() (igual que el botón Cancelar)
+        // ✅ CONTADOR REGRESIVO CON FORMATO DE DÍAS, HORAS Y MINUTOS
         if (sub && sub.expires_at) {
             expiresAtDate = new Date(sub.expires_at);
             const now = new Date();
             const diffMs = expiresAtDate - now;
             
             if (diffMs > 0) {
-                const diffMin = Math.floor(diffMs / 60000);
-                const diffSec = Math.floor((diffMs % 60000) / 1000);
-                const timeStr = `${diffMin}m ${diffSec}s`;
-                const isExpiring = diffMin < 1;
+                // Calcular días, horas, minutos
+                const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+                
+                let timeStr = '';
+                if (diffDays > 0) {
+                    timeStr = `${diffDays}d ${diffHours}h ${diffMinutes}m`;
+                } else if (diffHours > 0) {
+                    timeStr = `${diffHours}h ${diffMinutes}m`;
+                } else {
+                    timeStr = `${diffMinutes}m`;
+                }
+                
+                const isExpiring = diffDays === 0 && diffHours === 0 && diffMinutes < 5;
                 
                 countdownHtml = `
                     <div class="mt-1">
@@ -780,7 +835,7 @@ function renderSubscriptionStatus(data) {
                     </div>
                 `;
                 
-                // ✅ INICIAR CONTADOR CON VERIFICACIÓN DE EXPIRACIÓN
+                // ✅ INICIAR CONTADOR CON VERIFICACIÓN DE EXPIRACIÓN (actualiza cada minuto)
                 countdownInterval = setInterval(function() {
                     const now2 = new Date();
                     const diffMs2 = expiresAtDate - now2;
@@ -788,33 +843,42 @@ function renderSubscriptionStatus(data) {
                     if (diffMs2 <= 0) {
                         clearInterval(countdownInterval);
                         
-                        // ✅ Mostrar notificación de expiración
                         showAlert('⏰ Tu suscripción ha expirado. Volviendo al plan Free.', 'warning');
                         
-                        // ✅ EJECUTAR LA MISMA LÓGICA QUE EL BOTÓN "EMULAR FREE"
                         setTimeout(function() {
-                            // ✅ Esto es EXACTAMENTE lo que hace el botón "Emular Free"
-                            debugActivateSubscription('free');
+                            debugExpireSubscription();
                         }, 500);
                         return;
                     }
                     
-                    const diffMin2 = Math.floor(diffMs2 / 60000);
-                    const diffSec2 = Math.floor((diffMs2 % 60000) / 1000);
-                    const timeStr2 = `${diffMin2}m ${diffSec2}s`;
+                    // Recalcular días, horas, minutos
+                    const diffDays2 = Math.floor(diffMs2 / (1000 * 60 * 60 * 24));
+                    const diffHours2 = Math.floor((diffMs2 % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const diffMinutes2 = Math.floor((diffMs2 % (1000 * 60 * 60)) / (1000 * 60));
+                    
+                    let timeStr2 = '';
+                    if (diffDays2 > 0) {
+                        timeStr2 = `${diffDays2}d ${diffHours2}h ${diffMinutes2}m`;
+                    } else if (diffHours2 > 0) {
+                        timeStr2 = `${diffHours2}h ${diffMinutes2}m`;
+                    } else {
+                        timeStr2 = `${diffMinutes2}m`;
+                    }
                     
                     const display = $('#countdownDisplay');
                     if (display.length) {
                         display.text(`⏱️ ${timeStr2}`);
-                        if (diffMin2 < 1) {
+                        if (diffDays2 === 0 && diffHours2 === 0 && diffMinutes2 < 5) {
                             display.addClass('expiring');
+                        } else {
+                            display.removeClass('expiring');
                         }
                     }
-                }, 1000);
+                }, 60000); // ✅ Actualizar cada minuto (60000 ms) en lugar de cada segundo
             } else {
                 // ✅ Si ya expiró, ejecutar inmediatamente
                 setTimeout(function() {
-                    debugActivateSubscription('free');
+                    debugExpireSubscription();
                 }, 500);
             }
         }
@@ -934,7 +998,7 @@ function renderSubscriptionStatus(data) {
         `;
         
     // =============================================
-    // CASO 4: SIN SUSCRIPCIÓN ACTIVA (EL CASO ACTUAL)
+    // CASO 4: SIN SUSCRIPCIÓN ACTIVA
     // =============================================
     } else {
         html = `
@@ -977,61 +1041,94 @@ function renderSubscriptionStatus(data) {
     
     // ✅ ACTUALIZAR BADGE DEL HEADER
     updateHeaderBadge(data);
+    
+    // ✅ ACTUALIZAR ALERTA DE DOWNGRADE
+    toggleDowngradeAlert(data);
 }
 
 // =============================================
 // ✅ FUNCIÓN PARA ACTUALIZAR EL BADGE DEL HEADER
 // =============================================
-function updateHeaderBadge(data) {
-    let planKey = data.plan.key;
-    const hasActive = data.has_active_subscription;
-    const sub = data.subscription;
-    
-    // ✅ Si la suscripción expiró, forzar planKey a 'free'
-    if (sub && sub.status === 'expired') {
-        planKey = 'free';
-    }
-    
-    const badge = document.querySelector('.subscription-badge');
-    if (!badge) return;
-    
-    let icon = 'bi-hourglass-split';
-    let className = 'free';
-    let label = 'Gratuito';
-    let dotClass = 'expired';
-    
-    if (hasActive) {
-        if (planKey === 'premium') {
-            icon = 'bi-star-fill';
-            className = 'premium';
-            label = 'Premium';
-            dotClass = 'active';
-        } else if (planKey === 'basico') {
-            icon = 'bi-credit-card';
-            className = 'basico';
-            label = 'Básico';
-            dotClass = 'active';
-        } else {
-            icon = 'bi-gift';
-            className = 'free';
-            label = 'Free';
-            dotClass = 'active';
+// En updateHeaderBadge, agregar lógica para mostrar/ocultar badge de downgrade
+    function updateHeaderBadge(data) {
+        const planKey = data.plan.key;
+        const hasActive = data.has_active_subscription;
+        const sub = data.subscription;
+        const badge = document.querySelector('.subscription-badge:not(.downgrade-alert)');
+        const downgradeBadge = document.querySelector('.subscription-badge.downgrade-alert');
+        
+        // ✅ Actualizar badge principal
+        if (badge) {
+            let icon = 'bi-hourglass-split';
+            let className = 'free';
+            let label = 'Gratuito';
+            let dotClass = 'expired';
+            
+            if (hasActive) {
+                if (planKey === 'premium') {
+                    icon = 'bi-star-fill';
+                    className = 'premium';
+                    label = 'Premium';
+                    dotClass = 'active';
+                } else if (planKey === 'basico') {
+                    icon = 'bi-credit-card';
+                    className = 'basico';
+                    label = 'Básico';
+                    dotClass = 'active';
+                } else {
+                    icon = 'bi-gift';
+                    className = 'free';
+                    label = 'Free';
+                    dotClass = 'active';
+                }
+            } else {
+                icon = 'bi-exclamation-triangle';
+                className = 'expired';
+                label = 'Sin suscripción';
+                dotClass = 'expired';
+            }
+            
+            badge.className = `subscription-badge ${className}`;
+            badge.innerHTML = `
+                <span class="badge-dot ${dotClass}"></span>
+                <i class="bi ${icon}"></i>
+                ${label}
+            `;
         }
-    } else {
-        // ✅ Si no está activo, mostrar Free
-        icon = 'bi-gift';
-        className = 'free';
-        label = 'Free';
-        dotClass = 'expired';
-    }
     
-    badge.className = `subscription-badge ${className}`;
-    badge.innerHTML = `
-        <span class="badge-dot ${dotClass}"></span>
-        <i class="bi ${icon}"></i>
-        ${label}
-    `;
-}
+        // ✅ Actualizar badge de downgrade
+        // Obtener el plan anterior del usuario desde localStorage o desde el servidor
+        // Por ahora, verificamos si hay downgrade
+        const userPlan = data.plan.key;
+        const wasPremium = userPlan === 'basico' || userPlan === 'premium';
+        const isExpired = sub && sub.status === 'expired';
+        
+        if ((!hasActive && wasPremium) || isExpired) {
+            // ✅ Mostrar badge de downgrade
+            if (!downgradeBadge) {
+                // Crear badge de downgrade
+                const headerRight = document.querySelector('.modern-header-right');
+                if (headerRight) {
+                    const newBadge = document.createElement('span');
+                    newBadge.className = 'subscription-badge downgrade-alert';
+                    newBadge.title = '⚠️ Tu suscripción ha expirado. Algunas funcionalidades están limitadas.';
+                    newBadge.onclick = showDowngradeInfo;
+                    newBadge.innerHTML = `
+                        <span class="badge-dot expired"></span>
+                        <i class="bi bi-exclamation-triangle"></i>
+                        ⚠️ Downgrade a Free
+                        <span class="badge bg-danger ms-1" style="font-size: 0.5rem; padding: 0.1rem 0.3rem;">!</span>
+                    `;
+                    headerRight.insertBefore(newBadge, headerRight.querySelector('.modern-header-user'));
+                }
+            }
+        } else {
+            // ✅ Ocultar badge de downgrade
+            if (downgradeBadge) {
+                downgradeBadge.remove();
+            }
+        }
+    }
 
 // ✅ FUNCIÓN PARA ACTUALIZAR EL BADGE DEL HEADER
 function updateHeaderBadge(data) {
@@ -1114,10 +1211,12 @@ function renderSubscriptionError() {
 
 function loadSubscriptionStatus() {
     const token = localStorage.getItem('token');
-    if (!token) {
-        console.warn('⚠️ No hay token de autenticación');
-        renderSubscriptionError();
-        return;
+    if (!token) return;
+
+    // ✅ Obtener plan anterior del input oculto
+    const previousPlanInput = document.getElementById('previousPlanValue');
+    if (previousPlanInput && previousPlanInput.value) {
+        localStorage.setItem('previous_plan', previousPlanInput.value);
     }
 
     $.ajax({
@@ -1128,24 +1227,28 @@ function loadSubscriptionStatus() {
             'Accept': 'application/json'
         },
         cache: false,
-        timeout: 10000,
         success: function(response) {
-            console.log('✅ Estado de suscripción recibido:', response);
             if (response.success) {
+                // ✅ Si hay un plan anterior en localStorage, pasarlo a los datos
+                const previousPlan = localStorage.getItem('previous_plan');
+                if (previousPlan) {
+                    response.data.previous_plan = previousPlan;
+                }
+                
                 renderSubscriptionStatus(response.data);
                 updateAccountInfo();
                 updateHeaderBadge(response.data);
+                
+                // ✅ Actualizar badge de downgrade
+                if (typeof updateDowngradeBadge === 'function') {
+                    updateDowngradeBadge(response.data);
+                }
             } else {
-                console.error('❌ Respuesta sin éxito:', response);
                 renderSubscriptionError();
             }
         },
         error: function(xhr) {
-            console.error('❌ Error al cargar suscripción:', {
-                status: xhr.status,
-                statusText: xhr.statusText,
-                response: xhr.responseJSON
-            });
+            console.error('Error al cargar estado de suscripción:', xhr);
             renderSubscriptionError();
         }
     });
@@ -1467,6 +1570,129 @@ $(document).ready(function() {
         $('#confirmationText').val('');
     });
 
+    // =============================================
+    // FUNCIÓN PARA MOSTRAR ALERTA DE DOWNGRADE
+    // =============================================
+    function showDowngradeAlert(previousPlan) {
+        // Verificar si ya existe la alerta
+        if (document.getElementById('downgradeAlert')) {
+            return;
+        }
+        
+        const planName = previousPlan || 'anterior';
+        const alertHtml = `
+            <div class="alert alert-warning alert-dismissible fade show mt-3" role="alert" id="downgradeAlert">
+                <div class="d-flex align-items-start">
+                    <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-warning"></i>
+                    <div class="flex-grow-1">
+                        <strong>⚠️ Plan downgradeado</strong>
+                        <p class="mb-1 small">
+                            Tu suscripción <strong>${planName}</strong> ha expirado o fue cancelada.
+                            <br>
+                            <span class="text-muted">Has perdido acceso a funcionalidades premium.</span>
+                        </p>
+                        <div class="d-flex gap-2 mt-2">
+                            <a href="/suscripcion/basico/pagar" class="btn btn-sm btn-warning">
+                                <i class="bi bi-arrow-right me-1"></i> Renovar ahora
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('downgradeAlert').remove()">
+                                <i class="bi bi-x me-1"></i> Cerrar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        `;
+        
+        // Insertar después de #alertContainer
+        const alertContainer = document.getElementById('alertContainer');
+        if (alertContainer) {
+            alertContainer.insertAdjacentHTML('afterend', alertHtml);
+        }
+    }
+    // =============================================
+    // FUNCIÓN PARA MOSTRAR/OCULTAR ALERTA DE DOWNGRADE
+    // =============================================
+    function toggleDowngradeAlert(data) {
+        const hasActive = data.has_active_subscription;
+        const sub = data.subscription;
+        const planKey = data.plan.key;
+        
+        // ✅ Verificar si hay downgrade
+        const isExpired = sub && sub.status === 'expired';
+        const isDowngraded = !hasActive && (planKey === 'basico' || planKey === 'premium');
+        
+        // ✅ Verificar si hay un plan anterior en localStorage
+        const previousPlan = localStorage.getItem('previous_plan') || null;
+        const wasPaidPlan = previousPlan === 'basico' || previousPlan === 'premium';
+        
+        // ✅ También verificar si el usuario tiene rol inspector (solo si estaba en Premium)
+        const userHasInspectorRole = false; // Esto se puede obtener desde el perfil si es necesario
+        
+        const showAlert = isExpired || isDowngraded || wasPaidPlan;
+        
+        // ✅ Buscar si ya existe la alerta
+        const existingAlert = document.getElementById('downgradeAlert');
+        
+        if (showAlert) {
+            // ✅ Mostrar alerta
+            let planName = 'anterior';
+            if (previousPlan === 'premium' || planKey === 'premium') planName = 'Premium';
+            else if (previousPlan === 'basico' || planKey === 'basico') planName = 'Básico';
+            
+            if (!existingAlert) {
+                // Crear la alerta
+                const alertHtml = `
+                    <div class="alert alert-warning alert-dismissible fade show mt-3" role="alert" id="downgradeAlert">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-exclamation-triangle-fill fs-4 me-3 text-warning"></i>
+                            <div class="flex-grow-1">
+                                <strong>⚠️ Plan downgradeado</strong>
+                                <p class="mb-1 small">
+                                    Tu suscripción <strong>${planName}</strong> ha expirado o fue cancelada.
+                                    <br>
+                                    <span class="text-muted">Has perdido acceso a funcionalidades premium.</span>
+                                </p>
+                                <div class="d-flex gap-2 mt-2">
+                                    <a href="/suscripcion/basico/pagar" class="btn btn-sm btn-warning">
+                                        <i class="bi bi-arrow-right me-1"></i> Renovar ahora
+                                    </a>
+                                    <a href="/suscripcion/premium/pagar" class="btn btn-sm btn-outline-warning">
+                                        <i class="bi bi-star me-1"></i> Plan Premium
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('downgradeAlert').remove()">
+                                        <i class="bi bi-x me-1"></i> Cerrar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
+                
+                // Insertar después de #alertContainer
+                const alertContainer = document.getElementById('alertContainer');
+                if (alertContainer) {
+                    alertContainer.insertAdjacentHTML('afterend', alertHtml);
+                } else {
+                    // Fallback: insertar al inicio del card-body
+                    const cardBody = document.querySelector('.card-body');
+                    if (cardBody) {
+                        cardBody.insertAdjacentHTML('afterbegin', alertHtml);
+                    }
+                }
+            }
+        } else {
+            // ✅ Ocultar alerta si existe
+            if (existingAlert) {
+                existingAlert.remove();
+            }
+        }
+    }
+
+// ✅ Modificar renderSubscriptionStatus para mostrar alerta cuando hay downgrade
+// En renderSubscriptionStatus, cuando detectes un downgrade, llama a showDowngradeAlert
     $('#confirmDeleteAllData').click(function() {
         const confirmationText = $('#confirmationText').val().trim();
         

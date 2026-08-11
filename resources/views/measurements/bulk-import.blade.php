@@ -1,20 +1,121 @@
 {{-- resources/views/measurements/bulk-import.blade.php --}}
 @extends('layouts.modern')
 
-@section('title', 'Importar Mediciones Masivamente - MeasureFlow')
+@section('title', 'Importar Mediciones Masivamente - MedFlow')
+
+@push('styles')
+<style>
+.bulk-import-container .step {
+    animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.drop-zone {
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+}
+.drop-zone:hover {
+    border-color: #0d6efd;
+    background: #e8f4fd;
+}
+.drop-zone.active {
+    border-color: #0d6efd;
+    background: #e8f4fd;
+}
+.drop-zone i {
+    font-size: 3rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+}
+.field-mapping .row {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+.field-mapping .row:last-child {
+    border-bottom: none;
+}
+.preview-table {
+    max-height: 400px;
+    overflow-y: auto;
+}
+.preview-table .table {
+    font-size: 0.85rem;
+}
+.preview-table .table th {
+    position: sticky;
+    top: 0;
+    background: #f8f9fa;
+    z-index: 10;
+}
+.import-summary ul {
+    list-style: none;
+    padding-left: 0;
+}
+.import-summary ul li {
+    padding: 0.25rem 0;
+}
+.import-summary ul li strong {
+    display: inline-block;
+    min-width: 140px;
+}
+.error-container ul {
+    max-height: 200px;
+    overflow-y: auto;
+    padding-left: 1.5rem;
+}
+.error-container ul li {
+    margin-bottom: 0.5rem;
+}
+.error-container ul li ul {
+    padding-left: 1.5rem;
+    margin-top: 0.25rem;
+}
+.progress-container {
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+.progress-container .progress {
+    height: 20px;
+}
+.sample-sensor-info {
+    background: #e8f4fd;
+    border-left: 4px solid #0d6efd;
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+.sample-sensor-info code {
+    background: #fff;
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+}
+.identification-method-selector {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid #e9ecef;
+}
+</style>
+@endpush
 
 @section('content')
-<!-- Incluir el archivo CSS externo -->
-<link rel="stylesheet" href="{{ asset('css/bulk-measurements-import-styles.css') }}">
-
-<div class="container-fluid">
+<div class="container-fluid bulk-import-container">
     <div class="row">
         <div class="col-12">
             <div class="card">
                 <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-                    <h4><i class="bi bi-file-earmark-excel btn-icon"></i> Importar Mediciones Masivamente</h4>
+                    <h4><i class="bi bi-file-earmark-excel"></i> Importar Mediciones Masivamente</h4>
                     <a href="{{ route('measurements.index') }}" class="btn btn-light">
-                        <i class="bi bi-arrow-left btn-icon"></i> Volver a Mediciones
+                        <i class="bi bi-arrow-left"></i> Volver a Mediciones
                     </a>
                 </div>
                 <div class="card-body">
@@ -23,50 +124,29 @@
 
                     <!-- Paso 1: Seleccionar Grupo y Archivo -->
                     <div id="step1" class="step">
-                        <h5><i class="bi bi-upload btn-icon"></i> Paso 1: Seleccionar Grupo y Subir Archivo</h5>
+                        <h5><i class="bi bi-upload"></i> Paso 1: Seleccionar Grupo y Subir Archivo</h5>
                         <p class="text-muted">Selecciona el grupo de sensores y sube un archivo <strong>.xlsx</strong> o <strong>.csv</strong> con las mediciones.</p>
 
                         <div class="alert alert-info">
-                            <i class="bi bi-info-circle btn-icon"></i>
+                            <i class="bi bi-info-circle"></i>
                             <strong>Instrucciones para el archivo:</strong>
                             <ul class="mb-0 mt-2">
-                                <li>El archivo debe contener una columna con el <strong>nombre del sensor</strong> (exactamente como está registrado en el sistema).</li>
+                                <li>El archivo debe contener una columna con el <strong>identificador del sensor</strong> (nombre, código o ID).</li>
                                 <li>Los valores deben ser <strong>números</strong> (enteros o decimales).</li>
-                                <li>Las fechas deben estar en formato <strong>YYYY-MM-DD HH:MM:SS</strong> (ejemplo: 2026-01-15 10:30:00).</li>
+                                <li>Las fechas deben estar en formato <strong>YYYY-MM-DD</strong> o <strong>DD/MM/YYYY</strong>.</li>
                                 <li>Puedes importar mediciones para <strong>múltiples sensores</strong> en el mismo archivo.</li>
                             </ul>
                         </div>
 
                         <div class="alert alert-warning">
-                            <i class="bi bi-exclamation-triangle btn-icon"></i>
-                            <strong>Validaciones del sistema (importantes):</strong>
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <strong>Validaciones del sistema:</strong>
                             <ul class="mb-0 mt-2">
                                 <li>✅ Verifica que el <strong>sensor exista</strong> en el grupo seleccionado.</li>
                                 <li>✅ Valida que no haya <strong>fechas duplicadas</strong> para un mismo sensor.</li>
-                                <li>✅ Valida que no haya <strong>duplicados exactos</strong> (misma fecha y mismo valor).</li>
                                 <li>✅ Las mediciones pueden insertarse en <strong>cualquier punto</strong> de la línea temporal.</li>
-                                <li>✅ La <strong>fecha</strong> debe ser coherente con las mediciones vecinas (entre la anterior y la siguiente si existen).</li>
-                                <li>✅ El <strong>valor</strong> debe ser coherente con las mediciones vecinas (entre el anterior y el siguiente si existen, o mayor si es la última).</li>
-                                <li>✅ Los valores siempre deben ser <strong>crecientes o iguales</strong> (nunca decrecientes).</li>
+                                <li>✅ El <strong>valor</strong> debe ser coherente con las mediciones vecinas.</li>
                             </ul>
-                        </div>
-
-                        <div class="alert alert-success">
-                            <i class="bi bi-lightbulb btn-icon"></i>
-                            <strong>Ejemplo de importación correcta:</strong>
-                            <div class="mt-2">
-                                <p class="mb-1"><strong>Mediciones existentes del sensor "Sensor 1":</strong></p>
-                                <ul class="mb-2">
-                                    <li>01/01/2026 - Valor: 100</li>
-                                    <li>01/03/2026 - Valor: 200</li>
-                                </ul>
-                                <p class="mb-1"><strong>Puedes importar:</strong></p>
-                                <ul class="mb-0">
-                                    <li>✅ 01/02/2026 - Valor: 150 (se inserta entre ambas)</li>
-                                    <li>✅ 01/04/2026 - Valor: 250 (se agrega al final)</li>
-                                    <li>✅ 01/12/2025 - Valor: 50 (se agrega al inicio)</li>
-                                </ul>
-                            </div>
                         </div>
 
                         <!-- Selector de grupo -->
@@ -94,10 +174,10 @@
 
                         <div class="d-flex gap-2 mt-3 flex-wrap">
                             <button class="btn btn-secondary" id="selectFileBtn">
-                                <i class="bi bi-folder-open btn-icon"></i> Seleccionar Archivo
+                                <i class="bi bi-folder-open"></i> Seleccionar Archivo
                             </button>
                             <button class="btn btn-info" id="downloadTemplateBtn">
-                                <i class="bi bi-download btn-icon"></i> Descargar Plantilla (.csv)
+                                <i class="bi bi-download"></i> Descargar Plantilla (.csv)
                             </button>
                         </div>
                     </div>
@@ -105,21 +185,18 @@
                     <!-- Paso 2: Mapear Campos -->
                     <div id="step2" class="step d-none">
                         <hr>
-                        <h5><i class="bi bi-arrow-left-right btn-icon"></i> Paso 2: Mapear Campos</h5>
+                        <h5><i class="bi bi-arrow-left-right"></i> Paso 2: Mapear Campos</h5>
                         <p class="text-muted">Asocia los campos de tu archivo con los campos del sistema.</p>
 
                         <div class="alert alert-info">
-    <i class="bi bi-info-circle btn-icon"></i>
-    <strong>Campos obligatorios:</strong>
-    <ul class="mb-0 mt-2">
-        <li><strong>Sensor</strong> - Nombre del sensor (debe existir en el grupo seleccionado)</li>
-        <li><strong>Valor</strong> - Valor numérico de la medición</li>
-        <li><strong>Fecha</strong> - Fecha de la medición (formato: <strong>YYYY-MM-DD</strong> o <strong>DD/MM/YYYY</strong>)</li>
-    </ul>
-    <p class="mt-2 mb-0 small text-muted">
-        <i class="bi bi-info-circle"></i> La hora no es necesaria. El sistema usará las 00:00:00 por defecto.
-    </p>
-</div>
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Campos obligatorios:</strong>
+                            <ul class="mb-0 mt-2">
+                                <li><strong>Identificador del Sensor</strong> - Nombre, código o ID del sensor</li>
+                                <li><strong>Valor</strong> - Valor numérico de la medición</li>
+                                <li><strong>Fecha</strong> - Fecha de la medición (YYYY-MM-DD o DD/MM/YYYY)</li>
+                            </ul>
+                        </div>
 
                         <div id="fieldMappingContainer" class="field-mapping">
                             <!-- Los campos de mapeo se generarán dinámicamente -->
@@ -129,7 +206,7 @@
                     <!-- Paso 3: Preview y Confirmación -->
                     <div id="step3" class="step d-none">
                         <hr>
-                        <h5><i class="bi bi-eye btn-icon"></i> Paso 3: Preview y Confirmación</h5>
+                        <h5><i class="bi bi-eye"></i> Paso 3: Preview y Confirmación</h5>
                         <p class="text-muted">Revisa los datos antes de importar. Todas las validaciones se aplicarán en el servidor.</p>
 
                         <!-- Opción de sobrescritura -->
@@ -163,7 +240,7 @@
                         </div>
 
                         <div id="importSummary" class="import-summary d-none">
-                            <h5><i class="bi bi-info-circle btn-icon"></i> Resumen de Importación</h5>
+                            <h5><i class="bi bi-info-circle"></i> Resumen de Importación</h5>
                             <ul>
                                 <li><strong>Total de registros:</strong> <span id="totalRecords">0</span></li>
                                 <li><strong>Registros válidos:</strong> <span id="validRecords">0</span></li>
@@ -172,12 +249,12 @@
                         </div>
 
                         <div id="importErrors" class="error-container d-none">
-                            <h5><i class="bi bi-exclamation-triangle btn-icon"></i> Errores Encontrados</h5>
+                            <h5><i class="bi bi-exclamation-triangle"></i> Errores Encontrados</h5>
                             <ul id="errorList"></ul>
                         </div>
                     </div>
 
-                    <!-- Paso 4: Resultados de la Importación (persistente) -->
+                    <!-- Paso 4: Resultados de la Importación -->
                     <div id="step4" class="step d-none">
                         <hr>
                         <div class="card border-success">
@@ -259,22 +336,22 @@
                     <!-- Botones de navegación -->
                     <div class="d-flex justify-content-between mt-4">
                         <button class="btn btn-secondary" id="prevStepBtn" style="display: none;">
-                            <i class="bi bi-arrow-left btn-icon"></i> Anterior
+                            <i class="bi bi-arrow-left"></i> Anterior
                         </button>
                         <button class="btn btn-primary" id="nextStepBtn" style="display: none;">
-                            <i class="bi bi-arrow-right btn-icon"></i> Siguiente
+                            <i class="bi bi-arrow-right"></i> Siguiente
                         </button>
                         <button class="btn btn-success" id="importBtn" style="display: none;">
-                            <i class="bi bi-check-circle btn-icon"></i> Importar Mediciones
+                            <i class="bi bi-check-circle"></i> Importar Mediciones
                         </button>
                         <button class="btn btn-danger" id="cancelBtn">
-                            <i class="bi bi-x-circle btn-icon"></i> Cancelar
+                            <i class="bi bi-x-circle"></i> Cancelar
                         </button>
                     </div>
 
                     <!-- Barra de progreso -->
                     <div id="progressContainer" class="progress-container d-none">
-                        <h5><i class="bi bi-hourglass-split btn-icon"></i> Importando...</h5>
+                        <h5><i class="bi bi-hourglass-split"></i> Importando...</h5>
                         <div class="progress">
                             <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
                         </div>
@@ -292,7 +369,7 @@
         <div class="modal-content">
             <div class="modal-header bg-warning">
                 <h5 class="modal-title">
-                    <i class="bi bi-exclamation-triangle btn-icon"></i> Confirmar Cancelación
+                    <i class="bi bi-exclamation-triangle"></i> Confirmar Cancelación
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -301,10 +378,10 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="bi bi-x-circle btn-icon"></i> No, Continuar
+                    <i class="bi bi-x-circle"></i> No, Continuar
                 </button>
                 <button type="button" class="btn btn-danger" id="confirmCancel">
-                    <i class="bi bi-check-circle btn-icon"></i> Sí, Cancelar
+                    <i class="bi bi-check-circle"></i> Sí, Cancelar
                 </button>
             </div>
         </div>
@@ -314,9 +391,12 @@
 
 @push('scripts')
 <script>
-// Configuración global
+// =============================================
+// CONFIGURACIÓN GLOBAL
+// =============================================
 let excelHeaders = [];
 let sampleData = [];
+let allData = [];
 let fieldMapping = {};
 let currentStep = 1;
 let selectedGroupId = null;
@@ -324,17 +404,15 @@ let file = null;
 let groups = [];
 let sensorsInGroup = [];
 let currentReportId = null;
+let sensorFields = [];
 
 $(document).ready(function() {
-    // Cargar grupos
     loadGroups();
 
-    // Configurar eventos
     $('#selectFileBtn').click(() => $('#fileInput').click());
     $('#fileInput').change(handleFileSelect);
     $('#dropZone').click(() => $('#fileInput').click());
 
-    // Drag and drop
     $('#dropZone').on('dragover', function(e) {
         e.preventDefault();
         $(this).addClass('active');
@@ -354,27 +432,23 @@ $(document).ready(function() {
         }
     });
 
-    // Botones de navegación
     $('#nextStepBtn').click(nextStep);
     $('#prevStepBtn').click(prevStep);
     $('#importBtn').click(importMeasurements);
     $('#cancelBtn').click(() => $('#cancelModal').modal('show'));
     $('#confirmCancel').click(() => window.location.href = '{{ route("measurements.index") }}');
 
-    // Descargar plantilla
     $('#downloadTemplateBtn').click(function() {
         const token = localStorage.getItem('token');
         window.location.href = '/api/measurements/bulk-import/download-template?token=' + token;
     });
 
-    // Botones de resultados
     $('#downloadReportBtn').click(downloadReport);
     $('#newImportBtn').click(startNewImport);
     $('#viewSensorsBtn').click(function() {
         window.location.href = '/sensors';
     });
 
-    // Cambio de grupo
     $('#groupSelect').change(function() {
         selectedGroupId = $(this).val();
         if (selectedGroupId) {
@@ -385,9 +459,10 @@ $(document).ready(function() {
     });
 });
 
-/**
- * Cargar grupos disponibles
- */
+// =============================================
+// FUNCIONES DE CARGA
+// =============================================
+
 function loadGroups() {
     const token = localStorage.getItem('token');
     
@@ -441,9 +516,6 @@ function loadGroups() {
     });
 }
 
-/**
- * Cargar sensores de un grupo específico
- */
 function loadSensorsByGroup(groupId) {
     const token = localStorage.getItem('token');
     
@@ -459,13 +531,17 @@ function loadSensorsByGroup(groupId) {
                 sensorsInGroup = response.data;
                 const count = sensorsInGroup.length;
                 
-                // Mostrar información del grupo
+                const displayNames = sensorsInGroup.slice(0, 3).map(s => s.name).join(', ');
+                const moreText = count > 3 ? ` y ${count - 3} más` : '';
+                
                 $('#groupInfo').removeClass('d-none');
                 $('#sensorCount').text(count);
                 $('#groupInfoText').html(
                     `Sensores disponibles en este grupo: <strong>${count}</strong> ` +
-                    `(${sensorsInGroup.map(s => s.name).join(', ')})`
+                    `(${displayNames}${moreText})`
                 );
+                
+                loadSensorFields(groupId);
                 
                 if (count === 0) {
                     showAlert('El grupo seleccionado no tiene sensores. Crea sensores primero.', 'warning');
@@ -480,9 +556,165 @@ function loadSensorsByGroup(groupId) {
     });
 }
 
-/**
- * Manejar selección de archivo
- */
+// =============================================
+// FUNCIONES DE CAMPOS DE SENSORES
+// =============================================
+
+function loadSensorFields(groupId) {
+    const token = localStorage.getItem('token');
+    
+    console.log('🔍 Cargando campos para el grupo:', groupId);
+    
+    const select = $('#identificationMethod');
+    
+    // ✅ Si el selector no existe, esperar a que generateFieldMapping lo cree
+    if (select.length === 0) {
+        console.log('⏳ Selector aún no creado, será creado por generateFieldMapping');
+        // Guardar el groupId para usarlo después
+        window._pendingGroupId = groupId;
+        return;
+    }
+    
+    select.html('<option value="" disabled>Cargando campos...</option>');
+    select.prop('disabled', true);
+    
+    $.ajax({
+        url: `/api/measurements/bulk-import/groups/${groupId}/sensor-fields`,
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token,
+            'Accept': 'application/json'
+        },
+        timeout: 30000,
+        success: function(response) {
+            console.log('✅ Respuesta de sensor-fields:', response);
+            
+            if (response.success && response.data) {
+                sensorFields = response.data.fields || [];
+                
+                console.log('📋 Campos recibidos:', sensorFields);
+                
+                if (sensorFields.length === 0) {
+                    console.warn('⚠️ No se recibieron campos, usando fallback');
+                    useFallbackFields();
+                    return;
+                }
+                
+                const defaultMethod = response.data.default || 'identifier';
+                populateIdentificationMethod(sensorFields, defaultMethod);
+                select.prop('disabled', false);
+                
+                if (response.data.sample_sensor) {
+                    const sample = response.data.sample_sensor;
+                    const sensorInfoHtml = `
+                        <div class="sample-sensor-info mt-2">
+                            <strong><i class="bi bi-info-circle"></i> Ejemplo de sensor en este grupo:</strong>
+                            <ul class="mb-0 mt-1">
+                                <li><strong>Nombre:</strong> <code>${sample.name || 'N/A'}</code></li>
+                                <li><strong>Identificador:</strong> <code>${sample.identifier || 'N/A'}</code></li>
+                                <li><strong>ID:</strong> <code>${sample.id || 'N/A'}</code></li>
+                            </ul>
+                            <small class="text-muted mt-1 d-block">
+                                <i class="bi bi-info-circle"></i> 
+                                Usa estos campos para identificar los sensores en tu archivo.
+                            </small>
+                        </div>
+                    `;
+                    $('#sampleSensorInfo').html(sensorInfoHtml);
+                }
+                
+                console.log('✅ Selector de identificación poblado correctamente');
+                
+            } else {
+                console.warn('⚠️ Respuesta sin éxito:', response);
+                useFallbackFields();
+            }
+        },
+        error: function(xhr) {
+            console.error('❌ Error al cargar campos de sensores:', xhr);
+            useFallbackFields();
+        }
+    });
+}
+
+function populateIdentificationMethod(fields, defaultMethod) {
+    const select = $('#identificationMethod');
+    
+    if (select.length === 0) {
+        console.error('❌ Selector #identificationMethod no encontrado');
+        return;
+    }
+    
+    select.empty();
+    
+    console.log('📋 Poblando selector con campos:', fields);
+    console.log('📋 Default method:', defaultMethod);
+    
+    if (!fields || fields.length === 0) {
+        select.append('<option value="" disabled>No hay campos disponibles</option>');
+        return;
+    }
+    
+    const existsDefault = fields.some(f => f.value === defaultMethod);
+    console.log(`📋 ¿Existe el método "${defaultMethod}" en los campos?`, existsDefault);
+    
+    const effectiveDefault = existsDefault ? defaultMethod : fields[0].value;
+    console.log(`📋 Usando default efectivo: "${effectiveDefault}"`);
+    
+    fields.forEach(field => {
+        const selected = field.value === effectiveDefault ? 'selected' : '';
+        const label = field.label || field.value;
+        const desc = field.description ? ` (${field.description})` : '';
+        select.append(`
+            <option value="${field.value}" ${selected}>
+                ${label}${desc}
+            </option>
+        `);
+    });
+    
+    select.val(effectiveDefault);
+    
+    console.log('✅ Selector poblado, valor actual:', select.val());
+    console.log('✅ Número de opciones:', select.find('option').length);
+}
+
+function useFallbackFields() {
+    console.log('🔄 Usando campos base (fallback)');
+    sensorFields = [
+        { value: 'name', label: 'Nombre del Sensor', description: 'Nombre descriptivo' },
+        { value: 'identifier', label: 'Identificador (Código)', description: 'Código único' },
+        { value: 'id', label: 'ID del Sensor', description: 'ID numérico' }
+    ];
+    populateIdentificationMethod(sensorFields, 'identifier');
+    $('#identificationMethod').prop('disabled', false);
+    showAlert('No se pudieron cargar los campos personalizados. Usando campos base.', 'warning');
+}
+
+// =============================================
+// FUNCIONES DE PROCESAMIENTO DE ARCHIVOS
+// =============================================
+
+function processRowData(row) {
+    if (typeof row === 'string') {
+        if (row.includes(';')) {
+            return row.split(';').map(col => col.trim().replace(/^"|"$/g, ''));
+        }
+        if (row.includes(',')) {
+            return row.split(',').map(col => col.trim().replace(/^"|"$/g, ''));
+        }
+        return [row.trim()];
+    }
+    
+    if (Array.isArray(row)) {
+        if (row.length === 1 && typeof row[0] === 'string' && row[0].includes(';')) {
+            return row[0].split(';').map(col => col.trim().replace(/^"|"$/g, ''));
+        }
+        return row;
+    }
+    
+    return [];
+}
+
 function handleFileSelect() {
     const fileInput = $('#fileInput')[0];
     if (fileInput.files.length === 0) return;
@@ -524,8 +756,43 @@ function handleFileSelect() {
         success: function(response) {
             hideLoading();
             if (response.success) {
-                excelHeaders = response.data.headers;
-                sampleData = response.data.sample_data;
+                let rawHeaders = response.data.headers || [];
+                
+                if (typeof rawHeaders === 'string') {
+                    rawHeaders = rawHeaders.split(';').map(h => h.trim().replace(/^"|"$/g, ''));
+                } else if (Array.isArray(rawHeaders) && rawHeaders.length === 1) {
+                    const singleHeader = rawHeaders[0];
+                    if (typeof singleHeader === 'string') {
+                        if (singleHeader.includes(';')) {
+                            rawHeaders = singleHeader.split(';').map(h => h.trim().replace(/^"|"$/g, ''));
+                        } else if (singleHeader.includes(',')) {
+                            rawHeaders = singleHeader.split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+                        }
+                    }
+                }
+                
+                excelHeaders = rawHeaders.map(header => {
+                    if (typeof header === 'string') {
+                        return header.trim().replace(/^"|"$/g, '').replace(/^'|'$/g, '');
+                    }
+                    return String(header);
+                }).filter(h => h !== '');
+                
+                let rawData = [];
+                if (response.data.all_data) {
+                    rawData = response.data.all_data;
+                } else if (response.data.sample_data) {
+                    rawData = response.data.sample_data;
+                }
+                
+                allData = rawData.map(row => processRowData(row));
+                sampleData = allData.slice(0, 5);
+                
+                console.log('📊 Headers procesados:', excelHeaders);
+                console.log('📊 Total de filas:', allData.length);
+                console.log('📊 Primera fila procesada:', allData.length > 0 ? allData[0] : 'No hay datos');
+                console.log('📊 Longitud de la primera fila:', allData.length > 0 ? allData[0].length : 0);
+                
                 generateFieldMapping(excelHeaders);
                 showStep(2);
             } else {
@@ -561,31 +828,81 @@ function hideLoading() {
     `);
 }
 
+// =============================================
+// FUNCIONES DE MAPEO
+// =============================================
+
 function generateFieldMapping(headers) {
     const container = $('#fieldMappingContainer');
     container.empty();
 
+    if (!Array.isArray(headers) || headers.length === 0) {
+        container.html(`
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle"></i>
+                No se pudieron identificar las columnas del archivo. 
+                Verifica que el archivo tenga encabezados.
+            </div>
+        `);
+        return;
+    }
+
+    // ✅ CREAR EL SELECTOR DE IDENTIFICACIÓN AQUÍ (no en loadSensorFields)
+    const methodRow = $(`
+        <div class="row mb-3 identification-method-selector">
+            <div class="col-md-12">
+                <div class="row align-items-center">
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Identificar sensor por:</label>
+                    </div>
+                    <div class="col-md-5">
+                        <select class="form-select" id="identificationMethod">
+                            <option value="">Cargando campos...</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle"></i> 
+                            Selecciona qué campo usar para identificar los sensores en el grupo
+                        </small>
+                    </div>
+                </div>
+                <div id="sampleSensorInfo" class="mt-2"></div>
+            </div>
+        </div>
+    `);
+    container.append(methodRow);
+
+    // ✅ Si ya hay campos cargados (de loadSensorFields), poblarlos
+    if (sensorFields && sensorFields.length > 0) {
+        populateIdentificationMethod(sensorFields, 'identifier');
+    } else {
+        // Si no hay campos, cargarlos
+        loadSensorFields(selectedGroupId);
+    }
+
     const measurementFields = [
-        { name: 'sensor', label: 'Nombre del Sensor *', required: true },
+        { name: 'sensor', label: 'Identificador del Sensor *', required: true },
         { name: 'valor', label: 'Valor *', required: true },
-        { name: 'fecha', label: 'Fecha y Hora *', required: true },
+        { name: 'fecha', label: 'Fecha *', required: true },
         { name: 'foto', label: 'Foto', required: false },
         { name: 'observaciones', label: 'Observaciones', required: false }
     ];
 
     measurementFields.forEach(field => {
         const row = $(`
-            <div class="row">
-                <div class="col-md-5">
-                    <label class="form-label">${field.label}</label>
+            <div class="row mb-3 align-items-center">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">${field.label}</label>
+                    ${field.required ? ' <span class="text-danger">*</span>' : ''}
                 </div>
-                <div class="col-md-5">
+                <div class="col-md-7">
                     <select class="form-select field-mapping-select" data-field="${field.name}">
-                        <option value="" selected>No mapear</option>
+                        <option value="">-- Seleccionar columna --</option>
                     </select>
                 </div>
-                <div class="col-md-2 text-center">
-                    ${field.required ? '<span class="text-danger">*</span>' : ''}
+                <div class="col-md-2">
+                    ${field.required ? '<span class="badge bg-danger">Obligatorio</span>' : '<span class="badge bg-secondary">Opcional</span>'}
                 </div>
             </div>
         `);
@@ -593,8 +910,9 @@ function generateFieldMapping(headers) {
         const select = row.find('.field-mapping-select');
 
         headers.forEach((header, index) => {
-            const displayHeader = header ? header.trim() : `Columna ${index + 1}`;
-            select.append(`<option value="${index}">${displayHeader}</option>`);
+            if (header && header.trim() !== '') {
+                select.append(`<option value="${index}">${header.trim()}</option>`);
+            }
         });
 
         container.append(row);
@@ -603,6 +921,10 @@ function generateFieldMapping(headers) {
     $('#nextStepBtn').show();
     $('#prevStepBtn').show();
 }
+
+// =============================================
+// FUNCIONES DE NAVEGACIÓN
+// =============================================
 
 function nextStep() {
     if (currentStep === 1) {
@@ -646,6 +968,29 @@ function nextStep() {
             }
         });
 
+        const identificationMethod = $('#identificationMethod').val();
+        console.log('📋 Método de identificación:', identificationMethod);
+        console.log('📋 Field Mapping:', fieldMapping);
+
+        if (allData.length > 0) {
+            const firstRow = allData[0];
+            let hasError = false;
+            Object.keys(fieldMapping).forEach(key => {
+                const idx = fieldMapping[key];
+                if (idx !== undefined && firstRow && idx < firstRow.length) {
+                    console.log(`✅ Campo "${key}" -> columna ${idx} tiene valor: "${firstRow[idx]}"`);
+                } else if (idx !== undefined) {
+                    console.warn(`⚠️ Campo "${key}" -> columna ${idx} NO existe en los datos`);
+                    hasError = true;
+                }
+            });
+            
+            if (hasError) {
+                showAlert('⚠️ Algunas columnas mapeadas no existen en los datos. Verifica el mapeo.', 'warning');
+                return;
+            }
+        }
+
         generatePreview();
     }
 
@@ -666,13 +1011,16 @@ function showStep(step) {
     $('#nextStepBtn').toggle(step > 0 && step < 3);
     $('#importBtn').toggle(step === 3);
     
-    // Ocultar botones de navegación en el paso 4 (resultados)
     if (step === 4) {
         $('#prevStepBtn').hide();
         $('#nextStepBtn').hide();
         $('#importBtn').hide();
     }
 }
+
+// =============================================
+// FUNCIONES DE PREVIEW
+// =============================================
 
 function generatePreview() {
     const container = $('#previewTableBody');
@@ -682,42 +1030,104 @@ function generatePreview() {
     let errorRecords = 0;
     const errors = [];
 
-    const rowsToProcess = sampleData.length > 0 ? sampleData : [];
+    const rowsToProcess = allData.length > 0 ? allData : [];
 
     if (rowsToProcess.length === 0) {
         container.html('<tr><td colspan="7" class="text-center">No hay datos para mostrar</td></tr>');
         return;
     }
 
-    // Crear lista de nombres de sensores disponibles para validación
-    const sensorNames = sensorsInGroup.map(s => s.name);
+    const sensorMapByName = {};
+    const sensorMapByIdentifier = {};
+    const sensorMapById = {};
+    
+    sensorsInGroup.forEach(s => {
+        sensorMapByName[s.name.toLowerCase().trim()] = s;
+        if (s.identifier) {
+            sensorMapByIdentifier[s.identifier.toLowerCase().trim()] = s;
+        }
+        sensorMapById[s.id] = s;
+    });
+
+    const identificationMethod = $('#identificationMethod').val() || 'identifier';
 
     rowsToProcess.forEach((row, index) => {
         if (!row || row.length === 0) return;
 
+        const sensorValue = getMappedValue(row, 'sensor');
+        const valorValue = getMappedValue(row, 'valor');
+        const fechaValue = getMappedValue(row, 'fecha');
+        const fotoValue = getMappedValue(row, 'foto') || 'N/A';
+        const observacionesValue = getMappedValue(row, 'observaciones') || '';
+
         const measurement = {
             index: index + 1,
-            sensor: getMappedValue(row, 'sensor'),
-            valor: getMappedValue(row, 'valor'),
-            fecha: getMappedValue(row, 'fecha'),
-            foto: getMappedValue(row, 'foto') || 'N/A',
-            observaciones: getMappedValue(row, 'observaciones') || '',
+            sensor: sensorValue,
+            valor: valorValue,
+            fecha: fechaValue,
+            foto: fotoValue,
+            observaciones: observacionesValue,
             status: 'valid'
         };
 
         let isValid = true;
         const recordErrors = [];
 
-        // Validar sensor
         if (!measurement.sensor || measurement.sensor === '') {
             isValid = false;
             recordErrors.push('El campo "Sensor" es obligatorio');
-        } else if (!sensorNames.includes(measurement.sensor)) {
-            isValid = false;
-            recordErrors.push(`El sensor "${measurement.sensor}" no existe en el grupo seleccionado. Sensores disponibles: ${sensorNames.join(', ')}`);
+        } else {
+            let foundSensor = null;
+            const searchKey = measurement.sensor.toLowerCase().trim();
+
+            switch (identificationMethod) {
+                case 'id':
+                    if (!isNaN(measurement.sensor)) {
+                        foundSensor = sensorMapById[parseInt(measurement.sensor)] || null;
+                    }
+                    break;
+                case 'identifier':
+                    foundSensor = sensorMapByIdentifier[searchKey] || null;
+                    break;
+                case 'name':
+                default:
+                    foundSensor = sensorMapByName[searchKey] || null;
+                    break;
+            }
+
+            if (!foundSensor && identificationMethod && identificationMethod.startsWith('metadata_')) {
+                const metaKey = identificationMethod.replace('metadata_', '');
+                for (const sensor of sensorsInGroup) {
+                    if (sensor.metadata && sensor.metadata[metaKey]) {
+                        const metaValue = String(sensor.metadata[metaKey]).toLowerCase().trim();
+                        if (metaValue === searchKey) {
+                            foundSensor = sensor;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (!foundSensor) {
+                foundSensor = sensorMapByName[searchKey] || null;
+            }
+            if (!foundSensor) {
+                foundSensor = sensorMapByIdentifier[searchKey] || null;
+            }
+            if (!foundSensor && !isNaN(measurement.sensor)) {
+                foundSensor = sensorMapById[parseInt(measurement.sensor)] || null;
+            }
+
+            if (!foundSensor) {
+                isValid = false;
+                const available = Object.keys(sensorMapByName).slice(0, 3).join(', ');
+                const moreText = Object.keys(sensorMapByName).length > 3 ? ` y ${Object.keys(sensorMapByName).length - 3} más` : '';
+                recordErrors.push(`El sensor "${measurement.sensor}" no existe. ` +
+                    `Puedes identificarlo por: ${sensorFields.map(f => f.label).join(', ')}. ` +
+                    `Sensores disponibles: ${available}${moreText}`);
+            }
         }
 
-        // Validar valor
         if (!measurement.valor || measurement.valor === '') {
             isValid = false;
             recordErrors.push('El campo "Valor" es obligatorio');
@@ -726,33 +1136,30 @@ function generatePreview() {
             recordErrors.push('El valor debe ser un número');
         }
 
-        // En la función generatePreview, modificar la validación de fecha
-// Validar fecha (acepta YYYY-MM-DD o DD/MM/YYYY)
-if (!measurement.fecha || measurement.fecha === '') {
-    isValid = false;
-    recordErrors.push('El campo "Fecha" es obligatorio');
-} else {
-    try {
-        // Intentar parsear YYYY-MM-DD
-        let date = null;
-        if (measurement.fecha.match(/^\d{4}-\d{2}-\d{2}$/)) {
-            date = new Date(measurement.fecha + 'T00:00:00');
-        } else if (measurement.fecha.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
-            const parts = measurement.fecha.split('/');
-            date = new Date(parts[2], parts[1] - 1, parts[0]);
-        } else {
-            date = new Date(measurement.fecha);
-        }
-        
-        if (isNaN(date.getTime())) {
+        if (!measurement.fecha || measurement.fecha === '') {
             isValid = false;
-            recordErrors.push('La fecha no tiene un formato válido (YYYY-MM-DD o DD/MM/YYYY)');
+            recordErrors.push('El campo "Fecha" es obligatorio');
+        } else {
+            try {
+                let date = null;
+                if (measurement.fecha.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                    date = new Date(measurement.fecha + 'T00:00:00');
+                } else if (measurement.fecha.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+                    const parts = measurement.fecha.split('/');
+                    date = new Date(parts[2], parts[1] - 1, parts[0]);
+                } else {
+                    date = new Date(measurement.fecha);
+                }
+                
+                if (isNaN(date.getTime())) {
+                    isValid = false;
+                    recordErrors.push('La fecha no tiene un formato válido (YYYY-MM-DD o DD/MM/YYYY)');
+                }
+            } catch (e) {
+                isValid = false;
+                recordErrors.push('La fecha no tiene un formato válido (YYYY-MM-DD o DD/MM/YYYY)');
+            }
         }
-    } catch (e) {
-        isValid = false;
-        recordErrors.push('La fecha no tiene un formato válido (YYYY-MM-DD o DD/MM/YYYY)');
-    }
-}
 
         if (isValid) {
             validRecords++;
@@ -798,24 +1205,36 @@ if (!measurement.fecha || measurement.fecha === '') {
 }
 
 function getMappedValue(row, fieldName) {
-    if (fieldMapping[fieldName] === undefined) {
+    if (!fieldMapping || typeof fieldMapping !== 'object') {
+        return null;
+    }
+
+    if (fieldMapping[fieldName] === undefined || fieldMapping[fieldName] === null) {
         return null;
     }
 
     const columnIndex = fieldMapping[fieldName];
-    if (columnIndex === undefined || columnIndex >= row.length) {
+    
+    if (typeof columnIndex !== 'number' || isNaN(columnIndex)) {
         return null;
     }
 
-    if (columnIndex < 0 || columnIndex >= row.length || !row || row.length === 0) {
+    if (!row || !Array.isArray(row) || row.length === 0) {
         return null;
     }
 
-    if (row[columnIndex] === undefined) {
+    if (columnIndex >= row.length) {
         return null;
     }
 
-    return row[columnIndex].trim();
+    const value = row[columnIndex];
+    
+    if (value === undefined || value === null) {
+        return null;
+    }
+
+    const strValue = String(value).trim();
+    return strValue !== '' ? strValue : null;
 }
 
 function renderErrors(errors) {
@@ -834,7 +1253,9 @@ function renderErrors(errors) {
     });
 }
 
-// Reemplaza la función importMeasurements con esta versión mejorada
+// =============================================
+// FUNCIONES DE IMPORTACIÓN Y RESULTADOS
+// =============================================
 
 function importMeasurements() {
     if (!file || !fieldMapping || !selectedGroupId) {
@@ -849,15 +1270,13 @@ function importMeasurements() {
         }
     }
 
-    // Obtener estado de sobrescritura
     const overwriteDuplicates = $('#overwriteDuplicates').is(':checked');
+    const identificationMethod = $('#identificationMethod').val();
 
-    // ✅ DEBUG: Mostrar el mapeo antes de enviar
     console.log('Field Mapping:', fieldMapping);
-    console.log('Sample Data:', sampleData);
-    console.log('Sensors in Group:', sensorsInGroup);
+    console.log('Identification Method:', identificationMethod);
+    console.log('Method label:', $('#identificationMethod option:selected').text());
     
-    // ✅ Verificar que el mapeo tenga los campos correctos
     if (!fieldMapping.sensor && fieldMapping.sensor !== 0) {
         showAlert('Error: El campo "Sensor" no está mapeado correctamente', 'danger');
         return;
@@ -880,12 +1299,8 @@ function importMeasurements() {
     formData.append('file', file);
     formData.append('group_id', selectedGroupId);
     formData.append('field_mapping', JSON.stringify(fieldMapping));
+    formData.append('identification_method', identificationMethod);
     formData.append('overwrite_duplicates', overwriteDuplicates);
-
-    // ✅ DEBUG: Verificar el contenido del FormData
-    for (let [key, value] of formData.entries()) {
-        console.log(key, value);
-    }
 
     $.ajax({
         url: '/api/measurements/bulk-import/import',
@@ -906,13 +1321,10 @@ function importMeasurements() {
                 $('#progressBar').css('width', '100%');
                 $('#progressText').text('Importación completada');
 
-                // Guardar report_id
                 currentReportId = response.data.report_id;
                 
-                // Mostrar resultados
                 showResults(response.data);
                 
-                // Mostrar alerta de éxito
                 const message = `Importación completada: ${response.data.success_count} mediciones creadas, ${response.data.error_count} con errores`;
                 showAlert(message, 'success');
 
@@ -945,21 +1357,15 @@ function importMeasurements() {
     });
 }
 
-/**
- * Mostrar resultados de la importación
- */
 function showResults(data) {
-    // Ocultar pasos y mostrar resultados
     $('.step').addClass('d-none');
     $('#step4').removeClass('d-none');
     
-    // Actualizar resumen
     $('#resultTotal').text(data.total_processed || 0);
     $('#resultSuccess').text(data.success_count || 0);
     $('#resultErrors').text(data.error_count || 0);
     $('#resultOverwritten').text(data.overwritten_count || 0);
     
-    // Si hay errores, mostrarlos en la tabla de resultados
     const tbody = $('#resultTableBody');
     tbody.empty();
     
@@ -993,9 +1399,6 @@ function showResults(data) {
     }
 }
 
-/**
- * Descargar informe
- */
 function downloadReport() {
     if (!currentReportId) {
         showAlert('No hay informe disponible para descargar', 'warning');
@@ -1006,22 +1409,18 @@ function downloadReport() {
     window.location.href = `/api/measurements/bulk-import/report?report_id=${currentReportId}&token=${token}`;
 }
 
-/**
- * Iniciar nueva importación
- */
 function startNewImport() {
-    // Resetear todo
     currentReportId = null;
     file = null;
     excelHeaders = [];
     sampleData = [];
+    allData = [];
     fieldMapping = {};
     $('#step4').addClass('d-none');
     $('#step1').removeClass('d-none');
     currentStep = 1;
     showStep(1);
     
-    // Resetear campos
     $('#fileInput').val('');
     $('#groupSelect').val('');
     $('#overwriteDuplicates').prop('checked', false);

@@ -93,7 +93,6 @@ public function index(Request $request)
             $q->whereHas('sensor', function($q2) use ($search, $user) {
                 $q2->where('name', 'like', "%{$search}%")
                    ->orWhere('identifier', 'like', "%{$search}%")
-                   ->orWhere('metadata', 'like', "%{$search}%") // ✅ Buscar en campos extra
                    ->whereHas('group', function($q3) use ($user) {
                        $q3->where('user_id', $user->id)
                           ->orWhereHas('sharedAccess', function($q4) use ($user) {
@@ -226,31 +225,6 @@ public function index(Request $request)
         }
 
         $measurement->previous_measurement = $previousMeasurement;
-        
-        // ✅ AÑADIR CAMPOS EXTRA DEL SENSOR
-        $sensor = $measurement->sensor;
-        if ($sensor) {
-            // Obtener campos extra del sensor (metadata)
-            $extraFields = $sensor->metadata ?? [];
-            
-            // También podemos obtener campos específicos si existen como columnas
-            $sensorExtraData = [
-                'numero_lote' => $sensor->numero_lote ?? $extraFields['numero_lote'] ?? null,
-                'codigo_medidor' => $sensor->codigo_medidor ?? $extraFields['codigo_medidor'] ?? null,
-                'numero_serie' => $sensor->numero_serie ?? $extraFields['numero_serie'] ?? null,
-                'marca' => $sensor->marca ?? $extraFields['marca'] ?? null,
-                'modelo' => $sensor->modelo ?? $extraFields['modelo'] ?? null,
-                // Agregar cualquier otro campo extra que pueda existir
-            ];
-            
-            // Filtrar campos nulos
-            $sensorExtraData = array_filter($sensorExtraData, function($value) {
-                return $value !== null && $value !== '';
-            });
-            
-            $measurement->sensor_extra_fields = $sensorExtraData;
-        }
-        
         return $measurement;
     });
 
@@ -1341,7 +1315,7 @@ public function create(Sensor $sensor)
     $userId = $user->id;
     $sensorId = $sensor->id;
     $year = $measuredAt->format('Y');
-    $month = $measuredAt->format('M');
+    $month = $measuredAt->format('m');
     $sensorName = Str::slug($sensor->name);
     $timestamp = $measuredAt->format('Ymd_His');
     

@@ -450,7 +450,7 @@ class SubscriptionPaymentController extends Controller
         try {
             $user = $request->user();
             $plan = $request->input('plan', 'basico');
-            $durationMinutes = $request->input('duration_minutes', 5);
+            $durationMinutes = $request->input('duration_minutes', 43200); // ✅ 30 días por defecto
 
             // Validar plan
             if (!in_array($plan, ['free', 'basico', 'premium'])) {
@@ -466,7 +466,6 @@ class SubscriptionPaymentController extends Controller
                 ->update(['status' => 'expired']);
 
             // ✅ Crear nueva suscripción de prueba
-            // EL PLAN FREE SIEMPRE ES PERMANENTE (expires_at = null)
             $expiresAt = ($plan === 'free') ? null : now()->addMinutes($durationMinutes);
             
             $amount = 0.00;
@@ -500,6 +499,11 @@ class SubscriptionPaymentController extends Controller
                 $user->assignRole('consumidor');
             }
 
+            // ✅ Guardar plan anterior en sesión para detección de downgrade
+            if ($plan !== 'free') {
+                session(['previous_plan' => $plan]);
+            }
+
             Log::info('✅ Suscripción de prueba activada', [
                 'user_id' => $user->id,
                 'plan' => $plan,
@@ -511,9 +515,7 @@ class SubscriptionPaymentController extends Controller
                 'success' => true,
                 'message' => ($plan === 'free')
                     ? "Suscripción Free activada (permanente)."
-                    : (($durationMinutes !== null) 
-                        ? "Suscripción {$plan} activada por {$durationMinutes} minutos para pruebas."
-                        : "Suscripción {$plan} activada por 5 minutos para pruebas."),
+                    : "Suscripción {$plan} activada por 30 días para pruebas.",
                 'data' => [
                     'subscription' => $subscription,
                     'expires_at' => $subscription->expires_at ? $subscription->expires_at->toDateTimeString() : null

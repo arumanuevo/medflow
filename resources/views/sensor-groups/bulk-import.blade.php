@@ -19,6 +19,16 @@
                     <!-- Alertas -->
                     <div id="alertContainer"></div>
 
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Formatos de archivo soportados:</strong>
+                        <ul class="mb-0 mt-1">
+                            <li><strong>Excel (.xlsx):</strong> Compatible con todas las versiones</li>
+                            <li><strong>CSV (.csv):</strong> Soporta diferentes codificaciones (UTF-8, ISO-8859-1, Windows-1252)</li>
+                            <li>Delimitadores soportados: <strong>; (punto y coma)</strong> y <strong>, (coma)</strong></li>
+                            <li class="text-muted">Si tienes problemas con caracteres especiales, guarda el archivo como UTF-8</li>
+                        </ul>
+                    </div>
                     <!-- Paso 1: Seleccionar Grupo y Archivo -->
                     <div id="step1" class="step">
                         <h5><i class="bi bi-upload btn-icon"></i> Paso 1: Seleccionar Grupo y Subir Archivo</h5>
@@ -354,213 +364,328 @@ $('#confirmImportBtn').click(function() {
     executeImport();
 });
 
-// ✅ Función que ejecuta la importación (separada para claridad)
-// ✅ Función que ejecuta la importación
-function executeImport() {
-    const totalReal = window.totalRows || 0;
+// =============================================
+// FUNCIÓN DE IMPORTACIÓN - VERSIÓN COMPLETA
+// =============================================
 
-    // ✅ Convertir extraFieldMapping a array de objetos
-    const extraFieldsArray = [];
-    for (const [fieldName, columnIndex] of Object.entries(extraFieldMapping)) {
-        if (columnIndex !== '' && columnIndex !== null) {
-            extraFieldsArray.push({
-                name: fieldName,
-                column: parseInt(columnIndex)
-            });
+    function executeImport() {
+        const totalReal = window.totalRows || 0;
+
+        // ✅ Verificar que el archivo existe
+        if (!file) {
+            showAlert('No hay archivo para importar', 'danger');
+            return;
         }
-    }
 
-    $('#progressContainer').removeClass('d-none');
-    $('#importBtn').prop('disabled', true);
+        // ✅ Verificar el tamaño del archivo (máximo 10MB)
+        const maxSize = 10 * 1024 * 1024; // 10MB en bytes
+        if (file.size > maxSize) {
+            showAlert('El archivo es demasiado grande. El tamaño máximo permitido es 10MB.', 'danger');
+            return;
+        }
 
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('group_id', selectedGroupId);
-    formData.append('field_mapping', JSON.stringify(fieldMapping));
-    formData.append('extra_fields', JSON.stringify(extraFieldsArray));
+        // ✅ Verificar la extensión del archivo
+        const fileExtension = file.name.split('.').pop().toLowerCase();
+        const validExtensions = ['xlsx', 'csv'];
+        if (!validExtensions.includes(fileExtension)) {
+            showAlert(`Extensión de archivo no válida: '${fileExtension}'. Solo se permiten archivos .xlsx o .csv.`, 'danger');
+            return;
+        }
 
-    $.ajax({
-        url: '/api/sensor-groups/bulk-import',
-        type: 'POST',
-        headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('token'),
-            'Accept': 'application/json'
-        },
-        data: formData,
-        processData: false,
-        contentType: false,
-        beforeSend: function() {
-            $('#progressText').text(`Importando ${totalReal} registros...`);
-            $('#progressBar').css('width', '30%');
-        },
-        success: function(response) {
-            if (response.success) {
-                $('#progressBar').css('width', '100%');
-                $('#progressText').text(`Importación completada`);
+        // ✅ Mostrar progreso
+        $('#progressContainer').removeClass('d-none');
+        $('#importBtn').prop('disabled', true);
+        $('#progressBar').css('width', '0%');
+        $('#progressText').text('Preparando importación...');
 
-                let message = '';
-                let hasErrors = response.data.error_count > 0;
-                
-                if (response.data.created_count > 0) {
-                    message += `✅ ${response.data.created_count} sensores nuevos creados. `;
-                }
-                if (response.data.updated_count > 0) {
-                    message += `🔄 ${response.data.updated_count} sensores actualizados. `;
-                }
-                if (response.data.error_count > 0) {
-                    message += `❌ ${response.data.error_count} con errores.`;
-                }
-
-                if (hasErrors && response.data.errors && response.data.errors.length > 0) {
-                    showErrorDetailsModal(response.data.errors);
-                    showAlert(message + ' Revisa los detalles en el modal.', 'warning');
-                    $('#importBtn').prop('disabled', false);
-                    $('#progressContainer').addClass('d-none');
-                } else {
-                    showAlert(message, 'success');
-                    setTimeout(() => {
-                        window.location.href = '{{ route("sensors.index") }}';
-                    }, 3000);
-                }
-            } else {
-                $('#progressContainer').addClass('d-none');
-                $('#importBtn').prop('disabled', false);
-                showAlert(response.message || 'Error al importar sensores', 'danger');
+        // ✅ Convertir extraFieldMapping a array de objetos
+        const extraFieldsArray = [];
+        for (const [fieldName, columnIndex] of Object.entries(extraFieldMapping)) {
+            if (columnIndex !== '' && columnIndex !== null && columnIndex !== undefined) {
+                extraFieldsArray.push({
+                    name: fieldName,
+                    column: parseInt(columnIndex)
+                });
             }
-        },
-        error: function(xhr) {
+        }
+
+        // ✅ Verificar que los campos obligatorios estén mapeados
+        const requiredFields = ['name', 'identifier'];
+        let missingRequired = [];
+        requiredFields.forEach(field => {
+            if (!fieldMapping[field] && fieldMapping[field] !== 0) {
+                missingRequired.push(field);
+            }
+        });
+
+        if (missingRequired.length > 0) {
+            showAlert(`Faltan campos obligatorios por mapear: ${missingRequired.join(', ')}`, 'danger');
             $('#progressContainer').addClass('d-none');
             $('#importBtn').prop('disabled', false);
-            
-            let errorMessage = 'Error al importar sensores';
-            if (xhr.responseJSON?.message) {
-                errorMessage += ': ' + xhr.responseJSON.message;
-            }
-            if (xhr.responseJSON?.errors) {
-                const errors = Object.values(xhr.responseJSON.errors).flat();
-                errorMessage += '<br><ul>';
-                errors.forEach(err => {
-                    errorMessage += `<li>${err}</li>`;
-                });
-                errorMessage += '</ul>';
-            }
-            showAlert(errorMessage, 'danger');
+            return;
         }
-    });
-}
-    // Cambio de grupo
-    $('#groupSelect').change(function() {
-        selectedGroupId = $(this).val();
-        if (selectedGroupId) {
+
+        // ✅ Log para depuración
+        console.log('📤 Enviando archivo:', {
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            extension: fileExtension,
+            group_id: selectedGroupId,
+            field_mapping: fieldMapping,
+            extra_fields: extraFieldsArray,
+            total_rows: totalReal
+        });
+
+        // ✅ Crear FormData
+        const formData = new FormData();
+        formData.append('file', file, file.name);
+        formData.append('group_id', selectedGroupId);
+        formData.append('field_mapping', JSON.stringify(fieldMapping));
+        formData.append('extra_fields', JSON.stringify(extraFieldsArray));
+
+        // ✅ Mostrar progreso inicial
+        $('#progressText').text(`Preparando importación de ${totalReal} registros...`);
+        $('#progressBar').css('width', '10%');
+
+        // ✅ Enviar solicitud
+        $.ajax({
+            url: '/api/sensor-groups/bulk-import',
+            type: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                'Accept': 'application/json'
+            },
+            data: formData,
+            processData: false,
+            contentType: false,
+            timeout: 60000, // 60 segundos de timeout
+            xhr: function() {
+                const xhr = new window.XMLHttpRequest();
+                // ✅ Monitorear progreso de subida
+                xhr.upload.addEventListener("progress", function(evt) {
+                    if (evt.lengthComputable) {
+                        const percentComplete = Math.round((evt.loaded / evt.total) * 50);
+                        $('#progressBar').css('width', (10 + percentComplete) + '%');
+                        $('#progressText').text(`Subiendo archivo... ${percentComplete}%`);
+                    }
+                }, false);
+                return xhr;
+            },
+            beforeSend: function() {
+                $('#progressText').text('Enviando archivo al servidor...');
+                $('#progressBar').css('width', '20%');
+            },
+            success: function(response) {
+                console.log('✅ Respuesta de importación:', response);
+                
+                if (response.success) {
+                    // ✅ Progreso completado
+                    $('#progressBar').css('width', '100%');
+                    $('#progressText').text('✅ Importación completada');
+
+                    let message = '';
+                    let hasErrors = response.data.error_count > 0;
+                    
+                    if (response.data.created_count > 0) {
+                        message += `✅ ${response.data.created_count} sensores nuevos creados. `;
+                    }
+                    if (response.data.updated_count > 0) {
+                        message += `🔄 ${response.data.updated_count} sensores actualizados. `;
+                    }
+                    if (response.data.error_count > 0) {
+                        message += `❌ ${response.data.error_count} con errores.`;
+                    }
+
+                    // ✅ Si hay errores, mostrar modal con detalles
+                    if (hasErrors && response.data.errors && response.data.errors.length > 0) {
+                        showErrorDetailsModal(response.data.errors);
+                        showAlert(message + ' Revisa los detalles en el modal.', 'warning');
+                        $('#importBtn').prop('disabled', false);
+                        $('#progressContainer').addClass('d-none');
+                    } else {
+                        // ✅ Éxito completo sin errores
+                        showAlert(message, 'success');
+                        
+                        // ✅ Redirigir a la lista de sensores después de 3 segundos
+                        setTimeout(() => {
+                            window.location.href = '{{ route("sensors.index") }}';
+                        }, 3000);
+                    }
+                } else {
+                    // ❌ Error en la respuesta
+                    $('#progressContainer').addClass('d-none');
+                    $('#importBtn').prop('disabled', false);
+                    showAlert(response.message || 'Error al importar sensores', 'danger');
+                }
+            },
+            error: function(xhr) {
+                console.error('❌ Error en la importación:', xhr);
+                
+                $('#progressContainer').addClass('d-none');
+                $('#importBtn').prop('disabled', false);
+                
+                // ✅ Manejar errores específicos
+                let errorMessage = 'Error al importar sensores';
+                
+                if (xhr.status === 0) {
+                    errorMessage = 'Error de conexión. Verifica tu conexión a internet e intenta nuevamente.';
+                } else if (xhr.status === 413) {
+                    errorMessage = 'El archivo es demasiado grande. El tamaño máximo permitido es 10MB.';
+                } else if (xhr.status === 403) {
+                    errorMessage = 'No tienes permiso para importar sensores en este grupo.';
+                } else if (xhr.status === 404) {
+                    errorMessage = 'El grupo seleccionado no existe.';
+                } else if (xhr.responseJSON) {
+                    if (xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                    if (xhr.responseJSON.errors) {
+                        const errors = Object.values(xhr.responseJSON.errors).flat();
+                        errorMessage += '<br><ul>';
+                        errors.forEach(err => {
+                            errorMessage += `<li>${err}</li>`;
+                        });
+                        errorMessage += '</ul>';
+                    }
+                } else if (xhr.statusText) {
+                    errorMessage += ': ' + xhr.statusText;
+                }
+                
+                // ✅ Mostrar error en un modal si es detallado
+                if (xhr.responseJSON && xhr.responseJSON.errors) {
+                    showErrorDetailsModal([{
+                        row: 'N/A',
+                        error: errorMessage,
+                        data: xhr.responseJSON
+                    }]);
+                } else {
+                    showAlert(errorMessage, 'danger');
+                }
+            }
+        });
+    }
+        // Cambio de grupo
+        $('#groupSelect').change(function() {
+            selectedGroupId = $(this).val();
+            if (selectedGroupId) {
+                loadTemplateFields(selectedGroupId);
+                loadSensorsByGroup(selectedGroupId);
+            } else {
+                $('#groupInfo').addClass('d-none');
+                $('#templateInfo').addClass('d-none');
+            }
+        });
+
+        // Si hay un grupo preseleccionado, cargar sus datos
+        if ($('#groupSelect').val()) {
+            selectedGroupId = $('#groupSelect').val();
             loadTemplateFields(selectedGroupId);
             loadSensorsByGroup(selectedGroupId);
-        } else {
-            $('#groupInfo').addClass('d-none');
-            $('#templateInfo').addClass('d-none');
         }
+
+        // ✅ Cargar campos extras (siempre disponibles)
+        loadExtraFields();
     });
 
-    // Si hay un grupo preseleccionado, cargar sus datos
-    if ($('#groupSelect').val()) {
-        selectedGroupId = $('#groupSelect').val();
-        loadTemplateFields(selectedGroupId);
-        loadSensorsByGroup(selectedGroupId);
-    }
+    // =============================================
+    // FUNCIÓN PARA MOSTRAR ERRORES DETALLADOS
+    // =============================================
 
-    // ✅ Cargar campos extras (siempre disponibles)
-    loadExtraFields();
-});
-
-function showErrorDetailsModal(errors) {
-    // ✅ Crear el modal si no existe
-    if ($('#errorDetailsModal').length === 0) {
-        const modalHtml = `
-            <div class="modal fade" id="errorDetailsModal" tabindex="-1" aria-labelledby="errorDetailsModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-lg modal-dialog-scrollable">
-                    <div class="modal-content">
-                        <div class="modal-header bg-danger text-white">
-                            <h5 class="modal-title" id="errorDetailsModalLabel">
-                                <i class="bi bi-exclamation-triangle-fill"></i> Detalles de Errores de Importación
-                            </h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body" id="errorDetailsContent">
-                            <!-- Contenido dinámico -->
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                <i class="bi bi-x-circle"></i> Cerrar
-                            </button>
-                            <button type="button" class="btn btn-success" id="downloadErrorReportBtn">
-                                <i class="bi bi-download"></i> Descargar Informe
-                            </button>
-                            <button type="button" class="btn btn-primary" id="continueToSensorsBtn">
-                                <i class="bi bi-arrow-right"></i> Ir a Sensores
-                            </button>
+    function showErrorDetailsModal(errors) {
+        // ✅ Crear el modal si no existe
+        if ($('#errorDetailsModal').length === 0) {
+            const modalHtml = `
+                <div class="modal fade" id="errorDetailsModal" tabindex="-1" aria-labelledby="errorDetailsModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                        <div class="modal-content">
+                            <div class="modal-header bg-danger text-white">
+                                <h5 class="modal-title" id="errorDetailsModalLabel">
+                                    <i class="bi bi-exclamation-triangle-fill"></i> Detalles de Errores de Importación
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body" id="errorDetailsContent">
+                                <!-- Contenido dinámico -->
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <i class="bi bi-x-circle"></i> Cerrar
+                                </button>
+                                <button type="button" class="btn btn-success" id="downloadErrorReportBtn">
+                                    <i class="bi bi-download"></i> Descargar Informe
+                                </button>
+                                <button type="button" class="btn btn-primary" id="continueToSensorsBtn">
+                                    <i class="bi bi-arrow-right"></i> Ir a Sensores
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
+            `;
+            $('body').append(modalHtml);
+        }
+
+        // ✅ Llenar el modal con los errores
+        const content = $('#errorDetailsContent');
+        let html = `
+            <div class="alert alert-warning">
+                <i class="bi bi-info-circle"></i>
+                <strong>Total de errores:</strong> ${errors.length}
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th># Fila</th>
+                            <th>Error</th>
+                            <th>Datos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        errors.forEach((error, index) => {
+            const rowData = error.data ? JSON.stringify(error.data) : 'N/A';
+            html += `
+                <tr>
+                    <td><span class="badge bg-danger">${error.row || 'N/A'}</span></td>
+                    <td><strong class="text-danger">${error.error || 'Error desconocido'}</strong></td>
+                    <td><small class="text-muted">${rowData}</small></td>
+                </tr>
+            `;
+        });
+
+        html += `
+                    </tbody>
+                </table>
+            </div>
+            <div class="alert alert-info mt-3">
+                <i class="bi bi-lightbulb"></i>
+                <strong>Consejo:</strong> Revisa los datos de las filas con error y corrige el archivo antes de volver a importar.
             </div>
         `;
-        $('body').append(modalHtml);
+
+        content.html(html);
+        
+        // ✅ Evento para descargar informe
+        $('#downloadErrorReportBtn').off('click').on('click', function() {
+            downloadErrorReport(errors);
+        });
+        
+        // ✅ Evento para ir a sensores
+        $('#continueToSensorsBtn').off('click').on('click', function() {
+            $('#errorDetailsModal').modal('hide');
+            window.location.href = '{{ route("sensors.index") }}';
+        });
+
+        // ✅ Mostrar el modal
+        $('#errorDetailsModal').modal('show');
     }
 
-    // ✅ Llenar el modal con los errores
-    const content = $('#errorDetailsContent');
-    let html = `
-        <div class="alert alert-warning">
-            <i class="bi bi-info-circle"></i>
-            <strong>Total de errores:</strong> ${errors.length}
-        </div>
-        <div class="table-responsive">
-            <table class="table table-bordered table-striped table-hover">
-                <thead>
-                    <tr>
-                        <th># Fila</th>
-                        <th>Error</th>
-                        <th>Datos</th>
-                    </tr>
-                </thead>
-                <tbody>
-    `;
-
-    errors.forEach((error, index) => {
-        const rowData = error.data ? JSON.stringify(error.data) : 'N/A';
-        html += `
-            <tr>
-                <td><span class="badge bg-danger">${error.row || 'N/A'}</span></td>
-                <td><strong class="text-danger">${error.error || 'Error desconocido'}</strong></td>
-                <td><small class="text-muted">${rowData}</small></td>
-            </tr>
-        `;
-    });
-
-    html += `
-                </tbody>
-            </table>
-        </div>
-        <div class="alert alert-info mt-3">
-            <i class="bi bi-lightbulb"></i>
-            <strong>Consejo:</strong> Revisa los datos de las filas con error y corrige el archivo antes de volver a importar.
-        </div>
-    `;
-
-    content.html(html);
-    
-    // ✅ Evento para descargar informe
-    $('#downloadErrorReportBtn').off('click').on('click', function() {
-        downloadErrorReport(errors);
-    });
-    
-    // ✅ Evento para ir a sensores
-    $('#continueToSensorsBtn').off('click').on('click', function() {
-        $('#errorDetailsModal').modal('hide');
-        window.location.href = '{{ route("sensors.index") }}';
-    });
-
-    // ✅ Mostrar el modal
-    $('#errorDetailsModal').modal('show');
-}
+// =============================================
+// FUNCIÓN PARA DESCARGAR INFORME DE ERRORES
+// =============================================
 
 function downloadErrorReport(errors) {
     // ✅ Crear contenido CSV
@@ -587,6 +712,28 @@ function downloadErrorReport(errors) {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
 }
+
+// =============================================
+// FUNCIÓN PARA MOSTRAR ALERTAS
+// =============================================
+
+function showAlert(message, type) {
+    const alertHtml = `
+        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `;
+    $('#alertContainer').append(alertHtml);
+    
+    // ✅ Auto-eliminar después de 8 segundos
+    setTimeout(() => {
+        $('#alertContainer .alert').first().fadeOut(500, function() {
+            $(this).remove();
+        });
+    }, 8000);
+}
+
 // =============================================
 // FUNCIONES DE CARGA DE DATOS
 // =============================================
@@ -968,6 +1115,11 @@ function renderExtraFields() {
     `;
     container.append(html);
 
+    // ✅ Evento para el botón de agregar campo (DELEGACIÓN DE EVENTOS)
+    $('#addExtraFieldBtn').off('click').on('click', function() {
+        addExtraField();
+    });
+
     // ✅ Si hay campos extras predefinidos, mostrarlos
     if (extraFields && extraFields.length > 0) {
         extraFields.forEach(field => {
@@ -976,20 +1128,27 @@ function renderExtraFields() {
     }
 }
 
+
 function addExtraField() {
+    // ✅ Verificar que haya encabezados disponibles
+    if (excelHeaders.length === 0) {
+        showAlert('Primero debes subir un archivo para ver las columnas disponibles.', 'warning');
+        return;
+    }
+
     const fieldName = prompt('Nombre del campo (ej: lote, apellido, ubicacion):');
-    if (!fieldName) return;
+    if (!fieldName || fieldName.trim() === '') return;
     
     const fieldLabel = prompt('Etiqueta del campo (ej: Lote, Apellido, Ubicación):', fieldName.charAt(0).toUpperCase() + fieldName.slice(1));
-    if (!fieldLabel) return;
+    if (!fieldLabel || fieldLabel.trim() === '') return;
     
     // ✅ Verificar si ya existe
-    if ($(`.extra-field[data-field="${fieldName}"]`).length > 0) {
+    if ($(`.extra-field[data-field="${fieldName.trim()}"]`).length > 0) {
         showAlert(`El campo "${fieldLabel}" ya existe`, 'warning');
         return;
     }
     
-    addExtraFieldRow(fieldName, fieldLabel, true);
+    addExtraFieldRow(fieldName.trim(), fieldLabel.trim(), true);
 }
 
 function addExtraFieldRow(fieldName, fieldLabel, isCustom = false) {
@@ -999,9 +1158,9 @@ function addExtraFieldRow(fieldName, fieldLabel, isCustom = false) {
     container.find('#noExtraFieldsMsg').remove();
 
     const row = $(`
-        <div class="row mb-2 extra-field" data-field="${fieldName}">
-            <div class="col-md-5">
-                <label class="form-label small">
+        <div class="row mb-2 extra-field align-items-center" data-field="${fieldName}">
+            <div class="col-md-4">
+                <label class="form-label small fw-bold mb-0">
                     ${fieldLabel}
                     ${isCustom ? '<span class="badge bg-warning text-dark ms-1">Personalizado</span>' : ''}
                 </label>
@@ -1011,8 +1170,10 @@ function addExtraFieldRow(fieldName, fieldLabel, isCustom = false) {
                     <option value="" selected>No mapear</option>
                 </select>
             </div>
-            <div class="col-md-1 text-center">
-                <i class="bi bi-trash text-danger remove-extra-field" style="cursor: pointer;" title="Eliminar campo"></i>
+            <div class="col-md-2 text-center">
+                <button type="button" class="btn btn-sm btn-outline-danger remove-extra-field" title="Eliminar campo">
+                    <i class="bi bi-trash"></i>
+                </button>
             </div>
         </div>
     `);
@@ -1025,7 +1186,7 @@ function addExtraFieldRow(fieldName, fieldLabel, isCustom = false) {
     });
 
     // ✅ Evento para eliminar campo
-    row.find('.remove-extra-field').click(function() {
+    row.find('.remove-extra-field').off('click').on('click', function() {
         if (confirm(`¿Eliminar el campo "${fieldLabel}"?`)) {
             row.remove();
             // ✅ Si no quedan campos, mostrar mensaje
@@ -1041,6 +1202,21 @@ function addExtraFieldRow(fieldName, fieldLabel, isCustom = false) {
     });
 
     container.append(row);
+}
+
+/**
+ * Obtener el mapeo de campos extras (para usar en la importación)
+ */
+function getExtraFieldMapping() {
+    const mapping = {};
+    $('.extra-field-select').each(function() {
+        const fieldName = $(this).data('field');
+        const columnIndex = $(this).val();
+        if (columnIndex !== '' && columnIndex !== null) {
+            mapping[fieldName] = parseInt(columnIndex);
+        }
+    });
+    return mapping;
 }
 
 // =============================================
@@ -1107,15 +1283,8 @@ function nextStep() {
             }
         });
 
-        // Guardar el mapeo de campos extras
-        extraFieldMapping = {};
-        $('.extra-field-select').each(function() {
-            const fieldName = $(this).data('field');
-            const columnIndex = $(this).val();
-            if (columnIndex !== '') {
-                extraFieldMapping[fieldName] = parseInt(columnIndex);
-            }
-        });
+        // ✅ Guardar el mapeo de campos extras usando la función
+        extraFieldMapping = getExtraFieldMapping();
 
         // ✅ Mostrar resumen del mapeo para depuración
         console.log('📋 Mapeo de campos básicos:', fieldMapping);
@@ -1192,7 +1361,6 @@ function generatePreview() {
         $('#errorRecords').text('0');
         $('#importSummary').removeClass('d-none');
         
-        // ✅ Actualizar mensaje informativo
         const previewInfo = `
             <div class="alert alert-warning mt-2">
                 <i class="bi bi-exclamation-triangle"></i>
