@@ -43,13 +43,13 @@ class BulkMeasurementFlowController extends Controller
         }
 
         // Obtener todos los sensores del workspace activo
-        $query = Sensor::whereHas('group', function($q) use ($activeWorkspace, $user, $isOwner) {
+        $query = Sensor::whereHas('group', function ($q) use ($activeWorkspace, $user, $isOwner) {
             if ($isOwner) {
                 $q->where('user_id', $activeWorkspace)
-                  ->orWhereHas('sharedAccess', function($q2) use ($user) {
-                      $q2->where('shared_with', $user->id)
-                          ->whereIn('role', ['inspector', 'admin']);
-                  });
+                    ->orWhereHas('sharedAccess', function ($q2) use ($user) {
+                        $q2->where('shared_with', $user->id)
+                            ->whereIn('role', ['inspector', 'admin']);
+                    });
             } else {
                 $q->where('user_id', $activeWorkspace);
             }
@@ -59,13 +59,13 @@ class BulkMeasurementFlowController extends Controller
 
         // Obtener los sensores actualmente marcados para medición
         $markedSensorIds = Sensor::where('marcado_para_medicion', true)
-            ->whereHas('group', function($q) use ($activeWorkspace, $user, $isOwner) {
+            ->whereHas('group', function ($q) use ($activeWorkspace, $user, $isOwner) {
                 if ($isOwner) {
                     $q->where('user_id', $activeWorkspace)
-                      ->orWhereHas('sharedAccess', function($q2) use ($user) {
-                          $q2->where('shared_with', $user->id)
-                              ->whereIn('role', ['inspector', 'admin']);
-                      });
+                        ->orWhereHas('sharedAccess', function ($q2) use ($user) {
+                            $q2->where('shared_with', $user->id)
+                                ->whereIn('role', ['inspector', 'admin']);
+                        });
                 } else {
                     $q->where('user_id', $activeWorkspace);
                 }
@@ -75,12 +75,17 @@ class BulkMeasurementFlowController extends Controller
 
         $ownerName = $isOwner ? $user->name : ($this->getWorkspaceOwnerName($activeWorkspace) ?? 'Propietario');
 
+        // ✅ Obtener Permisos para la vista
+        $gate = new \App\Services\Subscription\SubscriptionGate($user);
+        $permissions = $gate->getAllPermissions();
+
         return view('bulk-measurements.select-sensors', compact(
             'sensors',
             'markedSensorIds',
             'ownerName',
             'activeWorkspace',
-            'isOwner'
+            'isOwner',
+            'permissions'
         ));
     }
 
@@ -95,12 +100,12 @@ class BulkMeasurementFlowController extends Controller
 
         // Validar que hay sensores seleccionados
         $sensorIds = $request->input('sensor_ids', []);
-        
+
         // Convertir a array si viene como string (separado por comas)
         if (is_string($sensorIds)) {
             $sensorIds = explode(',', $sensorIds);
         }
-        
+
         if (empty($sensorIds)) {
             return redirect()->back()->with('error', 'Debes seleccionar al menos un sensor.');
         }
@@ -109,7 +114,8 @@ class BulkMeasurementFlowController extends Controller
         $measurableSensorIds = [];
         foreach ($sensorIds as $sensorId) {
             $sensor = Sensor::find($sensorId);
-            if (!$sensor) continue;
+            if (!$sensor)
+                continue;
 
             if (!$this->canAccessSensor($user, $sensor, $activeWorkspace, $isOwner)) {
                 return redirect()->back()->with('error', "No tienes permiso para el sensor {$sensor->name}.");
@@ -126,9 +132,11 @@ class BulkMeasurementFlowController extends Controller
         if (empty($measurableSensorIds)) {
             $planName = (new \App\Services\Subscription\SubscriptionService($user))->getPlan()->getPlanName();
             $maxSensors = (new \App\Services\Subscription\SubscriptionService($user))->getPlan()->getMaxSensors();
-            return redirect()->back()->with('error', 
+            return redirect()->back()->with(
+                'error',
                 "No puedes tomar mediciones en ninguno de los sensores seleccionados con tu plan {$planName}. " .
-                "Tu plan permite medir solo en los primeros {$maxSensors} sensores.");
+                "Tu plan permite medir solo en los primeros {$maxSensors} sensores."
+            );
         }
 
         // Usar solo los sensores que el usuario puede medir
@@ -137,12 +145,12 @@ class BulkMeasurementFlowController extends Controller
         // Obtener el orden de selección si el usuario lo eligió
         $useSelectionOrder = $request->input('use_selection_order', 0);
         $selectionOrder = $request->input('selection_order', '');
-        
+
         if ($useSelectionOrder && !empty($selectionOrder)) {
             // Usar el orden de selección manual del usuario
-            $sensorIds = explode(',', $selectionOrder);
-            // Filtrar solo los IDs que están en la selección original (por seguridad)
-            $sensorIds = array_intersect($sensorIds, $request->input('sensor_ids', []));
+            $orderedSensorIds = explode(',', $selectionOrder);
+            // Filtrar solo los IDs que están en la selección original (y que el usuario puede medir)
+            $sensorIds = array_values(array_intersect($orderedSensorIds, $sensorIds));
         } else {
             // Ordenar por ID ascendente (orden por defecto)
             sort($sensorIds, SORT_NUMERIC);
@@ -157,7 +165,7 @@ class BulkMeasurementFlowController extends Controller
 
         // Redirigir al primer sensor en la secuencia
         $firstSensorId = $sensorIds[0];
-        
+
         Log::info('🚀 Iniciando medición masiva', [
             'user_id' => $user->id,
             'sensor_ids' => $sensorIds,
@@ -188,10 +196,10 @@ class BulkMeasurementFlowController extends Controller
         if (!$subscriptionService->canMeasureSensor($sensor)) {
             $planName = $subscriptionService->getPlan()->getPlanName();
             $maxSensors = $subscriptionService->getPlan()->getMaxSensors();
-            
+
             abort(403, "No puedes tomar mediciones en este sensor con tu plan {$planName}. " .
-                  "Tu plan permite medir solo en los primeros {$maxSensors} sensores. " .
-                  "Actualiza tu plan para medir en todos tus sensores.");
+                "Tu plan permite medir solo en los primeros {$maxSensors} sensores. " .
+                "Actualiza tu plan para medir en todos tus sensores.");
         }
 
         // Obtener la secuencia de sensores de la sesión
@@ -201,13 +209,13 @@ class BulkMeasurementFlowController extends Controller
         // Si no hay secuencia en sesión, crearla a partir de los sensores marcados
         if (empty($sequence)) {
             $sequence = Sensor::where('marcado_para_medicion', true)
-                ->whereHas('group', function($q) use ($activeWorkspace, $user, $isOwner) {
+                ->whereHas('group', function ($q) use ($activeWorkspace, $user, $isOwner) {
                     if ($isOwner) {
                         $q->where('user_id', $activeWorkspace)
-                          ->orWhereHas('sharedAccess', function($q2) use ($user) {
-                              $q2->where('shared_with', $user->id)
-                                  ->whereIn('role', ['inspector', 'admin']);
-                          });
+                            ->orWhereHas('sharedAccess', function ($q2) use ($user) {
+                                $q2->where('shared_with', $user->id)
+                                    ->whereIn('role', ['inspector', 'admin']);
+                            });
                     } else {
                         $q->where('user_id', $activeWorkspace);
                     }
@@ -264,7 +272,7 @@ class BulkMeasurementFlowController extends Controller
         $hasPrevious = $currentIndex > 0;
         $nextSensorId = $hasNext ? $sequence[$currentIndex + 1] : null;
         $previousSensorId = $hasPrevious ? $sequence[$currentIndex - 1] : null;
-        
+
         // Para mediciones individuales, deshabilitar navegación
         if ($isSingleMeasurement) {
             $hasNext = false;
@@ -308,7 +316,7 @@ class BulkMeasurementFlowController extends Controller
     {
         $user = auth()->user();
         $sensorId = $request->input('sensor_id');
-        
+
         // Validar que el sensor existe
         $sensor = Sensor::with('group')->findOrFail($sensorId);
 
@@ -357,7 +365,7 @@ class BulkMeasurementFlowController extends Controller
         if ($allMeasurements->isNotEmpty()) {
             $lastMeasurement = $allMeasurements->last();
             $lastValue = $lastMeasurement->data[$mainField] ?? 0;
-            
+
             if ($currentValue <= $lastValue) {
                 return response()->json([
                     'success' => false,
@@ -416,7 +424,7 @@ class BulkMeasurementFlowController extends Controller
         // Calcular el siguiente índice
         $nextIndex = $sensorPosition + 1;
         $hasNext = $nextIndex < count($sequence);
-        
+
         // Actualizar la sesión
         session(['bulk_measurement_current_index' => $nextIndex]);
 
@@ -466,29 +474,29 @@ class BulkMeasurementFlowController extends Controller
         if (!$subscriptionService->canMeasureSensor($sensor)) {
             $planName = $subscriptionService->getPlan()->getPlanName();
             $maxSensors = $subscriptionService->getPlan()->getMaxSensors();
-            
+
             abort(403, "No puedes tomar mediciones en este sensor con tu plan {$planName}. " .
-                  "Tu plan permite medir solo en los primeros {$maxSensors} sensores. " .
-                  "Actualiza tu plan para medir en todos tus sensores.");
+                "Tu plan permite medir solo en los primeros {$maxSensors} sensores. " .
+                "Actualiza tu plan para medir en todos tus sensores.");
         }
 
         // Obtener la secuencia de la sesión
         $sequence = session('bulk_measurement_sequence', []);
-        
+
         if (empty($sequence)) {
             return redirect()->route('bulk-measurements.select')->with('error', 'No hay secuencia de medición activa.');
         }
 
         // Encontrar la posición del sensor actual
         $currentIndex = array_search($sensor->id, $sequence);
-        
+
         if ($currentIndex === false) {
             return redirect()->route('bulk-measurements.select')->with('error', 'El sensor no está en la secuencia.');
         }
 
         // Calcular el siguiente índice
         $nextIndex = $currentIndex + 1;
-        
+
         if ($nextIndex >= count($sequence)) {
             // No hay más sensores, redirigir a la página de selección
             session()->forget(['bulk_measurement_sequence', 'bulk_measurement_current_index']);
@@ -496,7 +504,7 @@ class BulkMeasurementFlowController extends Controller
         }
 
         $nextSensorId = $sequence[$nextIndex];
-        
+
         // Actualizar la sesión
         session(['bulk_measurement_current_index' => $nextIndex]);
 
@@ -522,22 +530,22 @@ class BulkMeasurementFlowController extends Controller
         if (!$subscriptionService->canMeasureSensor($sensor)) {
             $planName = $subscriptionService->getPlan()->getPlanName();
             $maxSensors = $subscriptionService->getPlan()->getMaxSensors();
-            
+
             abort(403, "No puedes tomar mediciones en este sensor con tu plan {$planName}. " .
-                  "Tu plan permite medir solo en los primeros {$maxSensors} sensores. " .
-                  "Actualiza tu plan para medir en todos tus sensores.");
+                "Tu plan permite medir solo en los primeros {$maxSensors} sensores. " .
+                "Actualiza tu plan para medir en todos tus sensores.");
         }
 
         // Obtener la secuencia de la sesión
         $sequence = session('bulk_measurement_sequence', []);
-        
+
         if (empty($sequence)) {
             return redirect()->route('bulk-measurements.select')->with('error', 'No hay secuencia de medición activa.');
         }
 
         // Encontrar la posición del sensor actual
         $currentIndex = array_search($sensor->id, $sequence);
-        
+
         if ($currentIndex === false || $currentIndex === 0) {
             // No hay sensor anterior, quedarse en el actual
             return redirect()->route('bulk-measurements.create', $sensor->id);
@@ -545,7 +553,7 @@ class BulkMeasurementFlowController extends Controller
 
         $previousIndex = $currentIndex - 1;
         $previousSensorId = $sequence[$previousIndex];
-        
+
         // Actualizar la sesión
         session(['bulk_measurement_current_index' => $previousIndex]);
 
@@ -585,10 +593,12 @@ class BulkMeasurementFlowController extends Controller
         }
 
         // Usuario con acceso compartido al grupo
-        if ($sensor->group && $sensor->group->sharedAccess()
-            ->where('shared_with', $user->id)
-            ->whereIn('role', ['inspector', 'admin'])
-            ->exists()) {
+        if (
+            $sensor->group && $sensor->group->sharedAccess()
+                ->where('shared_with', $user->id)
+                ->whereIn('role', ['inspector', 'admin'])
+                ->exists()
+        ) {
             return true;
         }
 
@@ -601,7 +611,7 @@ class BulkMeasurementFlowController extends Controller
                 ->where('is_paused', false)
                 ->whereIn('role', ['inspector', 'admin'])
                 ->exists();
-            
+
             if ($collaboration) {
                 return true;
             }
@@ -625,7 +635,7 @@ class BulkMeasurementFlowController extends Controller
     private function getMainFieldFromSensor($sensor)
     {
         $mainField = 'valor';
-        
+
         if ($sensor && $sensor->group && $sensor->group->template) {
             $template = $sensor->group->template;
             if (isset($template->schema['campos'])) {
@@ -637,7 +647,7 @@ class BulkMeasurementFlowController extends Controller
                 }
             }
         }
-        
+
         return $mainField;
     }
 }

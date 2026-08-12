@@ -22,6 +22,9 @@ class SubscriptionService
     {
         $this->user = $user;
 
+        // ✅ Verificar expiración de suscripciones si aplica
+        $this->checkAndUpdateExpiredSubscription();
+
         // ✅ Si el usuario es colaborador, usar el plan del propietario del workspace
         if ($contextUser) {
             $this->ownerPlan = PlanFactory::makeFromUser($contextUser);
@@ -63,7 +66,7 @@ class SubscriptionService
         if ($this->ownerPlan) {
             return $this->ownerPlan;
         }
-        
+
         // ✅ SIEMPRE calcular el plan desde el usuario actualizado
         return PlanFactory::makeFromUser($this->user);
     }
@@ -125,7 +128,7 @@ class SubscriptionService
      */
     public function getCurrentSensorCount(): int
     {
-        return Sensor::whereHas('group', function($q) {
+        return Sensor::whereHas('group', function ($q) {
             $q->where('user_id', $this->user->id);
         })->count();
     }
@@ -188,10 +191,10 @@ class SubscriptionService
     {
         // ✅ PRIMERO: Verificar si la suscripción expiró y actualizar
         $this->checkAndUpdateExpiredSubscription();
-        
+
         // ✅ Obtener estado actualizado SIEMPRE del usuario en BD
         $this->user->refresh();
-        
+
         $plan = $this->getPlan();
         $limitStatus = $this->getLimitStatus();
         $activeSubscription = $this->user->getActiveSubscription();
@@ -261,19 +264,19 @@ class SubscriptionService
     {
         $plan = $this->getPlan();
         $maxSensors = $plan->getMaxSensors();
-        
+
         if ($maxSensors === PHP_INT_MAX) {
             return true;
         }
-        
-        $userSensors = Sensor::whereHas('group', function($q) {
+
+        $userSensors = Sensor::whereHas('group', function ($q) {
             $q->where('user_id', $this->user->id);
         })->orderBy('created_at', 'asc')->get();
-        
-        $sensorIndex = $userSensors->search(function($s) use ($sensor) {
+
+        $sensorIndex = $userSensors->search(function ($s) use ($sensor) {
             return $s->id === $sensor->id;
         });
-        
+
         return $sensorIndex !== false && $sensorIndex < $maxSensors;
     }
 
@@ -284,14 +287,14 @@ class SubscriptionService
     {
         $plan = $this->getPlan();
         $maxSensors = $plan->getMaxSensors();
-        
+
         if ($maxSensors === PHP_INT_MAX) {
-            return Sensor::whereHas('group', function($q) {
+            return Sensor::whereHas('group', function ($q) {
                 $q->where('user_id', $this->user->id);
             })->pluck('id')->toArray();
         }
-        
-        return Sensor::whereHas('group', function($q) {
+
+        return Sensor::whereHas('group', function ($q) {
             $q->where('user_id', $this->user->id);
         })->orderBy('created_at', 'asc')->limit($maxSensors)->pluck('id')->toArray();
     }
@@ -316,49 +319,45 @@ class SubscriptionService
      */
     public function checkAndUpdateExpiredSubscription(): bool
     {
-        $activeSubscription = Subscription::where('user_id', $this->user->id)
+        // Buscar suscripción activa cuya fecha de expiración ya pasó
+        $expiredSubscription = Subscription::where('user_id', $this->user->id)
             ->where('status', 'active')
-            ->where(function($q) {
-                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
-            })
+            ->whereNotNull('expires_at')
+            ->where('expires_at', '<=', now())
             ->latest()
             ->first();
-        
-        if (!$activeSubscription) {
+
+        if (!$expiredSubscription) {
             return false;
         }
-        
-        if ($activeSubscription->expires_at && $activeSubscription->expires_at->isPast()) {
-            // ✅ 1. Guardar el plan anterior ANTES de actualizar
-            $previousPlan = $activeSubscription->plan;
-            
-            // ✅ 2. Marcar suscripción como expirada
-            $activeSubscription->status = 'expired';
-            $activeSubscription->save();
-            
-            // ✅ 3. ACTUALIZAR USUARIO A 'free'
-            $this->user->refresh();
-            $this->user->subscription_type = 'domiciliario';
-            $this->user->subscription_plan = 'free';
-            $this->user->save();
-            
-            // ✅ 4. ACTUALIZAR ROLES
-            $this->user->syncRoles(['consumidor']);
-            
-            // ✅ 5. RECARGAR EL USUARIO
-            $this->user->refresh();
-            
-            Log::info('🔄 Suscripción expirada automáticamente - Usuario actualizado a Free', [
-                'user_id' => $this->user->id,
-                'subscription_id' => $activeSubscription->id,
-                'previous_plan' => $previousPlan,
-                'expired_at' => $activeSubscription->expires_at,
-                'new_plan' => 'free'
-            ]);
-            
-            return true;
-        }
-        
-        return false;
+
+        // ✅ 1. Guardar el plan anterior ANTES de actualizar
+        $previousPlan = $expiredSubscription->plan;
+
+        // ✅ 2. Marcar suscripción como expirada
+        $expiredSubscription->status = 'expired';
+        $expiredSubscription->save();
+
+        // ✅ 3. ACTUALIZAR USUARIO A 'free'
+        $this->user->refresh();
+        $this->user->subscription_type = 'domiciliario';
+        $this->user->subscription_plan = 'free';
+        $this->user->save();
+
+        // ✅ 4. ACTUALIZAR ROLES
+        $this->user->syncRoles(['consumidor']);
+
+        // ✅ 5. RECARGAR EL USUARIO
+        $this->user->refresh();
+
+        Log::info('🔄 Suscripción expirada automáticamente - Usuario actualizado a Free', [
+            'user_id' => $this->user->id,
+            'subscription_id' => $expiredSubscription->id,
+            'previous_plan' => $previousPlan,
+            'expired_at' => $expiredSubscription->expires_at,
+            'new_plan' => 'free'
+        ]);
+
+        return true;
     }
 }
