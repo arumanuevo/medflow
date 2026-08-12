@@ -7,7 +7,7 @@ use App\Models\SensorGroup;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Log; 
+use Illuminate\Support\Facades\Log;
 use App\Models\Measurement;
 use App\Services\Subscription\SubscriptionService;
 use Carbon\Carbon;
@@ -34,7 +34,7 @@ class SensorController extends Controller
         }
 
         if ($activeWorkspace == $user->id) {
-            $sensors = Sensor::whereHas('group', function($q) use ($user) {
+            $sensors = Sensor::whereHas('group', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             })->with(['group', 'group.template', 'group.user']);
         } else {
@@ -50,18 +50,20 @@ class SensorController extends Controller
                 ], 403);
             }
 
-            $sensors = Sensor::whereHas('group', function($q) use ($activeWorkspace) {
+            $sensors = Sensor::whereHas('group', function ($q) use ($activeWorkspace) {
                 $q->where('user_id', $activeWorkspace);
             })->with(['group', 'group.template', 'group.user']);
         }
 
-        $sensors = $sensors->with(['measurements' => function($query) {
-            $query->orderBy('measured_at', 'desc')->limit(1);
-        }])
-        ->orderBy('name')
-        ->get();
+        $sensors = $sensors->with([
+            'measurements' => function ($query) {
+                $query->orderBy('measured_at', 'desc')->limit(1);
+            }
+        ])
+            ->orderBy('name')
+            ->get();
 
-        $sensors->map(function($sensor) {
+        $sensors->map(function ($sensor) {
             $sensor->last_measurement = $sensor->measurements->first();
             unset($sensor->measurements);
             return $sensor;
@@ -101,6 +103,7 @@ class SensorController extends Controller
             'identifier' => 'required|string|max:255|unique:sensors',
             'description' => 'nullable|string',
             'group_id' => 'required|exists:sensor_groups,id',
+            'metadata' => 'nullable|array',
         ]);
 
         if ($validator->fails()) {
@@ -116,8 +119,8 @@ class SensorController extends Controller
 
         // Verificar permisos básicos
         $canCreate = $user->hasRole('admin') ||
-                    $group->user_id === $user->id ||
-                    $group->sharedAccess()->where('shared_with', $user->id)->exists();
+            $group->user_id === $user->id ||
+            $group->sharedAccess()->where('shared_with', $user->id)->exists();
 
         if (!$canCreate) {
             return response()->json([
@@ -128,15 +131,15 @@ class SensorController extends Controller
 
         // ✅ VERIFICAR LÍMITE DE SUSCRIPCIÓN
         $subscriptionService = new SubscriptionService($user);
-        
+
         if (!$subscriptionService->canCreateSensor()) {
             $status = $subscriptionService->getLimitStatus()['sensors'];
             $planName = $subscriptionService->getPlan()->getPlanName();
-            
+
             return response()->json([
                 'success' => false,
                 'message' => "Has alcanzado el límite de {$status['max']} sensores para tu plan {$planName}. " .
-                             "Elimina algunos sensores o actualiza tu plan para crear más.",
+                    "Elimina algunos sensores o actualiza tu plan para crear más.",
                 'code' => 'sensor_limit_exceeded',
                 'data' => [
                     'limit_status' => $status,
@@ -151,6 +154,7 @@ class SensorController extends Controller
             'identifier' => $request->identifier,
             'description' => $request->description,
             'group_id' => $request->group_id,
+            'metadata' => $request->input('metadata', []),
         ]);
 
         Log::info('✅ Sensor creado', [
@@ -172,23 +176,23 @@ class SensorController extends Controller
     public function show(Sensor $sensor)
     {
         $user = request()->user();
-    
+
         $canAccess = $user->hasRole('admin') ||
-                    ($sensor->group && $sensor->group->user_id === $user->id) ||
-                    ($sensor->group && $sensor->group->sharedAccess()->where('shared_with', $user->id)->exists());
-    
+            ($sensor->group && $sensor->group->user_id === $user->id) ||
+            ($sensor->group && $sensor->group->sharedAccess()->where('shared_with', $user->id)->exists());
+
         if (!$canAccess) {
             return response()->json([
                 'success' => false,
                 'message' => 'No tienes permiso para acceder a este sensor',
             ], 403);
         }
-    
+
         $sensor->load(['group', 'group.template', 'group.user']);
         $sensor->last_measurement = Measurement::where('sensor_id', $sensor->id)
             ->orderBy('measured_at', 'desc')
             ->first();
-    
+
         return response()->json([
             'success' => true,
             'message' => 'Sensor obtenido correctamente',
@@ -220,11 +224,11 @@ class SensorController extends Controller
 
         $group = SensorGroup::findOrFail($groupId);
         $canAccess = $user->hasRole('admin') ||
-                     $group->user_id === $user->id ||
-                     $group->sharedAccess()
-                         ->where('shared_with', $user->id)
-                         ->whereIn('role', ['inspector', 'admin'])
-                         ->exists();
+            $group->user_id === $user->id ||
+            $group->sharedAccess()
+                ->where('shared_with', $user->id)
+                ->whereIn('role', ['inspector', 'admin'])
+                ->exists();
 
         if (!$canAccess) {
             return response()->json([
@@ -257,6 +261,7 @@ class SensorController extends Controller
             'identifier' => 'sometimes|string|max:255|unique:sensors,identifier,' . $sensor->id,
             'description' => 'nullable|string',
             'group_id' => 'sometimes|exists:sensor_groups,id',
+            'metadata' => 'nullable|array',
         ]);
 
         if ($validator->fails()) {
@@ -270,8 +275,8 @@ class SensorController extends Controller
         $user = $request->user();
 
         $canUpdate = $user->hasRole('admin') ||
-                    ($sensor->group && $sensor->group->user_id === $user->id) ||
-                    ($sensor->group && $sensor->group->sharedAccess()->where('shared_with', $user->id)->exists());
+            ($sensor->group && $sensor->group->user_id === $user->id) ||
+            ($sensor->group && $sensor->group->sharedAccess()->where('shared_with', $user->id)->exists());
 
         if (!$canUpdate) {
             return response()->json([
@@ -283,8 +288,8 @@ class SensorController extends Controller
         if ($request->filled('group_id')) {
             $newGroup = SensorGroup::findOrFail($request->group_id);
             $canUpdateGroup = $user->hasRole('admin') ||
-                             $newGroup->user_id === $user->id ||
-                             $newGroup->sharedAccess()->where('shared_with', $user->id)->exists();
+                $newGroup->user_id === $user->id ||
+                $newGroup->sharedAccess()->where('shared_with', $user->id)->exists();
 
             if (!$canUpdateGroup) {
                 return response()->json([
@@ -319,11 +324,11 @@ class SensorController extends Controller
             ]);
 
             $canDelete = $user->hasRole('admin') ||
-                        ($sensor->group && $sensor->group->user_id === $user->id) ||
-                        ($sensor->group && $sensor->group->sharedAccess()
-                            ->where('shared_with', $user->id)
-                            ->whereIn('role', ['admin', 'inspector'])
-                            ->exists());
+                ($sensor->group && $sensor->group->user_id === $user->id) ||
+                ($sensor->group && $sensor->group->sharedAccess()
+                    ->where('shared_with', $user->id)
+                    ->whereIn('role', ['admin', 'inspector'])
+                    ->exists());
 
             if (!$canDelete) {
                 Log::warning("Intento de eliminación no autorizado", [
@@ -375,19 +380,22 @@ class SensorController extends Controller
     {
         $user = $request->user();
 
-        $sensors = Sensor::where(function($query) use ($user) {
-            $query->whereHas('group', function($q) use ($user) {
+        $sensors = Sensor::where(function ($query) use ($user) {
+            $query->whereHas('group', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
-            })->orWhereHas('group.sharedAccess', function($q) use ($user) {
+            })->orWhereHas('group.sharedAccess', function ($q) use ($user) {
                 $q->where('shared_with', $user->id);
             });
         })
-        ->with(['group', 'lastMeasurement' => function($query) {
-            $query->orderBy('measured_at', 'desc')->limit(1);
-        }])
-        ->get();
+            ->with([
+                'group',
+                'lastMeasurement' => function ($query) {
+                    $query->orderBy('measured_at', 'desc')->limit(1);
+                }
+            ])
+            ->get();
 
-        $sensorsWithData = $sensors->map(function($sensor) {
+        $sensorsWithData = $sensors->map(function ($sensor) {
             $lastMeasurement = $sensor->lastMeasurement;
             $nextMeasurementDate = null;
             $daysRemaining = null;
@@ -449,8 +457,8 @@ class SensorController extends Controller
         $user = $request->user();
 
         $canUpdate = $user->hasRole('admin') ||
-                     ($sensor->group && $sensor->group->user_id === $user->id) ||
-                     ($sensor->group && $sensor->group->sharedAccess()->where('shared_with', $user->id)->exists());
+            ($sensor->group && $sensor->group->user_id === $user->id) ||
+            ($sensor->group && $sensor->group->sharedAccess()->where('shared_with', $user->id)->exists());
 
         if (!$canUpdate) {
             return response()->json([

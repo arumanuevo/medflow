@@ -271,7 +271,7 @@ class SubscriptionService
 
         $userSensors = Sensor::whereHas('group', function ($q) {
             $q->where('user_id', $this->user->id);
-        })->orderBy('created_at', 'asc')->get();
+        })->orderBy('name', 'asc')->get();
 
         $sensorIndex = $userSensors->search(function ($s) use ($sensor) {
             return $s->id === $sensor->id;
@@ -296,7 +296,7 @@ class SubscriptionService
 
         return Sensor::whereHas('group', function ($q) {
             $q->where('user_id', $this->user->id);
-        })->orderBy('created_at', 'asc')->limit($maxSensors)->pluck('id')->toArray();
+        })->orderBy('name', 'asc')->limit($maxSensors)->pluck('id')->toArray();
     }
 
     /**

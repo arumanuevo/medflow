@@ -389,9 +389,11 @@
                             $customFields = [];
                             if (isset($sensor->group) && isset($sensor->group->template) && isset($sensor->group->template->schema['campos'])) {
                                 $customFields = array_filter($sensor->group->template->schema['campos'], function($campo) use ($mainField) {
+                                    $isSensorMetadata = isset($campo['contexto']) && $campo['contexto'] === 'sensor';
                                     return $campo['nombre'] !== ($mainField ?? 'valor') && 
                                            $campo['nombre'] !== 'foto' && 
-                                           $campo['nombre'] !== 'fecha_medicion';
+                                           $campo['nombre'] !== 'fecha_medicion' &&
+                                           !$isSensorMetadata;
                                 });
                             }
                         @endphp

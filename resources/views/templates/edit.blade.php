@@ -68,16 +68,16 @@
                                 @foreach($template->schema['campos'] as $index => $campo)
                                     <div class="field-row mb-2 p-2 border rounded">
                                         <div class="row g-2 align-items-center">
-                                            <div class="col-md-3">
+                                            <div class="col-md-2">
                                                 <input type="text" class="form-control field-name"
                                                        name="schema[campos][{{ $index }}][nombre]"
                                                        value="{{ $campo['nombre'] ?? '' }}"
-                                                       {{ ($campo['nombre'] ?? '') === 'valor' ? 'readonly' : '' }}>
+                                                       {{ in_array(($campo['nombre'] ?? ''), ['valor', 'consumo_m3', 'foto', 'fecha_medicion']) ? 'readonly' : '' }}>
                                             </div>
                                             <div class="col-md-2">
                                                 <select class="form-select field-type"
                                                         name="schema[campos][{{ $index }}][tipo]"
-                                                        {{ ($campo['nombre'] ?? '') === 'valor' ? 'disabled' : '' }} required>
+                                                        {{ in_array(($campo['nombre'] ?? ''), ['valor', 'consumo_m3', 'foto', 'fecha_medicion']) ? 'disabled' : '' }} required>
                                                     <option value="numero" {{ ($campo['tipo'] ?? '') === 'numero' ? 'selected' : '' }}>Número</option>
                                                     <option value="texto" {{ ($campo['tipo'] ?? '') === 'texto' ? 'selected' : '' }}>Texto</option>
                                                     <option value="fecha" {{ ($campo['tipo'] ?? '') === 'fecha' ? 'selected' : '' }}>Fecha</option>
@@ -85,24 +85,32 @@
                                                 </select>
                                             </div>
                                             <div class="col-md-2">
+                                                <select class="form-select field-context"
+                                                        name="schema[campos][{{ $index }}][contexto]"
+                                                        {{ in_array(($campo['nombre'] ?? ''), ['valor', 'consumo_m3', 'foto', 'fecha_medicion']) ? 'disabled' : '' }} required>
+                                                    <option value="medicion" {{ ($campo['contexto'] ?? 'medicion') === 'medicion' ? 'selected' : '' }}>📝 Medición</option>
+                                                    <option value="sensor" {{ ($campo['contexto'] ?? '') === 'sensor' ? 'selected' : '' }}>⚙️ Sensor</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-2">
                                                 <input type="text" class="form-control field-unit"
                                                        name="schema[campos][{{ $index }}][unidad]"
-                                                       value="{{ $campo['unidad'] ?? '' }}" placeholder="Unidad (ej: kWh, m³)">
+                                                       value="{{ $campo['unidad'] ?? '' }}" placeholder="Ej: kWh, m³">
                                             </div>
                                             <div class="col-md-2">
                                                 <select class="form-select field-required"
                                                         name="schema[campos][{{ $index }}][requerido]">
-                                                    <option value="1" {{ ($campo['requerido'] ?? false) ? 'selected' : '' }}>Requerido</option>
-                                                    <option value="0" {{ !($campo['requerido'] ?? false) ? 'selected' : '' }}>Opcional</option>
+                                                    <option value="1" {{ ($campo['requerido'] ?? false) ? 'selected' : '' }}>Req.</option>
+                                                    <option value="0" {{ !($campo['requerido'] ?? false) ? 'selected' : '' }}>Opc.</option>
                                                 </select>
                                             </div>
-                                            <div class="col-md-2">
+                                            <div class="col-md-1">
                                                 <input type="text" class="form-control field-default"
                                                        name="schema[campos][{{ $index }}][valor_por_defecto]"
-                                                       value="{{ $campo['valor_por_defecto'] ?? '' }}" placeholder="Valor por defecto">
+                                                       value="{{ $campo['valor_por_defecto'] ?? '' }}" placeholder="Def.">
                                             </div>
                                             <div class="col-md-1 text-center">
-                                                @if(($campo['nombre'] ?? '') !== 'valor')
+                                                @if(!in_array(($campo['nombre'] ?? ''), ['valor', 'consumo_m3', 'foto', 'fecha_medicion']))
                                                     <i class="bi bi-trash remove-field-btn" title="Eliminar campo"
                                                        style="color: #dc3545; cursor: pointer; font-size: 1.2rem;"></i>
                                                 @else
@@ -117,7 +125,7 @@
                                 <!-- Campo "valor" obligatorio por defecto -->
                                 <div class="field-row mb-2 p-2 border rounded bg-light">
                                     <div class="row g-2 align-items-center">
-                                        <div class="col-md-3">
+                                        <div class="col-md-2">
                                             <input type="text" class="form-control" name="schema[campos][][nombre]" value="valor" readonly>
                                         </div>
                                         <div class="col-md-2">
@@ -126,16 +134,21 @@
                                             </select>
                                         </div>
                                         <div class="col-md-2">
-                                            <input type="text" class="form-control" name="schema[campos][][unidad]" placeholder="Unidad (ej: kWh, m³)">
-                                        </div>
-                                        <div class="col-md-2">
-                                            <select class="form-select" name="schema[campos][][requerido]">
-                                                <option value="1" selected>Requerido</option>
-                                                <option value="0">Opcional</option>
+                                            <select class="form-select" name="schema[campos][][contexto]" required disabled>
+                                                <option value="medicion" selected>📝 Medición</option>
                                             </select>
                                         </div>
                                         <div class="col-md-2">
-                                            <input type="text" class="form-control" name="schema[campos][][valor_por_defecto]" placeholder="Valor por defecto">
+                                            <input type="text" class="form-control" name="schema[campos][][unidad]" placeholder="Ej: kWh, m³">
+                                        </div>
+                                        <div class="col-md-2">
+                                            <select class="form-select" name="schema[campos][][requerido]">
+                                                <option value="1" selected>Req.</option>
+                                                <option value="0">Opc.</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-1">
+                                            <input type="text" class="form-control" name="schema[campos][][valor_por_defecto]" placeholder="Def.">
                                         </div>
                                         <div class="col-md-1 text-center">
                                             <i class="bi bi-lock-fill" title="Campo obligatorio" style="color: #6c757d; cursor: default; font-size: 1.2rem;"></i>
@@ -243,17 +256,17 @@ function loadPredefinedFields(type) {
 /**
  * Agregar un nuevo campo al formulario
  */
-function addField(name = '', type = 'numero', unit = '', required = false) {
+function addField(name = '', type = 'numero', unit = '', required = false, context = 'medicion') {
     fieldCounter++;
     const container = $('#fieldsContainer');
 
     const fieldRow = $(
         `<div class="field-row mb-2 p-2 border rounded">
             <div class="row g-2 align-items-center">
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <input type="text" class="form-control field-name"
                            name="schema[campos][${fieldCounter}][nombre]"
-                           value="${name}" placeholder="Nombre del campo" required>
+                           value="${name}" placeholder="Nombre" required>
                 </div>
                 <div class="col-md-2">
                     <select class="form-select field-type"
@@ -265,21 +278,28 @@ function addField(name = '', type = 'numero', unit = '', required = false) {
                     </select>
                 </div>
                 <div class="col-md-2">
+                    <select class="form-select field-context"
+                            name="schema[campos][${fieldCounter}][contexto]" required>
+                        <option value="medicion" ${context === 'medicion' ? 'selected' : ''}>📝 Medición</option>
+                        <option value="sensor" ${context === 'sensor' ? 'selected' : ''}>⚙️ Sensor</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
                     <input type="text" class="form-control field-unit"
                            name="schema[campos][${fieldCounter}][unidad]"
-                           value="${unit}" placeholder="Unidad (ej: m³, kWh)">
+                           value="${unit}" placeholder="Ej: kWh, m³">
                 </div>
                 <div class="col-md-2">
                     <select class="form-select field-required"
                             name="schema[campos][${fieldCounter}][requerido]">
-                        <option value="1" ${required ? 'selected' : ''}>Requerido</option>
+                        <option value="1" ${required ? 'selected' : ''}>Req.</option>
                         <option value="0" ${!required ? 'selected' : ''}>Opcional</option>
                     </select>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-1">
                     <input type="text" class="form-control field-default"
                            name="schema[campos][${fieldCounter}][valor_por_defecto]"
-                           placeholder="Valor por defecto">
+                           placeholder="Def">
                 </div>
                 <div class="col-md-1 text-center">
                     <i class="bi bi-trash remove-field-btn" title="Eliminar campo"
@@ -319,13 +339,25 @@ function saveTemplate() {
     fieldRows.each(function() {
         const nameInput = $(this).find('[name^="schema[campos]"]:eq(0)');
         const typeSelect = $(this).find('[name^="schema[campos]"]:eq(1)');
-        const unitInput = $(this).find('[name^="schema[campos]"]:eq(2)');
-        const requiredSelect = $(this).find('[name^="schema[campos]"]:eq(3)');
-        const defaultInput = $(this).find('[name^="schema[campos]"]:eq(4)');
+        
+        let contextSelectValue = 'medicion';
+        let contextEl = $(this).find('.field-context');
+        if (contextEl.length) {
+            contextSelectValue = contextEl.val() || 'medicion';
+        } else {
+            // para el locked field
+            const contextFallback = $(this).find('[name^="schema[campos][][contexto]"]');
+            if (contextFallback.length) contextSelectValue = contextFallback.val() || 'medicion';
+        }
+        
+        const unitInput = $(this).find('.field-unit, input[name$="[unidad]"]');
+        const requiredSelect = $(this).find('.field-required, select[name$="[requerido]"]');
+        const defaultInput = $(this).find('.field-default, input[name$="[valor_por_defecto]"]');
 
         const campo = {
             nombre: nameInput.val() || '',
-            tipo: typeSelect.val() || '',
+            tipo: typeSelect.val() || 'numero',
+            contexto: contextSelectValue,
             unidad: unitInput.val() || null,
             requerido: requiredSelect.val() === '1' || requiredSelect.val() === true,
             valor_por_defecto: defaultInput.val() || null

@@ -130,6 +130,10 @@ class BulkMeasurementFlowController extends Controller
 
         // Si no hay sensores en los que pueda medir, mostrar error
         if (empty($measurableSensorIds)) {
+            Log::error("BulkMeasurement abortado: no hay sensores medibles.", [
+                'user_id' => $user->id,
+                'requested_sensors' => $sensorIds
+            ]);
             $planName = (new \App\Services\Subscription\SubscriptionService($user))->getPlan()->getPlanName();
             $maxSensors = (new \App\Services\Subscription\SubscriptionService($user))->getPlan()->getMaxSensors();
             return redirect()->back()->with(

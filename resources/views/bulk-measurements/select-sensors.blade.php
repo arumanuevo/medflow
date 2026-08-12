@@ -121,6 +121,10 @@
                             <div class="alert alert-success">{{ session('success') }}</div>
                         @endif
 
+                        @if(session('error'))
+                            <div class="alert alert-danger">{{ session('error') }}</div>
+                        @endif
+
                         {{-- Información del espacio --}}
                         <div class="alert alert-secondary">
                             <i class="bi bi-briefcase"></i>
@@ -200,8 +204,11 @@
                                     <input type="text" id="searchFilter" class="form-control form-control-sm"
                                         placeholder="Nombre o identificador...">
                                 </div>
-                                <div class="col-md-3 d-flex align-items-end">
-                                    <button class="btn btn-sm btn-outline-secondary w-100" id="clearFiltersBtn">
+                                <div class="col-md-3 d-flex align-items-end gap-2">
+                                    <button class="btn btn-sm btn-primary w-50" id="filterBtn">
+                                        <i class="bi bi-funnel"></i> Filtrar
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary w-50" id="clearFiltersBtn">
                                         <i class="bi bi-x-lg"></i> Limpiar
                                     </button>
                                 </div>
@@ -524,6 +531,7 @@
                 });
             }
 
+            $('#filterBtn').click(applyFilters);
             $groupFilter.change(applyFilters);
             $statusFilter.change(applyFilters);
             $searchFilter.on('input', applyFilters);
