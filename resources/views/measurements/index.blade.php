@@ -6,68 +6,8 @@
     <link rel="stylesheet" href="{{ asset('css/measurements-styles.css') }}">
     <style>
         /* ============================================
-           ESTILOS PRINCIPALES PARA TABLA DE MEDICIONES
-           ============================================ */
-        .measurement-table-wrapper {
-            overflow-x: auto;
-        }
-
-        .measurement-table-wrapper table {
-            min-width: 800px;
-            margin-bottom: 0;
-        }
-
-        .measurement-table-wrapper .table th {
-            white-space: nowrap;
-            font-size: 0.72rem;
-            padding: 0.5rem 0.5rem;
-            text-align: center !important;
-            vertical-align: middle;
-            cursor: pointer;
-            user-select: none;
-            position: relative;
-            transition: background-color 0.15s;
-            border-bottom: 2px solid #dee2e6;
-            background-color: #343a40;
-            color: #fff;
-        }
-
-        .measurement-table-wrapper .table th:hover {
-            background-color: rgba(13, 110, 253, 0.08);
-        }
-
-        .measurement-table-wrapper .table td {
-            font-size: 0.82rem;
-            padding: 0.4rem 0.5rem;
-            vertical-align: middle;
-            text-align: center;
-        }
-
-        .measurement-table-wrapper .table td.text-left {
-            text-align: left;
-        }
-
-        /* ============================================
-           ACCIONES
-           ============================================ */
-        .table-actions {
-            display: flex;
-            gap: 3px;
-            justify-content: center;
-            flex-wrap: nowrap;
-        }
-
-        .table-actions .btn {
-            padding: 0.15rem 0.3rem;
-            font-size: 0.65rem;
-            line-height: 1.2;
-            border-radius: 4px;
-            min-width: 26px;
-        }
-
-        /* ============================================
-           HEADER MEJORADO
-           ============================================ */
+                   HEADER MEJORADO
+                   ============================================ */
         .card-header-tools {
             display: flex;
             flex-wrap: wrap;
@@ -104,8 +44,8 @@
         }
 
         /* ============================================
-           BUSCADOR
-           ============================================ */
+                   BUSCADOR
+                   ============================================ */
         .search-wrapper {
             display: flex;
             align-items: center;
@@ -153,8 +93,8 @@
         }
 
         /* ============================================
-           PAGINACION
-           ============================================ */
+                   PAGINACION
+                   ============================================ */
         .pagination-wrapper {
             display: flex;
             flex-wrap: wrap;
@@ -207,8 +147,8 @@
         }
 
         /* ============================================
-           EMPTY STATE
-           ============================================ */
+                   EMPTY STATE
+                   ============================================ */
         .empty-state {
             text-align: center;
             padding: 3rem 1.5rem;
@@ -230,8 +170,8 @@
         }
 
         /* ============================================
-           ESTILOS PARA FILTROS
-           ============================================ */
+                   ESTILOS PARA FILTROS
+                   ============================================ */
         .filter-section {
             background: #f8f9fa;
             padding: 1rem;
@@ -262,8 +202,8 @@
         }
 
         /* ============================================
-           ESTILOS PARA TARJETAS DE ERRORES
-           ============================================ */
+                   ESTILOS PARA TARJETAS DE ERRORES
+                   ============================================ */
         #errorStatsContainer .row>div {
             margin-bottom: 10px;
         }
@@ -318,8 +258,8 @@
         }
 
         /* ============================================
-           ESTILO PARA IDENTIFICADOR DEL SENSOR
-           ============================================ */
+                   ESTILO PARA IDENTIFICADOR DEL SENSOR
+                   ============================================ */
         .sensor-identifier {
             display: block;
             font-size: 0.65rem;
@@ -337,8 +277,8 @@
         }
 
         /* ============================================
-           RESPONSIVE
-           ============================================ */
+                   RESPONSIVE
+                   ============================================ */
         @media (max-width: 992px) {
             .card-header-tools {
                 flex-direction: column;
@@ -520,6 +460,10 @@
                             <table class="table table-bordered table-striped table-hover" id="measurementsTable">
                                 <thead>
                                     <tr>
+                                        <!-- Checkbox para eliminar varios -->
+                                        <th style="width: 40px; text-align: center;">
+                                            <input class="form-check-input" type="checkbox" id="selectAllMeasurements">
+                                        </th>
                                         <th>Sensor</th>
                                         <th>Identificador</th>
                                         <th>Grupo</th>
@@ -535,7 +479,7 @@
                                 </thead>
                                 <tbody id="measurementsTableBody">
                                     <tr>
-                                        <td colspan="11" class="text-center">
+                                        <td colspan="12" class="text-center">
                                             <div class="spinner-border text-primary" role="status">
                                                 <span class="visually-hidden">Cargando...</span>
                                             </div> Cargando mediciones...
@@ -601,11 +545,24 @@
             </div>
         </div>
     </div>
+
+    <!-- Barra de acciones flotante (se muestra al seleccionar filas) -->
+    <div id="bulkActionsBar"
+        class="position-fixed bottom-0 start-50 translate-middle-x mb-4 shadow rounded px-4 py-3 bg-white"
+        style="display: none; z-index: 1050; border: 1px solid #dee2e6;">
+        <div class="d-flex align-items-center gap-3">
+            <span class="fw-bold" id="selectedCount">0 seleccionados</span>
+            <button class="btn btn-danger btn-sm" id="btnBulkDelete">
+                <i class="bi bi-trash"></i> Eliminar Selección
+            </button>
+            <button type="button" class="btn-close ms-2" id="btnHideBulkActions" aria-label="Cerrar"></button>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
     <script>
-        $(document).ready(function () {
+        $(docu        ment).ready(function () {
             let currentPage = 1;
             const itemsPerPage = 10;
             let showErrors = false;
@@ -643,14 +600,14 @@
                     data: params,
                     beforeSend: function () {
                         $('#measurementsTableBody').html(`
-                        <tr>
-                            <td colspan="11" class="text-center">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="visually-hidden">Cargando...</span>
-                                </div> Cargando mediciones...
-                            </td>
-                        </tr>
-                    `);
+                                <tr>
+                                    <td colspan="12" class="text-center">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Cargando...</span>
+                                        </div> Cargando mediciones...
+                                    </td>
+                                </tr>
+                            `);
                     },
                     success: function (response) {
                         if (response.success) {
@@ -662,13 +619,23 @@
                                 updateErrorStats(errorStats);
                             }
                             renderPagination(response.meta);
+
+                            // Restablecer checkboxes al cargar nueva tabla
+                            $('#selectAllMeasurements').prop('checked', false);
+                            updateBulkActionsVisibility();
                         } else {
                             showError(response.message || 'Error al cargar mediciones');
                         }
                     },
                     error: function (xhr) {
-                        const errorMessage = xhr.responseJSON?.message || xhr.statusText;
-                        showError('Error: ' + errorMessage);
+                        console.error('Error cargando mediciones:', xhr);
+                        $('#measurementsTableBody').html(`
+                                <tr>
+                                    <td colspan="12" class="text-center text-danger">
+                                        <i class="bi bi-exclamation-triangle"></i> Error al cargar las mediciones. Por favor, intente de nuevo.
+                                    </td>
+                                </tr>
+                            `);
                     }
                 });
             }
@@ -676,12 +643,12 @@
             // Función para mostrar errores
             function showError(message) {
                 $('#measurementsTableBody').html(`
-                <tr>
-                    <td colspan="11" class="text-center text-danger">
-                        <i class="bi bi-exclamation-triangle"></i> ${message}
-                    </td>
-                </tr>
-            `);
+                        <tr>
+                            <td colspan="12" class="text-center text-danger">
+                                <i class="bi bi-exclamation-triangle"></i> ${message}
+                            </td>
+                        </tr>
+                    `);
             }
 
             // Función para actualizar estadísticas de errores
@@ -709,12 +676,12 @@
             function renderMeasurements(measurements) {
                 if (measurements.length === 0) {
                     $('#measurementsTableBody').html(`
-                    <tr>
-                        <td colspan="11" class="text-center">
-                            <i class="bi bi-inbox"></i> No se encontraron mediciones
-                        </td>
-                    </tr>
-                `);
+                            <tr>
+                                <td colspan="11" class="text-center">
+                                    <i class="bi bi-inbox"></i> No se encontraron mediciones
+                                </td>
+                            </tr>
+                        `);
                     return;
                 }
 
@@ -770,40 +737,40 @@
                     }
 
                     html += `
-                    <tr class="${status === 'valid' ? '' : 'table-warning'}">
-                        <td>
-                            <div class="sensor-info">${sensorDisplay}</div>
-                        </td>
-                        <td><code>${sensorIdentifier || '—'}</code></td>
-                        <td>${groupName}</td>
-                        <td><div class="sensor-info">${templateDisplay}</div></td>
-                        <td>${value} ${unit}</td>
-                        <td>${data.tipo ?? 'N/A'}</td>
-                        <td>${date}</td>
-                        <td class="${consumptionClass}">${consumption}</td>
-                        <td>${statusBadge}</td>
-                        <td>
-                            ${photoPath ?
+                            <tr class="${status === 'valid' ? '' : 'table-warning'}">
+                                <td>
+                                    <div class="sensor-info">${sensorDisplay}</div>
+                                </td>
+                                <td><code>${sensorIdentifier || '—'}</code></td>
+                                <td>${groupName}</td>
+                                <td><div class="sensor-info">${templateDisplay}</div></td>
+                                <td>${value} ${unit}</td>
+                                <td>${data.tipo ?? 'N/A'}</td>
+                                <td>${date}</td>
+                                <td class="${consumptionClass}">${consumption}</td>
+                                <td>${statusBadge}</td>
+                                <td>
+                                    ${photoPath ?
                             `<button class="btn btn-sm btn-info viewPhotoBtn" data-photo-path="${photoPath}">
-                                    <i class="bi bi-image me-1"></i> Ver
-                                </button>` : 'Sin Foto'}
-                        </td>
-                        <td>
-                            <div class="table-actions">
-                                <a href="{{ url('/mediciones/edit') }}/${measurement.id}" class="btn btn-sm btn-warning" title="Editar">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <button class="btn btn-sm btn-danger deleteMeasurementBtn" title="Eliminar" data-measurement-id="${measurement.id}">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                                ${status !== 'valid' ?
+                                            <i class="bi bi-image me-1"></i> Ver
+                                        </button>` : 'Sin Foto'}
+                                </td>
+                                <td>
+                                    <div class="table-actions">
+                                        <a href="{{ url('/mediciones/edit') }}/${measurement.id}" class="btn btn-sm btn-warning" title="Editar">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <button class="btn btn-sm btn-danger deleteMeasurementBtn" title="Eliminar" data-measurement-id="${measurement.id}">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                        ${status !== 'valid' ?
                             `<button class="btn btn-sm btn-info viewErrorBtn" title="Ver detalles del error" data-measurement-id="${measurement.id}">
-                                        <i class="bi bi-exclamation-triangle"></i>
-                                    </button>` : ''}
-                            </div>
-                        </td>
-                    </tr>
-                `;
+                                                <i class="bi bi-exclamation-triangle"></i>
+                                            </button>` : ''}
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
                 });
 
                 $('#measurementsTableBody').html(html);
@@ -900,46 +867,46 @@
                     },
                     beforeSend: function () {
                         $('#errorDetailsModalLabel').html(`
-                        <i class="bi bi-exclamation-triangle-fill"></i> Cargando detalles...
-                    `);
+                                <i class="bi bi-exclamation-triangle-fill"></i> Cargando detalles...
+                            `);
                         $('#errorDetailsContent').html(`
-                        <div class="text-center">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Cargando...</span>
-                            </div>
-                            <p class="mt-2">Cargando detalles del error...</p>
-                        </div>
-                    `);
+                                <div class="text-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Cargando...</span>
+                                    </div>
+                                    <p class="mt-2">Cargando detalles del error...</p>
+                                </div>
+                            `);
                         $('#errorDetailsModal').modal('show');
                     },
                     success: function (response) {
                         if (response.success) {
                             const errorTypeName = getErrorTypeName(errorType);
                             $('#errorDetailsModalLabel').html(`
-                            <i class="bi bi-exclamation-triangle-fill"></i> ${errorTypeName} (${response.count} registros)
-                        `);
+                                    <i class="bi bi-exclamation-triangle-fill"></i> ${errorTypeName} (${response.count} registros)
+                                `);
                             renderErrorDetails(response.data);
                         } else {
                             $('#errorDetailsModalLabel').html(`
-                            <i class="bi bi-exclamation-triangle-fill"></i> Error
-                        `);
+                                    <i class="bi bi-exclamation-triangle-fill"></i> Error
+                                `);
                             $('#errorDetailsContent').html(`
-                            <div class="alert alert-danger">
-                                <i class="bi bi-exclamation-triangle"></i> ${response.message || 'Error al cargar detalles'}
-                            </div>
-                        `);
+                                    <div class="alert alert-danger">
+                                        <i class="bi bi-exclamation-triangle"></i> ${response.message || 'Error al cargar detalles'}
+                                    </div>
+                                `);
                         }
                     },
                     error: function (xhr) {
                         const errorMessage = xhr.responseJSON?.message || xhr.statusText;
                         $('#errorDetailsModalLabel').html(`
-                        <i class="bi bi-exclamation-triangle-fill"></i> Error
-                    `);
+                                <i class="bi bi-exclamation-triangle-fill"></i> Error
+                            `);
                         $('#errorDetailsContent').html(`
-                        <div class="alert alert-danger">
-                            <i class="bi bi-exclamation-triangle"></i> Error: ${errorMessage}
-                        </div>
-                    `);
+                                <div class="alert alert-danger">
+                                    <i class="bi bi-exclamation-triangle"></i> Error: ${errorMessage}
+                                </div>
+                            `);
                     }
                 });
             }
@@ -948,10 +915,10 @@
             function renderErrorDetails(errorDetails) {
                 if (errorDetails.length === 0) {
                     $('#errorDetailsContent').html(`
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i> No se encontraron registros con este tipo de error.
-                    </div>
-                `);
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i> No se encontraron registros con este tipo de error.
+                            </div>
+                        `);
                     return;
                 }
 
@@ -973,29 +940,29 @@
                     const groupName = sensorDetail.group_name;
 
                     html += `
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="heading-${sensorKey}">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${sensorKey}" aria-expanded="false" aria-controls="collapse-${sensorKey}">
-                                <strong>${sensorName}</strong> ${sensorIdentifier ? `(#${sensorIdentifier})` : ''} - Grupo: ${groupName}
-                                <span class="badge bg-warning ms-2">${details.length} registros</span>
-                            </button>
-                        </h2>
-                        <div id="collapse-${sensorKey}" class="accordion-collapse collapse" aria-labelledby="heading-${sensorKey}" data-bs-parent="#errorDetailsAccordion">
-                            <div class="accordion-body">
-                                <div class="table-responsive">
-                                    <table class="table table-bordered table-sm">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Medición Actual</th>
-                                                <th>Medición Anterior</th>
-                                                <th>Diferencia</th>
-                                                <th>Días</th>
-                                                <th>Error</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                `;
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="heading-${sensorKey}">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${sensorKey}" aria-expanded="false" aria-controls="collapse-${sensorKey}">
+                                        <strong>${sensorName}</strong> ${sensorIdentifier ? `(#${sensorIdentifier})` : ''} - Grupo: ${groupName}
+                                        <span class="badge bg-warning ms-2">${details.length} registros</span>
+                                    </button>
+                                </h2>
+                                <div id="collapse-${sensorKey}" class="accordion-collapse collapse" aria-labelledby="heading-${sensorKey}" data-bs-parent="#errorDetailsAccordion">
+                                    <div class="accordion-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>#</th>
+                                                        <th>Medición Actual</th>
+                                                        <th>Medición Anterior</th>
+                                                        <th>Diferencia</th>
+                                                        <th>Días</th>
+                                                        <th>Error</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                        `;
 
                     details.forEach((detail, index) => {
                         const currentDate = new Date(detail.current_measurement.date).toLocaleString('es-ES');
@@ -1008,34 +975,34 @@
                         const daysDifference = detail.difference ? detail.difference.days : 'N/A';
 
                         html += `
-                        <tr>
-                            <td>${detail.record_number}</td>
-                            <td>
-                                <strong>ID:</strong> ${detail.current_measurement.id}<br>
-                                <strong>Valor:</strong> ${detail.current_measurement.value}<br>
-                                <strong>Fecha:</strong> ${currentDate}
-                            </td>
-                            <td>
-                                ${detail.previous_measurement ?
+                                <tr>
+                                    <td>${detail.record_number}</td>
+                                    <td>
+                                        <strong>ID:</strong> ${detail.current_measurement.id}<br>
+                                        <strong>Valor:</strong> ${detail.current_measurement.value}<br>
+                                        <strong>Fecha:</strong> ${currentDate}
+                                    </td>
+                                    <td>
+                                        ${detail.previous_measurement ?
                                 `<strong>ID:</strong> ${detail.previous_measurement.id}<br>
-                                    <strong>Valor:</strong> ${detail.previous_measurement.value}<br>
-                                    <strong>Fecha:</strong> ${previousDate}` : 'N/A'}
-                            </td>
-                            <td class="${consumptionClass}">${difference}</td>
-                            <td>${daysDifference !== 'N/A' ? daysDifference + ' días' : 'N/A'}</td>
-                            <td>${detail.error_message}</td>
-                        </tr>
-                    `;
+                                            <strong>Valor:</strong> ${detail.previous_measurement.value}<br>
+                                            <strong>Fecha:</strong> ${previousDate}` : 'N/A'}
+                                    </td>
+                                    <td class="${consumptionClass}">${difference}</td>
+                                    <td>${daysDifference !== 'N/A' ? daysDifference + ' días' : 'N/A'}</td>
+                                    <td>${detail.error_message}</td>
+                                </tr>
+                            `;
                     });
 
                     html += `
-                                        </tbody>
-                                    </table>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                `;
+                        `;
                 });
 
                 html += '</div>';
@@ -1097,13 +1064,13 @@
                     },
                     beforeSend: function () {
                         $('#errorDetailsContent').html(`
-                        <div class="text-center">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Cargando...</span>
-                            </div>
-                            <p class="mt-2">Cargando detalles del error...</p>
-                        </div>
-                    `);
+                                <div class="text-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Cargando...</span>
+                                    </div>
+                                    <p class="mt-2">Cargando detalles del error...</p>
+                                </div>
+                            `);
                         $('#errorDetailsModal').modal('show');
                     },
                     success: function (response) {
@@ -1119,11 +1086,11 @@
                                     html += '<h5 class="text-danger"><i class="bi bi-x-circle-fill"></i> Errores</h5><ul class="list-group list-group-flush mb-3">';
                                     errors.forEach(error => {
                                         html += `
-                                        <li class="list-group-item">
-                                            <strong>${error.type}:</strong> ${error.message}
-                                            ${error.suggestion ? `<br><small class="text-muted">${error.suggestion}</small>` : ''}
-                                        </li>
-                                    `;
+                                                <li class="list-group-item">
+                                                    <strong>${error.type}:</strong> ${error.message}
+                                                    ${error.suggestion ? `<br><small class="text-muted">${error.suggestion}</small>` : ''}
+                                                </li>
+                                            `;
                                     });
                                     html += '</ul>';
                                 }
@@ -1132,11 +1099,11 @@
                                     html += '<h5 class="text-warning"><i class="bi bi-exclamation-triangle-fill"></i> Advertencias</h5><ul class="list-group list-group-flush">';
                                     warnings.forEach(warning => {
                                         html += `
-                                        <li class="list-group-item">
-                                            <strong>${warning.type}:</strong> ${warning.message}
-                                            ${warning.suggestion ? `<br><small class="text-muted">${warning.suggestion}</small>` : ''}
-                                        </li>
-                                    `;
+                                                <li class="list-group-item">
+                                                    <strong>${warning.type}:</strong> ${warning.message}
+                                                    ${warning.suggestion ? `<br><small class="text-muted">${warning.suggestion}</small>` : ''}
+                                                </li>
+                                            `;
                                     });
                                     html += '</ul>';
                                 }
@@ -1145,19 +1112,19 @@
                             $('#errorDetailsContent').html(html);
                         } else {
                             $('#errorDetailsContent').html(`
-                            <div class="alert alert-danger">
-                                <i class="bi bi-exclamation-triangle"></i> ${response.message || 'Error al cargar detalles'}
-                            </div>
-                        `);
+                                    <div class="alert alert-danger">
+                                        <i class="bi bi-exclamation-triangle"></i> ${response.message || 'Error al cargar detalles'}
+                                    </div>
+                                `);
                         }
                     },
                     error: function (xhr) {
                         const errorMessage = xhr.responseJSON?.message || xhr.statusText;
                         $('#errorDetailsContent').html(`
-                        <div class="alert alert-danger">
-                            <i class="bi bi-exclamation-triangle"></i> Error: ${errorMessage}
-                        </div>
-                    `);
+                                <div class="alert alert-danger">
+                                    <i class="bi bi-exclamation-triangle"></i> Error: ${errorMessage}
+                                </div>
+                            `);
                     }
                 });
             }
@@ -1202,18 +1169,18 @@
 
                 if (currentPage > 1) {
                     paginationHtml += `
-                    <li class="page-item">
-                        <a class="page-link" href="#" data-page="${currentPage - 1}" aria-label="Anterior">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                    </li>
-                `;
+                            <li class="page-item">
+                                <a class="page-link" href="#" data-page="${currentPage - 1}" aria-label="Anterior">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                        `;
                 } else {
                     paginationHtml += `
-                    <li class="page-item disabled">
-                        <span class="page-link" aria-hidden="true">&laquo;</span>
-                    </li>
-                `;
+                            <li class="page-item disabled">
+                                <span class="page-link" aria-hidden="true">&laquo;</span>
+                            </li>
+                        `;
                 }
 
                 const maxPages = 5;
@@ -1227,33 +1194,33 @@
                 for (let i = startPage; i <= endPage; i++) {
                     if (i === currentPage) {
                         paginationHtml += `
-                        <li class="page-item active">
-                            <span class="page-link">${i}</span>
-                        </li>
-                    `;
+                                <li class="page-item active">
+                                    <span class="page-link">${i}</span>
+                                </li>
+                            `;
                     } else {
                         paginationHtml += `
-                        <li class="page-item">
-                            <a class="page-link" href="#" data-page="${i}">${i}</a>
-                        </li>
-                    `;
+                                <li class="page-item">
+                                    <a class="page-link" href="#" data-page="${i}">${i}</a>
+                                </li>
+                            `;
                     }
                 }
 
                 if (currentPage < meta.last_page) {
                     paginationHtml += `
-                    <li class="page-item">
-                        <a class="page-link" href="#" data-page="${currentPage + 1}" aria-label="Siguiente">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
-                `;
+                            <li class="page-item">
+                                <a class="page-link" href="#" data-page="${currentPage + 1}" aria-label="Siguiente">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        `;
                 } else {
                     paginationHtml += `
-                    <li class="page-item disabled">
-                        <span class="page-link" aria-hidden="true">&raquo;</span>
-                    </li>
-                `;
+                            <li class="page-item disabled">
+                                <span class="page-link" aria-hidden="true">&raquo;</span>
+                            </li>
+                        `;
                 }
 
                 $('#pagination').html(paginationHtml);
@@ -1302,6 +1269,96 @@
                 } else {
                     $(this).html('<i class="bi bi-exclamation-triangle"></i> Mostrar Errores');
                     $('#errorStatsContainer').addClass('d-none');
+                }
+            });
+
+            // ==========================================
+            // LÓGICA DE ELIMINACIÓN MASIVA
+            // ==========================================
+
+            // Función para actualizar visibilidad de la barra
+            function updateBulkActionsVisibility() {
+                const checkedCount = $('.measurement-checkbox:checked').length;
+                const totalCount = $('.measurement-checkbox').length;
+
+                if (totalCount > 0 && checkedCount === totalCount) {
+                    $('#selectAllMeasurements').prop('checked', true);
+                    $('#selectAllMeasurements').prop('indeterminate', false);
+                } else if (checkedCount > 0) {
+                    $('#selectAllMeasurements').prop('checked', false);
+                    $('#selectAllMeasurements').prop('indeterminate', true);
+                } else {
+                    $('#selectAllMeasurements').prop('checked', false);
+                    $('#selectAllMeasurements').prop('indeterminate', false);
+                }
+
+                if (checkedCount > 0) {
+                    $('#selectedCount').text(`${checkedCount} seleccionado${checkedCount !== 1 ? 's' : ''}`);
+                    $('#bulkActionsBar').fadeIn(200);
+                } else {
+                    $('#bulkActionsBar').fadeOut(200);
+                }
+            }
+
+            // Seleccionar/Deseleccionar todos
+            $('#selectAllMeasurements').on('change', function () {
+                const isChecked = $(this).prop('checked');
+                $('.measurement-checkbox').prop('checked', isChecked);
+                updateBulkActionsVisibility();
+            });
+
+            // Cambio en checkbox individual (delegado a body porque se generan dinámicamente)
+            $('#measurementsTableBody').on('change', '.measurement-checkbox', function () {
+                updateBulkActionsVisibility();
+            });
+
+            // Botón ocultar acciones
+            $('#btnHideBulkActions').click(function () {
+                $('.measurement-checkbox').prop('checked', false);
+                updateBulkActionsVisibility();
+            });
+
+            // Botón eliminar selección
+            $('#btnBulkDelete').click(function () {
+                const selectedIds = [];
+                $('.measurement-checkbox:checked').each(function () {
+                    selectedIds.push($(this).val());
+                });
+
+                if (selectedIds.length === 0) return;
+
+                if (confirm(`¿Está seguro que desea eliminar ${selectedIds.length} mediciones seleccionadas?\nEsta acción no se puede deshacer.`)) {
+                    // Deshabilitar botón mientras carga
+                    const btn = $(this);
+                    const originalHtml = btn.html();
+                    btn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Eliminando...').prop('disabled', true);
+
+                    $.ajax({
+                        url: '/api/measurements/bulk-delete',
+                        type: 'POST',
+                        data: JSON.stringify({ measurement_ids: selectedIds }),
+                        contentType: 'application/json',
+                        headers: {
+                            'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                            'Accept': 'application/json'
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                // Mostrar alerta estilizada pero sencilla (simulada con alert por ahora o si tienes un toast system usarlo)
+                                alert(response.message);
+                                loadMeasurements();
+                                $('#bulkActionsBar').fadeOut();
+                            } else {
+                                alert('Error: ' + (response.message || 'No se pudieron eliminar las mediciones'));
+                                btn.html(originalHtml).prop('disabled', false);
+                            }
+                        },
+                        error: function (xhr) {
+                            const errorMessage = xhr.responseJSON?.message || xhr.statusText;
+                            alert('Error: ' + errorMessage);
+                            btn.html(originalHtml).prop('disabled', false);
+                        }
+                    });
                 }
             });
 

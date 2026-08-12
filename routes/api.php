@@ -36,7 +36,7 @@ Route::get('/sensor-groups/extra-fields', [BulkSensorImportController::class, 'g
 // RUTAS PROTEGIDAS CON SANCTUM
 // =====================================================
 Route::middleware('auth:sanctum')->group(function () {
-    
+
     // =====================================================
     // AUTENTICACIÓN
     // =====================================================
@@ -82,6 +82,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // =====================================================
     // MEDICIONES
     // =====================================================
+    Route::post('/measurements/bulk-delete', [MeasurementController::class, 'bulkDelete'])
+        ->name('api.measurements.bulk-delete');
+
     Route::apiResource('/measurements', MeasurementController::class)
         ->except(['create', 'edit'])
         ->parameter('measurement', 'measurement');
@@ -135,15 +138,15 @@ Route::middleware('auth:sanctum')->group(function () {
     // =====================================================
     // PLANTILLAS - ✅ RUTAS ESPECÍFICAS PRIMERO
     // =====================================================
-    
+
     // ✅ 1. Ruta específica: Obtener campos predefinidos por tipo (SIN parámetros)
     Route::get('/templates/predefined-fields', [TemplateController::class, 'getPredefinedFields'])
         ->name('api.templates.predefined-fields');
-    
+
     // ✅ 2. Ruta específica: Obtener campos de una plantilla (CON parámetro)
     Route::get('/templates/{template}/fields', [TemplateController::class, 'getFields'])
         ->name('api.templates.fields');
-    
+
     // ✅ 3. Rutas CRUD de plantillas (apiResource)
     Route::apiResource('/templates', TemplateController::class)
         ->except(['create', 'edit'])
@@ -189,15 +192,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/analyze-file', [BulkSensorImportController::class, 'analyzeFile'])
             ->name('api.sensor-groups.analyze-file')
             ->middleware('subscription.gate:import_sensors');
-        
+
         Route::post('/bulk-import', [BulkSensorImportController::class, 'bulkImport'])
             ->name('api.sensor-groups.bulk-import')
             ->middleware('subscription.gate:import_sensors');
-        
+
         Route::get('/download-template', [BulkSensorImportController::class, 'downloadTemplate'])
             ->name('api.sensor-groups.download-template')
             ->middleware('subscription.gate:import_sensors');
-        
+
         Route::get('/{groupId}/template-fields', [BulkSensorImportController::class, 'getTemplateFields'])
             ->name('api.sensor-groups.template-fields');
     });
@@ -240,26 +243,28 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('measurements/bulk-import')->group(function () {
         Route::get('/groups', [BulkMeasurementImportController::class, 'getGroups'])
             ->name('api.measurements.bulk-import.groups');
-        
+
         Route::get('/groups/{groupId}/sensors', [BulkMeasurementImportController::class, 'getSensorsByGroup'])
             ->name('api.measurements.bulk-import.sensors');
-        
+
         Route::post('/analyze-file', [BulkMeasurementImportController::class, 'analyzeFile'])
             ->name('api.measurements.bulk-import.analyze');
-        
+
         Route::post('/import', [BulkMeasurementImportController::class, 'bulkImport'])
             ->name('api.measurements.bulk-import.import');
-        
+
         Route::get('/download-template', [BulkMeasurementImportController::class, 'downloadTemplate'])
             ->name('api.measurements.bulk-import.download-template');
-        
+
         Route::get('/report', [BulkMeasurementImportController::class, 'generateReport'])
             ->name('api.measurements.bulk-import.report');
     });
 
     // ✅ Obtener campos disponibles para identificar sensores
-    Route::get('/measurements/bulk-import/groups/{groupId}/sensor-fields', 
-        [BulkMeasurementImportController::class, 'getSensorFields'])
+    Route::get(
+        '/measurements/bulk-import/groups/{groupId}/sensor-fields',
+        [BulkMeasurementImportController::class, 'getSensorFields']
+    )
         ->name('api.measurements.bulk-import.sensor-fields');
 
     // =====================================================
@@ -290,14 +295,14 @@ Route::middleware('auth:sanctum')->group(function () {
         // Invitaciones - SOLO PREMIUM
         Route::post('/invite', [CollaborationController::class, 'invite'])
             ->middleware('subscription.gate:add_collaborator');
-        
+
         Route::get('/list', [CollaborationController::class, 'listCollaborators']);
         Route::get('/pending', [CollaborationController::class, 'listPendingInvitations']);
-        
+
         // Aceptar/Rechazar
         Route::post('/accept/{token}', [CollaborationController::class, 'acceptInvitation'])->name('collaborations.accept');
         Route::post('/reject/{token}', [CollaborationController::class, 'rejectInvitation'])->name('collaborations.reject');
-        
+
         // ✅ GESTIÓN DE COLABORADORES (NUEVO) - SOLO PREMIUM
         Route::delete('/{id}', [CollaborationController::class, 'removeCollaborator'])
             ->middleware('subscription.gate:add_collaborator');
@@ -335,7 +340,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/', [ProfileController::class, 'update'])->name('api.profile.update');
         Route::put('/subscription', [ProfileController::class, 'updateSubscription'])->name('api.profile.subscription');
         Route::get('/stats', [ProfileController::class, 'getStats'])->name('api.profile.stats');
-        
+
         // Eliminacion de todos los datos del usuario
         Route::post('/delete-all-data/confirmation-token', [ProfileController::class, 'generateDeleteConfirmationToken'])
             ->name('api.profile.delete-all-data.token');

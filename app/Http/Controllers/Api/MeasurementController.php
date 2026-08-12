@@ -10,9 +10,18 @@ use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use App\Models\UserSetting;
 use App\Services\Subscription\SubscriptionService;
+use App\Services\MeasurementService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Str;
 
 class MeasurementController extends Controller
 {
+    protected $measurementService;
+
+    public function __construct(MeasurementService $measurementService)
+    {
+        $this->measurementService = $measurementService;
+    }
     /**
      * Listar todas las mediciones con filtrado y paginación.
      * Solo muestra mediciones de sensores a los que el usuario tiene acceso.
@@ -40,81 +49,18 @@ class MeasurementController extends Controller
             $sortDirection = 'desc';
         }
 
-        // Construir la consulta base: SOLO mediciones de sensores a los que el usuario tiene acceso
-        $query = Measurement::with(['sensor', 'sensor.group', 'sensor.group.template'])
-            ->whereHas('sensor.group', function ($q) use ($user) {
-                $q->where('user_id', $user->id)
-                    ->orWhereHas('sharedAccess', function ($q2) use ($user) {
-                        $q2->where('shared_with', $user->id)
-                            ->whereIn('role', ['inspector', 'admin']);
-                    });
-            });
+        // Construir la consulta base usando el Service
+        $query = $this->measurementService->buildMeasurementQuery(
+            $user,
+            $request->all(),
+            $sortField,
+            $sortDirection
+        );
 
-        // Aplicar filtros si existen
-        if ($request->has('sensor_id') && $request->sensor_id) {
-            $query->where('sensor_id', $request->sensor_id)
-                ->whereHas('sensor.group', function ($q) use ($user) {
-                    $q->where('user_id', $user->id)
-                        ->orWhereHas('sharedAccess', function ($q2) use ($user) {
-                            $q2->where('shared_with', $user->id)
-                                ->whereIn('role', ['inspector', 'admin']);
-                        });
-                });
-        }
+        // Calcular estadísticas de errores globalmente
+        $errorStats = $this->measurementService->calculateErrorStats($user);
 
-        if ($request->has('group_id') && $request->group_id) {
-            $query->whereHas('sensor.group', function ($q) use ($request, $user) {
-                $q->where('id', $request->group_id)
-                    ->where(function ($q2) use ($user) {
-                        $q2->where('user_id', $user->id)
-                            ->orWhereHas('sharedAccess', function ($q3) use ($user) {
-                                $q3->where('shared_with', $user->id)
-                                    ->whereIn('role', ['inspector', 'admin']);
-                            });
-                    });
-            });
-        }
-
-        if ($request->has('error_type') && $request->error_type) {
-            // Filtrar por tipo de error (se aplicará después de obtener los datos)
-        }
-
-        if ($request->has('date_from') && $request->date_from) {
-            $query->where('measured_at', '>=', $request->date_from);
-        }
-
-        if ($request->has('date_to') && $request->date_to) {
-            $query->where('measured_at', '<=', $request->date_to . ' 23:59:59');
-        }
-
-        if ($request->has('search') && $request->search) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search, $user) {
-                $q->whereHas('sensor', function ($q2) use ($search, $user) {
-                    $q2->where('name', 'like', "%{$search}%")
-                        ->orWhere('identifier', 'like', "%{$search}%")
-                        ->orWhere('metadata', 'like', "%{$search}%") // ✅ Buscar en campos extra
-                        ->whereHas('group', function ($q3) use ($user) {
-                            $q3->where('user_id', $user->id)
-                                ->orWhereHas('sharedAccess', function ($q4) use ($user) {
-                                    $q4->where('shared_with', $user->id)
-                                        ->whereIn('role', ['inspector', 'admin']);
-                                });
-                        });
-                })
-                    ->orWhere('data->valor', 'like', "%{$search}%")
-                    ->orWhere('data->tipo', 'like', "%{$search}%");
-            });
-        }
-
-        // Aplicar ordenamiento
-        if ($sortField === 'sensor') {
-            $query->orderBy('sensor_id', $sortDirection)->orderBy('measured_at', 'desc');
-        } else {
-            $query->orderBy($sortField, $sortDirection);
-        }
-
-        // Obtener TODAS las mediciones del usuario para calcular estadísticas (sin paginación)
+        // Obtener TODAS las mediciones del usuario para calcular consumo relativo por sensor
         $allMeasurements = Measurement::with(['sensor', 'sensor.group', 'sensor.group.template'])
             ->whereHas('sensor.group', function ($q) use ($user) {
                 $q->where('user_id', $user->id)
@@ -127,67 +73,18 @@ class MeasurementController extends Controller
             ->orderBy('measured_at', 'asc')
             ->get();
 
-        // Calcular estadísticas de errores manualmente
-        $errorStats = [
-            'negative_consumption' => 0,
-            'inconsistent_date' => 0,
-            'first_measurement' => 0,
-            'valid' => 0
-        ];
-
-        // Agrupar todas las mediciones por sensor
         $allMeasurementsBySensor = $allMeasurements->groupBy('sensor_id');
-
-        foreach ($allMeasurementsBySensor as $sensorId => $sensorMeasurements) {
-            // Obtener el sensor y su plantilla para determinar el campo principal
-            $sensor = $sensorMeasurements->first()->sensor;
-            $mainField = $this->getMainFieldFromSensor($sensor);
-
-            // Ordenar las mediciones del sensor por fecha (ascendente)
-            $sortedMeasurements = $sensorMeasurements->sortBy('measured_at');
-
-            foreach ($sortedMeasurements as $index => $measurement) {
-                $previousMeasurement = ($index > 0) ? $sortedMeasurements->get($index - 1) : null;
-
-                if (!$previousMeasurement) {
-                    $errorStats['first_measurement']++;
-                    continue;
-                }
-
-                // Validar fecha
-                $lastDate = Carbon::parse($previousMeasurement->measured_at);
-                $currentDate = Carbon::parse($measurement->measured_at);
-
-                if ($currentDate->lt($lastDate)) {
-                    $errorStats['inconsistent_date']++;
-                    continue;
-                }
-
-                // ✅ Validar consumo usando el campo principal de la plantilla
-                $lastValue = $previousMeasurement->data[$mainField] ?? 0;
-                $currentValue = $measurement->data[$mainField] ?? 0;
-                $consumption = $currentValue - $lastValue;
-
-                if ($consumption < 0) {
-                    $errorStats['negative_consumption']++;
-                } else {
-                    $errorStats['valid']++;
-                }
-            }
-        }
 
         // Obtener las mediciones paginadas
         $measurements = $query->paginate($perPage);
 
-        // Agrupar mediciones por sensor para calcular consumo y estado
-        $measurementsBySensor = $measurements->getCollection()->groupBy('sensor_id');
-
+        // Mapear cada elemento devuelto por la paginación para inyectar su estado y extra fields
         $measurementsWithData = $measurements->getCollection()->map(function ($measurement) use ($allMeasurementsBySensor) {
             $sensorId = $measurement->sensor_id;
             $sensorMeasurements = $allMeasurementsBySensor->get($sensorId, collect());
 
             // Obtener el campo principal de la plantilla
-            $mainField = $this->getMainFieldFromSensor($measurement->sensor);
+            $mainField = $this->measurementService->getMainFieldFromSensor($measurement->sensor);
 
             // Ordenar las mediciones del sensor por fecha (ascendente)
             $sortedMeasurements = $sensorMeasurements->sortBy('measured_at');
@@ -274,27 +171,6 @@ class MeasurementController extends Controller
         ]);
     }
 
-    /**
-     * Obtener el campo principal de un sensor según su plantilla
-     */
-    private function getMainFieldFromSensor($sensor)
-    {
-        $mainField = 'valor';
-
-        if ($sensor && $sensor->group && $sensor->group->template) {
-            $template = $sensor->group->template;
-            if (isset($template->schema['campos'])) {
-                foreach ($template->schema['campos'] as $campo) {
-                    if ($campo['tipo'] === 'numero' && ($campo['requerido'] ?? false)) {
-                        $mainField = $campo['nombre'];
-                        break;
-                    }
-                }
-            }
-        }
-
-        return $mainField;
-    }
 
     /**
      * Crear una nueva medición.
@@ -865,102 +741,7 @@ class MeasurementController extends Controller
     public function getErrorStats(Request $request)
     {
         $user = $request->user();
-
-        // Obtener TODAS las mediciones del usuario (sin paginación)
-        $query = Measurement::with(['sensor', 'sensor.group'])
-            ->whereHas('sensor.group', function ($q) use ($user) {
-                $q->where('user_id', $user->id)
-                    ->orWhereHas('sharedAccess', function ($q2) use ($user) {
-                        $q2->where('shared_with', $user->id)
-                            ->whereIn('role', ['inspector', 'admin']);
-                    });
-            })
-            ->orderBy('sensor_id')
-            ->orderBy('measured_at');
-
-        // Aplicar los mismos filtros que en el método index
-        if ($request->has('sensor_id') && $request->sensor_id) {
-            $query->where('sensor_id', $request->sensor_id);
-        }
-
-        if ($request->has('group_id') && $request->group_id) {
-            $query->whereHas('sensor.group', function ($q) use ($request) {
-                $q->where('id', $request->group_id);
-            });
-        }
-
-        if ($request->has('date_from') && $request->date_from) {
-            $query->where('measured_at', '>=', $request->date_from);
-        }
-
-        if ($request->has('date_to') && $request->date_to) {
-            $query->where('measured_at', '<=', $request->date_to . ' 23:59:59');
-        }
-
-        if ($request->has('search') && $request->search) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->whereHas('sensor', function ($q2) use ($search) {
-                    $q2->where('name', 'like', "%{$search}%")
-                        ->orWhere('identifier', 'like', "%{$search}%");
-                })
-                    ->orWhere('data->valor', 'like', "%{$search}%")
-                    ->orWhere('data->tipo', 'like', "%{$search}%");
-            });
-        }
-
-        $measurements = $query->get();
-
-        // Agrupar mediciones por sensor
-        $measurementsBySensor = $measurements->groupBy('sensor_id');
-
-        $stats = [
-            'negative_consumption' => 0,
-            'inconsistent_date' => 0,
-            'first_measurement' => 0,
-            'valid' => 0
-        ];
-
-        foreach ($measurementsBySensor as $sensorId => $sensorMeasurements) {
-            // Ordenar las mediciones del sensor por fecha (ascendente)
-            $sortedMeasurements = $sensorMeasurements->sortBy('measured_at');
-
-            foreach ($sortedMeasurements as $index => $measurement) {
-                $previousMeasurement = ($index > 0) ? $sortedMeasurements->get($index - 1) : null;
-
-                if (!$previousMeasurement) {
-                    $stats['first_measurement']++;
-                    continue;
-                }
-
-                // Validar fecha: la fecha actual debe ser >= a la fecha anterior
-                $lastDate = Carbon::parse($previousMeasurement->measured_at);
-                $currentDate = Carbon::parse($measurement->measured_at);
-
-                if ($currentDate->lt($lastDate)) {
-                    $stats['inconsistent_date']++;
-                    continue; // No contar como válida
-                }
-
-                // Validar consumo
-                $lastValue = $previousMeasurement->data['valor'] ?? 0;
-                $currentValue = $measurement->data['valor'] ?? 0;
-                $consumption = $currentValue - $lastValue;
-
-                if ($consumption < 0) {
-                    $stats['negative_consumption']++;
-                } else {
-                    $stats['valid']++;
-                }
-            }
-        }
-
-        return [
-            'negative_consumption' => $stats['negative_consumption'],
-            'inconsistent_date' => $stats['inconsistent_date'],
-            'first_measurement' => $stats['first_measurement'],
-            'valid' => $stats['valid']
-        ];
+        return $this->measurementService->calculateErrorStats($user);
     }
 
     /**
@@ -1176,7 +957,7 @@ class MeasurementController extends Controller
                             'date' => $previous->measured_at
                         ] : null,
                         'error_type' => $errorType,
-                        'error_message' => $this->getErrorMessage($errorType, $current, $previous),
+                        'error_message' => $this->measurementService->getErrorMessage($errorType, $current, $previous, 'valor'),
                         'difference' => $previous ? [
                             'value' => ($current->data['valor'] ?? 0) - ($previous->data['valor'] ?? 0),
                             'days' => $previous ? Carbon::parse($current->measured_at)->diffInDays(Carbon::parse($previous->measured_at)) : null
@@ -1206,30 +987,7 @@ class MeasurementController extends Controller
             ], 500);
         }
     }
-    /**
-     * Obtener mensaje de error personalizado.
-     */
-    private function getErrorMessage($errorType, $current, $previous)
-    {
-        switch ($errorType) {
-            case 'negative_consumption':
-                $currentValue = $current->data['valor'] ?? 0;
-                $previousValue = $previous->data['valor'] ?? 0;
-                $consumption = $currentValue - $previousValue;
-                return "Consumo negativo detectado: {$consumption} (Valor actual: {$currentValue}, Valor anterior: {$previousValue}).";
 
-            case 'inconsistent_date':
-                $currentDate = Carbon::parse($current->measured_at)->format('d/m/Y H:i');
-                $previousDate = Carbon::parse($previous->measured_at)->format('d/m/Y H:i');
-                return "Fecha inconsistente: La medición del {$currentDate} es anterior a la del {$previousDate}.";
-
-            case 'first_measurement':
-                return "Esta es la primera medición registrada para este sensor.";
-
-            default:
-                return "Error desconocido.";
-        }
-    }
 
     /**
      * Obtener el siguiente sensor marcado para medición (para flujo masivo).
@@ -1503,7 +1261,7 @@ class MeasurementController extends Controller
         $sensor = Sensor::with('group.template')->findOrFail($request->sensor_id);
 
         // ✅ Verificar permisos
-        $canAccess = $this->canAccessSensor($user, $sensor);
+        $canAccess = $this->measurementService->canAccessSensor($user, $sensor);
         if (!$canAccess) {
             return response()->json([
                 'success' => false,
@@ -1726,49 +1484,60 @@ class MeasurementController extends Controller
         ], 201);
     }
 
+
+
     /**
-     * Verificar si el usuario puede acceder a un sensor
+     * Eliminación masiva de mediciones
      */
-    private function canAccessSensor($user, $sensor)
+    public function bulkDelete(Request $request)
     {
-        // Admin tiene permiso
-        if ($user->hasRole('admin')) {
-            return true;
+        $user = $request->user();
+
+        $validator = Validator::make($request->all(), [
+            'measurement_ids' => 'required|array',
+            'measurement_ids.*' => 'exists:measurements,id'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación',
+                'errors' => $validator->errors()
+            ], 422);
         }
 
-        // Propietario del sensor
-        if ($sensor->group && $sensor->group->user_id === $user->id) {
-            return true;
-        }
+        $measurementIds = $request->input('measurement_ids');
+        $measurements = Measurement::with('sensor.group')->whereIn('id', $measurementIds)->get();
 
-        // Usuario con acceso compartido al grupo
-        if (
-            $sensor->group && $sensor->group->sharedAccess()
-                ->where('shared_with', $user->id)
-                ->whereIn('role', ['inspector', 'admin'])
-                ->exists()
-        ) {
-            return true;
-        }
+        $deletedCount = 0;
+        $unauthorizedCount = 0;
 
-        // ✅ COLABORADOR A TRAVÉS DE WORKSPACE (verificando is_paused)
-        $workspaceId = $sensor->group->user_id ?? null;
-        if ($workspaceId) {
-            $collaboration = \App\Models\WorkspaceCollaborator::where('workspace_id', $workspaceId)
-                ->where('user_id', $user->id)
-                ->where('status', 'active')
-                ->where('is_paused', false) // ✅ Importante: no pausados
-                ->whereIn('role', ['inspector', 'admin'])
-                ->exists();
+        foreach ($measurements as $measurement) {
+            /** @var \App\Models\Measurement $measurement */
+            $sensor = $measurement->sensor;
 
-            if ($collaboration) {
-                return true;
+            // Verificar permisos (mismo método que canAccessSensor pero aquí es para eliminar)
+            $canDelete = $user->hasRole('admin') ||
+                ($sensor && $sensor->group && $sensor->group->user_id === $user->id);
+
+            if (!$canDelete && $sensor) {
+                $canDelete = $this->measurementService->canAccessSensor($user, $sensor);
+            }
+
+            if ($canDelete) {
+                $measurement->delete();
+                $deletedCount++;
+            } else {
+                $unauthorizedCount++;
             }
         }
 
-        return false;
+        return response()->json([
+            'success' => true,
+            'message' => "Se eliminaron {$deletedCount} mediciones correctamente.",
+            'deleted_count' => $deletedCount,
+            'unauthorized_count' => $unauthorizedCount
+        ]);
     }
-
-
 
 }

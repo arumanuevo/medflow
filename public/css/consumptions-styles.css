@@ -4,13 +4,6 @@
    que no están en shared-styles.css
    ============================================= */
 
-/* Estilos para el card header (específico de consumos) */
-.card-header {
-    background-color: #2c3e50 !important;
-    color: #fff !important;
-    padding: 0.75rem 1.5rem !important;
-}
-
 /* Estilos para botones específicos */
 .btn-outline-secondary {
     color: #6c757d;
@@ -35,39 +28,6 @@
     margin-bottom: 1rem;
     color: #212529;
     vertical-align: top;
-}
-
-/* Los headers de tabla ahora usan los estilos de shared-styles.css */
-/* Para mantener consistencia, usamos la clase table-wrapper */
-.table th {
-    background-color: #f8f9fa;
-    color: #495057;
-    border-bottom: 2px solid #dee2e6;
-    padding: 0.5rem 0.5rem;
-    vertical-align: middle;
-    font-size: 0.72rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    cursor: pointer;
-    user-select: none;
-    position: relative;
-    white-space: nowrap;
-}
-
-.table th:hover {
-    background-color: rgba(13, 110, 253, 0.08);
-}
-
-.table td {
-    padding: 0.5rem 0.6rem;
-    vertical-align: middle;
-    font-size: 0.85rem;
-    text-align: center;
-}
-
-.table td.text-left {
-    text-align: left;
 }
 
 /* Estilos para el modal */
@@ -110,34 +70,4 @@
     width: 1.5rem;
     height: 1.5rem;
     border-width: 0.2em;
-}
-
-/* Estilos para la paginación */
-.pagination {
-    --bs-pagination-padding-x: 0.75rem;
-    --bs-pagination-padding-y: 0.375rem;
-    --bs-pagination-font-size: 0.875rem;
-    --bs-pagination-color: #6c757d;
-    --bs-pagination-bg: #fff;
-    --bs-pagination-border-width: 1px;
-    --bs-pagination-border-color: #dee2e6;
-    --bs-pagination-border-radius: 0.25rem;
-    --bs-pagination-hover-color: #6c757d;
-    --bs-pagination-hover-bg: #e9ecef;
-    --bs-pagination-hover-border-color: #dee2e6;
-    --bs-pagination-active-color: #fff;
-    --bs-pagination-active-bg: #0d6efd;
-    --bs-pagination-active-border-color: #0d6efd;
-    --bs-pagination-disabled-color: #6c757d;
-    --bs-pagination-disabled-bg: #fff;
-    --bs-pagination-disabled-border-color: #dee2e6;
-}
-
-/* Estilos para badges */
-.badge {
-    padding: 0.3rem 0.8rem;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    line-height: 1;
 }
