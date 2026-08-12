@@ -562,7 +562,7 @@
 
 @push('scripts')
     <script>
-        $(docu        ment).ready(function () {
+        $(document).ready(function () {
             let currentPage = 1;
             const itemsPerPage = 10;
             let showErrors = false;
