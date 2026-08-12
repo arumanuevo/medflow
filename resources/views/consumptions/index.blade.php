@@ -25,34 +25,59 @@
                     </div>
                     <div class="card-body">
                         <!-- Filtros -->
-                        <div class="row mb-4" id="filterControls">
+                        <div class="row mb-3 align-items-end" id="filterControls">
                             <div class="col-md-3">
-                                <label for="sensorFilter" class="form-label">Sensor</label>
-                                <select class="form-select" id="sensorFilter">
+                                <label for="sensorFilter" class="form-label mb-1">Sensor</label>
+                                <select class="form-select form-select-sm" id="sensorFilter">
                                     <option value="" selected>Todos los sensores</option>
                                 </select>
                             </div>
-                            <div class="col-md-3">
-                                <label for="startDate" class="form-label">Fecha desde</label>
-                                <input type="date" class="form-control" id="startDate">
+                            <div class="col-md-2">
+                                <label for="identifierFilter" class="form-label mb-1">Identificador</label>
+                                <input type="text" class="form-control form-control-sm" id="identifierFilter"
+                                    placeholder="Ej: SN-123">
                             </div>
-                            <div class="col-md-3">
-                                <label for="endDate" class="form-label">Fecha hasta</label>
-                                <input type="date" class="form-control" id="endDate">
+                            <div class="col-md-2">
+                                <label for="startDate" class="form-label mb-1">Fecha desde</label>
+                                <input type="date" class="form-control form-control-sm" id="startDate">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="endDate" class="form-label mb-1">Fecha hasta</label>
+                                <input type="date" class="form-control form-control-sm" id="endDate">
                             </div>
                             <div class="col-md-3">
                                 <div class="d-flex gap-2">
-                                    <button class="btn btn-secondary flex-grow-1" id="applyFilters">
-                                        <i class="bi bi-funnel"></i> Aplicar Filtros
+                                    <button class="btn btn-secondary btn-sm flex-grow-1" id="applyFilters">
+                                        <i class="bi bi-funnel"></i> Filtrar
                                     </button>
-                                    <button class="btn btn-outline-secondary flex-grow-1" id="resetFilters">
+                                    <button class="btn btn-outline-secondary btn-sm flex-grow-1" id="resetFilters">
                                         <i class="bi bi-arrow-clockwise"></i> Limpiar
                                     </button>
                                 </div>
                             </div>
                         </div>
 
-                        </table>
+                        <!-- Tabla de Consumos -->
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Sensor</th>
+                                        <th>Identificador</th>
+                                        <th>Grupo</th>
+                                        <th>Consumo</th>
+                                        <th>Unidad</th>
+                                        <th>Periodo</th>
+                                        <th>Días</th>
+                                        <th>Prom. Diario</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="consumptionsTable">
+                                    <!-- Los consumos se cargarán aquí por JS -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                     <!-- Paginación (opcional, si se implementa) -->
@@ -145,6 +170,7 @@
         // Cargar consumos
         function loadConsumptions() {
             const sensorId = $('#sensorFilter').val();
+            const identifier = $('#identifierFilter').val();
             const startDate = $('#startDate').val();
             const endDate = $('#endDate').val();
 
@@ -153,6 +179,7 @@
                 per_page: 15
             };
             if (sensorId) params.sensor_id = sensorId;
+            if (identifier) params.identifier = identifier;
             if (startDate) params.start_date = startDate;
             if (endDate) params.end_date = endDate;
 
@@ -227,8 +254,8 @@
                 const dailyAverage = consumption.daily_average ? parseFloat(consumption.daily_average).toFixed(2) : 0;
 
                 const row = '<tr>' +
-                    '   <td>' + consumption.id + '</td>' +
-                    '   <td>' + sensorName + ' (' + sensorIdentifier + ')</td>' +
+                    '   <td>' + sensorName + '</td>' +
+                    '   <td><code>' + sensorIdentifier + '</code></td>' +
                     '   <td>' + groupName + '</td>' +
                     '   <td>' + consumption.value + '</td>' +
                     '   <td>' + consumption.unit + '</td>' +
@@ -300,59 +327,41 @@
             const endDate = new Date(consumption.period_end).toLocaleString('es-ES');
             const dailyAverage = consumption.daily_average || 0;
 
-            let html = '<div class="row">' +
-                '   <div class="col-md-6">' +
-                '       <div class="card mb-3">' +
-                '           <div class="card-header bg-light">' +
-                '               <h5><i class="bi bi-info-circle"></i> Información General</h5>' +
-                '           </div>' +
-                '           <div class="card-body">' +
-                '               <dl class="row">' +
-                '                   <dt class="col-sm-4">ID:</dt>' +
-                '                   <dd class="col-sm-8">' + consumption.id + '</dd>' +
-                '                   <dt class="col-sm-4">Sensor:</dt>' +
-                '                   <dd class="col-sm-8">' + (consumption.sensor?.name || 'N/A') + ' (' + (consumption.sensor?.identifier || 'N/A') + ')</dd>' +
-                '                   <dt class="col-sm-4">Grupo:</dt>' +
-                '                   <dd class="col-sm-8">' + (consumption.sensor?.group?.name || 'N/A') + '</dd>' +
-                '                   <dt class="col-sm-4">Unidad:</dt>' +
-                '                   <dd class="col-sm-8">' + consumption.unit + '</dd>' +
-                '               </dl>' +
-                '           </div>' +
-                '       </div>' +
+            let html = '<div class="row small">' +
+                '   <div class="col-md-6 mb-3">' +
+                '       <h6 class="border-bottom pb-2 text-primary fw-bold"><i class="bi bi-info-circle"></i> Información General</h6>' +
+                '       <dl class="row mb-0">' +
+                '           <dt class="col-sm-4 text-muted">ID:</dt>' +
+                '           <dd class="col-sm-8 mb-1">' + consumption.id + '</dd>' +
+                '           <dt class="col-sm-4 text-muted">Sensor:</dt>' +
+                '           <dd class="col-sm-8 mb-1">' + (consumption.sensor?.name || 'N/A') + ' (<code>' + (consumption.sensor?.identifier || 'N/A') + '</code>)</dd>' +
+                '           <dt class="col-sm-4 text-muted">Grupo:</dt>' +
+                '           <dd class="col-sm-8 mb-1">' + (consumption.sensor?.group?.name || 'N/A') + '</dd>' +
+                '           <dt class="col-sm-4 text-muted">Unidad:</dt>' +
+                '           <dd class="col-sm-8 mb-1">' + consumption.unit + '</dd>' +
+                '       </dl>' +
                 '   </div>' +
-                '   <div class="col-md-6">' +
-                '       <div class="card mb-3">' +
-                '           <div class="card-header bg-light">' +
-                '               <h5><i class="bi bi-graph-up"></i> Datos del Consumo</h5>' +
-                '           </div>' +
-                '           <div class="card-body">' +
-                '               <dl class="row">' +
-                '                   <dt class="col-sm-4">Valor:</dt>' +
-                '                   <dd class="col-sm-8">' + consumption.value + ' ' + consumption.unit + '</dd>' +
-                '                   <dt class="col-sm-4">Días:</dt>' +
-                '                   <dd class="col-sm-8">' + consumption.days_between + '</dd>' +
-                '                   <dt class="col-sm-4">Promedio Diario:</dt>' +
-                '                   <dd class="col-sm-8">' + dailyAverage + ' ' + consumption.unit + '/día</dd>' +
-                '               </dl>' +
-                '           </div>' +
-                '       </div>' +
+                '   <div class="col-md-6 mb-3">' +
+                '       <h6 class="border-bottom pb-2 text-primary fw-bold"><i class="bi bi-graph-up"></i> Datos del Consumo</h6>' +
+                '       <dl class="row mb-0">' +
+                '           <dt class="col-sm-4 text-muted">Valor:</dt>' +
+                '           <dd class="col-sm-8 mb-1 fw-bold">' + consumption.value + ' ' + consumption.unit + '</dd>' +
+                '           <dt class="col-sm-4 text-muted">Días:</dt>' +
+                '           <dd class="col-sm-8 mb-1">' + consumption.days_between + '</dd>' +
+                '           <dt class="col-sm-4 text-muted">Prom. Diario:</dt>' +
+                '           <dd class="col-sm-8 mb-1">' + dailyAverage + ' ' + consumption.unit + '/día</dd>' +
+                '       </dl>' +
                 '   </div>' +
                 '</div>' +
-                '<div class="row">' +
-                '   <div class="col-md-12">' +
-                '       <div class="card">' +
-                '           <div class="card-header bg-light">' +
-                '               <h5><i class="bi bi-calendar-range"></i> Período</h5>' +
-                '           </div>' +
-                '           <div class="card-body">' +
-                '               <dl class="row">' +
-                '                   <dt class="col-sm-2">Inicio:</dt>' +
-                '                   <dd class="col-sm-4">' + startDate + '</dd>' +
-                '                   <dt class="col-sm-2">Fin:</dt>' +
-                '                   <dd class="col-sm-4">' + endDate + '</dd>' +
-                '               </dl>' +
-                '           </div>' +
-                '       </div>' +
+                '<div class="row small">' +
+                '   <div class="col-md-12 mb-3">' +
+                '       <h6 class="border-bottom pb-2 text-primary fw-bold"><i class="bi bi-calendar-range"></i> Período</h6>' +
+                '       <dl class="row mb-0">' +
+                '           <dt class="col-sm-2 text-muted">Inicio:</dt>' +
+                '           <dd class="col-sm-4 mb-1">' + startDate + '</dd>' +
+                '           <dt class="col-sm-2 text-muted">Fin:</dt>' +
+                '           <dd class="col-sm-4 mb-1">' + endDate + '</dd>' +
+                '       </dl>' +
                 '   </div>' +
                 '</div>';
 
@@ -383,48 +392,36 @@
                 const startValue = getMeasurementValue(consumption.start_measurement) || 'N/A';
                 const startMeasurementDate = new Date(consumption.start_measurement.measured_at).toLocaleString('es-ES');
 
-                html += '<div class="row mt-3">' +
-                    '   <div class="col-md-6">' +
-                    '       <div class="card">' +
-                    '           <div class="card-header bg-light">' +
-                    '               <h5><i class="bi bi-arrow-down-left"></i> Medición Inicial</h5>' +
-                    '           </div>' +
-                    '           <div class="card-body">' +
-                    '               <dl class="row">' +
-                    '                   <dt class="col-sm-4">ID:</dt>' +
-                    '                   <dd class="col-sm-8">' + consumption.start_measurement.id + '</dd>' +
-                    '                   <dt class="col-sm-4">Valor:</dt>' +
-                    '                   <dd class="col-sm-8">' + startValue + ' ' + consumption.unit + '</dd>' +
-                    '                   <dt class="col-sm-4">Fecha:</dt>' +
-                    '                   <dd class="col-sm-8">' + startMeasurementDate + '</dd>' +
-                    '               </dl>' +
-                    '           </div>' +
-                    '       </div>' +
+                html += '<div class="row small mt-2">' +
+                    '   <div class="col-md-6 mb-3">' +
+                    '       <h6 class="border-bottom pb-2 text-primary fw-bold"><i class="bi bi-arrow-down-left"></i> Medición Inicial</h6>' +
+                    '       <dl class="row mb-0">' +
+                    '           <dt class="col-sm-4 text-muted">ID:</dt>' +
+                    '           <dd class="col-sm-8 mb-1">' + consumption.start_measurement.id + '</dd>' +
+                    '           <dt class="col-sm-4 text-muted">Valor:</dt>' +
+                    '           <dd class="col-sm-8 mb-1">' + startValue + ' ' + consumption.unit + '</dd>' +
+                    '           <dt class="col-sm-4 text-muted">Fecha:</dt>' +
+                    '           <dd class="col-sm-8 mb-1">' + startMeasurementDate + '</dd>' +
+                    '       </dl>' +
                     '   </div>';
 
                 if (consumption.end_measurement) {
                     const endValue = getMeasurementValue(consumption.end_measurement) || 'N/A';
                     const endMeasurementDate = new Date(consumption.end_measurement.measured_at).toLocaleString('es-ES');
 
-                    html += '   <div class="col-md-6">' +
-                        '       <div class="card">' +
-                        '           <div class="card-header bg-light">' +
-                        '               <h5><i class="bi bi-arrow-up-right"></i> Medición Final</h5>' +
-                        '           </div>' +
-                        '           <div class="card-body">' +
-                        '               <dl class="row">' +
-                        '                   <dt class="col-sm-4">ID:</dt>' +
-                        '                   <dd class="col-sm-8">' + consumption.end_measurement.id + '</dd>' +
-                        '                   <dt class="col-sm-4">Valor:</dt>' +
-                        '                   <dd class="col-sm-8">' + endValue + ' ' + consumption.unit + '</dd>' +
-                        '                   <dt class="col-sm-4">Fecha:</dt>' +
-                        '                   <dd class="col-sm-8">' + endMeasurementDate + '</dd>' +
-                        '               </dl>' +
-                        '           </div>' +
-                        '       </div>' +
-                        '   </div>' +
-                        '</div>';
+                    html += '   <div class="col-md-6 mb-3">' +
+                        '       <h6 class="border-bottom pb-2 text-primary fw-bold"><i class="bi bi-arrow-up-right"></i> Medición Final</h6>' +
+                        '       <dl class="row mb-0">' +
+                        '           <dt class="col-sm-4 text-muted">ID:</dt>' +
+                        '           <dd class="col-sm-8 mb-1">' + consumption.end_measurement.id + '</dd>' +
+                        '           <dt class="col-sm-4 text-muted">Valor:</dt>' +
+                        '           <dd class="col-sm-8 mb-1">' + endValue + ' ' + consumption.unit + '</dd>' +
+                        '           <dt class="col-sm-4 text-muted">Fecha:</dt>' +
+                        '           <dd class="col-sm-8 mb-1">' + endMeasurementDate + '</dd>' +
+                        '       </dl>' +
+                        '   </div>';
                 }
+                html += '</div>';
             }
 
             $('#consumptionDetailsContent').html(html);
@@ -485,6 +482,7 @@
         // Limpiar filtros
         function resetFilters() {
             $('#sensorFilter').val('');
+            $('#identifierFilter').val('');
             $('#startDate').val('');
             $('#endDate').val('');
             currentPage = 1;
@@ -520,16 +518,16 @@
 
             if (meta.current_page > 1) {
                 paginationHtml += `
-                <li class="page-item">
-                    <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${meta.current_page - 1})" aria-label="Anterior">
-                        <span aria-hidden="true">&laquo;</span>
-                    </a>
-                </li>`;
+                                        <li class="page-item">
+                                            <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${meta.current_page - 1})" aria-label="Anterior">
+                                                <span aria-hidden="true">&laquo;</span>
+                                            </a>
+                                        </li>`;
             } else {
                 paginationHtml += `
-                <li class="page-item disabled">
-                    <span class="page-link" aria-hidden="true">&laquo;</span>
-                </li>`;
+                                        <li class="page-item disabled">
+                                            <span class="page-link" aria-hidden="true">&laquo;</span>
+                                        </li>`;
             }
 
             const maxPages = 5;
@@ -543,29 +541,29 @@
             for (let i = startPage; i <= endPage; i++) {
                 if (i === meta.current_page) {
                     paginationHtml += `
-                    <li class="page-item active">
-                        <span class="page-link">${i}</span>
-                    </li>`;
+                                            <li class="page-item active">
+                                                <span class="page-link">${i}</span>
+                                            </li>`;
                 } else {
                     paginationHtml += `
-                    <li class="page-item">
-                        <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${i})">${i}</a>
-                    </li>`;
+                                            <li class="page-item">
+                                                <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${i})">${i}</a>
+                                            </li>`;
                 }
             }
 
             if (meta.current_page < meta.last_page) {
                 paginationHtml += `
-                <li class="page-item">
-                    <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${meta.current_page + 1})" aria-label="Siguiente">
-                        <span aria-hidden="true">&raquo;</span>
-                    </a>
-                </li>`;
+                                        <li class="page-item">
+                                            <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${meta.current_page + 1})" aria-label="Siguiente">
+                                                <span aria-hidden="true">&raquo;</span>
+                                            </a>
+                                        </li>`;
             } else {
                 paginationHtml += `
-                <li class="page-item disabled">
-                    <span class="page-link" aria-hidden="true">&raquo;</span>
-                </li>`;
+                                        <li class="page-item disabled">
+                                            <span class="page-link" aria-hidden="true">&raquo;</span>
+                                        </li>`;
             }
 
             $('#pagination').html(paginationHtml);

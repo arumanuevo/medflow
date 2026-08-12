@@ -75,82 +75,37 @@ class MeasurementController extends Controller
 
         $allMeasurementsBySensor = $allMeasurements->groupBy('sensor_id');
 
-        // Obtener las mediciones paginadas
-        $measurements = $query->paginate($perPage);
+        if ($request->has('error_type') && $request->error_type) {
+            // Si hay filtro por estado/error, debemos traer todos los coincidencias, mapear y filtrar en memoria
+            // porque el error_type no existe en la base de datos
+            $allFilteredQueryResults = $query->get();
 
-        // Mapear cada elemento devuelto por la paginación para inyectar su estado y extra fields
-        $measurementsWithData = $measurements->getCollection()->map(function ($measurement) use ($allMeasurementsBySensor) {
-            $sensorId = $measurement->sensor_id;
-            $sensorMeasurements = $allMeasurementsBySensor->get($sensorId, collect());
-
-            // Obtener el campo principal de la plantilla
-            $mainField = $this->measurementService->getMainFieldFromSensor($measurement->sensor);
-
-            // Ordenar las mediciones del sensor por fecha (ascendente)
-            $sortedMeasurements = $sensorMeasurements->sortBy('measured_at');
-
-            // Encontrar el índice de la medición actual en el array ordenado
-            $currentIndex = $sortedMeasurements->search(function ($m) use ($measurement) {
-                return $m->id === $measurement->id;
+            $measurementsWithData = $allFilteredQueryResults->map(function ($measurement) use ($allMeasurementsBySensor) {
+                return $this->decorateMeasurementWithData($measurement, $allMeasurementsBySensor);
             });
 
-            // Obtener la medición anterior (en el tiempo)
-            $previousMeasurement = ($currentIndex > 0) ? $sortedMeasurements->get($currentIndex - 1) : null;
-
-            $data = $measurement->data ?? [];
-            $valor = $data[$mainField] ?? 0;
-
-            if ($previousMeasurement) {
-                $lastValue = $previousMeasurement->data[$mainField] ?? 0;
-                $consumption = $valor - $lastValue;
-                $measurement->consumption = $consumption;
-
-                // Validar fecha
-                $lastDate = Carbon::parse($previousMeasurement->measured_at);
-                $currentDate = Carbon::parse($measurement->measured_at);
-
-                if ($currentDate->lt($lastDate)) {
-                    $measurement->error_type = 'inconsistent_date';
-                } elseif ($consumption < 0) {
-                    $measurement->error_type = 'negative_consumption';
-                } else {
-                    $measurement->error_type = 'valid';
-                }
-            } else {
-                // Primera medición
-                $measurement->consumption = 0;
-                $measurement->error_type = 'first_measurement';
-            }
-
-            $measurement->previous_measurement = $previousMeasurement;
-
-            // ✅ AÑADIR CAMPOS EXTRA DEL SENSOR (dinámico desde metadata)
-            $sensor = $measurement->sensor;
-            if ($sensor) {
-                // Enviar TODOS los campos extra dinámicamente desde metadata
-                $measurement->sensor_extra_fields = array_filter(
-                    $sensor->metadata ?? [],
-                    fn($v) => $v !== null && $v !== ''
-                );
-
-                // Campos explícitos para columnas dedicadas en la tabla
-                $measurement->sensor_identifier = $sensor->identifier;
-                $measurement->group_name = $sensor->group->name ?? null;
-                $measurement->template_type = $sensor->group->template->type ?? null;
-                $measurement->template_name = $sensor->group->template->name ?? null;
-            }
-
-            return $measurement;
-        });
-
-        // Filtrar por tipo de error si se especifica
-        if ($request->has('error_type') && $request->error_type) {
             $filteredMeasurements = $measurementsWithData->filter(function ($measurement) use ($request) {
                 return $measurement->error_type === $request->error_type;
+            })->values();
+
+            $total = $filteredMeasurements->count();
+            $items = $filteredMeasurements->slice(($page - 1) * $perPage, $perPage)->values();
+
+            $measurements = new \Illuminate\Pagination\LengthAwarePaginator(
+                $items,
+                $total,
+                $perPage,
+                $page,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+        } else {
+            // Paginación normal en SQL
+            $measurements = $query->paginate($perPage);
+
+            $measurementsWithData = $measurements->getCollection()->map(function ($measurement) use ($allMeasurementsBySensor) {
+                return $this->decorateMeasurementWithData($measurement, $allMeasurementsBySensor);
             });
 
-            $measurements->setCollection($filteredMeasurements);
-        } else {
             $measurements->setCollection($measurementsWithData);
         }
 
@@ -169,6 +124,74 @@ class MeasurementController extends Controller
                 'per_page' => $measurements->perPage()
             ]
         ]);
+    }
+
+    /**
+     * Helper paramétrica extraída para enriquecer cada medición.
+     */
+    private function decorateMeasurementWithData($measurement, $allMeasurementsBySensor)
+    {
+        $sensorId = $measurement->sensor_id;
+        $sensorMeasurements = $allMeasurementsBySensor->get($sensorId, collect());
+
+        // Obtener el campo principal de la plantilla
+        $mainField = $this->measurementService->getMainFieldFromSensor($measurement->sensor);
+
+        // Ordenar las mediciones del sensor por fecha (ascendente)
+        $sortedMeasurements = $sensorMeasurements->sortBy('measured_at');
+
+        // Encontrar el índice de la medición actual en el array ordenado
+        $currentIndex = $sortedMeasurements->search(function ($m) use ($measurement) {
+            return $m->id === $measurement->id;
+        });
+
+        // Obtener la medición anterior (en el tiempo)
+        $previousMeasurement = ($currentIndex > 0) ? $sortedMeasurements->get($currentIndex - 1) : null;
+
+        $data = $measurement->data ?? [];
+        $valor = $data[$mainField] ?? 0;
+
+        if ($previousMeasurement) {
+            $lastValue = $previousMeasurement->data[$mainField] ?? 0;
+            $consumption = $valor - $lastValue;
+            $measurement->consumption = $consumption;
+
+            // Validar fecha
+            $lastDate = Carbon::parse($previousMeasurement->measured_at);
+            $currentDate = Carbon::parse($measurement->measured_at);
+
+            if ($currentDate->lt($lastDate)) {
+                $measurement->error_type = 'inconsistent_date';
+            } elseif ($consumption < 0) {
+                $measurement->error_type = 'negative_consumption';
+            } else {
+                $measurement->error_type = 'valid';
+            }
+        } else {
+            // Primera medición
+            $measurement->consumption = 0;
+            $measurement->error_type = 'first_measurement';
+        }
+
+        $measurement->previous_measurement = $previousMeasurement;
+
+        // ✅ AÑADIR CAMPOS EXTRA DEL SENSOR (dinámico desde metadata)
+        $sensor = $measurement->sensor;
+        if ($sensor) {
+            // Enviar TODOS los campos extra dinámicamente desde metadata
+            $measurement->sensor_extra_fields = array_filter(
+                $sensor->metadata ?? [],
+                fn($v) => $v !== null && $v !== ''
+            );
+
+            // Campos explícitos para columnas dedicadas en la tabla
+            $measurement->sensor_identifier = $sensor->identifier;
+            $measurement->group_name = $sensor->group->name ?? null;
+            $measurement->template_type = $sensor->group->template->type ?? null;
+            $measurement->template_name = $sensor->group->template->name ?? null;
+        }
+
+        return $measurement;
     }
 
 

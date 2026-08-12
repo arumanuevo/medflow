@@ -177,6 +177,13 @@ class MeasurementService
             $query->where('measured_at', '<=', $filters['date_to'] . ' 23:59:59');
         }
 
+        if (!empty($filters['identifier'])) {
+            $identifier = $filters['identifier'];
+            $query->whereHas('sensor', function ($q) use ($identifier) {
+                $q->where('identifier', 'like', "%{$identifier}%");
+            });
+        }
+
         if (!empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search, $user) {

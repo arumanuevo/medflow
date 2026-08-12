@@ -13,92 +13,124 @@ use Carbon\Carbon;
 
 class ConsumptionController extends Controller
 {
-   /**
- * Listar consumos con filtros opcionales.
- * Si no hay consumos calculados, los calcula automáticamente para todos los sensores del usuario.
- */
-public function index(Request $request)
-{
-    $user = $request->user();
+    /**
+     * Listar consumos con filtros opcionales.
+     * Si no hay consumos calculados, los calcula automáticamente para todos los sensores del usuario.
+     */
+    public function index(Request $request)
+    {
+        $user = $request->user();
 
-    // Obtener sensores del usuario (propios o compartidos)
-    $sensors = Sensor::where(function($query) use ($user) {
-        $query->whereHas('group', function($q) use ($user) {
-            $q->where('user_id', $user->id);
-        })->orWhereHas('group.sharedAccess', function($q) use ($user) {
-            $q->where('shared_with', $user->id);
-        });
-    })->with(['group', 'group.template'])->get();
+        // Obtener sensores del usuario (propios o compartidos)
+        $sensors = Sensor::where(function ($query) use ($user) {
+            $query->whereHas('group', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            })->orWhereHas('group.sharedAccess', function ($q) use ($user) {
+                $q->where('shared_with', $user->id);
+            });
+        })->with(['group', 'group.template'])->get();
 
-    // Filtrar por sensor si se proporciona
-    if ($request->has('sensor_id')) {
-        $sensors = $sensors->where('id', $request->sensor_id);
-    }
+        // Filtrar por sensor si se proporciona
+        if ($request->has('sensor_id') && $request->sensor_id) {
+            $sensors = $sensors->where('id', $request->sensor_id);
+        }
 
-    // Calcular consumos para cada sensor si no existen
-    $allConsumptions = collect();
-    foreach ($sensors as $sensor) {
-        // Obtener consumos existentes para este sensor
-        $existingConsumptions = Consumption::where('sensor_id', $sensor->id)
-            ->with(['sensor', 'startMeasurement', 'endMeasurement', 'sensor.group', 'sensor.group.user'])
-            ->get();
+        // Filtrar por identificador si se proporciona
+        if ($request->has('identifier') && $request->identifier) {
+            $identifierFilter = strtolower($request->identifier);
+            $sensors = $sensors->filter(function ($sensor) use ($identifierFilter) {
+                return str_contains(strtolower($sensor->identifier), $identifierFilter);
+            });
+        }
 
-        // Si no hay consumos existentes o se fuerza el recálculo, calcularlos
-        if ($existingConsumptions->isEmpty() || $request->has('recalculate')) {
-            $newConsumptions = $this->calculateConsumptionsForSensor($sensor, $user);
-            $allConsumptions = $allConsumptions->concat($newConsumptions);
-        } else {
-            // Usar los consumos existentes
-            foreach ($existingConsumptions as $consumption) {
-                $consumptionArray = $consumption->toArray();
-                $daysBetween = $consumption->days_between;
+        // Calcular consumos para cada sensor si no existen
+        $allConsumptions = collect();
+        foreach ($sensors as $sensor) {
+            // Obtener consumos existentes para este sensor
+            $existingConsumptions = Consumption::where('sensor_id', $sensor->id)
+                ->with(['sensor', 'startMeasurement', 'endMeasurement', 'sensor.group', 'sensor.group.user'])
+                ->get();
 
-                // Redondear días a 2 decimales
-                $daysBetween = round($daysBetween, 2);
-                $consumptionArray['days_between'] = $daysBetween;
+            // Si no hay consumos existentes o se fuerza el recálculo, calcularlos
+            if ($existingConsumptions->isEmpty() || $request->has('recalculate')) {
+                $newConsumptions = $this->calculateConsumptionsForSensor($sensor, $user);
+                $allConsumptions = $allConsumptions->concat($newConsumptions);
+            } else {
+                // Usar los consumos existentes
+                foreach ($existingConsumptions as $consumption) {
+                    $consumptionArray = $consumption->toArray();
+                    $daysBetween = $consumption->days_between;
 
-                if ($daysBetween > 0) {
-                    $consumptionArray['daily_average'] = round((float)$consumption->value / $daysBetween, 2);
-                } else {
-                    $consumptionArray['daily_average'] = 0;
+                    // Redondear días a 2 decimales
+                    $daysBetween = round($daysBetween, 2);
+                    $consumptionArray['days_between'] = $daysBetween;
+
+                    if ($daysBetween > 0) {
+                        $consumptionArray['daily_average'] = round((float) $consumption->value / $daysBetween, 2);
+                    } else {
+                        $consumptionArray['daily_average'] = 0;
+                    }
+
+                    // Asegurar que el sensor y grupo estén cargados
+                    $consumptionArray['sensor'] = [
+                        'id' => $sensor->id,
+                        'name' => $sensor->name,
+                        'identifier' => $sensor->identifier,
+                        'group' => [
+                            'id' => $sensor->group->id,
+                            'name' => $sensor->group->name,
+                        ]
+                    ];
+
+                    $allConsumptions->push($consumptionArray);
                 }
-
-                // Asegurar que el sensor y grupo estén cargados
-                $consumptionArray['sensor'] = [
-                    'id' => $sensor->id,
-                    'name' => $sensor->name,
-                    'identifier' => $sensor->identifier,
-                    'group' => [
-                        'id' => $sensor->group->id,
-                        'name' => $sensor->group->name,
-                    ]
-                ];
-
-                $allConsumptions->push($consumptionArray);
             }
         }
+
+        // Aplicar filtros de fecha si existen
+        if ($request->has('start_date') || $request->has('end_date')) {
+            $allConsumptions = $allConsumptions->filter(function ($consumption) use ($request) {
+                $startOk = !$request->has('start_date') ||
+                    Carbon::parse($consumption['period_end'])->gte(Carbon::parse($request->start_date));
+                $endOk = !$request->has('end_date') ||
+                    Carbon::parse($consumption['period_start'])->lte(Carbon::parse($request->end_date));
+                return $startOk && $endOk;
+            });
+        }
+
+        // Ordenar por fecha de fin descendente
+        $allConsumptions = $allConsumptions->sortByDesc('period_end')->values();
+
+        // Variables de paginación
+        $page = $request->page ?? 1;
+        $perPage = $request->per_page ?? 15;
+        $total = $allConsumptions->count();
+
+        // Extraer porción de la página
+        $items = $allConsumptions->slice(($page - 1) * $perPage, $perPage)->values();
+
+        $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
+            $items,
+            $total,
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Consumos obtenidos correctamente',
+            'data' => $paginator->items(),
+            'meta' => [
+                'current_page' => $paginator->currentPage(),
+                'from' => $paginator->firstItem(),
+                'to' => $paginator->lastItem(),
+                'total' => $paginator->total(),
+                'last_page' => $paginator->lastPage(),
+                'per_page' => $paginator->perPage()
+            ]
+        ]);
     }
-
-    // Aplicar filtros de fecha si existen
-    if ($request->has('start_date') || $request->has('end_date')) {
-        $allConsumptions = $allConsumptions->filter(function($consumption) use ($request) {
-            $startOk = !$request->has('start_date') ||
-                       Carbon::parse($consumption['period_end'])->gte(Carbon::parse($request->start_date));
-            $endOk = !$request->has('end_date') ||
-                     Carbon::parse($consumption['period_start'])->lte(Carbon::parse($request->end_date));
-            return $startOk && $endOk;
-        });
-    }
-
-    // Ordenar por fecha de fin descendente
-    $allConsumptions = $allConsumptions->sortByDesc('period_end')->values();
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Consumos obtenidos correctamente',
-        'data' => $allConsumptions,
-    ]);
-}
 
     /**
      * Calcular consumos para un sensor específico.
@@ -133,7 +165,7 @@ public function index(Request $request)
             }
 
             // Validar que el valor final sea mayor al inicial
-            if ((float)$end->data['valor'] <= (float)$start->data['valor']) {
+            if ((float) $end->data['valor'] <= (float) $start->data['valor']) {
                 continue;
             }
 
@@ -210,8 +242,8 @@ public function index(Request $request)
 
         // Verificar permisos
         $canAccess = $user->hasRole('admin') ||
-                    ($sensor->group && $sensor->group->user_id === $user->id) ||
-                    ($sensor->group && $sensor->group->sharedAccess()->where('shared_with', $user->id)->exists());
+            ($sensor->group && $sensor->group->user_id === $user->id) ||
+            ($sensor->group && $sensor->group->sharedAccess()->where('shared_with', $user->id)->exists());
 
         if (!$canAccess) {
             return response()->json([
@@ -229,7 +261,7 @@ public function index(Request $request)
         }
 
         // Verificar que el valor final sea mayor al inicial
-        if ((float)$endMeasurement->data['valor'] <= (float)$startMeasurement->data['valor']) {
+        if ((float) $endMeasurement->data['valor'] <= (float) $startMeasurement->data['valor']) {
             return response()->json([
                 'success' => false,
                 'message' => 'El valor de la medición final debe ser mayor al inicial',
@@ -241,7 +273,7 @@ public function index(Request $request)
         $endValue = (float) $endMeasurement->data['valor'];
         $consumptionValue = round($endValue - $startValue, 2);
         $daysBetween = Carbon::parse($endMeasurement->measured_at)
-                          ->diffInDays(Carbon::parse($startMeasurement->measured_at));
+            ->diffInDays(Carbon::parse($startMeasurement->measured_at));
 
         if ($daysBetween < 0) {
             $daysBetween = abs($daysBetween);
@@ -308,8 +340,8 @@ public function index(Request $request)
 
         // Verificar permisos
         $canAccess = $user->hasRole('admin') ||
-                    ($sensor->group && $sensor->group->user_id === $user->id) ||
-                    ($sensor->group && $sensor->group->sharedAccess()->where('shared_with', $user->id)->exists());
+            ($sensor->group && $sensor->group->user_id === $user->id) ||
+            ($sensor->group && $sensor->group->sharedAccess()->where('shared_with', $user->id)->exists());
 
         if (!$canAccess) {
             return response()->json([
@@ -361,8 +393,8 @@ public function index(Request $request)
 
             // Verificar permisos
             $canAccess = $user->hasRole('admin') ||
-                        ($consumption->sensor->group && $consumption->sensor->group->user_id === $user->id) ||
-                        ($consumption->sensor->group && $consumption->sensor->group->sharedAccess()->where('shared_with', $user->id)->exists());
+                ($consumption->sensor->group && $consumption->sensor->group->user_id === $user->id) ||
+                ($consumption->sensor->group && $consumption->sensor->group->sharedAccess()->where('shared_with', $user->id)->exists());
 
             if (!$canAccess) {
                 return response()->json([
@@ -381,7 +413,7 @@ public function index(Request $request)
             }
 
             if ($daysBetween > 0) {
-                $consumptionArray['daily_average'] = round((float)$consumption->value / $daysBetween, 2);
+                $consumptionArray['daily_average'] = round((float) $consumption->value / $daysBetween, 2);
             } else {
                 $consumptionArray['daily_average'] = 0;
             }
@@ -409,7 +441,7 @@ public function index(Request $request)
 
         // Verificar permisos
         $canDelete = $user->hasRole('admin') ||
-                    ($consumption->sensor->group && $consumption->sensor->group->user_id === $user->id);
+            ($consumption->sensor->group && $consumption->sensor->group->user_id === $user->id);
 
         if (!$canDelete) {
             return response()->json([
@@ -427,142 +459,142 @@ public function index(Request $request)
     }
 
     /**
- * Recalcular todos los consumos para el usuario.
- */
-public function calculateAll(Request $request)
-{
-    $user = $request->user();
+     * Recalcular todos los consumos para el usuario.
+     */
+    public function calculateAll(Request $request)
+    {
+        $user = $request->user();
 
-    // Obtener todos los sensores del usuario
-    $sensors = Sensor::where(function($query) use ($user) {
-        $query->whereHas('group', function($q) use ($user) {
-            $q->where('user_id', $user->id);
-        })->orWhereHas('group.sharedAccess', function($q) use ($user) {
-            $q->where('shared_with', $user->id);
-        });
-    })->with(['group', 'group.template'])->get();
+        // Obtener todos los sensores del usuario
+        $sensors = Sensor::where(function ($query) use ($user) {
+            $query->whereHas('group', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            })->orWhereHas('group.sharedAccess', function ($q) use ($user) {
+                $q->where('shared_with', $user->id);
+            });
+        })->with(['group', 'group.template'])->get();
 
-    $totalConsumptions = 0;
+        $totalConsumptions = 0;
 
-    foreach ($sensors as $sensor) {
-        // Calcular consumos para este sensor
-        $consumptions = $this->calculateConsumptionsForSensor($sensor, $user);
-        $totalConsumptions += $consumptions->count();
-    }
-
-    return response()->json([
-        'success' => true,
-        'message' => "Se recalcularon $totalConsumptions consumos para {$sensors->count()} sensores",
-        'data' => [
-            'sensors_processed' => $sensors->count(),
-            'consumptions_calculated' => $totalConsumptions
-        ]
-    ]);
-}
-
-/**
- * Exportar consumos a Excel.
- */
-public function export(Request $request)
-{
-    $user = $request->user();
-
-    // Obtener sensores del usuario
-    $sensors = Sensor::where(function($query) use ($user) {
-        $query->whereHas('group', function($q) use ($user) {
-            $q->where('user_id', $user->id);
-        })->orWhereHas('group.sharedAccess', function($q) use ($user) {
-            $q->where('shared_with', $user->id);
-        });
-    })->pluck('id');
-
-    // Filtrar por sensor si se proporciona
-    if ($request->has('sensor_id')) {
-        $sensors = [$request->sensor_id];
-    }
-
-    // Obtener consumos
-    $query = Consumption::whereIn('sensor_id', $sensors)
-        ->with(['sensor', 'sensor.group', 'sensor.group.user']);
-
-    // Filtrar por fecha de inicio
-    if ($request->has('start_date')) {
-        $query->where('period_start', '>=', Carbon::parse($request->start_date));
-    }
-
-    // Filtrar por fecha de fin
-    if ($request->has('end_date')) {
-        $query->where('period_end', '<=', Carbon::parse($request->end_date));
-    }
-
-    $consumptions = $query->orderBy('period_end', 'desc')->get();
-
-    // Calcular daily_average para cada consumo
-    $consumptions = $consumptions->map(function ($consumption) {
-        $consumptionArray = $consumption->toArray();
-        $daysBetween = $consumption->days_between;
-
-        if ($daysBetween < 0) {
-            $daysBetween = abs($daysBetween);
-            $consumptionArray['days_between'] = $daysBetween;
+        foreach ($sensors as $sensor) {
+            // Calcular consumos para este sensor
+            $consumptions = $this->calculateConsumptionsForSensor($sensor, $user);
+            $totalConsumptions += $consumptions->count();
         }
 
-        if ($daysBetween > 0) {
-            $consumptionArray['daily_average'] = round((float)$consumption->value / $daysBetween, 2);
-        } else {
-            $consumptionArray['daily_average'] = 0;
-        }
-
-        return $consumptionArray;
-    });
-
-    // Crear el archivo Excel
-    $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-    $sheet = $spreadsheet->getActiveSheet();
-
-    // Encabezados
-    $sheet->setCellValue('A1', 'ID');
-    $sheet->setCellValue('B1', 'Sensor');
-    $sheet->setCellValue('C1', 'Grupo');
-    $sheet->setCellValue('D1', 'Consumo');
-    $sheet->setCellValue('E1', 'Unidad');
-    $sheet->setCellValue('F1', 'Inicio');
-    $sheet->setCellValue('G1', 'Fin');
-    $sheet->setCellValue('H1', 'Días');
-    $sheet->setCellValue('I1', 'Promedio Diario');
-
-    // Datos
-    $row = 2;
-    foreach ($consumptions as $consumption) {
-        $sheet->setCellValue('A' . $row, $consumption['id']);
-        $sheet->setCellValue('B' . $row, $consumption['sensor']['name'] ?? 'N/A');
-        $sheet->setCellValue('C' . $row, $consumption['sensor']['group']['name'] ?? 'N/A');
-        $sheet->setCellValue('D' . $row, $consumption['value']);
-        $sheet->setCellValue('E' . $row, $consumption['unit']);
-        $sheet->setCellValue('F' . $row, $consumption['period_start']);
-        $sheet->setCellValue('G' . $row, $consumption['period_end']);
-        $sheet->setCellValue('H' . $row, $consumption['days_between']);
-        $sheet->setCellValue('I' . $row, $consumption['daily_average'] ?? 0);
-        $row++;
+        return response()->json([
+            'success' => true,
+            'message' => "Se recalcularon $totalConsumptions consumos para {$sensors->count()} sensores",
+            'data' => [
+                'sensors_processed' => $sensors->count(),
+                'consumptions_calculated' => $totalConsumptions
+            ]
+        ]);
     }
 
-    // Estilos
-    $sheet->getStyle('A1:I1')->getFont()->setBold(true);
-    $sheet->getStyle('A1:I1')->getFill()
-          ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-          ->getStartColor()->setARGB('FFDDDDDD');
+    /**
+     * Exportar consumos a Excel.
+     */
+    public function export(Request $request)
+    {
+        $user = $request->user();
 
-    // Descargar el archivo
-    $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-    $filename = 'consumos_' . date('Ymd_His') . '.xlsx';
+        // Obtener sensores del usuario
+        $sensors = Sensor::where(function ($query) use ($user) {
+            $query->whereHas('group', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            })->orWhereHas('group.sharedAccess', function ($q) use ($user) {
+                $q->where('shared_with', $user->id);
+            });
+        })->pluck('id');
 
-    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    header('Content-Disposition: attachment;filename="' . $filename . '"');
-    header('Cache-Control: max-age=0');
+        // Filtrar por sensor si se proporciona
+        if ($request->has('sensor_id')) {
+            $sensors = [$request->sensor_id];
+        }
 
-    $writer->save('php://output');
-    exit;
-}
+        // Obtener consumos
+        $query = Consumption::whereIn('sensor_id', $sensors)
+            ->with(['sensor', 'sensor.group', 'sensor.group.user']);
+
+        // Filtrar por fecha de inicio
+        if ($request->has('start_date')) {
+            $query->where('period_start', '>=', Carbon::parse($request->start_date));
+        }
+
+        // Filtrar por fecha de fin
+        if ($request->has('end_date')) {
+            $query->where('period_end', '<=', Carbon::parse($request->end_date));
+        }
+
+        $consumptions = $query->orderBy('period_end', 'desc')->get();
+
+        // Calcular daily_average para cada consumo
+        $consumptions = $consumptions->map(function ($consumption) {
+            $consumptionArray = $consumption->toArray();
+            $daysBetween = $consumption->days_between;
+
+            if ($daysBetween < 0) {
+                $daysBetween = abs($daysBetween);
+                $consumptionArray['days_between'] = $daysBetween;
+            }
+
+            if ($daysBetween > 0) {
+                $consumptionArray['daily_average'] = round((float) $consumption->value / $daysBetween, 2);
+            } else {
+                $consumptionArray['daily_average'] = 0;
+            }
+
+            return $consumptionArray;
+        });
+
+        // Crear el archivo Excel
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Encabezados
+        $sheet->setCellValue('A1', 'ID');
+        $sheet->setCellValue('B1', 'Sensor');
+        $sheet->setCellValue('C1', 'Grupo');
+        $sheet->setCellValue('D1', 'Consumo');
+        $sheet->setCellValue('E1', 'Unidad');
+        $sheet->setCellValue('F1', 'Inicio');
+        $sheet->setCellValue('G1', 'Fin');
+        $sheet->setCellValue('H1', 'Días');
+        $sheet->setCellValue('I1', 'Promedio Diario');
+
+        // Datos
+        $row = 2;
+        foreach ($consumptions as $consumption) {
+            $sheet->setCellValue('A' . $row, $consumption['id']);
+            $sheet->setCellValue('B' . $row, $consumption['sensor']['name'] ?? 'N/A');
+            $sheet->setCellValue('C' . $row, $consumption['sensor']['group']['name'] ?? 'N/A');
+            $sheet->setCellValue('D' . $row, $consumption['value']);
+            $sheet->setCellValue('E' . $row, $consumption['unit']);
+            $sheet->setCellValue('F' . $row, $consumption['period_start']);
+            $sheet->setCellValue('G' . $row, $consumption['period_end']);
+            $sheet->setCellValue('H' . $row, $consumption['days_between']);
+            $sheet->setCellValue('I' . $row, $consumption['daily_average'] ?? 0);
+            $row++;
+        }
+
+        // Estilos
+        $sheet->getStyle('A1:I1')->getFont()->setBold(true);
+        $sheet->getStyle('A1:I1')->getFill()
+            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('FFDDDDDD');
+
+        // Descargar el archivo
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $filename = 'consumos_' . date('Ymd_His') . '.xlsx';
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+
+        $writer->save('php://output');
+        exit;
+    }
 
 
 }
