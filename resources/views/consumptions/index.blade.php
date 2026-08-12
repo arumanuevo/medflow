@@ -92,8 +92,9 @@
 
 @push('scripts')
     <script>
+        let currentPage = 1;
+
         $(document).ready(function () {
-            let currentPage = 1;
 
             // Cargar sensores del usuario para el filtro
             loadSensors();
@@ -519,16 +520,16 @@
 
             if (meta.current_page > 1) {
                 paginationHtml += `
-            <li class="page-item">
-                <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${meta.current_page - 1})" aria-label="Anterior">
-                    <span aria-hidden="true">&laquo;</span>
-                </a>
-            </li>`;
+                <li class="page-item">
+                    <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${meta.current_page - 1})" aria-label="Anterior">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>`;
             } else {
                 paginationHtml += `
-            <li class="page-item disabled">
-                <span class="page-link" aria-hidden="true">&laquo;</span>
-            </li>`;
+                <li class="page-item disabled">
+                    <span class="page-link" aria-hidden="true">&laquo;</span>
+                </li>`;
             }
 
             const maxPages = 5;
@@ -542,29 +543,29 @@
             for (let i = startPage; i <= endPage; i++) {
                 if (i === meta.current_page) {
                     paginationHtml += `
-                <li class="page-item active">
-                    <span class="page-link">${i}</span>
-                </li>`;
+                    <li class="page-item active">
+                        <span class="page-link">${i}</span>
+                    </li>`;
                 } else {
                     paginationHtml += `
-                <li class="page-item">
-                    <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${i})">${i}</a>
-                </li>`;
+                    <li class="page-item">
+                        <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${i})">${i}</a>
+                    </li>`;
                 }
             }
 
             if (meta.current_page < meta.last_page) {
                 paginationHtml += `
-            <li class="page-item">
-                <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${meta.current_page + 1})" aria-label="Siguiente">
-                    <span aria-hidden="true">&raquo;</span>
-                </a>
-            </li>`;
+                <li class="page-item">
+                    <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${meta.current_page + 1})" aria-label="Siguiente">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>`;
             } else {
                 paginationHtml += `
-            <li class="page-item disabled">
-                <span class="page-link" aria-hidden="true">&raquo;</span>
-            </li>`;
+                <li class="page-item disabled">
+                    <span class="page-link" aria-hidden="true">&raquo;</span>
+                </li>`;
             }
 
             $('#pagination').html(paginationHtml);
