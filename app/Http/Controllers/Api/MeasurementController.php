@@ -227,20 +227,42 @@ public function index(Request $request)
 
         $measurement->previous_measurement = $previousMeasurement;
         
-        // ✅ AÑADIR CAMPOS EXTRA DEL SENSOR
+        // AÑADIR CAMPOS EXTRA DEL SENSOR
         $sensor = $measurement->sensor;
         if ($sensor) {
             // Obtener campos extra del sensor (metadata)
             $extraFields = $sensor->metadata ?? [];
             
-            // También podemos obtener campos específicos si existen como columnas
+            // Obtener campos de la plantilla si existe
+            $templateFields = [];
+            if ($sensor->group && $sensor->group->template) {
+                $template = $sensor->group->template;
+                if (isset($template->schema['campos'])) {
+                    foreach ($template->schema['campos'] as $campo) {
+                        $fieldName = $campo['nombre'] ?? '';
+                        $fieldLabel = $campo['etiqueta'] ?? $campo['label'] ?? $fieldName;
+                        if ($fieldName && $fieldName !== 'valor' && !in_array($fieldName, ['tipo', 'foto', 'observaciones'])) {
+                            // Buscar el valor en metadata o en los datos de la medicion
+                            $fieldValue = $extraFields[$fieldName] ?? null;
+                            if ($fieldValue !== null && $fieldValue !== '') {
+                                $templateFields[$fieldName] = [
+                                    'value' => $fieldValue,
+                                    'label' => $fieldLabel,
+                                    'type' => $campo['tipo'] ?? 'texto'
+                                ];
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Tambien podemos obtener campos especificos si existen como columnas
             $sensorExtraData = [
                 'numero_lote' => $sensor->numero_lote ?? $extraFields['numero_lote'] ?? null,
                 'codigo_medidor' => $sensor->codigo_medidor ?? $extraFields['codigo_medidor'] ?? null,
                 'numero_serie' => $sensor->numero_serie ?? $extraFields['numero_serie'] ?? null,
                 'marca' => $sensor->marca ?? $extraFields['marca'] ?? null,
                 'modelo' => $sensor->modelo ?? $extraFields['modelo'] ?? null,
-                // Agregar cualquier otro campo extra que pueda existir
             ];
             
             // Filtrar campos nulos
@@ -248,7 +270,20 @@ public function index(Request $request)
                 return $value !== null && $value !== '';
             });
             
-            $measurement->sensor_extra_fields = $sensorExtraData;
+            // Combinar todos los campos extra
+            $allExtraFields = array_merge($sensorExtraData, $templateFields);
+            
+            $measurement->sensor_extra_fields = $allExtraFields;
+            
+            // Anadir informacion basica del sensor directamente en el objeto
+            $measurement->sensor_identifier = $sensor->identifier;
+            $measurement->sensor_name = $sensor->name;
+            $measurement->sensor_description = $sensor->description;
+            $measurement->group_name = $sensor->group ? $sensor->group->name : null;
+            $measurement->group_id = $sensor->group ? $sensor->group->id : null;
+            $measurement->template_type = $sensor->group && $sensor->group->template ? $sensor->group->template->type : null;
+            $measurement->template_name = $sensor->group && $sensor->group->template ? $sensor->group->template->name : null;
+        }
         }
         
         return $measurement;

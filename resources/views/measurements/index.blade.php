@@ -736,7 +736,7 @@ $(document).ready(function() {
                     <td>
                         <div class="sensor-info">${sensorDisplay}</div>
                     </td>
-                    <td>${sensor.group?.name || 'Sin grupo'}</td>
+                    <td>${groupName}</td>
                     <td>${value} ${unit}</td>
                     <td>${data.tipo ?? 'N/A'}</td>
                     <td>${date}</td>
