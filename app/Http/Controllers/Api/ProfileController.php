@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
 class ProfileController extends Controller
@@ -16,7 +17,7 @@ class ProfileController extends Controller
     public function show(Request $request)
     {
         $user = $request->user();
-        
+
         // Obtener información de suscripción
         $subscriptionService = new \App\Services\Subscription\SubscriptionService($user);
         $subscriptionInfo = $subscriptionService->getFullStatus();
@@ -159,27 +160,27 @@ class ProfileController extends Controller
         $user = $request->user();
 
         // Contar sensores del usuario
-        $totalSensors = \App\Models\Sensor::whereHas('group', function($query) use ($user) {
+        $totalSensors = \App\Models\Sensor::whereHas('group', function ($query) use ($user) {
             $query->where('user_id', $user->id)
-                  ->orWhereHas('sharedAccess', function($q) use ($user) {
-                      $q->where('shared_with', $user->id);
-                  });
+                ->orWhereHas('sharedAccess', function ($q) use ($user) {
+                    $q->where('shared_with', $user->id);
+                });
         })->count();
 
         // Contar mediciones del usuario
-        $totalMeasurements = \App\Models\Measurement::whereHas('sensor.group', function($query) use ($user) {
+        $totalMeasurements = \App\Models\Measurement::whereHas('sensor.group', function ($query) use ($user) {
             $query->where('user_id', $user->id)
-                  ->orWhereHas('sharedAccess', function($q) use ($user) {
-                      $q->where('shared_with', $user->id);
-                  });
+                ->orWhereHas('sharedAccess', function ($q) use ($user) {
+                    $q->where('shared_with', $user->id);
+                });
         })->count();
 
         // Contar grupos del usuario
-        $totalGroups = \App\Models\SensorGroup::where(function($query) use ($user) {
+        $totalGroups = \App\Models\SensorGroup::where(function ($query) use ($user) {
             $query->where('user_id', $user->id)
-                  ->orWhereHas('sharedAccess', function($q) use ($user) {
-                      $q->where('shared_with', $user->id);
-                  });
+                ->orWhereHas('sharedAccess', function ($q) use ($user) {
+                    $q->where('shared_with', $user->id);
+                });
         })->count();
 
         return response()->json([
@@ -216,9 +217,8 @@ class ProfileController extends Controller
         }
 
         // Verificar que el token de confirmacion es valido
-        // Generamos un token basado en el ID del usuario y la fecha actual
         $expectedToken = hash('sha256', $user->id . $user->email . date('Y-m-d'));
-        
+
         if ($request->confirm_token !== $expectedToken) {
             return response()->json([
                 'success' => false,
@@ -231,7 +231,7 @@ class ProfileController extends Controller
 
         try {
             // 1. Eliminar todas las fotos asociadas a mediciones del usuario
-            $measurements = \App\Models\Measurement::whereHas('sensor.group', function($query) use ($user) {
+            $measurements = \App\Models\Measurement::whereHas('sensor.group', function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             })->get();
 
@@ -246,17 +246,16 @@ class ProfileController extends Controller
             }
 
             // 2. Eliminar todas las mediciones de los sensores del usuario
-            \App\Models\Measurement::whereHas('sensor.group', function($query) use ($user) {
+            \App\Models\Measurement::whereHas('sensor.group', function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             })->delete();
 
             // 3. Eliminar todos los sensores del usuario
-            $sensors = \App\Models\Sensor::whereHas('group', function($query) use ($user) {
+            $sensors = \App\Models\Sensor::whereHas('group', function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             })->get();
-            
+
             foreach ($sensors as $sensor) {
-                // Eliminar fotos de los sensores si existen
                 if ($sensor->metadata && isset($sensor->metadata['photo'])) {
                     $photoPath = public_path($sensor->metadata['photo']);
                     if (file_exists($photoPath)) {
@@ -264,64 +263,43 @@ class ProfileController extends Controller
                     }
                 }
             }
-            
-            \App\Models\Sensor::whereHas('group', function($query) use ($user) {
+
+            \App\Models\Sensor::whereHas('group', function ($query) use ($user) {
                 $query->where('user_id', $user->id);
             })->delete();
 
             // 4. Eliminar todos los grupos de sensores del usuario
             $groups = \App\Models\SensorGroup::where('user_id', $user->id)->get();
-            
+
             foreach ($groups as $group) {
-                // Eliminar accesos compartidos del grupo
                 \App\Models\SensorGroupSharedAccess::where('sensor_group_id', $group->id)->delete();
-                // Eliminar invitaciones pendientes del grupo
                 \App\Models\PendingInvitation::where('sensor_group_id', $group->id)->delete();
             }
-            
+
             \App\Models\SensorGroup::where('user_id', $user->id)->delete();
 
             // 5. Eliminar accesos compartidos donde el usuario es el dueno
-            \App\Models\SensorSharedAccess::where('user_id', $user->id)->delete();
+            \App\Models\SharedAccess::where('user_id', $user->id)->delete();
 
             // 6. Eliminar colaboraciones donde el usuario es el dueno
             \App\Models\WorkspaceCollaborator::where('workspace_id', $user->id)->delete();
 
-            // 7. Eliminar invitaciones pendientes donde el usuario es el dueno
-            \App\Models\PendingInvitation::where('user_id', $user->id)->delete();
-
-            // 8. Eliminar suscripciones del usuario
-            \App\Models\Subscription::where('user_id', $user->id)->delete();
-
-            // 9. Eliminar configuraciones del usuario
-            \App\Models\UserSetting::where('user_id', $user->id)->delete();
-
-            // 10. Eliminar tokens de API del usuario
-            $user->tokens()->delete();
-
-            // 11. Eliminar roles del usuario
-            $user->syncRoles([]);
-
-            // 12. Actualizar el usuario para eliminar datos sensibles
-            $user->update([
-                'name' => 'Usuario Eliminado - ' . $user->id,
-                'email' => 'eliminado_' . $user->id . '@medflow.com',
-                'password' => null,
-                'google_id' => null,
-                'subscription_type' => null,
-                'subscription_plan' => null,
-            ]);
+            // 7. Invitaciones pendientes ya eliminadas en el paso 4 (por sensor_group_id)
 
             \DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Todos los datos del usuario han sido eliminados correctamente. La cuenta ha sido anonimizada.',
+                'message' => 'Todos los datos han sido eliminados correctamente. Tu cuenta permanece activa.',
             ]);
 
         } catch (\Exception $e) {
             \DB::rollBack();
-            
+            Log::error('Delete Data Exception: ' . $e->getMessage(), [
+                'user_id' => $user->id,
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Error al eliminar los datos: ' . $e->getMessage(),
@@ -335,8 +313,7 @@ class ProfileController extends Controller
     public function generateDeleteConfirmationToken(Request $request)
     {
         $user = $request->user();
-        
-        // Generar token basado en el ID del usuario y la fecha actual
+
         $token = hash('sha256', $user->id . $user->email . date('Y-m-d'));
 
         return response()->json([

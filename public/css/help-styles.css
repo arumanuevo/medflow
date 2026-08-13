@@ -4,7 +4,7 @@
 
  /* Estilos para el card principal */
  .card {
-    background-color: #0f172a !important;
+    background-color: #ffffff;
     border-radius: 8px;
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
     border: none;
@@ -191,7 +191,7 @@ input[type="date"] {
 }
 
 #helpModal .card {
-    background-color: #0f172a !important;
+    background-color: #ffffff;
     border-radius: 0.5rem;
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
     margin-bottom: 1rem;
@@ -275,7 +275,7 @@ input[type="date"] {
 
 /* Estilos para las tarjetas de estadísticas */
 #statsCards .card {
-    background-color: #0f172a !important;
+    background-color: #ffffff;
     border-radius: 8px;
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
     margin-bottom: 1rem;

@@ -17,6 +17,14 @@ class TemplateSeeder extends Seeder
                 'schema' => [
                     'campos' => [
                         [
+                            'nombre' => 'identificador',
+                            'tipo' => 'texto',
+                            'unidad' => null,
+                            'requerido' => true,
+                            'valor_por_defecto' => null,
+                            'contexto' => 'sensor'
+                        ],
+                        [
                             'nombre' => 'valor',
                             'tipo' => 'numero',
                             'unidad' => 'm³',
@@ -48,6 +56,14 @@ class TemplateSeeder extends Seeder
                 'description' => 'Plantilla para mediciones de consumo eléctrico',
                 'schema' => [
                     'campos' => [
+                        [
+                            'nombre' => 'identificador',
+                            'tipo' => 'texto',
+                            'unidad' => null,
+                            'requerido' => true,
+                            'valor_por_defecto' => null,
+                            'contexto' => 'sensor'
+                        ],
                         [
                             'nombre' => 'valor',
                             'tipo' => 'numero',
@@ -87,6 +103,14 @@ class TemplateSeeder extends Seeder
                 'description' => 'Plantilla para mediciones de consumo de gas',
                 'schema' => [
                     'campos' => [
+                        [
+                            'nombre' => 'identificador',
+                            'tipo' => 'texto',
+                            'unidad' => null,
+                            'requerido' => true,
+                            'valor_por_defecto' => null,
+                            'contexto' => 'sensor'
+                        ],
                         [
                             'nombre' => 'valor',
                             'tipo' => 'numero',
