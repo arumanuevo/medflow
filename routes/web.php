@@ -26,6 +26,8 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->midd
 Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register')->middleware('guest');
 Route::post('/register', [RegisterController::class, 'register'])->middleware('guest');
 
+// Visor Público de Consumos
+Route::get('/visor/{token}', [\App\Http\Controllers\PublicViewerController::class, 'show'])->name('public.visor');
 // Landing pública
 Route::get('/', [LandingController::class, 'index'])->name('landing');
 Route::post('/registro', [LandingController::class, 'register'])->name('landing.register');
@@ -39,13 +41,13 @@ Route::get('/registro-exitoso', function () {
     $name = request()->get('name', 'Usuario');
     $email = request()->get('email', '');
     $subscriptionType = request()->get('subscription_type', 'domiciliario');
-    
+
     $user = (object) [
         'name' => $name,
         'email' => $email,
         'subscription_type' => $subscriptionType,
     ];
-    
+
     return view('auth.register-success', compact('user'));
 })->name('register.success');
 
@@ -73,10 +75,10 @@ Route::middleware(['auth'])->group(function () {
     // =============================================
     Route::get('/mediciones', [MeasurementViewController::class, 'index'])->name('measurements.index');
     Route::get('/mediciones/select-sensor', [MeasurementViewController::class, 'selectSensor'])->name('measurements.select-sensor');
-    
+
     // ✅ NUEVA RUTA: Vista específica para inspector colaborador
     Route::get('/mediciones/inspector', [MeasurementViewController::class, 'inspectorSelectSensor'])->name('measurements.inspector');
-    
+
     Route::get('/mediciones/create/{sensor}', [MeasurementViewController::class, 'create'])->name('measurements.create');
     Route::get('/mediciones/edit/{measurement}', [MeasurementViewController::class, 'edit'])->name('measurements.edit');
     Route::get('/mediciones/bulk-import', [MeasurementViewController::class, 'showBulkImportForm'])
@@ -91,30 +93,30 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/bulk-measurements/select', [\App\Http\Controllers\BulkMeasurementFlowController::class, 'selectSensors'])
         ->name('bulk-measurements.select')
         ->middleware('auth');
-    
+
     Route::post('/bulk-measurements/start', [\App\Http\Controllers\BulkMeasurementFlowController::class, 'startBulkMeasurement'])
         ->name('bulk-measurements.start')
         ->middleware('auth');
-    
+
     Route::get('/bulk-measurements/create/{sensor}', [\App\Http\Controllers\BulkMeasurementFlowController::class, 'create'])
         ->name('bulk-measurements.create')
         ->where('sensor', '[0-9]+')
         ->middleware('auth');
-    
+
     Route::post('/bulk-measurements/store', [\App\Http\Controllers\BulkMeasurementFlowController::class, 'store'])
         ->name('bulk-measurements.store')
         ->middleware('auth');
-    
+
     Route::get('/bulk-measurements/next/{sensor}', [\App\Http\Controllers\BulkMeasurementFlowController::class, 'nextSensor'])
         ->name('bulk-measurements.next')
         ->where('sensor', '[0-9]+')
         ->middleware('auth');
-    
+
     Route::get('/bulk-measurements/previous/{sensor}', [\App\Http\Controllers\BulkMeasurementFlowController::class, 'previousSensor'])
         ->name('bulk-measurements.previous')
         ->where('sensor', '[0-9]+')
         ->middleware('auth');
-    
+
     Route::get('/bulk-measurements/cancel', [\App\Http\Controllers\BulkMeasurementFlowController::class, 'cancelBulkMeasurement'])
         ->name('bulk-measurements.cancel')
         ->middleware('auth');
@@ -124,12 +126,12 @@ Route::middleware(['auth'])->group(function () {
     // =============================================
     Route::get('/sensor-groups', [SensorGroupViewController::class, 'index'])->name('sensor-groups.index');
     Route::get('/sensor-groups/create', [SensorGroupViewController::class, 'create'])->name('sensor-groups.create');
-    
+
     // ✅ IMPORTACIÓN DE SENSORES - SOLO PREMIUM
     Route::get('/sensor-groups/bulk-import', [SensorGroupViewController::class, 'showBulkImportForm'])
         ->name('sensor-groups.bulk-import')
         ->middleware('subscription.gate:import_sensors');
-    
+
     Route::get('/sensor-groups/{group}/edit', [SensorGroupViewController::class, 'edit'])
         ->name('sensor-groups.edit')
         ->where('group', '[0-9]+');
@@ -141,15 +143,31 @@ Route::middleware(['auth'])->group(function () {
         ->where('group', '[0-9]+');
 
     // =============================================
+    // CAMPAÑAS DE NOTIFICACIÓN MASIVA (Fase 20)
+    // =============================================
+    Route::get('/campaigns/bulk', [\App\Http\Controllers\BulkNotificationController::class, 'index'])
+        ->name('campaigns.bulk.index');
+    Route::post('/campaigns/bulk/dispatch', [\App\Http\Controllers\BulkNotificationController::class, 'dispatchCampaign'])
+        ->name('campaigns.bulk.dispatch');
+    Route::get('/campaigns/bulk/schema/{id}', [\App\Http\Controllers\BulkNotificationController::class, 'getGroupSchema'])
+        ->name('campaigns.bulk.schema')
+        ->where('id', '[0-9]+');
+    Route::get('/campaigns/bulk/export-links/{id}', [\App\Http\Controllers\BulkNotificationController::class, 'exportLinks'])
+        ->name('campaigns.bulk.export')
+        ->where('id', '[0-9]+');
+
+    // Route temporarily moved to bottom
+
+    // =============================================
     // PLANTILLAS (vistas)
     // =============================================
     Route::get('/templates', [TemplateViewController::class, 'index'])->name('templates.index');
-    
+
     // ✅ CREAR PLANTILLA - SOLO PREMIUM
     Route::get('/templates/create', [TemplateViewController::class, 'create'])
         ->name('templates.create')
         ->middleware('subscription.gate:create_template');
-    
+
     Route::get('/templates/{template}/edit', [TemplateViewController::class, 'edit'])
         ->name('templates.edit')
         ->where('template', '[0-9]+');
@@ -167,11 +185,11 @@ Route::middleware(['auth'])->group(function () {
     // =============================================
     // PERFIL
     // =============================================
-    
+
     Route::get('/profile', function () {
         return view('profile.index', ['user' => auth()->user()]);
     })->name('profile.index')->middleware('auth');
-    
+
     // =============================================
     // COLABORACIONES
     // =============================================
@@ -183,8 +201,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/test-email', [TestMailController::class, 'sendTestEmail'])->name('test.email');
 
     Route::get('/mediciones/inspector/create/{sensor}', [MeasurementViewController::class, 'inspectorCreate'])
-    ->name('measurements.inspector.create')
-    ->where('sensor', '[0-9]+');
+        ->name('measurements.inspector.create')
+        ->where('sensor', '[0-9]+');
 });
 
 // =============================================
@@ -194,40 +212,40 @@ Route::middleware(['auth'])->group(function () {
     // Vista de pago
     Route::get('/suscripcion/{plan}/pagar', function ($plan) {
         $user = auth()->user();
-        
+
         // Verificar que el plan existe
         $planData = config('mercadopago.plans.' . $plan);
         if (!$planData) {
             return redirect('/dashboard')->with('error', 'Plan no encontrado.');
         }
-        
+
         // Verificar si ya tiene suscripción activa
         $activeSubscription = \App\Models\Subscription::where('user_id', $user->id)
             ->where('status', 'active')
-            ->where(function($q) {
+            ->where(function ($q) {
                 $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
             })
             ->first();
-            
+
         if ($activeSubscription) {
             return redirect('/dashboard')->with('info', 'Ya tienes una suscripción activa.');
         }
-        
+
         return view('subscriptions.payment', [
             'plan' => $plan,
             'planData' => $planData,
             'preferenceId' => session('preference_id')
         ]);
     })->name('subscription.payment');
-    
+
     // Crear preferencia (API)
     Route::post('/api/subscription/create-preference', [SubscriptionPaymentController::class, 'createPreference'])
         ->name('subscription.create.preference');
-    
+
     // Webhook (público)
     Route::post('/api/subscription/webhook', [SubscriptionPaymentController::class, 'handleWebhook'])
         ->name('subscription.payment.webhook');
-    
+
     // Callbacks de pago (públicos)
     Route::get('/subscription/success/{plan}', [SubscriptionPaymentController::class, 'handleSuccess'])
         ->name('subscription.payment.success');
@@ -235,7 +253,7 @@ Route::middleware(['auth'])->group(function () {
         ->name('subscription.payment.failure');
     Route::get('/subscription/pending/{plan}', [SubscriptionPaymentController::class, 'handlePending'])
         ->name('subscription.payment.pending');
-    
+
     // Estado de suscripción (API)
     Route::get('/api/subscription/status', [SubscriptionPaymentController::class, 'getStatus'])
         ->name('subscription.status');
@@ -261,6 +279,3 @@ Route::post('/establecer-contraseña', [SetPasswordController::class, 'setPasswo
 //Route::get('/mediciones', [MeasurementViewController::class, 'index'])->name('measurements.index');
 // Ruta temporal para prueba (FUERA del grupo auth) - PUEDES ELIMINARLA AHORA
 // Route::get('/test-sensors', fn() => view('sensors.index'))->name('test.sensors');
-
-// routes/web.php
-// Ruta temporal para prueba (FUERA del grupo auth)

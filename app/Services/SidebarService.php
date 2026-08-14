@@ -39,8 +39,10 @@ class SidebarService
      */
     private function getOwnerMenu()
     {
+        $hasPremium = app(\App\Services\Subscription\SubscriptionService::class, ['user' => auth()->user()])->getPlan()->getPlanKey() === 'premium';
+
         // ✅ Usar URLs directamente en lugar de route()
-        return [
+        $menu = [
             [
                 'icon' => 'bi bi-house-door',  // antes fas fa-home
                 'label' => 'Dashboard',
@@ -77,7 +79,19 @@ class SidebarService
                 'label' => 'Consumos',
                 'url' => '/consumptions',
                 'active' => request()->is('consumptions*'),
-            ],
+            ]
+        ];
+
+        if ($hasPremium) {
+            $menu[] = [
+                'icon' => 'bi bi-broadcast',
+                'label' => 'Campañas Públicas',
+                'url' => '/campaigns/bulk',
+                'active' => request()->is('campaigns/bulk*'),
+            ];
+        }
+
+        $menu = array_merge($menu, [
             [
                 'icon' => 'bi bi-folder',
                 'label' => 'Grupos',
@@ -103,7 +117,9 @@ class SidebarService
                 'active' => request()->is('admin*'),
                 'admin_only' => true,
             ],
-        ];
+        ]);
+
+        return $menu;
     }
 
     /**
@@ -136,9 +152,13 @@ class SidebarService
             ];
         }
 
+        // Comprobar suscripción premium
+        $subService = app(\App\Services\Subscription\SubscriptionService::class, ['user' => auth()->user()]);
+        $hasPremium = $subService->getPlan()->getPlanKey() === 'premium';
+
         // ✅ Para ADMIN (colaborador): menú casi completo
         if ($role === 'admin') {
-            return [
+            $menu = [
                 [
                     'icon' => 'bi bi-house',
                     'label' => 'Dashboard',
@@ -169,7 +189,19 @@ class SidebarService
                     'label' => 'Consumos',
                     'url' => '/consumptions',
                     'active' => request()->is('consumptions*'),
-                ],
+                ]
+            ];
+
+            if ($hasPremium) {
+                $menu[] = [
+                    'icon' => 'bi bi-broadcast',
+                    'label' => 'Campañas Públicas',
+                    'url' => '/campaigns/bulk',
+                    'active' => request()->is('campaigns/bulk*'),
+                ];
+            }
+
+            $menu = array_merge($menu, [
                 [
                     'icon' => 'bi bi-folder',
                     'label' => 'Grupos',
@@ -195,7 +227,9 @@ class SidebarService
                     'url' => '/profile',
                     'active' => request()->is('profile*'),
                 ],
-            ];
+            ]);
+
+            return $menu;
         }
 
         // ✅ Para CONSUMIDOR: solo ver
@@ -271,8 +305,9 @@ class SidebarService
     private function getPendingInvitationsCount()
     {
         $user = Auth::user();
-        if (!$user) return 0;
-        
+        if (!$user)
+            return 0;
+
         return $user->collaborations()
             ->where('status', 'pending')
             ->count();

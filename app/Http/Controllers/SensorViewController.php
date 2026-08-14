@@ -13,15 +13,15 @@ class SensorViewController extends Controller
     {
         $user = auth()->user();
         $groupId = $request->get('group_id');
-        
-        $groups = SensorGroup::where(function($query) use ($user) {
+
+        $groups = SensorGroup::where(function ($query) use ($user) {
             $query->where('user_id', $user->id)
-                  ->orWhereHas('sharedAccess', function($q) use ($user) {
-                      $q->where('shared_with', $user->id);
-                  });
+                ->orWhereHas('sharedAccess', function ($q) use ($user) {
+                    $q->where('shared_with', $user->id);
+                });
         })->with(['user', 'template'])
-          ->orderBy('name')
-          ->get();
+            ->orderBy('name')
+            ->get();
 
         if ($groups->isEmpty()) {
             return redirect()->route('sensor-groups.create')
@@ -43,14 +43,14 @@ class SensorViewController extends Controller
             abort(403, 'No tienes permiso para editar este sensor.');
         }
 
-        $groups = SensorGroup::where(function($query) use ($user) {
+        $groups = SensorGroup::where(function ($query) use ($user) {
             $query->where('user_id', $user->id)
-                  ->orWhereHas('sharedAccess', function($q) use ($user) {
-                      $q->where('shared_with', $user->id);
-                  });
+                ->orWhereHas('sharedAccess', function ($q) use ($user) {
+                    $q->where('shared_with', $user->id);
+                });
         })->with(['user', 'template'])
-          ->orderBy('name')
-          ->get();
+            ->orderBy('name')
+            ->get();
 
         return view('sensors.edit', compact('sensor', 'groups'));
     }
@@ -58,37 +58,37 @@ class SensorViewController extends Controller
     public function index()
     {
         $user = auth()->user();
-        
+
         $activeWorkspace = session('active_workspace', $user->id);
         $isOwner = $activeWorkspace == $user->id;
-    
+
         if ($isOwner) {
-            $groups = SensorGroup::where(function($query) use ($user) {
+            $groups = SensorGroup::where(function ($query) use ($user) {
                 $query->where('user_id', $user->id)
-                      ->orWhereHas('sharedAccess', function($q) use ($user) {
-                          $q->where('shared_with', $user->id);
-                      });
+                    ->orWhereHas('sharedAccess', function ($q) use ($user) {
+                        $q->where('shared_with', $user->id);
+                    });
             })->with(['user', 'template', 'sensors'])->get();
         } else {
             $collaboration = \App\Models\WorkspaceCollaborator::where('workspace_id', $activeWorkspace)
                 ->where('user_id', $user->id)
                 ->where('status', 'active')
                 ->first();
-    
+
             if (!$collaboration) {
                 return redirect('/dashboard')->with('error', 'No tienes acceso a este espacio.');
             }
-    
+
             $groups = SensorGroup::where('user_id', $activeWorkspace)
                 ->with(['user', 'template', 'sensors'])
                 ->orderBy('name')
                 ->get();
         }
-    
+
         // ✅ OBTENER PERMISOS (SIN HELPERS)
         $gate = new SubscriptionGate($user);
         $permissions = $gate->getAllPermissions();
-    
+
         return view('sensors.index', compact('groups', 'permissions'));
     }
 
@@ -100,9 +100,9 @@ class SensorViewController extends Controller
         $user = auth()->user();
 
         $groups = SensorGroup::where('user_id', $user->id)
-            ->orWhereHas('sharedAccess', function($q) use ($user) {
+            ->orWhereHas('sharedAccess', function ($q) use ($user) {
                 $q->where('shared_with', $user->id)
-                  ->whereIn('role', ['inspector', 'admin']);
+                    ->whereIn('role', ['inspector', 'admin']);
             })
             ->with(['user', 'template'])
             ->orderBy('name')
@@ -121,14 +121,20 @@ class SensorViewController extends Controller
 
         // Verificar permisos: admin, inspector o consumidor
         $canViewSensor = $user->hasRole('admin') ||
-                        ($sensor->group && $sensor->group->user_id === $user->id) ||
-                        ($sensor->group && $sensor->group->sharedAccess()
-                            ->where('shared_with', $user->id)
-                            ->whereIn('role', ['inspector', 'admin', 'consumidor'])
-                            ->exists());
+            ($sensor->group && $sensor->group->user_id === $user->id) ||
+            ($sensor->group && $sensor->group->sharedAccess()
+                ->where('shared_with', $user->id)
+                ->whereIn('role', ['inspector', 'admin', 'consumidor'])
+                ->exists());
 
         if (!$canViewSensor) {
             abort(403, 'No tienes permiso para ver este sensor.');
+        }
+
+        // Generar token público si no tiene
+        if (empty($sensor->public_token)) {
+            $sensor->public_token = \Illuminate\Support\Str::random(32);
+            $sensor->save();
         }
 
         return view('sensors.show', compact('sensor'));

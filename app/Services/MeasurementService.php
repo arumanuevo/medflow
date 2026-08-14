@@ -169,6 +169,13 @@ class MeasurementService
             });
         }
 
+        if (array_key_exists('is_community', $filters) && $filters['is_community'] !== '') {
+            $isCommunity = filter_var($filters['is_community'], FILTER_VALIDATE_BOOLEAN);
+            $query->whereHas('sensor', function ($q) use ($isCommunity) {
+                $q->where('is_community', $isCommunity);
+            });
+        }
+
         if (!empty($filters['date_from'])) {
             $query->where('measured_at', '>=', $filters['date_from']);
         }

@@ -704,12 +704,18 @@ $(document).ready(function() {
             const fieldName = name.match(/data\[(.*?)\]/)[1];
             
             if (fieldName.includes('campos_personalizados')) {
-                const customName = fieldName.match(/campos_personalizados\[(.*?)\]/)[1];
-                if (value) {
-                    if (!formData.data.campos_personalizados) {
-                        formData.data.campos_personalizados = {};
+                // BUGFIX: Extract from the original 'name' string which contains the full path, not 'fieldName'
+                const customNameMatch = name.match(/campos_personalizados\[(.*?)\]/);
+                if (customNameMatch && customNameMatch.length > 1) {
+                    const customName = customNameMatch[1];
+                    if (value) {
+                        if (!formData.data.campos_personalizados) {
+                            formData.data.campos_personalizados = {};
+                        }
+                        formData.data.campos_personalizados[customName] = value;
                     }
-                    formData.data.campos_personalizados[customName] = value;
+                } else {
+                    console.warn('Ignoring field with unexpected format:', name);
                 }
             } else {
                 if (value || value === 0 || value === '0') {

@@ -5,8 +5,8 @@
 @push('styles')
     <style>
         /* ============================================
-           ESTILOS PRINCIPALES
-           ============================================ */
+                                               ESTILOS PRINCIPALES
+                                               ============================================ */
         .sensor-table-wrapper {
             overflow-x: auto;
         }
@@ -57,8 +57,8 @@
         }
 
         /* ============================================
-           ORDENAMIENTO
-           ============================================ */
+                                               ORDENAMIENTO
+                                               ============================================ */
         .table th .sort-icon {
             display: inline-block;
             margin-left: 3px;
@@ -96,8 +96,8 @@
         }
 
         /* ============================================
-           BADGES Y ETIQUETAS
-           ============================================ */
+                                               BADGES Y ETIQUETAS
+                                               ============================================ */
         .badge-extra-field {
             display: inline-block;
             font-size: 0.7rem;
@@ -136,8 +136,8 @@
         }
 
         /* ============================================
-           ACCIONES
-           ============================================ */
+                                               ACCIONES
+                                               ============================================ */
         .table-actions {
             display: flex;
             gap: 3px;
@@ -154,8 +154,8 @@
         }
 
         /* ============================================
-           HEADER MEJORADO
-           ============================================ */
+                                               HEADER MEJORADO
+                                               ============================================ */
         .card-header-tools {
             display: flex;
             flex-wrap: wrap;
@@ -192,8 +192,8 @@
         }
 
         /* ============================================
-           SUSCRIPCIÓN - ESTILOS ADICIONALES
-           ============================================ */
+                                               SUSCRIPCIÓN - ESTILOS ADICIONALES
+                                               ============================================ */
         .subscription-info-bar {
             background: #f8f9fa;
             border-bottom: 2px solid #e9ecef;
@@ -289,8 +289,8 @@
         }
 
         /* ============================================
-           BUSCADOR
-           ============================================ */
+                                               BUSCADOR
+                                               ============================================ */
         .search-wrapper {
             display: flex;
             align-items: center;
@@ -338,8 +338,8 @@
         }
 
         /* ============================================
-           PAGINACIÓN
-           ============================================ */
+                                               PAGINACIÓN
+                                               ============================================ */
         .pagination-wrapper {
             display: flex;
             flex-wrap: wrap;
@@ -392,8 +392,8 @@
         }
 
         /* ============================================
-           EMPTY STATE
-           ============================================ */
+                                               EMPTY STATE
+                                               ============================================ */
         .empty-state {
             text-align: center;
             padding: 3rem 1.5rem;
@@ -415,8 +415,8 @@
         }
 
         /* ============================================
-           SELECTOR DE GRUPOS
-           ============================================ */
+                                               SELECTOR DE GRUPOS
+                                               ============================================ */
         .group-selector-wrapper {
             display: flex;
             align-items: center;
@@ -471,8 +471,8 @@
         }
 
         /* ============================================
-           RESPONSIVE
-           ============================================ */
+                                               RESPONSIVE
+                                               ============================================ */
         @media (max-width: 992px) {
             .card-header-tools {
                 flex-direction: column;
@@ -541,14 +541,17 @@
     <div class="container mt-4">
         <div class="card">
             <!-- ============================================
-            HEADER MEJORADO
-            ============================================ -->
+                                                HEADER MEJORADO
+                                                ============================================ -->
             <div class="card-header bg-primary text-white">
                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
                     <h4 class="mb-0 d-flex align-items-center gap-2">
                         <i class="fas fa-tachometer-alt"></i>
                         <span>Mis Sensores</span>
-                        <span id="totalCountBadge" class="badge bg-light text-dark ms-2" style="font-size: 0.7rem;">0</span>
+                        <span id="totalCountBadge" class="badge bg-light text-dark ms-2" style="font-size: 0.7rem;"
+                            title="Total de sensores">0</span>
+                        <span id="selectedCountBadge" class="badge bg-warning text-dark d-none" style="font-size: 0.7rem;"
+                            title="Sensores seleccionados para acciones en lote">0 seleccionados</span>
                     </h4>
 
                     <div class="card-header-tools">
@@ -572,6 +575,12 @@
                                 <li>
                                     <a href="{{ route('sensors.create') }}" class="dropdown-item" id="createSensorLink">
                                         <i class="bi bi-plus-circle text-success"></i> Crear Sensor
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ route('sensors.create') }}?community=1"
+                                        class="dropdown-item bg-light border-bottom border-success border-2">
+                                        <i class="bi bi-tree-fill text-success"></i> Sumar Sensor Común (Compartido)
                                     </a>
                                 </li>
                                 <li>
@@ -623,8 +632,8 @@
             </div>
 
             <!-- ============================================
-            BARRA DE INFORMACIÓN DE SUSCRIPCIÓN
-            ============================================ -->
+                                                BARRA DE INFORMACIÓN DE SUSCRIPCIÓN
+                                                ============================================ -->
             <div class="subscription-info-bar" id="subscriptionInfoBar">
                 <div class="d-flex flex-wrap align-items-center gap-2">
                     <span class="limit-item">
@@ -653,21 +662,40 @@
             </div>
 
             <!-- ============================================
-            FILTRO POR GRUPO (MEJORADO)
-            ============================================ -->
-            <div class="p-3 border-bottom bg-light">
+                                                FILTROS AVANZADOS
+                                                ============================================ -->
+            <div class="p-3 border-bottom shadow-sm" style="background-color: #f8f9fa;">
                 <div class="d-flex flex-wrap align-items-center gap-3">
                     <div class="group-selector-wrapper">
-                        <span class="filter-label"><i class="bi bi-folder me-1"></i> Grupo:</span>
+                        <strong class="text-primary me-2"><i class="bi bi-funnel-fill"></i> Filtros:</strong>
+                        <span class="filter-label"><i class="bi bi-folder me-1"></i> Por Grupo:</span>
                         <select class="form-select" id="groupFilter">
                             <option value="">Todos los grupos</option>
-                            <!-- Los grupos se cargan dinámicamente -->
                         </select>
                         <button class="btn btn-outline-primary btn-sm" id="applyGroupFilter">
-                            <i class="bi bi-funnel"></i> Filtrar
+                            <i class="bi bi-funnel"></i> Filtrar Grupo
                         </button>
-                        <button class="btn btn-outline-secondary btn-sm" id="clearGroupFilter">
-                            <i class="bi bi-x-circle"></i> Limpiar
+
+                        <!-- Botón de Comunidades -->
+                        <button class="btn btn-outline-success btn-sm ms-2" id="toggleCommunityFilterBtn"
+                            style="white-space:nowrap;">
+                            <i class="bi bi-tree-fill"></i> Áreas Comunes
+                        </button>
+
+                        <!-- Filtros Dinámicos (Metadata) -->
+                        <div class="d-inline-flex ms-md-4 border-start ps-md-4 gap-2 align-items-center flex-wrap">
+                            <span class="filter-label"><i class="bi bi-tag me-1"></i> Por Dato:</span>
+                            <select class="form-select form-select-sm" id="metaFieldSelect" style="max-width: 150px;">
+                                <option value="">Atributo...</option>
+                            </select>
+                            <select class="form-select form-select-sm" id="metaValueSelect" style="max-width: 150px;"
+                                disabled>
+                                <option value="">Valor...</option>
+                            </select>
+                        </div>
+
+                        <button class="btn btn-outline-secondary btn-sm ms-auto" id="clearGroupFilter">
+                            <i class="bi bi-x-circle"></i> Limpiar Filtros
                         </button>
                     </div>
                     <div class="group-info-display" id="groupInfoDisplay">
@@ -677,8 +705,8 @@
             </div>
 
             <!-- ============================================
-            CUERPO - TABLA
-            ============================================ -->
+                                                CUERPO - TABLA
+                                                ============================================ -->
             <div class="card-body p-0">
                 <div class="sensor-table-wrapper p-2">
                     <table class="table table-bordered table-striped table-hover mb-0" id="sensorsTable">
@@ -697,8 +725,8 @@
                 </div>
 
                 <!-- ============================================
-                PAGINACIÓN
-                ============================================ -->
+                                                    PAGINACIÓN
+                                                    ============================================ -->
                 <div class="pagination-wrapper px-3 pb-3">
                     <div class="pagination-info" id="paginationInfo">
                         Mostrando <strong id="pageStart">0</strong> - <strong id="pageEnd">0</strong> de <strong
@@ -748,6 +776,7 @@
             let searchTerm = '';
             let selectedGroupId = '';
             let allGroups = [];
+            let filterOnlyCommunity = false;
 
             if (typeof bootstrap !== 'undefined') {
                 const dropdownElements = document.querySelectorAll('[data-bs-toggle="dropdown"]');
@@ -758,13 +787,14 @@
 
             if (!token) {
                 $('#sensorsTableBody').html(`
-                <tr>
-                    <td colspan="9" class="text-center text-danger py-4">
-                        <i class="fas fa-exclamation-triangle"></i> No se encontró token. 
-                        <a href="{{ route('login') }}">Iniciar sesión</a>
-                    </td>
-                </tr>
-            `);
+                                                    <tr>
+                                                        <td colspan="9" class="text-center text-danger py-4">
+                                                            <i class="fas fa-exclamation-triangle"></i> No se encontró token. 
+                                                            <a href="{{ route('login') }}">Iniciar sesión</a>
+                                                        </td>
+                                                    </tr>
+
+                                    `);
                 return;
             }
 
@@ -832,14 +862,14 @@
                         // ✅ Contar sensores reales del grupo desde los datos cargados
                         const count = allSensorsData.filter(s => (s.group_id || (s.group ? s.group.id : null)) == groupId).length;
                         infoDisplay.html(`
-                        <span class="badge bg-primary">
-                            <i class="bi bi-folder me-1"></i> ${group.name}
-                            <span class="badge bg-light text-dark ms-1">${count}</span>
-                        </span>
-                        <span class="text-muted small ms-2">
-                            <i class="bi bi-info-circle"></i> Mostrando sensores de este grupo
-                        </span>
-                    `);
+                                                            <span class="badge bg-primary">
+                                                                <i class="bi bi-folder me-1"></i> ${group.name}
+                                                                <span class="badge bg-light text-dark ms-1">${count}</span>
+                                                            </span>
+                                                            <span class="text-muted small ms-2">
+                                                                <i class="bi bi-info-circle"></i> Mostrando sensores de este grupo
+                                                            </span>
+                                                        `);
                         return;
                     }
                 }
@@ -847,10 +877,10 @@
                 const totalSensors = allSensorsData.length;
                 const totalGroups = allGroups.length;
                 infoDisplay.html(`
-                <span class="text-muted small">
-                    <i class="bi bi-database"></i> Total: ${totalSensors} sensores en ${totalGroups} grupos
-                </span>
-            `);
+                                                    <span class="text-muted small">
+                                                        <i class="bi bi-database"></i> Total: ${totalSensors} sensores en ${totalGroups} grupos
+                                                    </span>
+                                                `);
             }
 
             // ============================================
@@ -1047,6 +1077,7 @@
 
                             // ✅ Cargar grupos después de tener sensores
                             loadGroups();
+                            populateMetaFields();
 
                             applyFiltersAndSort();
                             loadSubscriptionStatus();
@@ -1067,6 +1098,16 @@
             function applyFiltersAndSort() {
                 let data = [...allSensorsData];
 
+                // ✅ Filtrar por Metadata
+                const metaField = $('#metaFieldSelect').val();
+                const metaValue = $('#metaValueSelect').val();
+
+                if (metaField && metaValue) {
+                    data = data.filter(sensor => {
+                        return sensor.metadata && String(sensor.metadata[metaField]) === metaValue;
+                    });
+                }
+
                 // ✅ Filtrar por grupo - CORREGIDO: usar group_id correctamente
                 const groupId = $('#groupFilter').val();
                 if (groupId) {
@@ -1075,6 +1116,11 @@
                         const sensorGroupId = sensor.group_id || (sensor.group ? sensor.group.id : null);
                         return sensorGroupId == groupId;
                     });
+                }
+
+                // ✅ Filtrar por Comunidad
+                if (filterOnlyCommunity) {
+                    data = data.filter(sensor => sensor.is_community == 1);
                 }
 
                 // ✅ Búsqueda
@@ -1150,8 +1196,7 @@
 
             function getBaseHeaders() {
                 return [
-                    { key: 'checkbox', label: '', sortable: false, noSort: true },
-                    { key: 'id', label: 'ID', sortable: true },
+                    { key: 'checkbox', label: '<input type="checkbox" id="selectAllCheckbox">', sortable: false, noSort: true },
                     { key: 'name', label: 'Nombre', sortable: true },
                     { key: 'identifier', label: 'Identificador', sortable: true },
                     { key: 'group', label: 'Grupo', sortable: true },
@@ -1186,23 +1231,23 @@
                         const directionClass = isActive ? (currentSort.direction === 'asc' ? 'asc' : 'desc') : '';
                         const activeClass = isActive ? 'active' : '';
                         sortIcon = `<span class="sort-icon ${activeClass} ${directionClass}">
-                        <i class="bi bi-arrow-up"></i>
-                    </span>`;
+                                                            <i class="bi bi-arrow-up"></i>
+                                                        </span>`;
                     }
 
                     const sortableClass = header.sortable ? 'sortable-header' : 'sortable-header no-sort';
 
                     html += `
-                    <th style="width: ${width}; min-width: ${minWidth}" 
-                        class="${extraClass} ${sortableClass} ${noSortClass}"
-                        data-sort="${header.key}"
-                        data-sortable="${header.sortable}">
-                        <span class="th-content">
-                            ${header.label}${extraIcon}
-                            ${sortIcon}
-                        </span>
-                    </th>
-                `;
+                                                        <th style="width: ${width}; min-width: ${minWidth}" 
+                                                            class="${extraClass} ${sortableClass} ${noSortClass}"
+                                                            data-sort="${header.key}"
+                                                            data-sortable="${header.sortable}">
+                                                            <span class="th-content">
+                                                                ${header.label}${extraIcon}
+                                                                ${sortIcon}
+                                                            </span>
+                                                        </th>
+                                                    `;
                 });
                 html += '</tr>';
                 $('#sensorsTableHead').html(html);
@@ -1265,32 +1310,32 @@
                     const canImport = window.canImportSensors || false;
 
                     tbody.html(`
-                    <tr>
-                        <td colspan="${emptyColspan}" class="text-center py-4">
-                            <div class="empty-state">
-                                <i class="fas fa-search"></i>
-                                <h4>No se encontraron sensores</h4>
-                                <p>${searchTerm ? 'Intenta con otro término de búsqueda.' : 'Crea tu primer sensor o importa uno desde Excel.'}</p>
-                                ${!searchTerm ? `
-                                <div class="d-flex gap-2 justify-content-center flex-wrap">
-                                    <a href="{{ route('sensors.create') }}" class="btn btn-primary" id="emptyCreateSensor">
-                                        <i class="bi bi-plus"></i> Crear Sensor
-                                    </a>
-                                    ${canImport ? `
-                                        <a href="{{ route('sensor-groups.bulk-import') }}" class="btn btn-info" id="emptyImportSensors">
-                                            <i class="bi bi-file-earmark-excel"></i> Importar Sensores
-                                        </a>
-                                    ` : `
-                                        <button class="btn btn-info gate-blocked" id="emptyImportSensors" 
-                                                onclick="showGateBlockedNotification(); return false;">
-                                            <i class="bi bi-file-earmark-excel"></i> Importar Sensores
-                                        </button>
-                                    `}
-                                </div>` : ''}
-                            </div>
-                        </td>
-                    </tr>
-                `);
+                                                        <tr>
+                                                            <td colspan="${emptyColspan}" class="text-center py-4">
+                                                                <div class="empty-state">
+                                                                    <i class="fas fa-search"></i>
+                                                                    <h4>No se encontraron sensores</h4>
+                                                                    <p>${searchTerm ? 'Intenta con otro término de búsqueda.' : 'Crea tu primer sensor o importa uno desde Excel.'}</p>
+                                                                    ${!searchTerm ? `
+                                                                    <div class="d-flex gap-2 justify-content-center flex-wrap">
+                                                                        <a href="{{ route('sensors.create') }}" class="btn btn-primary" id="emptyCreateSensor">
+                                                                            <i class="bi bi-plus"></i> Crear Sensor
+                                                                        </a>
+                                                                        ${canImport ? `
+                                                                            <a href="{{ route('sensor-groups.bulk-import') }}" class="btn btn-info" id="emptyImportSensors">
+                                                                                <i class="bi bi-file-earmark-excel"></i> Importar Sensores
+                                                                            </a>
+                                                                        ` : `
+                                                                            <button class="btn btn-info gate-blocked" id="emptyImportSensors" 
+                                                                                    onclick="showGateBlockedNotification(); return false;">
+                                                                                <i class="bi bi-file-earmark-excel"></i> Importar Sensores
+                                                                            </button>
+                                                                        `}
+                                                                    </div>` : ''}
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    `);
 
                     const createBtn = $('#emptyCreateSensor');
                     if (createBtn.length) {
@@ -1318,9 +1363,11 @@
                     const metadata = sensor.metadata || {};
 
                     let rowHtml = `<tr data-sensor-id="${sensor.id}">`;
-                    rowHtml += `<td class="text-center"><input type="checkbox" class="sensor-checkbox" data-sensor-id="${sensor.id}"></td>`;
-                    rowHtml += `<td><span class="sensor-id-badge">${sensor.id}</span></td>`;
-                    rowHtml += `<td class="text-left"><strong>${sensor.name}</strong></td>`;
+                    const isChecked = selectedSensors.has(sensor.id) ? 'checked' : '';
+                    let communityBadge = sensor.is_community ? ' <span class="badge bg-success bg-opacity-10 text-success border border-success ms-1" style="font-size: 0.65rem;" title="Medidor de Consumo Comunitario. Su valor tarifario será prorrateado al total de miembros privados del grupo"><i class="bi bi-tree-fill"></i> Común</span>' : '';
+
+                    rowHtml += `<td class="text-center"><input type="checkbox" class="sensor-checkbox" data-sensor-id="${sensor.id}" ${isChecked}></td>`;
+                    rowHtml += `<td class="text-left"><strong>${sensor.name}</strong>${communityBadge}</td>`;
                     rowHtml += `<td><code>${sensor.identifier}</code></td>`;
                     rowHtml += `<td>${sensor.group?.name || '<span class="no-data">Sin grupo</span>'}</td>`;
 
@@ -1330,26 +1377,26 @@
                     });
 
                     rowHtml += `
-                    <td>
-                        <div class="table-actions">
-                            <a href="/mediciones/create/${sensor.id}" class="btn btn-sm btn-success" title="Tomar Medición">
-                                <i class="bi bi-rulers"></i>
-                            </a>
-                            <a href="/sensors/${sensor.id}" class="btn btn-sm btn-info" title="Ver Sensor">
-                                <i class="bi bi-eye"></i>
-                            </a>
-                            <a href="/sensors/${sensor.id}/edit" class="btn btn-sm btn-warning" title="Editar Sensor">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            <button class="btn btn-sm btn-danger delete-sensor-btn"
-                                    data-sensor-id="${sensor.id}"
-                                    data-sensor-name="${sensor.name}"
-                                    title="Eliminar Sensor">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                `;
+                                                        <td>
+                                                            <div class="table-actions">
+                                                                <a href="/mediciones/create/${sensor.id}" class="btn btn-sm btn-success" title="Tomar Medición">
+                                                                    <i class="bi bi-rulers"></i>
+                                                                </a>
+                                                                <a href="/sensors/${sensor.id}" class="btn btn-sm btn-info" title="Ver Sensor">
+                                                                    <i class="bi bi-eye"></i>
+                                                                </a>
+                                                                <a href="/sensors/${sensor.id}/edit" class="btn btn-sm btn-warning" title="Editar Sensor">
+                                                                    <i class="bi bi-pencil"></i>
+                                                                </a>
+                                                                <button class="btn btn-sm btn-danger delete-sensor-btn"
+                                                                        data-sensor-id="${sensor.id}"
+                                                                        data-sensor-name="${sensor.name}"
+                                                                        title="Eliminar Sensor">
+                                                                    <i class="bi bi-trash"></i>
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    `;
 
                     rowHtml += '</tr>';
                     tbody.append(rowHtml);
@@ -1366,31 +1413,31 @@
                 const canImport = window.canImportSensors || false;
 
                 $('#sensorsTableBody').html(`
-                <tr>
-                    <td colspan="${emptyColspan}" class="text-center py-4">
-                        <div class="empty-state">
-                            <i class="bi bi-info-circle"></i>
-                            <h4>No tienes sensores</h4>
-                            <p>Crea tu primer sensor o importa uno desde Excel.</p>
-                            <div class="d-flex gap-2 justify-content-center flex-wrap">
-                                <a href="{{ route('sensors.create') }}" class="btn btn-primary" id="emptyCreateSensor">
-                                    <i class="bi bi-plus"></i> Crear Sensor
-                                </a>
-                                ${canImport ? `
-                                    <a href="{{ route('sensor-groups.bulk-import') }}" class="btn btn-info" id="emptyImportSensors">
-                                        <i class="bi bi-file-earmark-excel"></i> Importar Sensores
-                                    </a>
-                                ` : `
-                                    <button class="btn btn-info gate-blocked" id="emptyImportSensors" 
-                                            onclick="showGateBlockedNotification(); return false;">
-                                        <i class="bi bi-file-earmark-excel"></i> Importar Sensores
-                                    </button>
-                                `}
-                            </div>
-                        </div>
-                    </td>
-                </tr>
-            `);
+                                                    <tr>
+                                                        <td colspan="${emptyColspan}" class="text-center py-4">
+                                                            <div class="empty-state">
+                                                                <i class="bi bi-info-circle"></i>
+                                                                <h4>No tienes sensores</h4>
+                                                                <p>Crea tu primer sensor o importa uno desde Excel.</p>
+                                                                <div class="d-flex gap-2 justify-content-center flex-wrap">
+                                                                    <a href="{{ route('sensors.create') }}" class="btn btn-primary" id="emptyCreateSensor">
+                                                                        <i class="bi bi-plus"></i> Crear Sensor
+                                                                    </a>
+                                                                    ${canImport ? `
+                                                                        <a href="{{ route('sensor-groups.bulk-import') }}" class="btn btn-info" id="emptyImportSensors">
+                                                                            <i class="bi bi-file-earmark-excel"></i> Importar Sensores
+                                                                        </a>
+                                                                    ` : `
+                                                                        <button class="btn btn-info gate-blocked" id="emptyImportSensors" 
+                                                                                onclick="showGateBlockedNotification(); return false;">
+                                                                            <i class="bi bi-file-earmark-excel"></i> Importar Sensores
+                                                                        </button>
+                                                                    `}
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                `);
                 $('#totalRecords').text('0');
                 $('#totalCountBadge').text('0');
                 $('#pageStart').text('0');
@@ -1426,6 +1473,22 @@
                         return;
                     }
                     deleteSelectedSensors();
+                });
+
+                $('#selectAllCheckbox').off('click').on('click', function () {
+                    const isChecked = $(this).is(':checked');
+                    $('.sensor-checkbox').prop('checked', isChecked);
+
+                    if (isChecked) {
+                        filteredData.forEach(sensor => {
+                            selectedSensors.add(sensor.id);
+                        });
+                    } else {
+                        filteredData.forEach(sensor => {
+                            selectedSensors.delete(sensor.id);
+                        });
+                    }
+                    updateDeleteSelectedButton();
                 });
 
                 let searchTimeout;
@@ -1487,8 +1550,54 @@
                 $('#clearGroupFilter').on('click', function () {
                     $('#groupFilter').val('');
                     selectedGroupId = '';
+                    $('#metaFieldSelect').val('');
+                    $('#metaValueSelect').val('').prop('disabled', true);
+                    filterOnlyCommunity = false;
+                    $('#toggleCommunityFilterBtn').removeClass('btn-success').addClass('btn-outline-success');
                     applyFiltersAndSort();
-                    // ✅ No mostrar notificación de filtro limpiado
+                });
+
+                // ✅ Filtros de Metadata
+                $('#metaFieldSelect').on('change', function () {
+                    const field = $(this).val();
+                    const $valueSelect = $('#metaValueSelect');
+
+                    if (!field) {
+                        $valueSelect.html('<option value="">Valor...</option>').prop('disabled', true);
+                        applyFiltersAndSort();
+                        return;
+                    }
+
+                    // Extraer los valores unicos y distintos desde allSensorsData para este campo
+                    const distinctValues = new Set();
+                    allSensorsData.forEach(sensor => {
+                        if (sensor.metadata && sensor.metadata[field] !== undefined && sensor.metadata[field] !== null && sensor.metadata[field] !== '') {
+                            distinctValues.add(String(sensor.metadata[field]));
+                        }
+                    });
+
+                    let optionsHtml = '<option value="">Cualquier valor...</option>';
+                    Array.from(distinctValues).sort().forEach(val => {
+                        optionsHtml += `<option value="${val}">${val}</option>`;
+                    });
+
+                    $valueSelect.html(optionsHtml).prop('disabled', false);
+                    applyFiltersAndSort();
+                });
+
+                $('#metaValueSelect').on('change', function () {
+                    applyFiltersAndSort();
+                });
+
+                $('#toggleCommunityFilterBtn').off('click').on('click', function () {
+                    filterOnlyCommunity = !filterOnlyCommunity;
+                    if (filterOnlyCommunity) {
+                        $(this).removeClass('btn-outline-success').addClass('btn-success');
+                    } else {
+                        $(this).removeClass('btn-success').addClass('btn-outline-success');
+                    }
+                    currentPage = 1;
+                    applyFiltersAndSort();
                 });
 
                 // ✅ Filtrar al presionar Enter en el buscador
@@ -1503,12 +1612,28 @@
             // FUNCIONES DE ELIMINACIÓN
             // ============================================
 
+            function populateMetaFields() {
+                const $fieldSelect = $('#metaFieldSelect');
+                let optionsHtml = '<option value="">Filtrar Atributo...</option>';
+                allExtraFields.forEach(field => {
+                    optionsHtml += `<option value="${field}">${field}</option>`;
+                });
+                $fieldSelect.html(optionsHtml);
+            }
+
             function updateDeleteSelectedButton() {
                 const count = selectedSensors.size;
                 $('#deleteSelectedBtn').prop('disabled', count === 0);
                 $('#deleteSelectedBtn').html(`
-                <i class="bi bi-trash"></i> Eliminar Seleccionados (${count})
-            `);
+                                                    <i class="bi bi-trash"></i> Eliminar Seleccionados (${count})
+                                                `);
+
+                const $selectedCountBadge = $('#selectedCountBadge');
+                if (count > 0) {
+                    $selectedCountBadge.text(`${count} seleccionados`).removeClass('d-none');
+                } else {
+                    $selectedCountBadge.addClass('d-none');
+                }
             }
 
             function deleteSensor(sensorId, sensorName) {
@@ -1557,55 +1682,39 @@
                 $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status"></span> Eliminando...');
 
                 const sensorsToDelete = Array.from(selectedSensors);
-                let successCount = 0;
-                let errorCount = 0;
-                const errors = [];
 
-                const deleteNextSensor = (index) => {
-                    if (index >= sensorsToDelete.length) {
-                        selectedSensors.clear();
-                        updateDeleteSelectedButton();
-                        if (errorCount === 0) {
-                            showNotification(`${successCount} sensores eliminados correctamente`, 'success');
+                $.ajax({
+                    url: '/api/sensors/bulk-delete',
+                    type: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    data: {
+                        sensor_ids: sensorsToDelete
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            selectedSensors.clear();
+                            updateDeleteSelectedButton();
+                            $('#selectAllCheckbox').prop('checked', false);
+                            showNotification(response.message, 'success');
+                            loadData();
                         } else {
-                            showNotification(`${successCount} sensores eliminados, ${errorCount} con errores`, 'warning');
+                            showNotification(response.message || 'Error al eliminar sensores', 'danger');
                         }
+                    },
+                    error: function (xhr) {
+                        let message = 'Error al eliminar sensores masivamente';
+                        if (xhr.status === 403) message = 'No tienes permiso para eliminar estos sensores';
+                        else if (xhr.responseJSON?.message) message = xhr.responseJSON.message;
+                        showNotification(message, 'danger');
+                    },
+                    complete: function () {
                         $btn.prop('disabled', false).html(`<i class="bi bi-trash"></i> Eliminar Seleccionados (0)`);
-                        loadData();
-                        return;
                     }
-
-                    const sensorId = sensorsToDelete[index];
-                    $.ajax({
-                        url: `/api/sensors/${sensorId}`,
-                        type: 'DELETE',
-                        headers: {
-                            'Authorization': 'Bearer ' + token,
-                            'Accept': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        success: function (response) {
-                            if (response.success) {
-                                successCount++;
-                            } else {
-                                errorCount++;
-                                errors.push({ sensorId, message: response.message || 'Error desconocido' });
-                            }
-                            deleteNextSensor(index + 1);
-                        },
-                        error: function (xhr) {
-                            errorCount++;
-                            let message = 'Error al eliminar el sensor';
-                            if (xhr.status === 403) message = 'No tienes permiso para eliminar este sensor';
-                            else if (xhr.status === 404) message = 'El sensor no existe';
-                            else if (xhr.responseJSON?.message) message = xhr.responseJSON.message;
-                            errors.push({ sensorId, message });
-                            deleteNextSensor(index + 1);
-                        }
-                    });
-                };
-
-                deleteNextSensor(0);
+                });
             }
 
             // ============================================
@@ -1620,11 +1729,11 @@
                             'fa-info-circle';
 
                 const alertHtml = `
-                <div class="alert ${alertClass} alert-dismissible fade show" role="alert" style="font-size: 0.9rem;">
-                    <i class="fas ${icon}"></i> ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            `;
+                                                    <div class="alert ${alertClass} alert-dismissible fade show" role="alert" style="font-size: 0.9rem;">
+                                                        <i class="fas ${icon}"></i> ${message}
+                                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                                    </div>
+                                                `;
                 $('#notificationContainer').append(alertHtml);
 
                 setTimeout(function () {

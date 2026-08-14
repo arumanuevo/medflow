@@ -37,6 +37,45 @@
                                 rows="2">{{ $sensor->description }}</textarea>
                         </div>
 
+                        <div class="mb-4">
+                            @if($sensor->is_community)
+                                <div class="alert alert-success border-success shadow-sm mb-0">
+                                    <div class="d-flex align-items-start">
+                                        <i class="bi bi-tree-fill fs-3 me-3 text-success"></i>
+                                        <div>
+                                            <h5 class="alert-heading fw-bold mb-1">Este es un Medidor de Consumo Común</h5>
+                                            <p class="mb-1 small text-dark">
+                                                <strong>¿Cómo funciona el cálculo?</strong> El sistema separará automáticamente
+                                                la sumatoria de consumos de este componente.
+                                            </p>
+
+                                            <div class="card border-0 bg-white shadow-sm mt-3 p-3 rounded">
+                                                <h6 class="fw-bold text-dark mb-2"><i class="bi bi-diagram-3"></i> Modalidad de
+                                                    Distribución Financiera</h6>
+                                                <div class="form-check form-switch mb-1">
+                                                    <input type="hidden" name="metadata[prorratear_comunidad]" value="0">
+                                                    <input class="form-check-input bg-success" type="checkbox" role="switch"
+                                                        name="metadata[prorratear_comunidad]" id="prorratear_comunidad"
+                                                        value="1" {{ ($sensor->metadata['prorratear_comunidad'] ?? '1') == '1' ? 'checked' : '' }}>
+                                                    <label class="form-check-label fw-bold ms-1"
+                                                        for="prorratear_comunidad">Prorratear automáticamente este cargo entre
+                                                        todos los lotes privados</label>
+                                                </div>
+                                                <div class="form-text small text-dark mt-0 lh-sm"><i
+                                                        class="bi bi-info-circle"></i> Si lo desactivas, este medidor funcionará
+                                                    en <strong>Modo Estadístico</strong>. Los gastos serán absorbidos por la
+                                                    administración central y NO se dividirán a los vecinos.</div>
+                                            </div>
+
+                                            <input type="hidden" name="is_community" id="is_community" value="1">
+                                        </div>
+                                    </div>
+                                </div>
+                            @else
+                                <input type="hidden" name="is_community" id="is_community" value="0">
+                            @endif
+                        </div>
+
                         <div class="mb-3">
                             <label for="group_id" class="form-label">Grupo de Sensores <span
                                     class="text-danger">*</span></label>
@@ -99,7 +138,8 @@
                         if (response.success && response.data && response.data.template) {
                             const schema = response.data.template.schema;
                             if (schema && schema.campos) {
-                                const sensorFields = schema.campos.filter(c => c.contexto === 'sensor');
+                                // Evitamos volver a renderizar 'identificador' dinámicamente porque ya es un campo principal (identifier)
+                                const sensorFields = schema.campos.filter(c => c.contexto === 'sensor' && c.nombre !== 'identificador');
 
                                 if (sensorFields.length > 0) {
                                     let html = '';
@@ -113,83 +153,87 @@
 
                                         const placeholder = field.unidad ? `(${field.unidad})` : 'Ingresar valor';
 
-                                        // ✅ Usar valor preexistente si lo hay, si no el por defecto
+                                        // ✅ Usar valor preexistente si lo hay, si no el por defecto (o sugerencia de Área Común)
                                         let currentValue = existingMetadata[field.nombre] !== undefined ? existingMetadata[field.nombre] : '';
 
-                                        html += \`
-                                        <div class="mb-3">
-                                            <label class="form-label">\${field.nombre} \${reqAsterisk}</label>
-                                            <input type="\${inputType}" step="any" class="form-control" name="metadata[\${field.nombre}]" value="\${currentValue}" placeholder="\${placeholder}" \${requiredAttr}>
-                                            \${field.valor_por_defecto ? '<div class="form-text">Referencia: ' + field.valor_por_defecto + '</div>' : ''}
-                                        </div>
-                                    \`;
-                                });
-                                fieldsContainer.html(html);
-                                container.fadeIn();
+                                        if (currentValue === '' && $('#is_community').val() == '1' && inputType === 'text') {
+                                            currentValue = 'Área Común';
+                                        }
+
+                                        html += `
+                                                                <div class="mb-3">
+                                                                    <label class="form-label">${field.nombre} ${reqAsterisk}</label>
+                                                                    <input type="${inputType}" step="any" class="form-control" name="metadata[${field.nombre}]" value="${currentValue}" placeholder="${$('#is_community').val() == '1' ? 'Ej: Área Común Central' : placeholder}" ${requiredAttr}>
+                                                                    ${field.valor_por_defecto ? '<div class="form-text">Referencia: ' + field.valor_por_defecto + '</div>' : ''}
+                                                                </div>
+                                                            `;
+                                    });
+                                    fieldsContainer.html(html);
+                                    container.fadeIn();
+                                }
                             }
                         }
                     }
-                }
-            });
-        }
-
-        $('#group_id').change(function() {
-            loadGroupFields($(this).val());
-        });
-
-        // Carga inicial
-        if ($('#group_id').val()) {
-            loadGroupFields($('#group_id').val());
-        }
-
-        $('#sensorEditForm').submit(function(e) {
-            e.preventDefault();
-
-            const formData = $(this).serialize();
-            const token = localStorage.getItem('token');
-            const sensorId = {{ $sensor->id }};
-
-            if (!token) {
-                alert('No se encontró un token de autenticación. Por favor, inicia sesión nuevamente.');
-                window.location.href = '{{ route("login") }}';
-                return;
+                });
             }
 
-            $.ajax({
-                url: `/ api / sensors / ${ sensorId } `,
-                type: 'PUT',
-                data: formData,
-                headers: {
-                    'Authorization': 'Bearer ' + token,
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function(response) {
-                    if (response.success) {
-                        alert('Sensor actualizado correctamente');
-                        window.location.href = '{{ route("sensors.show", ["sensor" => $sensor->id]) }}';
-                    } else {
-                        alert(response.message || 'Error al actualizar el sensor');
-                    }
-                },
-                error: function(xhr) {
-                    let errorMessage = 'Error al actualizar el sensor';
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        errorMessage = xhr.responseJSON.message;
-                    } else if (xhr.responseJSON && xhr.responseJSON.errors) {
-                        const errors = xhr.responseJSON.errors;
-                        let errorText = '';
-                        for (const field in errors) {
-                            errorText += `${ field }: ${ errors[field].join(', ') } \n`;
-                        }
-                        errorMessage = errorText || 'Error de validación';
-                    } else {
-                        errorMessage = xhr.statusText || errorMessage;
-                    }
-                    alert(errorMessage);
+            $('#group_id').change(function () {
+                loadGroupFields($(this).val());
+            });
+
+            // Carga inicial
+            if ($('#group_id').val()) {
+                loadGroupFields($('#group_id').val());
+            }
+
+            $('#sensorEditForm').submit(function (e) {
+                e.preventDefault();
+
+                const formData = $(this).serialize();
+                const token = localStorage.getItem('token');
+                const sensorId = {{ $sensor->id }};
+
+                if (!token) {
+                    alert('No se encontró un token de autenticación. Por favor, inicia sesión nuevamente.');
+                    window.location.href = '{{ route("login") }}';
+                    return;
                 }
+
+                $.ajax({
+                    url: `/api/sensors/${sensorId}`,
+                    type: 'PUT',
+                    data: formData,
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert('Sensor actualizado correctamente');
+                            window.location.href = '{{ route("sensors.show", ["sensor" => $sensor->id]) }}';
+                        } else {
+                            alert(response.message || 'Error al actualizar el sensor');
+                        }
+                    },
+                    error: function (xhr) {
+                        let errorMessage = 'Error al actualizar el sensor';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            const errors = xhr.responseJSON.errors;
+                            let errorText = '';
+                            for (const field in errors) {
+                                errorText += `${field}: ${errors[field].join(', ')} \n`;
+                            }
+                            errorMessage = errorText || 'Error de validación';
+                        } else {
+                            errorMessage = xhr.statusText || errorMessage;
+                        }
+                        alert(errorMessage);
+                    }
+                });
             });
         });
-    });
     </script>
 @endpush

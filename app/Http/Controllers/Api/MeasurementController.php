@@ -1366,6 +1366,10 @@ class MeasurementController extends Controller
         $currentValue = (float) $data[$mainField];
         $currentDate = Carbon::parse($request->measured_at);
 
+        // ✅ INYECTAR 'tipo' DESDE LA PLANTILLA PARA EVITAR EL 'N/A'
+        $templateType = $sensor->group->template->type ?? 'personalizado';
+        $data['tipo'] = $templateType;
+
         // =============================================
         // ✅ VALIDACIÓN DE SECUENCIA POR FECHA
         // =============================================

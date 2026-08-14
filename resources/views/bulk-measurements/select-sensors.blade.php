@@ -205,11 +205,17 @@
                                         placeholder="Nombre o identificador...">
                                 </div>
                                 <div class="col-md-3 d-flex align-items-end gap-2">
-                                    <button class="btn btn-sm btn-primary w-50" id="filterBtn">
+                                    <button type="button" class="btn btn-sm btn-primary w-50" id="filterBtn">
                                         <i class="bi bi-funnel"></i> Filtrar
                                     </button>
-                                    <button class="btn btn-sm btn-outline-secondary w-50" id="clearFiltersBtn">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary w-50"
+                                        id="clearFiltersBtn">
                                         <i class="bi bi-x-lg"></i> Limpiar
+                                    </button>
+                                </div>
+                                <div class="col-md-12 mt-2">
+                                    <button type="button" class="btn btn-sm btn-outline-success" id="filterCommunityBtn">
+                                        <i class="bi bi-tree-fill"></i> Ver solo Áreas Comunes
                                     </button>
                                 </div>
                             </div>
@@ -284,12 +290,19 @@
                                                 data-group="{{ $sensor->group->name ?? '' }}"
                                                 data-status="{{ strtolower(str_replace(' ', '_', $estado)) }}"
                                                 data-identifier="{{ strtolower($sensor->identifier) }}"
+                                                data-community="{{ $sensor->is_community ? '1' : '0' }}"
                                                 class="{{ $isMarked ? 'selected-row' : '' }}">
                                                 <td>
                                                     <input type="checkbox" class="sensor-checkbox"
                                                         data-sensor-id="{{ $sensor->id }}" {{ $isMarked ? 'checked' : '' }}>
                                                 </td>
-                                                <td class="text-left"><strong>{{ $sensor->name }}</strong></td>
+                                                <td class="text-left">
+                                                    <strong>{{ $sensor->name }}</strong>
+                                                    @if($sensor->is_community)
+                                                        <span class="badge bg-success ms-1" style="font-size:0.6rem;"><i
+                                                                class="bi bi-tree-fill"></i> Común</span>
+                                                    @endif
+                                                </td>
                                                 <td><code>{{ $sensor->identifier }}</code></td>
                                                 <td>{{ $sensor->group->name ?? 'Sin grupo' }}</td>
                                                 <td>{{ $lastDate }}</td>
@@ -462,13 +475,13 @@
                 const useSelectionOrder = $useSelectionOrder.is(':checked');
                 if (useSelectionOrder && selectionOrder.length > 0) {
                     $('#bulkMeasurementForm').append(`
-                                <input type="hidden" name="selection_order" value="${selectionOrder.join(',')}">
-                                <input type="hidden" name="use_selection_order" value="1">
-                            `);
+                                    <input type="hidden" name="selection_order" value="${selectionOrder.join(',')}">
+                                    <input type="hidden" name="use_selection_order" value="1">
+                                `);
                 } else {
                     $('#bulkMeasurementForm').append(`
-                                <input type="hidden" name="use_selection_order" value="0">
-                            `);
+                                    <input type="hidden" name="use_selection_order" value="0">
+                                `);
                 }
 
                 $modalSelectedCount.text(selectedCount);
@@ -500,6 +513,21 @@
                 return $sensorCheckboxes.filter(':checked').length;
             }
 
+            // Estado del filtro de comunidad
+            let filterOnlyCommunity = false;
+
+            $('#filterCommunityBtn').click(function (e) {
+                e.preventDefault();
+                filterOnlyCommunity = !filterOnlyCommunity;
+
+                if (filterOnlyCommunity) {
+                    $(this).removeClass('btn-outline-success').addClass('btn-success');
+                } else {
+                    $(this).removeClass('btn-success').addClass('btn-outline-success');
+                }
+                applyFilters();
+            });
+
             // Filtros
             function applyFilters() {
                 const group = $groupFilter.val().toLowerCase();
@@ -508,12 +536,19 @@
 
                 $sensorRows.each(function () {
                     const $row = $(this);
-                    const rowGroup = $row.data('group').toLowerCase();
-                    const rowStatus = $row.data('status').toLowerCase();
-                    const rowName = $row.data('sensor-name').toLowerCase();
-                    const rowIdentifier = $row.data('identifier').toLowerCase();
+
+                    // SAFE CASTING TO STRING TO AVOID .toLowerCase() TypeError on INT values
+                    const rowGroup = String($row.data('group') || '').toLowerCase();
+                    const rowStatus = String($row.data('status') || '').toLowerCase();
+                    const rowName = String($row.data('sensor-name') || '').toLowerCase();
+                    const rowIdentifier = String($row.data('identifier') || '').toLowerCase();
+                    const isCommunity = String($row.data('community') || '0');
 
                     let show = true;
+
+                    if (filterOnlyCommunity && isCommunity !== '1') {
+                        show = false;
+                    }
 
                     if (group && rowGroup !== group) {
                         show = false;
@@ -539,11 +574,11 @@
             // Mostrar alertas
             function showAlert(message, type) {
                 const alertHtml = `
-                            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                                ${message}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        `;
+                                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                                    ${message}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            `;
                 $('.card-body').prepend(alertHtml);
 
                 setTimeout(() => {

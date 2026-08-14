@@ -54,13 +54,26 @@
                 INFO DE LA MEDICIÓN ANTERIOR
                 ============================================ -->
                 @php
-                    $mainField = 'consumo_m3';
-                    $lastValue = null;
-                    $lastDate = null;
+                    $mainField = 'valor';
+                    $mainFieldLabel = 'Consumo Actual';
                     $unit = 'm³';
 
+                    if ($sensor->group && $sensor->group->template && isset($sensor->group->template->schema['campos'])) {
+                        foreach ($sensor->group->template->schema['campos'] as $campo) {
+                            if ($campo['tipo'] === 'numero' && ($campo['requerido'] ?? false)) {
+                                $mainField = $campo['nombre'];
+                                $mainFieldLabel = ucfirst(str_replace('_', ' ', $campo['nombre']));
+                                $unit = $campo['unidad'] ?? 'm³';
+                                break;
+                            }
+                        }
+                    }
+
+                    $lastValue = null;
+                    $lastDate = null;
+
                     if (isset($previousMeasurement)) {
-                        $lastValue = $previousMeasurement->data[$mainField] ?? null;
+                        $lastValue = $previousMeasurement->data[$mainField] ?? $previousMeasurement->data['consumo_m3'] ?? $previousMeasurement->data['valor'] ?? null;
                         $lastDate = $previousMeasurement->measured_at;
                     }
                 @endphp
@@ -149,21 +162,21 @@
 
                     <!-- Campo: Valor de consumo (campo principal de la plantilla) -->
                     <div class="mb-3">
-                        <label for="consumo_m3" class="form-label">
+                        <label for="{{ $mainField }}" class="form-label">
                             <i class="bi bi-speedometer2 me-1 text-primary"></i>
-                            Consumo Actual (m³) <span class="text-danger">*</span>
+                            {{ $mainFieldLabel }} ({{ $unit }}) <span class="text-danger">*</span>
                         </label>
                         <div class="input-group">
-                            <input type="number" step="0.01" class="form-control" id="consumo_m3" name="data[consumo_m3]"
+                            <input type="number" step="0.01" class="form-control" id="{{ $mainField }}" name="data[{{ $mainField }}]"
                                 placeholder="Ej: 125.50" required autofocus>
-                            <span class="input-group-text">m³</span>
+                            <span class="input-group-text">{{ $unit }}</span>
                         </div>
                         @if($lastValue !== null)
                             <small class="text-muted">
                                 <i class="bi bi-info-circle me-1"></i>
-                                Anterior: <strong>{{ number_format($lastValue, 2) }} m³</strong>
+                                Anterior: <strong>{{ number_format($lastValue, 2) }} {{ $unit }}</strong>
                                 @php
-                                    $diff = $lastValue ? (float) old('consumo_m3', 0) - $lastValue : null;
+                                    $diff = $lastValue ? (float) old($mainField, 0) - $lastValue : null;
                                 @endphp
                                 <span id="consumptionDiff" class="badge bg-light text-dark border ms-1">
                                     Diferencia: 0.00 m³
@@ -184,13 +197,13 @@
                                 <i class="bi bi-calculator text-primary"></i>
                                 <span>
                                     <strong>Consumo calculado:</strong>
-                                    <span id="calculatedConsumption">0.00</span> m³
+                                    <span id="calculatedConsumption">0.00</span> {{ $unit }}
                                     <span class="text-muted small">(actual - anterior)</span>
                                 </span>
                                 <span
-                                    class="badge bg-{{ $lastValue && (float) old('consumo_m3', 0) > $lastValue ? 'success' : 'secondary' }}"
+                                    class="badge bg-{{ $lastValue && (float) old($mainField, 0) > $lastValue ? 'success' : 'secondary' }}"
                                     id="consumptionStatus">
-                                    {{ $lastValue && (float) old('consumo_m3', 0) > $lastValue ? '✅ Válido' : '⏳ Pendiente' }}
+                                    {{ $lastValue && (float) old($mainField, 0) > $lastValue ? '✅ Válido' : '⏳ Pendiente' }}
                                 </span>
                             </div>
                         </div>
@@ -272,10 +285,10 @@
                     @php
                         $customFields = [];
                         if (isset($sensor->group) && isset($sensor->group->template) && isset($sensor->group->template->schema['campos'])) {
-                            $customFields = array_filter($sensor->group->template->schema['campos'], function ($campo) {
+                            $customFields = array_filter($sensor->group->template->schema['campos'], function ($campo) use ($mainField) {
                                 // Excluir campos que ya tenemos en el formulario o que son estáticos del Sensor
                                 $isSensorMetadata = isset($campo['contexto']) && $campo['contexto'] === 'sensor';
-                                return !in_array($campo['nombre'], ['consumo_m3', 'foto', 'fecha_medicion']) && !$isSensorMetadata;
+                                return !in_array($campo['nombre'], [$mainField, 'consumo_m3', 'foto', 'fecha_medicion', 'valor']) && !$isSensorMetadata;
                             });
                         }
                     @endphp
@@ -378,7 +391,7 @@
                 const sensorId = {{ $sensor->id }};
                 const groupName = '{{ str_replace(' ', '_', $sensor->group->name ?? 'SinGrupo') }}';
                 const token = localStorage.getItem('token');
-                const mainField = 'consumo_m3';
+                const mainField = '{{ $mainField }}';
                 const lastValue = {{ $lastValue !== null ? $lastValue : 'null' }};
                 const periodoMedicion = {{ $periodoMedicion ?? 30 }};
                 const diasVencimiento = {{ $diasVencimiento ?? 5 }};
@@ -489,7 +502,7 @@
 
                     // Si no hay valor o fecha, resetear
                     if (!value || isNaN(value) || !date) {
-                        diffSpan.text('Diferencia: 0.00 m³');
+                        diffSpan.text('Diferencia: 0.00 {{ $unit }}');
                         calcSpan.text('0.00');
                         statusBadge.text('⏳ Pendiente')
                             .removeClass('bg-success bg-danger bg-info')
@@ -510,7 +523,7 @@
                         // Calcular diferencia con anterior
                         if (lastValue !== null) {
                             const diff = value - lastValue;
-                            diffSpan.text(`Diferencia: ${Math.abs(diff).toFixed(2)} m³`);
+                            diffSpan.text(`Diferencia: ${Math.abs(diff).toFixed(2)} {{ $unit }}`);
                             calcSpan.text(diff.toFixed(2));
                         } else {
                             diffSpan.text('Primera medición');
@@ -527,8 +540,8 @@
                 // =============================================
                 // 4. EVENTOS DEL FORMULARIO
                 // =============================================
-                $('#consumo_m3, #fecha_medicion').on('change input', function () {
-                    const value = parseFloat($('#consumo_m3').val());
+                $('#' + mainField + ', #fecha_medicion').on('change input', function () {
+                    const value = parseFloat($('#' + mainField).val());
                     const date = $('#fecha_medicion').val();
                     updateUI(value, date);
                 });
@@ -738,7 +751,7 @@
                 $('#measurementForm').submit(async function (e) {
                     e.preventDefault();
 
-                    const consumo = $('#consumo_m3').val();
+                    const consumo = $('#' + mainField).val();
                     const fecha = $('#fecha_medicion').val();
 
                     // Validar consumo
@@ -797,13 +810,13 @@
                     const formData = {
                         sensor_id: sensorId,
                         data: {
-                            consumo_m3: consumoNum,
                             foto: $('#photo').val(),
                             fecha_medicion: fecha,
                             campos_personalizados: {}
                         },
                         measured_at: fecha
                     };
+                    formData.data[mainField] = consumoNum;
 
                     // Agregar campos personalizados
                     $('[name^="data[campos_personalizados]"]').each(function () {

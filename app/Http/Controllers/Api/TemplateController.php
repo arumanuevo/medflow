@@ -31,36 +31,37 @@ class TemplateController extends Controller
                 ->get();
 
             // ✅ NORMALIZAR - Convertir a array y modificar la copia
-            $normalizedDefaults = $defaultTemplates->map(function($template) {
+            $normalizedDefaults = $defaultTemplates->map(function ($template) {
                 // Crear una copia del template como array
                 $templateArray = $template->toArray();
-                
+
                 // Obtener los campos normalizados
                 $normalizedFields = $template->getNormalizedFields();
-                
+
                 // Reemplazar el schema en la copia
                 $templateArray['schema'] = [
                     'campos' => $normalizedFields
                 ];
-                
+
                 // Agregar campos adicionales para la vista
                 $templateArray['type_label'] = $template->getTypeLabel();
                 $templateArray['main_unit'] = $template->getMainUnit();
-                
+
                 return $templateArray;
             });
 
-            $normalizedUser = $userTemplates->map(function($template) {
+            $normalizedUser = $userTemplates->map(function ($template) {
                 $templateArray = $template->toArray();
                 $normalizedFields = $template->getNormalizedFields();
-                
+
                 $templateArray['schema'] = [
                     'campos' => $normalizedFields
                 ];
-                
+
                 $templateArray['type_label'] = $template->getTypeLabel();
                 $templateArray['main_unit'] = $template->getMainUnit();
-                
+                $templateArray['in_use'] = $template->sensorGroups()->whereHas('sensors')->exists();
+
                 return $templateArray;
             });
 
@@ -94,8 +95,8 @@ class TemplateController extends Controller
         $user = request()->user();
 
         $canAccess = $template->is_default ||
-                    $template->created_by === $user->id ||
-                    $template->created_by === null;
+            $template->created_by === $user->id ||
+            $template->created_by === null;
 
         if (!$canAccess) {
             return response()->json([
@@ -126,8 +127,8 @@ class TemplateController extends Controller
         $user = request()->user();
 
         $canAccess = $template->is_default ||
-                    $template->created_by === $user->id ||
-                    $template->created_by === null;
+            $template->created_by === $user->id ||
+            $template->created_by === null;
 
         if (!$canAccess) {
             return response()->json([
@@ -270,6 +271,13 @@ class TemplateController extends Controller
             ], 403);
         }
 
+        if ($template->sensorGroups()->whereHas('sensors')->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No puedes modificar esta plantilla porque ya está asignada a uno o más Grupos que contienen sensores. Por favor, crea una plantilla nueva si deseas cambiar la estructura, o elimina primero los sensores de los grupos.',
+            ], 403);
+        }
+
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|string|max:255|unique:templates,name,' . $template->id,
             'description' => 'nullable|string',
@@ -322,10 +330,10 @@ class TemplateController extends Controller
             ], 403);
         }
 
-        if ($template->sensorGroups()->exists()) {
+        if ($template->sensorGroups()->whereHas('sensors')->exists()) {
             return response()->json([
                 'success' => false,
-                'message' => 'No puedes eliminar esta plantilla porque está siendo usada por uno o más grupos de sensores',
+                'message' => 'No puedes eliminar esta plantilla porque está siendo usada por uno o más Grupos que contienen sensores',
             ], 400);
         }
 
@@ -343,7 +351,7 @@ class TemplateController extends Controller
     public function getPredefinedFields(Request $request)
     {
         $type = $request->input('type');
-        
+
         if (!$type) {
             return response()->json([
                 'success' => false,

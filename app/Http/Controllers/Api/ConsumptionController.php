@@ -35,6 +35,12 @@ class ConsumptionController extends Controller
             $sensors = $sensors->where('id', $request->sensor_id);
         }
 
+        // Filtrar por comunidad
+        if ($request->has('is_community')) {
+            $isCommunity = filter_var($request->is_community, FILTER_VALIDATE_BOOLEAN);
+            $sensors = $sensors->where('is_community', $isCommunity);
+        }
+
         // Filtrar por identificador si se proporciona
         if ($request->has('identifier') && $request->identifier) {
             $identifierFilter = strtolower($request->identifier);
@@ -76,9 +82,13 @@ class ConsumptionController extends Controller
                         'id' => $sensor->id,
                         'name' => $sensor->name,
                         'identifier' => $sensor->identifier,
+                        'is_community' => $sensor->is_community,
                         'group' => [
                             'id' => $sensor->group->id,
                             'name' => $sensor->group->name,
+                            'template' => [
+                                'type' => ($sensor->group && $sensor->group->template) ? $sensor->group->template->type : 'Desconocido'
+                            ]
                         ]
                     ];
 
@@ -148,9 +158,15 @@ class ConsumptionController extends Controller
 
         // Obtener unidad desde la plantilla
         $unit = 'unidades';
+        $mainField = 'consumo_m3'; // Fallback
         if ($sensor->group && $sensor->group->template) {
-            $firstField = collect($sensor->group->template->schema['campos'] ?? [])->first();
-            $unit = $firstField['unidad'] ?? 'unidades';
+            foreach ($sensor->group->template->schema['campos'] ?? [] as $campo) {
+                if (($campo['tipo'] ?? '') === 'numero' && ($campo['requerido'] ?? false)) {
+                    $mainField = $campo['nombre'];
+                    $unit = $campo['unidad'] ?? 'unidades';
+                    break;
+                }
+            }
         }
 
         // Calcular consumos entre mediciones consecutivas
@@ -164,13 +180,16 @@ class ConsumptionController extends Controller
                 continue;
             }
 
+            $startValRaw = $start->data[$mainField] ?? $start->data['consumo_m3'] ?? $start->data['valor'] ?? 0;
+            $endValRaw = $end->data[$mainField] ?? $end->data['consumo_m3'] ?? $end->data['valor'] ?? 0;
+
             // Validar que el valor final sea mayor al inicial
-            if ((float) $end->data['valor'] <= (float) $start->data['valor']) {
+            if ((float) $endValRaw <= (float) $startValRaw) {
                 continue;
             }
 
-            $startValue = (float) $start->data['valor'];
-            $endValue = (float) $end->data['valor'];
+            $startValue = (float) $startValRaw;
+            $endValue = (float) $endValRaw;
             $consumptionValue = round($endValue - $startValue, 2);
             $daysBetween = Carbon::parse($end->measured_at)->diffInDays(Carbon::parse($start->measured_at));
 
@@ -201,6 +220,21 @@ class ConsumptionController extends Controller
             } else {
                 $consumptionArray['daily_average'] = 0;
             }
+
+            // Asegurar que el sensor y grupo estén cargados (Requerido para la vista frontend)
+            $consumptionArray['sensor'] = [
+                'id' => $sensor->id,
+                'name' => $sensor->name,
+                'identifier' => $sensor->identifier,
+                'is_community' => $sensor->is_community,
+                'group' => [
+                    'id' => $sensor->group ? $sensor->group->id : null,
+                    'name' => $sensor->group ? $sensor->group->name : 'Sin grupo',
+                    'template' => [
+                        'type' => ($sensor->group && $sensor->group->template) ? $sensor->group->template->type : 'Desconocido'
+                    ]
+                ]
+            ];
 
             $consumptions[] = $consumptionArray;
         }
@@ -597,4 +631,362 @@ class ConsumptionController extends Controller
     }
 
 
+
+    /**
+     * Calcular consumo histórico en un rango de fechas custom
+     */
+    public function calculateRange(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'sensor_id' => 'required|exists:sensors,id',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $user = $request->user();
+        $sensorId = $request->sensor_id;
+        $sensor = Sensor::with('group')->findOrFail($sensorId);
+
+        // Verificar permisos
+        $canAccess = $user->hasRole('admin') ||
+            ($sensor->group && $sensor->group->user_id === $user->id) ||
+            ($sensor->group && $sensor->group->sharedAccess()->where('shared_with', $user->id)->exists());
+
+        if (!$canAccess) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No tienes permiso para analizar este sensor',
+            ], 403);
+        }
+
+        $startDate = Carbon::parse($request->start_date)->startOfDay();
+        $endDate = Carbon::parse($request->end_date)->endOfDay();
+
+        // Obtener la primera medición dentro del rango (o la más cercana después)
+        $startMeasurement = Measurement::where('sensor_id', $sensorId)
+            ->where('measured_at', '>=', $startDate)
+            ->orderBy('measured_at', 'asc')
+            ->first();
+
+        // Obtener la última medición dentro del rango (o la más cercana antes)
+        $endMeasurement = Measurement::where('sensor_id', $sensorId)
+            ->where('measured_at', '<=', $endDate)
+            ->orderBy('measured_at', 'desc')
+            ->first();
+
+        if (!$startMeasurement || !$endMeasurement || $startMeasurement->id === $endMeasurement->id || $startMeasurement->measured_at >= $endMeasurement->measured_at) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No hay suficientes datos medidos dentro de este rango para calcular un delta válido.',
+            ], 404);
+        }
+
+        $startValue = (float) ($startMeasurement->data['valor'] ?? 0);
+        $endValue = (float) ($endMeasurement->data['valor'] ?? 0);
+
+        $delta = round($endValue - $startValue, 2);
+        $daysBetween = Carbon::parse($endMeasurement->measured_at)->diffInDays(Carbon::parse($startMeasurement->measured_at));
+        if ($daysBetween < 0)
+            $daysBetween = abs($daysBetween);
+
+        $dailyAverage = 0;
+        if ($daysBetween > 0) {
+            $dailyAverage = round($delta / $daysBetween, 2);
+        }
+
+        $unit = 'unidades';
+        if ($sensor->group && $sensor->group->template) {
+            $firstField = collect($sensor->group->template->schema['campos'] ?? [])->first();
+            $unit = $firstField['unidad'] ?? 'unidades';
+        }
+
+        $intermediateMeasurements = Measurement::where('sensor_id', $sensorId)
+            ->whereBetween('measured_at', [$startMeasurement->measured_at, $endMeasurement->measured_at])
+            ->orderBy('measured_at', 'asc')
+            ->get();
+
+        $measurementsCount = $intermediateMeasurements->count();
+
+        $chartData = [];
+        $previousValue = null;
+        $previousDate = null;
+        $previousDailyRate = null;
+
+        $thresholdPercent = $request->input('anomaly_threshold', 50); // Por defecto 50%
+        $thresholdMultiplier = $thresholdPercent / 100;
+
+        $stagnationDays = (int) $request->input('stagnation_days', 15); // Tolerancia de estancamiento
+
+        foreach ($intermediateMeasurements as $m) {
+            $val = (float) ($m->data['valor'] ?? 0);
+            $currentDate = Carbon::parse($m->measured_at);
+            $isAnomaly = false;
+
+            if ($previousValue !== null && $previousDate !== null) {
+                $daysDelta = $currentDate->diffInDays($previousDate);
+                if ($daysDelta < 0) {
+                    $daysDelta = abs($daysDelta);
+                }
+
+                // Prevenir división por cero
+                if ($daysDelta < 1) {
+                    $daysDelta = 1;
+                }
+
+                $currentDailyRate = abs($val - $previousValue) / $daysDelta;
+
+                // 1. Detección de Estancamiento
+                if ($val == $previousValue && $daysDelta >= $stagnationDays) {
+                    $isAnomaly = true;
+                }
+                // 2. Detección de salto en la Tasa Diaria
+                elseif ($previousDailyRate !== null && $previousDailyRate > 0) {
+                    $rateChange = abs(($currentDailyRate - $previousDailyRate) / $previousDailyRate);
+                    if ($rateChange > $thresholdMultiplier) {
+                        $isAnomaly = true;
+                    }
+                }
+
+                $previousDailyRate = $currentDailyRate;
+            }
+
+            $chartData[] = [
+                'id' => $m->id,
+                'date' => $currentDate->format('d/m/Y H:i'),
+                'value' => $val,
+                'anomaly' => $isAnomaly,
+                'photo' => $m->data['foto'] ?? null,
+            ];
+            $previousValue = $val;
+            $previousDate = $currentDate;
+        }
+
+        // ==========================================
+        // 🌿 CÁLCULO DE PRORRATEO COMUNITARIO
+        // ==========================================
+        $communityContribution = 0;
+        $totalCommunityDelta = 0;
+
+        if (!$sensor->is_community && $sensor->group) {
+            $communitySensors = Sensor::where('group_id', $sensor->group_id)->where('is_community', true)->get();
+            $privateSensorsCount = Sensor::where('group_id', $sensor->group_id)->where('is_community', false)->count();
+
+            if ($privateSensorsCount > 0 && $communitySensors->count() > 0) {
+                foreach ($communitySensors as $cSensor) {
+                    // Ignorar si está marcado como "Modo Estadístico" (prorratear_comunidad = false / '0')
+                    $isProrated = ($cSensor->metadata['prorratear_comunidad'] ?? '1') == '1';
+                    if (!$isProrated)
+                        continue;
+
+                    // Buscar delta de cada sensor comunitario en este mismo periodo de fechas
+                    $cStart = Measurement::where('sensor_id', $cSensor->id)
+                        ->where('measured_at', '>=', $startDate)
+                        ->orderBy('measured_at', 'asc')->first();
+                    $cEnd = Measurement::where('sensor_id', $cSensor->id)
+                        ->where('measured_at', '<=', $endDate)
+                        ->orderBy('measured_at', 'desc')->first();
+
+                    if ($cStart && $cEnd && $cStart->measured_at < $cEnd->measured_at) {
+                        $cStartVal = (float) ($cStart->data['valor'] ?? 0);
+                        $cEndVal = (float) ($cEnd->data['valor'] ?? 0);
+                        $totalCommunityDelta += round(max(0, $cEndVal - $cStartVal), 2);
+                    }
+                }
+
+                $communityContribution = round($totalCommunityDelta / $privateSensorsCount, 2);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Rango calculado con éxito',
+            'data' => [
+                'sensor_id' => $sensor->id,
+                'sensor_name' => $sensor->name,
+                'unit' => $unit,
+                'period_start' => $startMeasurement->measured_at,
+                'period_end' => $endMeasurement->measured_at,
+                'start_value' => $startValue,
+                'end_value' => $endValue,
+                'total_consumption' => $delta,
+                'community_contribution' => $communityContribution,
+                'final_billed_total' => round($delta + $communityContribution, 2),
+                'days_between' => $daysBetween,
+                'daily_average' => $dailyAverage,
+                'measurements_count' => $measurementsCount,
+                'chart_data' => $chartData
+            ]
+        ]);
+    }
+
+    /**
+     * Extraer meta información de las mediciones del sensor (rangos máximos posibles)
+     */
+    public function getSensorMeta(Request $request, $sensorId)
+    {
+        $user = $request->user();
+        $sensor = Sensor::with('group')->findOrFail($sensorId);
+
+        $canAccess = $user->hasRole('admin') ||
+            ($sensor->group && $sensor->group->user_id === $user->id) ||
+            ($sensor->group && $sensor->group->sharedAccess()->where('shared_with', $user->id)->exists());
+
+        if (!$canAccess) {
+            return response()->json(['success' => false, 'message' => 'Sin permiso'], 403);
+        }
+
+        $first = Measurement::where('sensor_id', $sensorId)->orderBy('measured_at', 'asc')->first();
+        $last = Measurement::where('sensor_id', $sensorId)->orderBy('measured_at', 'desc')->first();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'first_date' => $first ? Carbon::parse($first->measured_at)->format('Y-m-d') : null,
+                'last_date' => $last ? Carbon::parse($last->measured_at)->format('Y-m-d') : null,
+            ]
+        ]);
+    }
+
+    /**
+     * Revisa todos los sensores a los que el usuario tiene acceso
+     * para buscar anomalías de tiempo-ponderado en una fecha dada.
+     */
+    public function calculateGlobalAnomalies(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'anomaly_threshold' => 'nullable|numeric|min:1',
+            'stagnation_days' => 'nullable|integer|min:1'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $user = $request->user();
+        $startDate = Carbon::parse($request->start_date)->startOfDay();
+        $endDate = Carbon::parse($request->end_date)->endOfDay();
+        $threshold = $request->anomaly_threshold ?? 50;
+        $stagnationThresh = $request->stagnation_days ?? 15;
+
+        // Fetch all accessible sensors
+        $sensors = Sensor::with('group')
+            ->whereHas('group', function ($query) use ($user) {
+                if (!$user->hasRole('admin')) {
+                    $query->where('user_id', $user->id)
+                        ->orWhereHas('sharedAccess', function ($q) use ($user) {
+                            $q->where('shared_with', $user->id);
+                        });
+                }
+            })
+            ->get();
+
+        $anomaliesList = [];
+
+        foreach ($sensors as $sensor) {
+            $measurements = \App\Models\Measurement::where('sensor_id', $sensor->id)
+                ->whereBetween('measured_at', [$startDate, $endDate])
+                ->orderBy('measured_at', 'asc')
+                ->get();
+
+            if ($measurements->count() < 2) {
+                continue; // Not enough data to calculate rates
+            }
+
+            $anomaliesCount = 0;
+            $stagnationsCount = 0;
+            $accelerationsCount = 0;
+            $previousValue = null;
+            $previousDate = null;
+            $previousRate = null;
+
+            foreach ($measurements as $m) {
+                $val = 0;
+
+                // Helper to extract value
+                $fields = ['valor', 'consumo_m3', 'consumo', 'value', 'medicion'];
+                foreach ($fields as $field) {
+                    if (isset($m->data[$field])) {
+                        $val = (float) $m->data[$field];
+                        break;
+                    }
+                }
+                if ($val == 0) {
+                    foreach ($m->data as $k => $v) {
+                        if (is_numeric($v)) {
+                            $val = (float) $v;
+                            break;
+                        }
+                    }
+                }
+
+                $currentDate = Carbon::parse($m->measured_at);
+                $isAnomaly = false;
+
+                if ($previousValue !== null && $previousDate !== null) {
+                    $daysDiff = $previousDate->diffInDays($currentDate) ?: 1;
+
+                    if ($daysDiff == 0) {
+                        $daysDiff = 1;
+                    }
+
+                    $deltaRaw = $val - $previousValue;
+                    $currentRate = $deltaRaw / $daysDiff;
+
+                    // Stagnation logic
+                    if ($deltaRaw == 0 && $daysDiff > $stagnationThresh) {
+                        $isAnomaly = true;
+                        $stagnationsCount++;
+                    }
+
+                    // Acceleration logic
+                    if (!$isAnomaly && $previousRate !== null && $previousRate > 0) {
+                        $ratePercentChange = abs(($currentRate - $previousRate) / $previousRate) * 100;
+                        if ($ratePercentChange > $threshold) {
+                            $isAnomaly = true;
+                            $accelerationsCount++;
+                        }
+                    }
+
+                    $previousRate = $currentRate;
+
+                    if ($isAnomaly) {
+                        $anomaliesCount++;
+                    }
+                }
+
+                $previousValue = $val;
+                $previousDate = $currentDate;
+            }
+
+            if ($anomaliesCount > 0) {
+                $anomaliesList[] = [
+                    'sensor_id' => $sensor->id,
+                    'sensor_name' => $sensor->name,
+                    'sensor_identifier' => $sensor->identifier ?? 'N/A',
+                    'anomaly_count' => $anomaliesCount,
+                    'stagnation_count' => $stagnationsCount,
+                    'acceleration_count' => $accelerationsCount
+                ];
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $anomaliesList
+        ]);
+    }
 }

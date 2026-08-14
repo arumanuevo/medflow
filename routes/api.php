@@ -61,6 +61,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // =====================================================
     // SENSORES
     // =====================================================
+    Route::post('/sensors/bulk-delete', [SensorController::class, 'bulkDelete'])
+        ->name('api.sensors.bulk-delete');
+
     Route::apiResource('/sensors', SensorController::class)
         ->except(['create', 'edit'])
         ->parameter('sensor', 'sensor');
@@ -166,6 +169,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/consumptions/calculate-all', [ConsumptionController::class, 'calculateAll'])
         ->name('api.consumptions.calculate-all');
+
+    Route::post('/consumptions/calculate-range', [ConsumptionController::class, 'calculateRange'])
+        ->name('api.consumptions.calculate-range');
+
+    Route::post('/consumptions/global-anomalies', [ConsumptionController::class, 'calculateGlobalAnomalies'])
+        ->name('api.consumptions.global-anomalies');
+
+    Route::get('/consumptions/sensor-meta/{sensor}', [ConsumptionController::class, 'getSensorMeta'])
+        ->name('api.consumptions.sensor-meta');
 
     // ✅ Exportar datos - SOLO PREMIUM (con middleware)
     Route::get('/consumptions/export', [ConsumptionController::class, 'export'])

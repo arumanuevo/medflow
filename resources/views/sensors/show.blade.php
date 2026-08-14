@@ -148,6 +148,10 @@
                             <a href="{{ route('measurements.create', ['sensor' => $sensor->id]) }}" class="btn btn-primary">
                                 <i class="bi bi-rulers"></i> Tomar Medición
                             </a>
+                            <!-- Botón de Enlace Público -->
+                            <button type="button" class="btn btn-info text-white" data-bs-toggle="modal" data-bs-target="#publicAccessModal">
+                                <i class="bi bi-link-45deg"></i> Acceso Propietarios
+                            </button>
                             @auth
                                 @if(auth()->user()->hasRole('admin') ||
                                     (isset($sensor->group) && $sensor->group->user_id === auth()->user()->id) ||
@@ -234,6 +238,42 @@
     </div>
 </div>
 
+<!-- Modal para Acceso Público -->
+<div class="modal fade" id="publicAccessModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title"><i class="bi bi-share-fill"></i> Acceso Público al Consumidor</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center p-4">
+                <p class="mb-3 text-muted small text-start">
+                    Este medidor tiene un <strong>Visor Público de Solo Lectura</strong>. Puedes enviarle el enlace al propietario o inquilino para que audite sus propios consumos desde su teléfono sin necesidad de registrarse en el sistema.
+                </p>
+
+                <div class="input-group mb-4">
+                    <input type="text" class="form-control text-center text-primary fw-bold" id="publicLinkInput" 
+                           value="{{ route('public.visor', ['token' => $sensor->public_token ?? '']) }}" readonly>
+                    <button class="btn btn-primary" type="button" onclick="copiarLinkPublico()">
+                        <i class="bi bi-clipboard"></i> Copiar
+                    </button>
+                </div>
+                
+                <h6 class="text-muted mb-2">Código QR</h6>
+                <div class="p-3 bg-light rounded d-inline-block border">
+                    <!-- Utilizando una API gratuita y muy ágil para renderizar rápida el QR en frontend -->
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ urlencode(route('public.visor', ['token' => $sensor->public_token ?? ''])) }}" 
+                         alt="QR Code" class="img-fluid rounded">
+                </div>
+                <div class="mt-2 text-muted small">Escanea para abrir en el celular</div>
+            </div>
+            <div class="modal-footer pb-3 border-0 justify-content-center">
+                <button type="button" class="btn btn-secondary w-50" data-bs-dismiss="modal">Cerrar Panel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal para confirmar eliminación -->
 <div class="modal fade" id="deleteSensorModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
@@ -260,6 +300,16 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
+    // Función global para copiar
+    window.copiarLinkPublico = function() {
+        var copyText = document.getElementById("publicLinkInput");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(copyText.value).then(() => {
+            showAlert('¡Enlace copiado al portapapeles!', 'success');
+        });
+    };
+
     // Configurar eventos
     $('.takeMeasurementBtn').click(function() {
         const sensorId = $(this).data('sensor-id');

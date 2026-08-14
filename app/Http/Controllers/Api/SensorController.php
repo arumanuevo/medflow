@@ -103,6 +103,7 @@ class SensorController extends Controller
             'identifier' => 'required|string|max:255|unique:sensors',
             'description' => 'nullable|string',
             'group_id' => 'required|exists:sensor_groups,id',
+            'is_community' => 'boolean|nullable',
             'metadata' => 'nullable|array',
         ]);
 
@@ -154,6 +155,7 @@ class SensorController extends Controller
             'identifier' => $request->identifier,
             'description' => $request->description,
             'group_id' => $request->group_id,
+            'is_community' => $request->boolean('is_community', false),
             'metadata' => $request->input('metadata', []),
         ]);
 
@@ -261,6 +263,7 @@ class SensorController extends Controller
             'identifier' => 'sometimes|string|max:255|unique:sensors,identifier,' . $sensor->id,
             'description' => 'nullable|string',
             'group_id' => 'sometimes|exists:sensor_groups,id',
+            'is_community' => 'boolean|nullable',
             'metadata' => 'nullable|array',
         ]);
 
@@ -487,6 +490,59 @@ class SensorController extends Controller
             'success' => true,
             'message' => 'Días para próxima medición actualizados correctamente',
             'data' => $sensor
+        ]);
+    }
+
+    /**
+     * Eliminación masiva de sensores
+     */
+    public function bulkDelete(Request $request)
+    {
+        $user = $request->user();
+        $activeWorkspace = session('active_workspace', $user->id);
+
+        if (!$this->canAccessWorkspace($user, $activeWorkspace)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No tienes acceso a este espacio de trabajo.'
+            ], 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'sensor_ids' => 'required|array',
+            'sensor_ids.*' => 'exists:sensors,id'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $sensorIds = $request->sensor_ids;
+
+        // Verificar que todos los sensores pertenezcan al workspace activo
+        $validSensors = Sensor::whereIn('id', $sensorIds)
+            ->whereHas('group', function ($query) use ($activeWorkspace) {
+                $query->where('user_id', $activeWorkspace);
+            })
+            ->get();
+
+        if ($validSensors->count() !== collect($sensorIds)->count()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No tienes permiso para eliminar uno o más de los sensores seleccionados.'
+            ], 403);
+        }
+
+        // Eliminar
+        Sensor::whereIn('id', $validSensors->pluck('id'))->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => count($sensorIds) . ' sensores eliminados correctamente'
         ]);
     }
 }

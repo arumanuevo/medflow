@@ -47,7 +47,7 @@ class CollaborationController extends Controller
 
         if (!$invitedUser) {
             $name = explode('@', $request->email)[0];
-            
+
             try {
                 $invitedUser = User::create([
                     'name' => $name,
@@ -56,14 +56,14 @@ class CollaborationController extends Controller
                     'subscription_type' => 'domiciliario',
                     'subscription_plan' => 'básico',
                 ]);
-                
+
                 $invitedUser->assignRole('consumidor');
-                
+
                 Log::info('🆕 Usuario creado automáticamente para invitación', [
                     'email' => $request->email,
                     'user_id' => $invitedUser->id
                 ]);
-                
+
             } catch (\Exception $e) {
                 Log::error('❌ Error al crear usuario automático: ' . $e->getMessage());
                 return response()->json([
@@ -85,7 +85,7 @@ class CollaborationController extends Controller
             ->first();
 
         if ($existing) {
-            $message = $existing->status === 'pending' 
+            $message = $existing->status === 'pending'
                 ? 'Ya tienes una invitación pendiente para este usuario.'
                 : 'Este usuario ya tiene acceso a tu espacio.';
             return response()->json([
@@ -108,20 +108,20 @@ class CollaborationController extends Controller
         // ✅ Enviar email de invitación CON LOGS DETALLADOS
         try {
             Log::info('📧 Intentando enviar email a: ' . $invitedUser->email);
-            
+
             Mail::to($invitedUser->email)->send(new CollaborationInvitation(
                 $invitedUser,
                 $user,
                 $token,
                 $request->message ?? null
             ));
-            
+
             Log::info('✅ Email de invitación enviado a: ' . $invitedUser->email);
-            
+
         } catch (\Exception $e) {
             Log::error('❌ Error al enviar email de invitación: ' . $e->getMessage());
             Log::error('📋 Stack trace: ' . $e->getTraceAsString());
-            
+
             // ✅ La invitación se creó pero el email falló
             return response()->json([
                 'success' => true,
@@ -136,8 +136,8 @@ class CollaborationController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Invitación enviada correctamente. ' . 
-                        ($invitedUser->wasRecentlyCreated ? 'Se creó una cuenta automáticamente para el usuario.' : ''),
+            'message' => 'Invitación enviada correctamente. ' .
+                ($invitedUser->wasRecentlyCreated ? 'Se creó una cuenta automáticamente para el usuario.' : ''),
             'data' => $collaborator
         ]);
     }
@@ -265,7 +265,7 @@ class CollaborationController extends Controller
             ->where('status', 'active')
             ->with('user')
             ->get()
-            ->map(function($collab) {
+            ->map(function ($collab) {
                 return [
                     'id' => $collab->id,
                     'user' => $collab->user,
@@ -380,7 +380,6 @@ class CollaborationController extends Controller
 
         $collaborator = WorkspaceCollaborator::where('workspace_id', $user->id)
             ->where('id', $id)
-            ->where('status', 'active')
             ->with('user')
             ->first();
 
@@ -393,16 +392,19 @@ class CollaborationController extends Controller
 
         // ✅ Guardar datos antes de eliminar para el email
         $collaboratorData = $collaborator;
-        $userEmail = $collaborator->user->email;
+        $userEmail = $collaborator->user ? $collaborator->user->email : null; // Cuidado con usuarios eliminados/soft-deletes
+        $status = $collaborator->status;
 
         $collaborator->delete();
 
-        // ✅ Enviar email de notificación
-        try {
-            Mail::to($userEmail)->send(new CollaborationRevokedMail($collaboratorData, $user));
-            Log::info('📧 Email de revocación enviado a: ' . $userEmail);
-        } catch (\Exception $e) {
-            Log::error('❌ Error al enviar email de revocación: ' . $e->getMessage());
+        // ✅ Enviar email de notificación solo si estaba activo y el usuario tiene mail válido
+        if ($status === 'active' && $userEmail && filter_var($userEmail, FILTER_VALIDATE_EMAIL)) {
+            try {
+                Mail::to($userEmail)->send(new CollaborationRevokedMail($collaboratorData, $user));
+                Log::info('📧 Email de revocación enviado a: ' . $userEmail);
+            } catch (\Exception $e) {
+                Log::error('❌ Error al enviar email de revocación: ' . $e->getMessage());
+            }
         }
 
         return response()->json([

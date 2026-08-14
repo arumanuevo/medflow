@@ -20,6 +20,8 @@ class Sensor extends Model
         'ultima_medicion',
         'proxima_medicion',
         'marcado_para_medicion',
+        'is_community',
+        'public_token',
         'metadata'
     ];
 
@@ -31,6 +33,7 @@ class Sensor extends Model
         'ultima_medicion' => 'datetime',
         'proxima_medicion' => 'datetime',
         'marcado_para_medicion' => 'boolean',
+        'is_community' => 'boolean',
         'metadata' => 'array'
     ];
 

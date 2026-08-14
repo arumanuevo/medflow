@@ -41,7 +41,8 @@
                             <div class="mb-3">
                                 <label for="identifier" class="form-label">Identificador <span
                                         class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="identifier" name="identifier" required>
+                                <input type="text" class="form-control" id="identifier" name="identifier" required
+                                    value="{{ request('community') == '1' ? 'COMUNITARIO-' . strtoupper(Str::random(3)) : '' }}">
                                 <div class="form-text">Un código único para identificar este sensor. Ej: "SENSOR-001"</div>
                             </div>
 
@@ -49,6 +50,47 @@
                                 <label for="description" class="form-label">Descripción</label>
                                 <textarea class="form-control" id="description" name="description" rows="2"
                                     placeholder="Describe la ubicación o propósito de este sensor..."></textarea>
+                            </div>
+
+                            <div class="mb-4">
+                                @if(request('community') == '1')
+                                    <div class="alert alert-success border-success shadow-sm mb-0">
+                                        <div class="d-flex align-items-start">
+                                            <i class="bi bi-tree-fill fs-3 me-3 text-success"></i>
+                                            <div>
+                                                <h5 class="alert-heading fw-bold mb-1">Has activado el Formulario de Medidor
+                                                    Comunitario</h5>
+                                                <p class="mb-1 small text-dark">
+                                                    <strong>¿Cómo funciona el cálculo?</strong> El sistema separará
+                                                    automáticamente la sumatoria de consumos de este componente.
+                                                </p>
+
+                                                <div class="card border-0 bg-white shadow-sm mt-3 p-3 rounded">
+                                                    <h6 class="fw-bold text-dark mb-2"><i class="bi bi-diagram-3"></i> Modalidad
+                                                        de Distribución Financiera</h6>
+                                                    <div class="form-check form-switch mb-1">
+                                                        <input type="hidden" name="metadata[prorratear_comunidad]" value="0">
+                                                        <input class="form-check-input bg-success" type="checkbox" role="switch"
+                                                            name="metadata[prorratear_comunidad]" id="prorratear_comunidad"
+                                                            value="1" checked>
+                                                        <label class="form-check-label fw-bold ms-1"
+                                                            for="prorratear_comunidad">Prorratear automáticamente este cargo
+                                                            entre todos los lotes privados</label>
+                                                    </div>
+                                                    <div class="form-text small text-dark mt-0 lh-sm"><i
+                                                            class="bi bi-info-circle"></i> Si lo desactivas, este medidor
+                                                        funcionará en <strong>Modo Estadístico</strong>. Los gastos serán
+                                                        absorbidos por la administración central y NO se dividirán a los
+                                                        vecinos.</div>
+                                                </div>
+
+                                                <input type="hidden" name="is_community" id="is_community" value="1">
+                                            </div>
+                                        </div>
+                                    </div>
+                                @else
+                                    <input type="hidden" name="is_community" id="is_community" value="0">
+                                @endif
                             </div>
 
                             <div class="mb-3">
@@ -126,8 +168,8 @@
                         if (response.success && response.data && response.data.template) {
                             const schema = response.data.template.schema;
                             if (schema && schema.campos) {
-                                // Extraer SOLO campos estáticos para el Sensor
-                                const sensorFields = schema.campos.filter(c => c.contexto === 'sensor');
+                                // Extraer SOLO campos estáticos para el Sensor, excluyendo 'identificador' que ya es nativo
+                                const sensorFields = schema.campos.filter(c => c.contexto === 'sensor' && c.nombre !== 'identificador');
 
                                 if (sensorFields.length > 0) {
                                     let html = '';
@@ -141,83 +183,93 @@
 
                                         const placeholder = field.unidad ? `(${field.unidad})` : 'Ingresar valor';
 
-                                        html += \`
-                                        <div class="mb-3">
-                                            <label class="form-label">\${field.nombre} \${reqAsterisk}</label>
-                                            <input type="\${inputType}" step="any" class="form-control" name="metadata[\${field.nombre}]" placeholder="\${placeholder}" \${requiredAttr}>
-                                            \${field.valor_por_defecto ? '<div class="form-text">Referencia/Valor por defecto: ' + field.valor_por_defecto + '</div>' : ''}
-                                        </div>
-                                    \`;
-                                });
-                                fieldsContainer.html(html);
-                                container.fadeIn();
+                                        let defaultVal = '';
+                                        if ($('#is_community').val() == '1' && inputType === 'text') {
+                                            defaultVal = 'Área Común'; // Sugerencia de Lote
+                                        }
+
+                                        html += `
+                                                                        <div class="mb-3">
+                                                                            <label class="form-label">${field.nombre} ${reqAsterisk}</label>
+                                                                            <input type="${inputType}" step="any" class="form-control" name="metadata[${field.nombre}]" value="${defaultVal}" placeholder="${$('#is_community').val() == '1' ? 'Ej: Área Común Central' : placeholder}" ${requiredAttr}>
+                                                                            ${field.valor_por_defecto ? '<div class="form-text">Referencia/Valor por defecto: ' + field.valor_por_defecto + '</div>' : ''}
+                                                                        </div>
+                                                                    `;
+                                    });
+                                    fieldsContainer.html(html);
+                                    container.fadeIn();
+                                }
                             }
                         }
+                    },
+                    error: function (xhr) {
+                        console.error("No se pudo cargar la plantilla del grupo.", xhr);
                     }
-                },
-                error: function(xhr) {
-                    console.error("No se pudo cargar la plantilla del grupo.", xhr);
-                }
+                });
             });
-        });
 
-        $('#sensorForm').submit(function(e) {
-            e.preventDefault();
-
-            const formData = $(this).serialize();
-            const token = localStorage.getItem('token');
-
-            if (!token) {
-                alert('No se encontró un token de autenticación. Por favor, inicia sesión nuevamente.');
-                window.location.href = '{{ route("login") }}';
-                return;
+            // ✅ Si el grupo ya estaba preseleccionado por PHP (vía group_id en URL), disparar el evento
+            if ($('#group_id').val()) {
+                $('#group_id').trigger('change');
             }
 
-            $('#submitBtn').prop('disabled', true).html(`
-                                            < span class="spinner-border spinner-border-sm" role = "status" ></span >
-                                                Guardando...
-                                    `);
+            $('#sensorForm').submit(function (e) {
+                e.preventDefault();
 
-            $.ajax({
-                url: '/api/sensors',
-                type: 'POST',
-                data: formData,
-                headers: {
-                    'Authorization': 'Bearer ' + token,
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function(response) {
-                    if (response.success) {
-                        alert('Sensor creado correctamente');
-                        window.location.href = '{{ route("sensors.index") }}';
-                    } else {
-                        alert(response.message || 'Error al crear el sensor');
-                    }
-                },
-                error: function(xhr) {
-                    let errorMessage = 'Error al crear el sensor';
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        errorMessage = xhr.responseJSON.message;
-                    } else if (xhr.responseJSON && xhr.responseJSON.errors) {
-                        const errors = xhr.responseJSON.errors;
-                        let errorText = '';
-                        for (const field in errors) {
-                            errorText += `${ field }: ${ errors[field].join(', ') }\n`;
-                        }
-                        errorMessage = errorText || 'Error de validación';
-                    } else {
-                        errorMessage = xhr.statusText || errorMessage;
-                    }
-                    alert(errorMessage);
-                },
-                complete: function() {
-                    $('#submitBtn').prop('disabled', false).html(`
-                                    < i class= "bi bi-check-circle" ></i > Guardar Sensor
-                    `);
+                const formData = $(this).serialize();
+                const token = localStorage.getItem('token');
+
+                if (!token) {
+                    alert('No se encontró un token de autenticación. Por favor, inicia sesión nuevamente.');
+                    window.location.href = '{{ route("login") }}';
+                    return;
                 }
+
+                $('#submitBtn').prop('disabled', true).html(`
+                                                                        < span class="spinner-border spinner-border-sm" role = "status" ></span >
+                                                                            Guardando...
+                                                                `);
+
+                $.ajax({
+                    url: '/api/sensors',
+                    type: 'POST',
+                    data: formData,
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert('Sensor creado correctamente');
+                            window.location.href = '{{ route("sensors.index") }}';
+                        } else {
+                            alert(response.message || 'Error al crear el sensor');
+                        }
+                    },
+                    error: function (xhr) {
+                        let errorMessage = 'Error al crear el sensor';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            const errors = xhr.responseJSON.errors;
+                            let errorText = '';
+                            for (const field in errors) {
+                                errorText += `${field}: ${errors[field].join(', ')}\n`;
+                            }
+                            errorMessage = errorText || 'Error de validación';
+                        } else {
+                            errorMessage = xhr.statusText || errorMessage;
+                        }
+                        alert(errorMessage);
+                    },
+                    complete: function () {
+                        $('#submitBtn').prop('disabled', false).html(`
+                                                                < i class= "bi bi-check-circle" ></i > Guardar Sensor
+                                                    `);
+                    }
+                });
             });
         });
-    });
     </script>
 @endpush

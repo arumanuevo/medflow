@@ -2,8 +2,8 @@
    ESTILOS PARA LAS VISTAS DE PLANTILLAS (CREAR/EDITAR)
    ============================================= */
 
-   /* Estilos para el card principal */
-   .card {
+/* Estilos para el card principal */
+.card {
     background-color: #ffffff;
     border-radius: 8px;
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
@@ -59,7 +59,8 @@
 }
 
 /* Estilos para los form-select y form-control */
-.form-select, .form-control {
+.form-select,
+.form-control {
     border-radius: 6px;
     padding: 0.45rem 0.75rem;
     font-size: 0.85rem;
@@ -67,7 +68,8 @@
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
-.form-select:focus, .form-control:focus {
+.form-select:focus,
+.form-control:focus {
     border-color: #86b7fe;
     box-shadow: 0 0 0.2rem rgba(13, 110, 253, 0.25);
 }
@@ -104,12 +106,27 @@
 }
 
 /* Estilos para los inputs dentro de los campos */
-.field-row .form-control,
+.field-row .form-control {
+    font-size: 0.85rem;
+    padding: 0.35rem 0.6rem;
+    border-radius: 4px;
+    color: #495057;
+    border: 1px solid #ced4da;
+}
+
 .field-row .form-select {
     font-size: 0.85rem;
-    padding: 0.4rem 0.6rem;
-    border-radius: 5px;
+    padding: 0.35rem 2.25rem 0.35rem 0.6rem !important;
+    /* overrides bootstrap rendering */
+    border-radius: 4px;
+    color: #495057;
     border: 1px solid #ced4da;
+}
+
+.field-row .form-control:focus,
+.field-row .form-select:focus {
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+    border-color: #86b7fe;
 }
 
 /* Estilos para los íconos dentro de los campos */
@@ -133,13 +150,15 @@ hr {
 }
 
 /* Estilos para los encabezados */
-h4, h5 {
+h4,
+h5 {
     font-weight: 600;
     color: #212529;
     font-size: 1rem;
 }
 
-h4 i, h5 i {
+h4 i,
+h5 i {
     margin-right: 0.5rem;
 }
 
@@ -172,7 +191,8 @@ textarea.form-control {
 }
 
 /* Estilos para los inputs de nombre y descripción */
-#templateName, #templateDescription {
+#templateName,
+#templateDescription {
     font-size: 0.85rem;
 }
 

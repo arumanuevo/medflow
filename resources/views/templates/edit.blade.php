@@ -11,7 +11,7 @@
         <div class="col-md-10">
             <div class="card">
                 <div class="card-header bg-primary text-white">
-                    <h4><i class="bi bi-file-earmark btn-icon"></i> Editar Plantilla</h4>
+                    <h4 class="mb-0 text-white"><i class="bi bi-file-earmark btn-icon"></i> Editar Plantilla</h4>
                 </div>
                 <div class="card-body">
                     <!-- Mensaje de éxito o error -->
@@ -60,6 +60,15 @@
                         <p class="text-muted">
                             Modifica los campos de tu plantilla.
                             <strong>Al menos uno debe ser de tipo "número" y llamado "valor".</strong>
+                            <br><br>
+                            <small class="text-muted text-start d-block">
+                                <strong>💡 Glosario de Contextos:</strong><br>
+                                • <strong>Medición:</strong> Valores que varían en cada lectura (ej: m³, temperatura).<br>
+                                • <strong>Sensor:</strong> Atributos fijos del equipo (ej: número de serie, marca).
+                                <br><br>
+                                <strong>⚠️ Atención sobre Datos Históricos:</strong><br>
+                                Renombrar o eliminar campos aquí moldeará a los Sensores de este momento en adelante. Los datos previamente recolectados <strong>no se borrarán ni renombrarán mágicamente</strong> de las tablas, preservando tu historial (hasta que vuelvas a editar/guardar dichos sensores bajo esta nueva plantilla).
+                            </small>
                         </p>
 
                         <!-- Contenedor de campos -->
@@ -67,7 +76,7 @@
                             @if(isset($template->schema['campos']))
                                 @foreach($template->schema['campos'] as $index => $campo)
                                     <div class="field-row mb-2 p-2 border rounded">
-                                        <div class="row g-2 align-items-center">
+                                        <div class="row g-2 align-items-start">
                                             <div class="col-md-2">
                                                 <input type="text" class="form-control field-name"
                                                        name="schema[campos][{{ $index }}][nombre]"
@@ -84,12 +93,12 @@
                                                     <option value="booleano" {{ ($campo['tipo'] ?? '') === 'booleano' ? 'selected' : '' }}>Booleano</option>
                                                 </select>
                                             </div>
-                                            <div class="col-md-2">
+                                            <div class="col-md-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Define si es un dato que cambia en cada toma (Medición) o si es fijo en el equipo (Sensor).">
                                                 <select class="form-select field-context"
                                                         name="schema[campos][{{ $index }}][contexto]"
                                                         {{ in_array(($campo['nombre'] ?? ''), ['valor', 'consumo_m3', 'foto', 'fecha_medicion']) ? 'disabled' : '' }} required>
-                                                    <option value="medicion" {{ ($campo['contexto'] ?? 'medicion') === 'medicion' ? 'selected' : '' }}>📝 Medición</option>
-                                                    <option value="sensor" {{ ($campo['contexto'] ?? '') === 'sensor' ? 'selected' : '' }}>⚙️ Sensor</option>
+                                                    <option value="medicion" {{ ($campo['contexto'] ?? 'medicion') === 'medicion' ? 'selected' : '' }}>📝 Medición (Variable)</option>
+                                                    <option value="sensor" {{ ($campo['contexto'] ?? '') === 'sensor' ? 'selected' : '' }}>⚙️ Atributo de Sensor (Fijo)</option>
                                                 </select>
                                             </div>
                                             <div class="col-md-2">
@@ -123,35 +132,70 @@
                                 @endforeach
                             @else
                                 <!-- Campo "valor" obligatorio por defecto -->
-                                <div class="field-row mb-2 p-2 border rounded bg-light">
-                                    <div class="row g-2 align-items-center">
+                                <div class="field-row mb-2 p-2 border rounded bg-light" id="mainFieldRow">
+                                    <div class="row g-2 align-items-start">
                                         <div class="col-md-2">
-                                            <input type="text" class="form-control" name="schema[campos][][nombre]" value="valor" readonly>
+                                            <input type="text" class="form-control field-name" name="schema[campos][][nombre]" value="valor" readonly>
                                         </div>
                                         <div class="col-md-2">
-                                            <select class="form-select" name="schema[campos][][tipo]" required disabled>
+                                            <select class="form-select field-type" name="schema[campos][][tipo]" required disabled>
                                                 <option value="numero" selected>Número</option>
                                             </select>
                                         </div>
-                                        <div class="col-md-2">
-                                            <select class="form-select" name="schema[campos][][contexto]" required disabled>
-                                                <option value="medicion" selected>📝 Medición</option>
+                                        <div class="col-md-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Define si es un dato que cambia en cada toma (Medición) o si es fijo en el equipo (Sensor).">
+                                            <select class="form-select field-context" name="schema[campos][][contexto]" disabled>
+                                                <option value="medicion" selected>Medición (Variable)</option>
                                             </select>
                                         </div>
                                         <div class="col-md-2">
-                                            <input type="text" class="form-control" name="schema[campos][][unidad]" placeholder="Ej: kWh, m³">
+                                            <input type="text" class="form-control field-unit" name="schema[campos][][unidad]" placeholder="Ej: kWh, m³">
                                         </div>
                                         <div class="col-md-2">
-                                            <select class="form-select" name="schema[campos][][requerido]">
+                                            <select class="form-select field-required" name="schema[campos][][requerido]">
                                                 <option value="1" selected>Req.</option>
                                                 <option value="0">Opc.</option>
                                             </select>
                                         </div>
                                         <div class="col-md-1">
-                                            <input type="text" class="form-control" name="schema[campos][][valor_por_defecto]" placeholder="Def.">
+                                            <input type="text" class="form-control field-default" name="schema[campos][][valor_por_defecto]" placeholder="Def.">
                                         </div>
                                         <div class="col-md-1 text-center">
                                             <i class="bi bi-lock-fill" title="Campo obligatorio" style="color: #6c757d; cursor: default; font-size: 1.2rem;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- ✅ Campo IDENTIFICADOR (siempre requerido, sensor) -->
+                                <div class="field-row mb-2 p-3 border rounded bg-light" id="identificadorFieldRow">
+                                    <div class="row g-2 align-items-start">
+                                        <div class="col-md-2">
+                                            <input type="text" class="form-control field-name" value="identificador" readonly>
+                                            <small class="text-muted">Obligatorio</small>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <select class="form-select field-type" disabled>
+                                                <option value="texto" selected>Texto</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Define si es un dato que cambia en cada toma (Medición) o si es fijo en el equipo (Sensor).">
+                                            <select class="form-select field-context" disabled>
+                                                <option value="sensor" selected>Atributo de Sensor (Fijo)</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <input type="text" class="form-control field-unit" value="N/A" readonly>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <select class="form-select field-required" disabled>
+                                                <option value="1" selected>Requerido</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-1">
+                                            <input type="text" class="form-control field-default" value="N/A" readonly>
+                                        </div>
+                                        <div class="col-md-1 text-center">
+                                            <i class="bi bi-lock-fill" title="Campo obligatorio"
+                                                style="color: #6c757d; cursor: default; font-size: 1.2rem;"></i>
                                         </div>
                                     </div>
                                 </div>
@@ -188,6 +232,9 @@ $(document).ready(function() {
     // Inicializar eventos
     $('#addFieldBtn').click(addField);
     $('#saveTemplate').click(saveTemplate);
+    
+    // Inicializar tooltips
+    $('[data-bs-toggle="tooltip"]').tooltip();
 
     // Configurar el selector de tipo de medición para cargar campos predefinidos
     $('#templateType').change(function() {
@@ -197,14 +244,14 @@ $(document).ready(function() {
         }
 
         // Preguntar al usuario si quiere reemplazar los campos actuales
-        if ($('.field-row').length > 1) { // Más de 1 (el campo "valor" siempre está)
+        if ($('.field-row').length > 2) { 
             if (!confirm('¿Deseas reemplazar los campos actuales con los predefinidos para este tipo de medición?')) {
                 return;
             }
         }
 
-        // Limpiar todos los campos excepto el campo "valor" obligatorio
-        $('.field-row:not(:first)').remove();
+        // Limpiar todos los campos excepto los obligatorios
+        $('.field-row:not(#mainFieldRow):not(#identificadorFieldRow)').remove();
         loadPredefinedFields(type);
     });
 
@@ -262,7 +309,7 @@ function addField(name = '', type = 'numero', unit = '', required = false, conte
 
     const fieldRow = $(
         `<div class="field-row mb-2 p-2 border rounded">
-            <div class="row g-2 align-items-center">
+            <div class="row g-2 align-items-start">
                 <div class="col-md-2">
                     <input type="text" class="form-control field-name"
                            name="schema[campos][${fieldCounter}][nombre]"
@@ -277,11 +324,11 @@ function addField(name = '', type = 'numero', unit = '', required = false, conte
                         <option value="booleano" ${type === 'booleano' ? 'selected' : ''}>Booleano</option>
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <select class="form-select field-context"
+                <div class="col-md-2" data-bs-toggle="tooltip" data-bs-placement="top" title="Define si es un dato que cambia en cada toma (Medición) o si es fijo en el equipo (Sensor).">
+                    <select class="form-select field-context" 
                             name="schema[campos][${fieldCounter}][contexto]" required>
-                        <option value="medicion" ${context === 'medicion' ? 'selected' : ''}>📝 Medición</option>
-                        <option value="sensor" ${context === 'sensor' ? 'selected' : ''}>⚙️ Sensor</option>
+                        <option value="medicion" ${context === 'medicion' ? 'selected' : ''}>📝 Medición (Variable)</option>
+                        <option value="sensor" ${context === 'sensor' ? 'selected' : ''}>⚙️ Atributo de Sensor (Fijo)</option>
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -332,43 +379,25 @@ function saveTemplate() {
         return;
     }
 
-    // Obtener todos los campos
-    const fieldRows = $('.field-row');
     const campos = [];
 
-    fieldRows.each(function() {
-        const nameInput = $(this).find('[name^="schema[campos]"]:eq(0)');
-        const typeSelect = $(this).find('[name^="schema[campos]"]:eq(1)');
-        
-        let contextSelectValue = 'medicion';
-        let contextEl = $(this).find('.field-context');
-        if (contextEl.length) {
-            contextSelectValue = contextEl.val() || 'medicion';
-        } else {
-            // para el locked field
-            const contextFallback = $(this).find('[name^="schema[campos][][contexto]"]');
-            if (contextFallback.length) contextSelectValue = contextFallback.val() || 'medicion';
-        }
-        
-        const unitInput = $(this).find('.field-unit, input[name$="[unidad]"]');
-        const requiredSelect = $(this).find('.field-required, select[name$="[requerido]"]');
-        const defaultInput = $(this).find('.field-default, input[name$="[valor_por_defecto]"]');
+    // Recuperar todos los campos del formulario
+    $('#fieldsContainer .field-row').each(function () {
+        const nameInput = $(this).find('.field-name');
+        const typeSelect = $(this).find('.field-type');
+        const contextSelect = $(this).find('.field-context');
+        const unitInput = $(this).find('.field-unit');
+        const requiredSelect = $(this).find('.field-required');
+        const defaultInput = $(this).find('.field-default');
 
         const campo = {
             nombre: nameInput.val() || '',
             tipo: typeSelect.val() || 'numero',
-            contexto: contextSelectValue,
+            contexto: contextSelect.val() || 'medicion',
             unidad: unitInput.val() || null,
-            requerido: requiredSelect.val() === '1' || requiredSelect.val() === true,
+            requerido: requiredSelect.val() === '1',
             valor_por_defecto: defaultInput.val() || null
         };
-
-        // Validar que el campo tenga nombre y tipo
-        if (!campo.nombre || !campo.tipo) {
-            showAlert('Todos los campos deben tener un nombre y un tipo', 'danger');
-            return;
-        }
-
         campos.push(campo);
     });
 
