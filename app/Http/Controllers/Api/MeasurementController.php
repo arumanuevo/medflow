@@ -262,6 +262,22 @@ class MeasurementController extends Controller
             ], 403);
         }
 
+        // ✅ VERIFICAR LÍMITE DE SUSCRIPCIÓN
+        $subscriptionService = new SubscriptionService($user);
+        if (!$subscriptionService->canMeasureSensor($sensor)) {
+            $planName = $subscriptionService->getPlan()->getPlanName();
+            $maxSensors = $subscriptionService->getPlan()->getMaxSensors();
+            Log::warning('Usuario superó límite de sensores en su plan e intentó medir', [
+                'user_id' => $user->id,
+                'sensor_id' => $sensor->id,
+                'plan' => $planName
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => "No puedes tomar mediciones en este sensor con tu plan {$planName}. Tu plan permite medir solo en tus primeros {$maxSensors} sensores."
+            ], 403);
+        }
+
         if (!$sensor->group || !$sensor->group->template) {
             Log::error('Sensor sin plantilla asociada', ['sensor_id' => $sensor->id]);
             return response()->json([

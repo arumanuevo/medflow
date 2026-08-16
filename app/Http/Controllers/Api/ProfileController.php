@@ -18,9 +18,9 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        // Obtener información de suscripción
+        // Obtener información de suscripción (Exclusiva del usuario para evitar contagio de su rol como colaborador)
         $subscriptionService = new \App\Services\Subscription\SubscriptionService($user);
-        $subscriptionInfo = $subscriptionService->getFullStatus();
+        $subscriptionInfo = $subscriptionService->getFullStatus(true);
 
         return response()->json([
             'success' => true,
@@ -75,7 +75,6 @@ class ProfileController extends Controller
 
         if ($request->has('subscription_type')) {
             $data['subscription_type'] = $request->subscription_type;
-            $data['subscription_plan'] = $request->subscription_type === 'domiciliario' ? 'básico' : 'premium';
         }
 
         // ✅ Solo actualizar password si se envía y no está vacío
@@ -129,7 +128,6 @@ class ProfileController extends Controller
 
         // Actualizar el tipo de suscripción
         $user->subscription_type = $request->subscription_type;
-        $user->subscription_plan = $request->subscription_type === 'domiciliario' ? 'básico' : 'premium';
         $user->save();
 
         // Actualizar rol según el tipo de suscripción

@@ -6,50 +6,76 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-8">
-                <div class="card">
-                    <div class="card-header ">
-                        <h4><i class="bi bi-sensors"></i> Crear Nuevo Sensor</h4>
+                <div class="card shadow-sm border-0 mb-4" style="border-radius: 12px; overflow: hidden;">
+                    <div class="card-header border-0 text-white p-3 d-flex justify-content-between align-items-center"
+                        style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-cpu-fill fs-4"></i>
+                            <div class="d-flex flex-column">
+                                <h5 class="mb-0 fw-bold">Crear Nuevo Sensor</h5>
+                                <span class="opacity-75" style="font-size: 0.8rem;">Registra un nuevo medidor físico o
+                                    virtual</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body bg-light p-4">
                         <!-- ✅ Mostrar información útil -->
-                        <div class="alert alert-info">
-                            <div class="d-flex align-items-start">
-                                <div class="flex-shrink-0">
-                                    <i class="bi bi-info-circle-fill fs-3 me-3"></i>
-                                </div>
-                                <div>
-                                    <h5 class="alert-heading">¡Importante!</h5>
-                                    <p class="mb-0">
-                                        Para crear un sensor, necesitas seleccionar un <strong>grupo de sensores</strong>
-                                        existente.
-                                        Si no ves ningún grupo en el selector, debes <a
-                                            href="{{ route('sensor-groups.create') }}">crear un grupo primero</a>.
-                                    </p>
-                                </div>
+                        <div class="alert alert-info border-info-subtle shadow-sm d-flex align-items-start mb-4 rounded-3">
+                            <i class="bi bi-info-circle-fill fs-3 me-3 text-info"></i>
+                            <div>
+                                <h6 class="alert-heading fw-bold mb-1">Estructura Requerida</h6>
+                                <p class="mb-0 small text-dark">
+                                    Para registrar un sensor, necesitas asignarlo a un <strong>Grupo de Lotes
+                                        lógicos</strong>. Si no ves ningún grupo disponible, debes <a
+                                        href="{{ route('sensor-groups.create') }}" class="alert-link">crear un Grupo
+                                        primero</a>.
+                                </p>
                             </div>
                         </div>
 
-                        <form id="sensorForm">
+                        <form id="sensorForm" class="bg-white p-4 rounded-4 shadow-sm border border-light-subtle">
                             @csrf
-                            <div class="mb-3">
-                                <label for="name" class="form-label">Nombre del Sensor <span
-                                        class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="name" name="name" required>
-                                <div class="form-text">Ej: "Sensor pH 01", "Medidor de Presión Norte"</div>
+                            <h6 class="text-uppercase text-muted fw-bold mb-4 border-bottom pb-2"
+                                style="font-size: 0.75rem; letter-spacing: 1px;">Identidad del Medidor</h6>
+
+                            <div class="row g-4 mb-3">
+                                <div class="col-md-6">
+                                    <label for="name" class="form-label small fw-semibold text-muted mb-1">Nombre
+                                        Descriptivo <span class="text-danger">*</span></label>
+                                    <div class="input-group shadow-sm">
+                                        <span class="input-group-text bg-white text-muted border-end-0"><i
+                                                class="bi bi-tag"></i></span>
+                                        <input type="text" class="form-control border-start-0 ps-0" id="name" name="name"
+                                            placeholder="Ej: Medidor de Presión Norte" required>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="identifier"
+                                        class="form-label small fw-semibold text-muted mb-1">Identificador Físico (MAC /
+                                        Serial) <span class="text-danger">*</span></label>
+                                    <div class="input-group shadow-sm">
+                                        <span class="input-group-text bg-white text-muted border-end-0"><i
+                                                class="bi bi-upc-scan"></i></span>
+                                        <input type="text" class="form-control border-start-0 ps-0" id="identifier"
+                                            name="identifier" required
+                                            value="{{ request('community') == '1' ? 'COMUNITARIO-' . strtoupper(Str::random(3)) : '' }}"
+                                            placeholder="Ej: SENSOR-001">
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="mb-3">
-                                <label for="identifier" class="form-label">Identificador <span
-                                        class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="identifier" name="identifier" required
-                                    value="{{ request('community') == '1' ? 'COMUNITARIO-' . strtoupper(Str::random(3)) : '' }}">
-                                <div class="form-text">Un código único para identificar este sensor. Ej: "SENSOR-001"</div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="description" class="form-label">Descripción</label>
-                                <textarea class="form-control" id="description" name="description" rows="2"
-                                    placeholder="Describe la ubicación o propósito de este sensor..."></textarea>
+                            <div class="mb-4">
+                                <label for="description" class="form-label small fw-semibold text-muted mb-1">Notas de
+                                    Emplazamiento</label>
+                                <div class="input-group shadow-sm">
+                                    <span
+                                        class="input-group-text bg-white text-muted border-end-0 align-items-start pt-2"><i
+                                            class="bi bi-file-text"></i></span>
+                                    <textarea class="form-control border-start-0 ps-0" id="description" name="description"
+                                        rows="2"
+                                        placeholder="Describe la ubicación exacta o el propósito de este sensor..."></textarea>
+                                </div>
                             </div>
 
                             <div class="mb-4">
@@ -93,46 +119,59 @@
                                 @endif
                             </div>
 
+                            <h6 class="text-uppercase text-muted fw-bold mb-3 mt-4 border-bottom pb-2"
+                                style="font-size: 0.75rem; letter-spacing: 1px;">Asignación Lógica</h6>
+
                             <div class="mb-3">
-                                <label for="group_id" class="form-label">Grupo de Sensores <span
-                                        class="text-danger">*</span></label>
-                                <select class="form-select" id="group_id" name="group_id" required>
-                                    <option value="" selected disabled>Selecciona un grupo...</option>
-                                    @forelse($groups as $group)
-                                        <option value="{{ $group->id }}" {{ (isset($groupId) && $groupId == $group->id) ? 'selected' : '' }}>
-                                            {{ $group->name }} ({{ $group->template->name ?? 'Sin plantilla' }})
-                                        </option>
-                                    @empty
-                                        <option value="" disabled>⚠️ No tienes grupos disponibles. Crea uno primero.</option>
-                                    @endforelse
-                                </select>
-                                <div class="mt-2">
-                                    <div class="mt-2">
+                                <label for="group_id" class="form-label small fw-semibold text-muted mb-1">Grupo de
+                                    Instalación Base <span class="text-danger">*</span></label>
+                                <div class="input-group shadow-sm">
+                                    <span class="input-group-text bg-white text-muted border-end-0"><i
+                                            class="bi bi-diagram-3"></i></span>
+                                    <select class="form-select border-start-0 ps-0 fw-bold text-dark" id="group_id"
+                                        name="group_id" required>
+                                        <option value="" selected disabled>Selecciona un Lote/Grupo...</option>
+                                        @forelse($groups as $group)
+                                            <option value="{{ $group->id }}" {{ (isset($groupId) && $groupId == $group->id) ? 'selected' : '' }}>
+                                                {{ $group->name }} ({{ $group->template->name ?? 'Sin plantilla' }})
+                                            </option>
+                                        @empty
+                                            <option value="" disabled>⚠️ Consumo de Grupo bloqueado: No tienes grupos
+                                                disponibles.</option>
+                                        @endforelse
+                                    </select>
+                                </div>
+                                @if($groups->isEmpty())
+                                    <div class="mt-2 text-end">
                                         <small class="text-muted">
-                                            <i class="bi bi-info-circle"></i>
-                                            ¿No ves tu grupo?
-                                            <a href="{{ route('sensor-groups.create') }}" class="text-decoration-none">
-                                                <i class="bi bi-plus-circle"></i> Crear Grupo
+                                            <a href="{{ route('sensor-groups.create') }}"
+                                                class="btn btn-sm btn-outline-primary rounded-pill px-3 mt-1 shadow-sm">
+                                                <i class="bi bi-plus-circle"></i> Nuevo Grupo
                                             </a>
                                         </small>
                                     </div>
-                                </div>
+                                @endif
+                            </div>
 
-                                <!-- ✅ Contenedor dinámico de campos Metadata -->
-                                <div id="dynamic-metadata-container" class="mt-4 mb-3" style="display: none;">
-                                    <h5 class="border-bottom pb-2 mb-3"><i class="bi bi-card-list"></i> Datos Específicos
-                                        del Sensor</h5>
-                                    <div id="metadata-fields"></div>
-                                </div>
+                            <!-- ✅ Contenedor dinámico de campos Metadata -->
+                            <div id="dynamic-metadata-container"
+                                class="mt-4 mb-3 p-3 bg-light rounded border border-light-subtle shadow-sm"
+                                style="display: none;">
+                                <h6 class="text-uppercase text-dark fw-bold mb-3 border-bottom border-secondary-subtle pb-2"
+                                    style="font-size: 0.75rem; letter-spacing: 1px;"><i
+                                        class="bi bi-card-checklist me-1"></i> Propiedades Extendidas de Plantilla</h6>
+                                <div id="metadata-fields" class="row g-3"></div>
+                            </div>
 
-                                <div class="d-flex justify-content-end mt-4">
-                                    <a href="{{ route('sensors.index') }}" class="btn btn-secondary me-2">
-                                        <i class="bi bi-arrow-left"></i> Cancelar
-                                    </a>
-                                    <button type="submit" class="btn btn-primary" id="submitBtn">
-                                        <i class="bi bi-check-circle"></i> Guardar Sensor
-                                    </button>
-                                </div>
+                            <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
+                                <a href="{{ route('sensors.index') }}"
+                                    class="btn btn-light border-secondary-subtle shadow-sm px-4">
+                                    <i class="bi bi-arrow-left"></i> Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-primary px-4 shadow-sm fw-bold" id="submitBtn">
+                                    <i class="bi bi-plus-circle me-1"></i> Desplegar Sensor
+                                </button>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -189,15 +228,18 @@
                                         }
 
                                         html += `
-                                                                        <div class="mb-3">
-                                                                            <label class="form-label">${field.nombre} ${reqAsterisk}</label>
-                                                                            <input type="${inputType}" step="any" class="form-control" name="metadata[${field.nombre}]" value="${defaultVal}" placeholder="${$('#is_community').val() == '1' ? 'Ej: Área Común Central' : placeholder}" ${requiredAttr}>
-                                                                            ${field.valor_por_defecto ? '<div class="form-text">Referencia/Valor por defecto: ' + field.valor_por_defecto + '</div>' : ''}
-                                                                        </div>
-                                                                    `;
+                                                <div class="col-md-6 mb-2">
+                                                    <label class="form-label small fw-semibold text-muted mb-1">${field.nombre} ${reqAsterisk}</label>
+                                                    <div class="input-group shadow-sm">
+                                                        <span class="input-group-text bg-white text-muted border-end-0"><i class="bi bi-braces"></i></span>
+                                                        <input type="${inputType}" step="any" class="form-control border-start-0 ps-0" name="metadata[${field.nombre}]" value="${defaultVal}" placeholder="${$('#is_community').val() == '1' ? 'Ej: Área Común Central' : placeholder}" ${requiredAttr}>
+                                                    </div>
+                                                    ${field.valor_por_defecto ? '<div class="form-text mt-1" style="font-size:0.7rem;"><i class="bi bi-info-circle"></i> Sugerido: ' + field.valor_por_defecto + '</div>' : ''}
+                                                </div>
+                                            `;
                                     });
                                     fieldsContainer.html(html);
-                                    container.fadeIn();
+                                    container.hide().fadeIn('fast');
                                 }
                             }
                         }
@@ -225,10 +267,7 @@
                     return;
                 }
 
-                $('#submitBtn').prop('disabled', true).html(`
-                                                                        < span class="spinner-border spinner-border-sm" role = "status" ></span >
-                                                                            Guardando...
-                                                                `);
+                $('#submitBtn').prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status"></span> Guardando...');
 
                 $.ajax({
                     url: '/api/sensors',
@@ -242,7 +281,7 @@
                     success: function (response) {
                         if (response.success) {
                             alert('Sensor creado correctamente');
-                            window.location.href = '{{ route("sensors.index") }}';
+                            window.location.href = '/sensors';
                         } else {
                             alert(response.message || 'Error al crear el sensor');
                         }
@@ -265,8 +304,8 @@
                     },
                     complete: function () {
                         $('#submitBtn').prop('disabled', false).html(`
-                                                                < i class= "bi bi-check-circle" ></i > Guardar Sensor
-                                                    `);
+                                                                        < i class= "bi bi-check-circle" ></i > Guardar Sensor
+                                                            `);
                     }
                 });
             });

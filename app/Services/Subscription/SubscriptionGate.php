@@ -25,6 +25,7 @@ class SubscriptionGate
             'free' => [
                 'create_sensor' => true,
                 'create_group' => true,
+                'create_community_sensor' => false,
                 'import_sensors' => false,
                 'create_template' => false,
                 'add_collaborator' => false,
@@ -34,6 +35,7 @@ class SubscriptionGate
             'basico' => [
                 'create_sensor' => true,
                 'create_group' => true,
+                'create_community_sensor' => false,
                 'import_sensors' => false,
                 'create_template' => false,
                 'add_collaborator' => false,
@@ -43,6 +45,7 @@ class SubscriptionGate
             'premium' => [
                 'create_sensor' => true,
                 'create_group' => true,
+                'create_community_sensor' => true,
                 'import_sensors' => true,
                 'create_template' => true,
                 'add_collaborator' => true,
@@ -67,12 +70,12 @@ class SubscriptionGate
     public function allows(string $permission): bool
     {
         $plan = $this->getUserPlan();
-        
+
         // Si el plan no existe en la configuración, denegar
         if (!isset($this->planPermissions[$plan])) {
             return false;
         }
-        
+
         return $this->planPermissions[$plan][$permission] ?? false;
     }
 

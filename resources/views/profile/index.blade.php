@@ -159,64 +159,96 @@
                         <!-- Alertas -->
                         <div id="alertContainer"></div>
 
-                        <!-- Formulario -->
+                        <!-- Formulario Modernizado -->
                         <form id="profileForm">
                             @csrf
                             @method('PUT')
 
                             <input type="hidden" id="hasGoogleId" value="{{ $user->google_id ? 'true' : 'false' }}">
 
-                            <div class="mb-3">
-                                <label for="name" class="form-label">Nombre completo</label>
-                                <input type="text" class="form-control" id="name" name="name" required>
-                            </div>
+                            <div class="row g-4 mb-4">
+                                <div class="col-md-6">
+                                    <h6 class="text-uppercase text-muted fw-bold mb-3"
+                                        style="font-size: 0.75rem; letter-spacing: 1px;">Identidad Personal</h6>
 
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Correo electrónico</label>
-                                <input type="email" class="form-control" id="email" name="email" required>
-                            </div>
+                                    <div class="mb-3">
+                                        <label for="name" class="form-label small fw-semibold text-muted mb-1">Nombre
+                                            completo</label>
+                                        <div class="input-group shadow-sm">
+                                            <span class="input-group-text bg-white text-muted border-end-0"><i
+                                                    class="bi bi-person"></i></span>
+                                            <input type="text" class="form-control border-start-0 ps-0" id="name"
+                                                name="name" autocomplete="name" required>
+                                        </div>
+                                    </div>
 
-                            <div class="mb-3">
-                                <label for="subscription_type" class="form-label">Tipo de cuenta</label>
-                                <select class="form-select" id="subscription_type" name="subscription_type">
-                                    <option value="domiciliario">Domiciliario</option>
-                                    <option value="corporativo">Corporativo</option>
-                                </select>
-                                <small class="text-muted">Cambiar el tipo de cuenta actualizará tus permisos
-                                    automáticamente.</small>
-                            </div>
+                                    <div class="mb-3">
+                                        <label for="email" class="form-label small fw-semibold text-muted mb-1">Correo
+                                            electrónico</label>
+                                        <div class="input-group shadow-sm">
+                                            <span class="input-group-text bg-white text-muted border-end-0"><i
+                                                    class="bi bi-envelope"></i></span>
+                                            <input type="email" class="form-control border-start-0 ps-0" id="email"
+                                                name="email" autocomplete="email" required>
+                                        </div>
+                                    </div>
+                                </div>
 
-                            {{-- Google Info --}}
-                            <div id="googleInfo" class="mb-3 d-none">
-                                <div class="alert alert-info">
-                                    <i class="fas fa-google"></i>
-                                    Esta cuenta está vinculada con Google. No necesitas cambiar tu contraseña.
+                                <div class="col-md-6">
+                                    <h6 class="text-uppercase text-muted fw-bold mb-3"
+                                        style="font-size: 0.75rem; letter-spacing: 1px;">Seguridad</h6>
+
+                                    {{-- Google Info --}}
+                                    <div id="googleInfo" class="mb-3 d-none">
+                                        <div
+                                            class="alert alert-info border-info-subtle shadow-sm d-flex align-items-center">
+                                            <i class="bi bi-google fs-4 me-3 text-info"></i>
+                                            <div>
+                                                <strong>Cuenta enlazada a Google</strong><br>
+                                                <small>Gestionas tu seguridad directamente desde Google.</small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Password Fields --}}
+                                    <div id="passwordFields" class="{{ $user->google_id ? 'd-none' : '' }}">
+                                        <div class="mb-3">
+                                            <label for="password" class="form-label small fw-semibold text-muted mb-1">Nueva
+                                                contraseña</label>
+                                            <div class="input-group shadow-sm">
+                                                <span class="input-group-text bg-white text-muted border-end-0"><i
+                                                        class="bi bi-key"></i></span>
+                                                <input type="password" class="form-control border-start-0 ps-0"
+                                                    id="password" name="password" placeholder="Mínimo 8 caracteres">
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="password_confirmation"
+                                                class="form-label small fw-semibold text-muted mb-1">Confirmar
+                                                contraseña</label>
+                                            <div class="input-group shadow-sm">
+                                                <span class="input-group-text bg-white text-muted border-end-0"><i
+                                                        class="bi bi-shield-lock"></i></span>
+                                                <input type="password" class="form-control border-start-0 ps-0"
+                                                    id="password_confirmation" name="password_confirmation">
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Dejar en blanco
+                                                si no deseas cambiarla.</small>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            {{-- Password Fields --}}
-                            <div id="passwordFields" class="{{ $user->google_id ? 'd-none' : '' }}">
-                                <hr>
-                                <h5>Cambiar contraseña</h5>
-                                <div class="mb-3">
-                                    <label for="password" class="form-label">Nueva contraseña</label>
-                                    <input type="password" class="form-control" id="password" name="password"
-                                        placeholder="Dejar en blanco para no cambiar">
-                                    <small class="text-muted">Mínimo 8 caracteres.</small>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="password_confirmation" class="form-label">Confirmar nueva contraseña</label>
-                                    <input type="password" class="form-control" id="password_confirmation"
-                                        name="password_confirmation" placeholder="Repite la nueva contraseña">
-                                </div>
-                            </div>
-
-                            <div class="d-flex gap-2">
-                                <button type="submit" class="btn btn-primary" id="saveProfileBtn">
-                                    <i class="fas fa-save"></i> Guardar cambios
+                            <div class="d-flex justify-content-end gap-3 pt-3 border-top">
+                                <button type="button" class="btn btn-light border-secondary-subtle px-4 shadow-sm"
+                                    id="refreshStatsBtn">
+                                    <i class="bi bi-arrow-clockwise me-1"></i> Sincronizar
                                 </button>
-                                <button type="button" class="btn btn-info" id="refreshStatsBtn">
-                                    <i class="fas fa-chart-bar"></i> Actualizar estadísticas
+                                <button type="submit" class="btn btn-primary px-4 shadow-sm fw-semibold" id="saveProfileBtn"
+                                    style="border-radius: 8px;">
+                                    <i class="bi bi-save2 me-1"></i> Guardar Cambios
                                 </button>
                             </div>
                         </form>
@@ -252,14 +284,47 @@
                             </div>
                         </div>
 
-                        <div class="mt-3">
-                            <h6>Información de la cuenta</h6>
-                            <ul class="list-unstyled">
-                                <li><strong>ID:</strong> <span id="userId">-</span></li>
-                                <li><strong>Plan:</strong> <span id="userPlan">-</span></li>
-                                <li><strong>Fecha de registro:</strong> <span id="userCreatedAt">-</span></li>
-                                <li><strong>Última actualización:</strong> <span id="userUpdatedAt">-</span></li>
-                            </ul>
+                        <div class="mt-4 mb-2">
+                            <h6 class="text-uppercase text-muted fw-bold mb-3"
+                                style="font-size: 0.75rem; letter-spacing: 1px;">Detalles de Acceso Crítico</h6>
+                            <div class="row g-3">
+                                <div class="col-sm-6 col-md-3">
+                                    <div class="p-3 bg-white border rounded shadow-sm h-100">
+                                        <small class="text-muted d-block mb-1">Identificador Único</small>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="bi bi-hash text-primary"></i>
+                                            <strong class="fs-6" id="userId">-</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 col-md-3">
+                                    <div class="p-3 bg-white border rounded shadow-sm h-100">
+                                        <small class="text-muted d-block mb-1">Licencia Base</small>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="bi bi-shield-check text-success"></i>
+                                            <strong class="fs-6" id="userPlan">-</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 col-md-3">
+                                    <div class="p-3 bg-white border rounded shadow-sm h-100">
+                                        <small class="text-muted d-block mb-1">Adhesión al Sistema</small>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="bi bi-calendar-plus text-info"></i>
+                                            <strong style="font-size: 0.85rem;" id="userCreatedAt">-</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 col-md-3">
+                                    <div class="p-3 bg-white border rounded shadow-sm h-100">
+                                        <small class="text-muted d-block mb-1">Última Edición</small>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="bi bi-clock-history text-warning"></i>
+                                            <strong style="font-size: 0.85rem;" id="userUpdatedAt">-</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         {{-- ✅ SECCIÓN DE SUSCRIPCIÓN --}}
                         <div class="mt-4 pt-3 border-top">
@@ -491,10 +556,10 @@
             @else
                 window.location.href = `/suscripcion/${targetPlan}/pagar`;
             @endif
-                }
+                                                                                        }
 
         /**
-         * Bajar de plan (Premium → Básico)
+         * B     ajar de plan (Premium → Básico)
          */
         function downgradePlan(targetPlan) {
             const planNames = {
@@ -516,7 +581,7 @@
             @else
                 showAlert('⚠️ La bajada de plan se aplicará al finalizar el período actual.', 'warning');
             @endif
-                }
+                                                                }
 
         /**
          * Cancelar suscripción
@@ -550,7 +615,7 @@
                     }
                 });
             @endif
-                }
+                                                                }
 
         // =============================================
         // ✅ FUNCIONES DE DEPURACIÓN (SOLO LOCAL)
@@ -725,11 +790,11 @@
 
             function showAlert(message, type) {
                 const alertHtml = `
-                        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                            ${message}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    `;
+                                                                        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                                                                            ${message}
+                                                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                                                        </div>
+                                                                    `;
                 $('#alertContainer').append(alertHtml);
 
                 setTimeout(() => {
@@ -828,13 +893,13 @@
                         const isExpiring = diffDays === 0 && diffHours === 0 && diffMinutes < 5;
 
                         countdownHtml = `
-                                    <div class="mt-1">
-                                        <span class="countdown-timer ${isExpiring ? 'expiring' : ''}" id="countdownDisplay">
-                                            ⏱️ ${timeStr}
-                                        </span>
-                                        <small class="text-muted ms-2">tiempo restante</small>
-                                    </div>
-                                `;
+                                                                                    <div class="mt-1">
+                                                                                        <span class="countdown-timer ${isExpiring ? 'expiring' : ''}" id="countdownDisplay">
+                                                                                            ⏱️ ${timeStr}
+                                                                                        </span>
+                                                                                        <small class="text-muted ms-2">tiempo restante</small>
+                                                                                    </div>
+                                                                                `;
 
                         // ✅ INICIAR CONTADOR CON VERIFICACIÓN DE EXPIRACIÓN (actualiza cada minuto)
                         countdownInterval = setInterval(function () {
@@ -884,158 +949,333 @@
                     }
                 }
 
-                const expiresDate = sub && sub.expires_at ? new Date(sub.expires_at).toLocaleString('es-ES') : 'No definida';
+                const expiresDate = sub && sub.expires_at ? new Date(sub.expires_at).toLocaleDateString('es-ES') : 'No definida';
 
                 html = `
-                            <div class="card border-${statusClass}">
-                                <div class="card-header bg-${statusClass} text-white d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <i class="bi ${statusIcon} me-2"></i>
-                                        <strong>${statusText}</strong>
-                                    </div>
-                                    <span class="badge bg-light text-dark">${planName}</span>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-7">
-                                            <div class="d-flex align-items-center gap-3 flex-wrap">
-                                                <div>
-                                                    <small class="text-muted d-block">Plan actual</small>
-                                                    <strong>${planName}</strong>
-                                                </div>
-                                                <div>
-                                                    <small class="text-muted d-block">Válido hasta</small>
-                                                    <span>${expiresDate}</span>
-                                                </div>
-                                            </div>
-                                            ${countdownHtml}
-                                        </div>
-                                        <div class="col-md-5 mt-2 mt-md-0">
-                                            <div class="d-flex flex-wrap gap-2 justify-content-md-end">
-                                                ${showUpgradeBasico ? `
-                                                    <button class="btn btn-primary btn-sm" onclick="upgradePlan('basico')">
-                                                        <i class="bi bi-credit-card me-1"></i> Plan Básico
-                                                    </button>
-                                                ` : ''}
-                                                ${showUpgradePremium ? `
-                                                    <button class="btn btn-warning btn-sm" onclick="upgradePlan('premium')">
-                                                        <i class="bi bi-star me-1"></i> Plan Premium
-                                                    </button>
-                                                ` : ''}
-                                                ${showDowngrade ? `
-                                                    <button class="btn btn-info btn-sm" onclick="downgradePlan('basico')">
-                                                        <i class="bi bi-arrow-down-circle me-1"></i> Bajar a Básico
-                                                    </button>
-                                                ` : ''}
-                                                ${showCancel ? `
-                                                    <button class="btn btn-danger btn-sm" onclick="cancelSubscription()">
-                                                        <i class="bi bi-x-circle me-1"></i> Cancelar
-                                                    </button>
-                                                ` : ''}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
+                                                            <div class="card shadow-sm border-0 mb-4" style="border-radius: 12px; overflow: hidden;">
+                                                                <!-- Sleek Header -->
+                                                                <div class="p-3 bg-${statusClass} bg-gradient text-white d-flex justify-content-between align-items-center">
+                                                                    <div class="d-flex align-items-center gap-2">
+                                                                        <i class="bi ${statusIcon} fs-5"></i>
+                                                                        <h5 class="mb-0 fw-semibold">${statusText}</h5>
+                                                                    </div>
+                                                                    <span class="badge bg-white text-${statusClass} px-3 py-2 rounded-pill shadow-sm" style="font-size: 0.85rem;">
+                                                                        <i class="bi bi-patch-check-fill me-1"></i> Plan ${planName}
+                                                                    </span>
+                                                                </div>
+
+                                                                <div class="card-body p-4 bg-light">
+                                                                    <div class="row g-4 align-items-center">
+
+                                                                        <!-- Left Column: Current Status & Money -->
+                                                                        <div class="col-lg-5 col-md-6 border-end-md">
+                                                                            <h6 class="text-uppercase text-muted fw-bold mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">Resumen Financiero</h6>
+
+                                                                            <div class="d-flex flex-column gap-3">
+                                                                                <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm">
+                                                                                    <div class="d-flex flex-column">
+                                                                                        <span class="text-muted small">Costo del Ciclo Base</span>
+                                                                                        <strong class="fs-6 text-dark">${planName === 'Premium' ? '$25.000 ARS' : (planName === 'Básico' ? '$10.000 ARS' : 'Sin Costo')}</strong>
+                                                                                    </div>
+                                                                                    <i class="bi bi-credit-card-2-front text-${statusClass} fs-3 opacity-50"></i>
+                                                                                </div>
+
+                                                                                ${planName === 'Premium' && data.limits?.sensors?.max > 20 ? `
+                                                                                    <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm border-start border-4 border-success">
+                                                                                        <div class="d-flex flex-column">
+                                                                                            <span class="text-muted small">Packs Extras x${(data.limits.sensors.max - 20) / 10}</span>
+                                                                                            <strong class="fs-6 text-success">+$${((data.limits.sensors.max - 20) / 10) * 10000} ARS</strong>
+                                                                                        </div>
+                                                                                        <i class="bi bi-cart-plus text-success fs-3 opacity-50"></i>
+                                                                                    </div>
+                                                                                ` : ''}
+
+                                                                                <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm border-start border-4 border-${statusClass}">
+                                                                                    <div class="d-flex flex-column">
+                                                                                        <span class="text-muted small">Renovación / Vencimiento</span>
+                                                                                        <strong class="fs-6 text-dark">${expiresDate}</strong>
+                                                                                    </div>
+                                                                                    <i class="bi bi-calendar-check text-${statusClass} fs-3 opacity-50"></i>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <!-- Right Column: Capacity Telemetry -->
+                                                                        <div class="col-lg-7 col-md-6 ps-lg-4">
+                                                                            <h6 class="text-uppercase text-muted fw-bold mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">Telemetría de Capacidad</h6>
+
+                                                                            ${data.limits?.sensors ? `
+                                                                                <div class="mb-4 bg-white p-3 rounded shadow-sm border-start border-3 border-${data.limits.sensors.used >= data.limits.sensors.max ? 'danger' : 'primary'}">
+                                                                                    <div class="d-flex justify-content-between mb-2">
+                                                                                        <span class="small fw-semibold text-dark">Sensores Físicos (Licencias)</span>
+                                                                                        <span class="small fw-bold badge bg-${data.limits.sensors.used >= data.limits.sensors.max ? 'danger' : 'primary'} px-2 py-1">
+                                                                                            ${data.limits.sensors.used} / ${data.limits.sensors.max}
+                                                                                        </span>
+                                                                                    </div>
+                                                                                    <div class="progress" style="height: 10px; border-radius: 6px; background-color: #e9ecef;">
+                                                                                        <div class="progress-bar ${data.limits.sensors.used >= data.limits.sensors.max ? 'bg-danger' : 'bg-primary'}" 
+                                                                                             role="progressbar" 
+                                                                                             style="width: ${(data.limits.sensors.used / data.limits.sensors.max) * 100}%" 
+                                                                                             aria-valuenow="${data.limits.sensors.used}" 
+                                                                                             aria-valuemin="0" 
+                                                                                             aria-valuemax="${data.limits.sensors.max}">
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div class="text-end mt-2">
+                                                                                        <small class="text-muted" style="font-size: 0.7rem;">
+                                                                                            Quedan <span class="fw-bold ${data.limits.sensors.remaining === 0 ? 'text-danger' : 'text-success'}">${data.limits.sensors.remaining}</span> celdas libres
+                                                                                        </small>
+                                                                                    </div>
+                                                                                </div>
+                                                                            ` : ''}
+
+                                                                            ${data.limits?.groups ? `
+                                                                                <div class="mb-2 bg-white p-3 rounded shadow-sm border-start border-3 border-${data.limits.groups.used >= data.limits.groups.max ? 'danger' : 'info'}">
+                                                                                    <div class="d-flex justify-content-between mb-2">
+                                                                                        <span class="small fw-semibold text-dark">Lotes Lógicos (Grupos)</span>
+                                                                                        <span class="small fw-bold badge bg-${data.limits.groups.used >= data.limits.groups.max ? 'danger' : 'info'} text-white px-2 py-1">
+                                                                                            ${data.limits.groups.used} / ${data.limits.groups.max || '∞'}
+                                                                                        </span>
+                                                                                    </div>
+                                                                                    ${data.limits.groups.max ? `
+                                                                                        <div class="progress" style="height: 10px; border-radius: 6px; background-color: #e9ecef;">
+                                                                                            <div class="progress-bar ${data.limits.groups.used >= data.limits.groups.max ? 'bg-danger' : 'bg-info'}" 
+                                                                                                 role="progressbar" 
+                                                                                                 style="width: ${(data.limits.groups.used / data.limits.groups.max) * 100}%" 
+                                                                                                 aria-valuenow="${data.limits.groups.used}" 
+                                                                                                 aria-valuemin="0" 
+                                                                                                 aria-valuemax="${data.limits.groups.max}">
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    ` : `
+                                                                                        <div class="progress" style="height: 10px; border-radius: 6px; background-color: #e9ecef;">
+                                                                                            <div class="progress-bar bg-info progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%;"></div>
+                                                                                        </div>
+                                                                                    `}
+                                                                                </div>
+                                                                            ` : ''}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <!-- Actions Footer -->
+                                                                <div class="card-footer bg-white p-3 border-top-0 d-flex flex-wrap justify-content-between align-items-center gap-4">
+
+                                                                    <!-- Left: Extra Packs Cart or Countdown -->
+                                                                    <div class="flex-grow-1" style="min-width: 250px;">
+                                                                        ${planName === 'Premium' ? `
+                                                                            <div class="input-group shadow-sm">
+                                                                                <span class="input-group-text bg-light border-end-0" style="padding-right: 8px;"><i class="bi bi-box-seam text-success"></i></span>
+                                                                                <select class="form-select border-start-0 ps-0 text-secondary" id="extraPacksSelect" style="font-size: 0.85rem; cursor: pointer;">
+                                                                                    <option value="">Añadir Paquetes de Sensores Extra...</option>
+                                                                                    <option value="1">+10 Pack (+$10,000 ARS)</option>
+                                                                                    <option value="2">+20 Pack (+$20,000 ARS)</option>
+                                                                                    <option value="3">+30 Pack (+$30,000 ARS)</option>
+                                                                                    <option value="4">+40 Pack (+$40,000 ARS)</option>
+                                                                                    <option value="5">+50 Pack (+$50,000 ARS)</option>
+                                                                                </select>
+                                                                                <button class="btn btn-success fw-bold px-3 d-flex align-items-center gap-1" onclick="buyExtraPacks()">
+                                                                                    <i class="bi bi-cart"></i> Comprar
+                                                                                </button>
+                                                                            </div>
+                                                                        ` : (countdownHtml ? `<div class="bg-light px-3 py-2 rounded shadow-sm d-inline-block border">${countdownHtml}</div>` : '')}
+                                                                    </div>
+
+                                                                    <!-- Right: Lifecycle Controls -->
+                                                                    <div class="d-flex align-items-center gap-2 flex-wrap ms-auto">
+                                                                        ${planName === 'Premium' && countdownHtml ? `
+                                                                            <div class="me-3 bg-light px-3 py-1 rounded shadow-sm border border-light-subtle d-flex align-items-center">
+                                                                                ${countdownHtml}
+                                                                            </div>
+                                                                        ` : ''}
+
+                                                                        ${showUpgradeBasico ? `
+                                                                            <button class="btn btn-outline-primary rounded-pill px-4 shadow-sm transition-all text-nowrap" onclick="upgradePlan('basico')">
+                                                                                <i class="bi bi-credit-card me-1"></i> Renovar Básico
+                                                                            </button>
+                                                                        ` : ''}
+                                                                        ${showUpgradePremium ? `
+                                                                            <button class="btn btn-warning rounded-pill px-4 shadow-sm fw-bold text-dark transition-all text-nowrap" onclick="upgradePlan('premium')">
+                                                                                <i class="bi bi-star-fill me-1 text-dark"></i> Escalar a Premium
+                                                                            </button>
+                                                                        ` : ''}
+                                                                        ${showDowngrade ? `
+                                                                            <button class="btn btn-outline-secondary rounded-pill px-3 transition-all text-nowrap" onclick="downgradePlan('basico')">
+                                                                                <i class="bi bi-arrow-down-circle me-1"></i> Descender Básico
+                                                                            </button>
+                                                                        ` : ''}
+                                                                        ${showCancel ? `
+                                                                            <button class="btn btn-light text-danger rounded-pill px-3 transition-all shadow-sm border border-danger-subtle text-nowrap" onclick="cancelSubscription()">
+                                                                                <i class="bi bi-x-circle me-1"></i> Desactivar
+                                                                            </button>
+                                                                        ` : ''}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        `;
 
                 // =============================================
                 // CASO 2: PAGO PENDIENTE
                 // =============================================
             } else if (isPending) {
                 html = `
-                            <div class="card border-warning">
-                                <div class="card-header bg-warning text-dark">
-                                    <i class="bi bi-hourglass-split me-2"></i>
-                                    <strong>Pago pendiente de confirmación</strong>
-                                </div>
-                                <div class="card-body">
-                                    <p class="mb-0 text-muted">
-                                        Tu pago está siendo procesado. Esto puede tomar unos minutos.
-                                        <br>
-                                        <small>Si el problema persiste, contacta con soporte.</small>
-                                    </p>
-                                </div>
-                            </div>
-                        `;
+                                                                            <div class="card border-warning">
+                                                                                <div class="card-header bg-warning text-dark">
+                                                                                    <i class="bi bi-hourglass-split me-2"></i>
+                                                                                    <strong>Pago pendiente de confirmación</strong>
+                                                                                </div>
+                                                                                <div class="card-body">
+                                                                                    <p class="mb-0 text-muted">
+                                                                                        Tu pago está siendo procesado. Esto puede tomar unos minutos.
+                                                                                        <br>
+                                                                                        <small>Si el problema persiste, contacta con soporte.</small>
+                                                                                    </p>
+                                                                                </div>
+                                                                            </div>
+                                                                        `;
 
                 // =============================================
                 // CASO 3: SUSCRIPCIÓN EXPIRADA
                 // =============================================
             } else if (isExpired) {
                 html = `
-                            <div class="card border-danger">
-                                <div class="card-header bg-danger text-white">
-                                    <i class="bi bi-exclamation-triangle me-2"></i>
-                                    <strong>Suscripción expirada</strong>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row align-items-center">
-                                        <div class="col-md-7">
-                                            <p class="mb-0">
-                                                Tu suscripción <strong>${planName}</strong> ha expirado.
-                                                <br>
-                                                <small class="text-muted">Renueva para seguir disfrutando de los beneficios.</small>
-                                            </p>
-                                        </div>
-                                        <div class="col-md-5 mt-2 mt-md-0">
-                                            <div class="d-flex flex-wrap gap-2 justify-content-md-end">
-                                                <button class="btn btn-primary btn-sm" onclick="upgradePlan('basico')">
-                                                    <i class="bi bi-credit-card me-1"></i> Plan Básico ($10 ARS)
-                                                </button>
-                                                <button class="btn btn-warning btn-sm" onclick="upgradePlan('premium')">
-                                                    <i class="bi bi-star me-1"></i> Plan Premium ($25 ARS)
-                                                </button>
-                                                @if(app()->environment('local'))
-                                                    <button class="btn btn-secondary btn-sm" onclick="debugActivateSubscription('free')">
-                                                        <i class="bi bi-gift me-1"></i> Emular Free
-                                                    </button>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
+                                                                            <div class="card border-danger">
+                                                                                <div class="card-header bg-danger text-white">
+                                                                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                                                                    <strong>Suscripción expirada</strong>
+                                                                                </div>
+                                                                                <div class="card-body">
+                                                                                    <div class="row align-items-center">
+                                                                                        <div class="col-md-7">
+                                                                                            <p class="mb-0">
+                                                                                                Tu suscripción <strong>${planName}</strong> ha expirado.
+                                                                                                <br>
+                                                                                                <small class="text-muted">Renueva para seguir disfrutando de los beneficios.</small>
+                                                                                            </p>
+                                                                                        </div>
+                                                                                        <div class="col-md-5 mt-2 mt-md-0">
+                                                                                            <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+                                                                                                <button class="btn btn-primary btn-sm" onclick="upgradePlan('basico')">
+                                                                                                    <i class="bi bi-credit-card me-1"></i> Plan Básico ($10 ARS)
+                                                                                                </button>
+                                                                                                <button class="btn btn-warning btn-sm" onclick="upgradePlan('premium')">
+                                                                                                    <i class="bi bi-star me-1"></i> Plan Premium ($25 ARS)
+                                                                                                </button>
+                                                                                                @if(app()->environment('local'))
+                                                                                                    <button class="btn btn-secondary btn-sm" onclick="debugActivateSubscription('free')">
+                                                                                                        <i class="bi bi-gift me-1"></i> Emular Free
+                                                                                                    </button>
+                                                                                                @endif
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        `;
 
                 // =============================================
                 // CASO 4: SIN SUSCRIPCIÓN ACTIVA
                 // =============================================
             } else {
                 html = `
-                            <div class="card border-info">
-                                <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <i class="bi bi-gift me-2"></i>
-                                        <strong>🎁 Plan Free</strong>
+                                <div class="card shadow-sm border-0 mb-4" style="border-radius: 12px; overflow: hidden;">
+
+                                    <!-- Header Free -->
+                                    <div class="card-header border-0 text-white p-3 d-flex justify-content-between align-items-center" 
+                                         style="background: linear-gradient(135deg, #6c757d 0%, #495057 100%);">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="bi bi-gift-fill fs-4"></i>
+                                            <div class="d-flex flex-column">
+                                                <h5 class="mb-0 fw-bold">Plan Free (Licencia Gratuita)</h5>
+                                                <span class="opacity-75" style="font-size: 0.8rem;">Estás usando funcionalidades limitadas básicas</span>
+                                            </div>
+                                        </div>
+                                        <span class="badge bg-white text-secondary rounded-pill px-3 py-2 shadow-sm fw-bold">
+                                            Sin Costo Mensual
+                                        </span>
                                     </div>
-                                    <span class="badge bg-light text-dark">${planName}</span>
-                                </div>
-                                <div class="card-body">
-                                    <p class="mb-3">
-                                        ${planKey === 'basico' || planKey === 'premium'
-                        ? `Tu suscripción <strong>${planName}</strong> no está activa actualmente.`
-                        : `Estás usando el plan <strong>${planName}</strong> con funcionalidades limitadas.`
-                    }
-                                        <br>
-                                        <small class="text-muted">Activa una suscripción para acceder a todas las funcionalidades.</small>
-                                    </p>
-                                    <div class="d-flex flex-wrap gap-2">
-                                        <button class="btn btn-primary btn-sm" onclick="upgradePlan('basico')">
-                                            <i class="bi bi-credit-card me-1"></i> Plan Básico ($10 ARS)
+
+                                    <!-- Panel de Datos -->
+                                    <div class="card-body bg-light p-0">
+                                        <div class="row g-0">
+
+                                            <!-- Columna Izquierda: Información Financiera (Vacía en Free) & CTA -->
+                                            <div class="col-lg-5 col-md-6 border-end border-light-subtle bg-white h-100 p-4">
+                                                <h6 class="text-uppercase text-muted fw-bold mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">Estado de Licencia</h6>
+
+                                                <div class="d-flex flex-column gap-3 mb-4">
+                                                    <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm border-start border-4 border-secondary">
+                                                        <div class="d-flex flex-column">
+                                                            <span class="text-muted small">Costo del Ciclo Base</span>
+                                                            <strong class="fs-6 text-dark">$0 ARS</strong>
+                                                        </div>
+                                                        <i class="bi bi-wallet2 text-secondary fs-3 opacity-50"></i>
+                                                    </div>
+                                                </div>
+
+                                                <p class="text-muted small mb-0">Esta licencia restringe el acceso masivo a colaboración y limita el registro de sensores. Realiza un Upgrade a Premium o Básico para liberar tu entorno.</p>
+                                            </div>
+
+                                            <!-- Columna Derecha: Telemetry -->
+                                            <div class="col-lg-7 col-md-6 bg-white h-100 p-4">
+                                                <h6 class="text-uppercase text-muted fw-bold mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">Telemetría de Capacidad</h6>
+
+                                                ${data.limits?.sensors ? `
+                                                    <div class="mb-4 bg-white p-3 rounded shadow-sm border-start border-3 border-${data.limits.sensors.used >= data.limits.sensors.max ? 'danger' : 'secondary'}">
+                                                        <div class="d-flex justify-content-between mb-2">
+                                                            <span class="small fw-semibold text-dark">Sensores Físicos (Licencias)</span>
+                                                            <span class="small fw-bold badge bg-${data.limits.sensors.used >= data.limits.sensors.max ? 'danger' : 'secondary'} px-2 py-1">
+                                                                ${data.limits.sensors.used} / ${data.limits.sensors.max}
+                                                            </span>
+                                                        </div>
+                                                        <div class="progress" style="height: 10px; border-radius: 6px; background-color: #e9ecef;">
+                                                            <div class="progress-bar ${data.limits.sensors.used >= data.limits.sensors.max ? 'bg-danger' : 'bg-secondary'}" 
+                                                                 role="progressbar" 
+                                                                 style="width: ${(data.limits.sensors.used / data.limits.sensors.max) * 100}%">
+                                                            </div>
+                                                        </div>
+                                                        <div class="text-end mt-2">
+                                                            <small class="text-muted" style="font-size: 0.7rem;">Quedan <span class="fw-bold ${data.limits.sensors.remaining === 0 ? 'text-danger' : 'text-success'}">${data.limits.sensors.remaining}</span> celdas libres</small>
+                                                        </div>
+                                                    </div>
+                                                ` : ''}
+
+                                                ${data.limits?.groups ? `
+                                                    <div class="mb-2 bg-white p-3 rounded shadow-sm border-start border-3 border-${data.limits.groups.used >= data.limits.groups.max ? 'danger' : 'secondary'}">
+                                                        <div class="d-flex justify-content-between mb-2">
+                                                            <span class="small fw-semibold text-dark">Lotes Lógicos (Grupos)</span>
+                                                            <span class="small fw-bold badge bg-${data.limits.groups.used >= data.limits.groups.max ? 'danger' : 'secondary'} px-2 py-1">
+                                                                ${data.limits.groups.used} / ${data.limits.groups.max}
+                                                            </span>
+                                                        </div>
+                                                        <div class="progress" style="height: 10px; border-radius: 6px; background-color: #e9ecef;">
+                                                            <div class="progress-bar ${data.limits.groups.used >= data.limits.groups.max ? 'bg-danger' : 'bg-secondary'}" 
+                                                                 role="progressbar" 
+                                                                 style="width: ${(data.limits.groups.used / data.limits.groups.max) * 100}%">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ` : ''}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Footer Upgrades -->
+                                    <div class="card-footer bg-light p-3 border-top d-flex gap-2 justify-content-center flex-wrap">
+                                        <button class="btn btn-primary rounded-pill px-4 shadow-sm transition-all" onclick="upgradePlan('basico')">
+                                            <i class="bi bi-credit-card me-1"></i> Subir a Básico ($10 ARS)
                                         </button>
-                                        <button class="btn btn-warning btn-sm" onclick="upgradePlan('premium')">
-                                            <i class="bi bi-star me-1"></i> Plan Premium ($25 ARS)
+                                        <button class="btn btn-warning rounded-pill px-4 shadow-sm fw-bold text-dark transition-all" onclick="upgradePlan('premium')">
+                                            <i class="bi bi-star-fill me-1 text-dark"></i> Escalar a Premium ($25 ARS)
                                         </button>
                                         @if(app()->environment('local'))
-                                            <button class="btn btn-secondary btn-sm" onclick="debugActivateSubscription('free')">
-                                                <i class="bi bi-gift me-1"></i> Emular Free
+                                            <button class="btn btn-outline-secondary rounded-pill px-3 transition-all" onclick="debugActivateSubscription('free')">
+                                                <i class="bi bi-bug me-1"></i> Restablecer Free
                                             </button>
                                         @endif
                                     </div>
                                 </div>
-                            </div>
-                        `;
+                            `;
             }
 
             $('#subscriptionStatus').html(html);
@@ -1098,25 +1338,25 @@
 
             badge.className = `subscription-badge ${className}`;
             badge.innerHTML = `
-                        <span class="badge-dot ${dotClass}"></span>
-                        <i class="bi ${icon}"></i>
-                        ${label}
-                    `;
+                                                                        <span class="badge-dot ${dotClass}"></span>
+                                                                        <i class="bi ${icon}"></i>
+                                                                        ${label}
+                                                                    `;
         }
 
         function renderSubscriptionError() {
             $('#subscriptionStatus').html(`
-                        <div class="alert alert-danger">
-                            <i class="bi bi-exclamation-triangle me-2"></i>
-                            <strong>Error al cargar el estado de la suscripción.</strong>
-                            <br>
-                            <small class="text-muted">Intenta recargar la página. Si el problema persiste, contacta con soporte.</small>
-                            <br>
-                            <button class="btn btn-sm btn-outline-danger mt-2" onclick="loadSubscriptionStatus()">
-                                <i class="bi bi-arrow-repeat me-1"></i> Reintentar
-                            </button>
-                        </div>
-                    `);
+                                                                        <div class="alert alert-danger">
+                                                                            <i class="bi bi-exclamation-triangle me-2"></i>
+                                                                            <strong>Error al cargar el estado de la suscripción.</strong>
+                                                                            <br>
+                                                                            <small class="text-muted">Intenta recargar la página. Si el problema persiste, contacta con soporte.</small>
+                                                                            <br>
+                                                                            <button class="btn btn-sm btn-outline-danger mt-2" onclick="loadSubscriptionStatus()">
+                                                                                <i class="bi bi-arrow-repeat me-1"></i> Reintentar
+                                                                            </button>
+                                                                        </div>
+                                                                    `);
         }
 
         // =============================================
@@ -1210,7 +1450,6 @@
 
                         $('#name').val(user.name || '');
                         $('#email').val(user.email || '');
-                        $('#subscription_type').val(user.subscription_type || 'domiciliario');
                         $('#userId').text(user.id || '-');
 
                         // ✅ Mostrar el plan REAL (si es free, mostrar "Free")
@@ -1281,8 +1520,8 @@
                         const subscription = response.data.subscription;
 
                         $('#userId').text(user.id || '-');
-                        $('#userCreatedAt').text(user.created_at ? new Date(user.created_at).toLocaleString('es-ES') : '-');
-                        $('#userUpdatedAt').text(user.updated_at ? new Date(user.updated_at).toLocaleString('es-ES') : '-');
+                        $('#userCreatedAt').text(user.created_at ? new Date(user.created_at).toLocaleDateString('es-ES') : '-');
+                        $('#userUpdatedAt').text(user.updated_at ? new Date(user.updated_at).toLocaleDateString('es-ES') : '-');
 
                         // ✅ Mostrar el plan REAL desde la suscripción
                         let planDisplay = 'Free';
@@ -1312,7 +1551,6 @@
             const formData = {
                 name: $('#name').val(),
                 email: $('#email').val(),
-                subscription_type: $('#subscription_type').val(),
             };
 
             const passwordField = $('#password');
@@ -1354,8 +1592,8 @@
                 data: JSON.stringify(formData),
                 beforeSend: function () {
                     $('#saveProfileBtn').prop('disabled', true).html(`
-                                <span class="spinner-border spinner-border-sm" role="status"></span> Guardando...
-                            `);
+                                                                                <span class="spinner-border spinner-border-sm" role="status"></span> Guardando...
+                                                                            `);
                 },
                 success: function (response) {
                     if (response.success) {
@@ -1381,8 +1619,8 @@
                 },
                 complete: function () {
                     $('#saveProfileBtn').prop('disabled', false).html(`
-                                <i class="fas fa-save"></i> Guardar cambios
-                            `);
+                                                                                <i class="fas fa-save"></i> Guardar cambios
+                                                                            `);
                 }
             });
         }
@@ -1417,11 +1655,95 @@
                 },
                 complete: function () {
                     $('#confirmDeleteAllData').prop('disabled', false).html(`
-                                <i class="bi bi-trash-fill me-1"></i> Sí, eliminar todo
-                            `);
+                                                                                <i class="bi bi-trash-fill me-1"></i> Sí, eliminar todo
+                                                                            `);
                 }
             });
         }
+
+        // ==========================================
+        // Comprar Packs Extras de Sensores
+        // ==========================================
+        window.buyExtraPacks = function () {
+            const packs = $('#extraPacksSelect').val();
+
+            if (!packs) {
+                // Implementación de Snackbar flotante en vez del alerta global
+                let snackHtml = `
+                                                                    <div class="toast align-items-center text-white bg-warning border-0 position-fixed top-0 start-50 translate-middle-x mt-4" role="alert" aria-live="assertive" aria-atomic="true" style="z-index: 9999;">
+                                                                      <div class="d-flex">
+                                                                        <div class="toast-body">
+                                                                          <i class="bi bi-exclamation-circle me-2"></i> Por favor, selecciona cuántos packs deseas comprar primero.
+                                                                        </div>
+                                                                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                                                                      </div>
+                                                                    </div>
+                                                                `;
+                $('body').append(snackHtml);
+                let toastEl = $('.toast').last();
+                let toast = new bootstrap.Toast(toastEl, { delay: 3500 });
+                toast.show();
+
+                toastEl.on('hidden.bs.toast', function () {
+                    $(this).remove();
+                });
+                return;
+            }
+
+            if (confirm(`Estás por comprar una expansión de +${packs * 10} sensores por $${packs * 10000} ARS hasta fin de mes. ¿Estás seguro?`)) {
+                showAlert('🔄 Generando preferencia de pago...', 'info');
+
+                $.ajax({
+                    url: '/api/subscription/buy-packs',
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    data: {
+                        packs: packs
+                    },
+                    success: function (response) {
+                        if (response.success && response.data.preference_id) {
+
+                            // ✅ BYPASS PARA ENTORNO LOCAL
+                            if (response.data.is_local) {
+                                showAlert('✅ [DEV] Packs acreditados localmente en Sandbox. Recargando perfil...', 'success');
+                                setTimeout(() => window.location.reload(), 1500);
+                                return;
+                            }
+
+                            showAlert('✅ Redirigiendo a Mercado Pago...', 'success');
+                            // Inicializar Checkout Pro
+                            const devEnv = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                            const mp = new MercadoPago(response.data.public_key, {
+                                locale: 'es-AR'
+                            });
+
+                            if (devEnv) {
+                                showAlert('⚠️ Modo Desarrollo: Simulando redirección. Por favor aprueba en sandbox mercadopago.', 'warning');
+                            }
+
+                            mp.checkout({
+                                preference: {
+                                    id: response.data.preference_id
+                                },
+                                autoOpen: true,
+                            });
+                        } else {
+                            showAlert('Error: ' + (response.message || 'Respuesta inválida al general link de pago'), 'danger');
+                        }
+                    },
+                    error: function (xhr) {
+                        let errorMsg = 'Error procesando solicitud.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMsg = xhr.responseJSON.message;
+                        }
+                        showAlert('❌ ' + errorMsg, 'danger');
+                    }
+                });
+            }
+        };
 
         // =============================================
         // ✅ DOCUMENT READY - INICIALIZACIÓN
@@ -1501,8 +1823,8 @@
                     },
                     beforeSend: function () {
                         $('#confirmDeleteAllData').prop('disabled', true).html(`
-                                    <span class="spinner-border spinner-border-sm" role="status"></span> Procesando...
-                                `);
+                                                                                    <span class="spinner-border spinner-border-sm" role="status"></span> Procesando...
+                                                                                `);
                     },
                     success: function (response) {
                         if (response.success) {
@@ -1510,15 +1832,15 @@
                         } else {
                             showAlert(response.message || 'Error al generar token', 'danger');
                             $('#confirmDeleteAllData').prop('disabled', false).html(`
-                                        <i class="bi bi-trash-fill me-1"></i> Sí, eliminar todo
-                                    `);
+                                                                                        <i class="bi bi-trash-fill me-1"></i> Sí, eliminar todo
+                                                                                    `);
                         }
                     },
                     error: function (xhr) {
                         showAlert('Error: ' + (xhr.responseJSON?.message || xhr.statusText), 'danger');
                         $('#confirmDeleteAllData').prop('disabled', false).html(`
-                                    <i class="bi bi-trash-fill me-1"></i> Sí, eliminar todo
-                                `);
+                                                                                    <i class="bi bi-trash-fill me-1"></i> Sí, eliminar todo
+                                                                                `);
                     }
                 });
             });

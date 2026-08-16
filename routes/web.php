@@ -176,12 +176,6 @@ Route::middleware(['auth'])->group(function () {
     // CONSUMOS (vistas)
     // =============================================
     Route::get('/consumptions', fn() => view('consumptions.index'))->name('consumptions.index');
-
-    // =============================================
-    // ADMINISTRACIÓN
-    // =============================================
-    Route::get('/admin', fn() => view('admin'))->name('admin')->middleware('can:admin');
-
     // =============================================
     // PERFIL
     // =============================================
@@ -242,9 +236,17 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/api/subscription/create-preference', [SubscriptionPaymentController::class, 'createPreference'])
         ->name('subscription.create.preference');
 
+    // Comprar Packs Extras (API)
+    Route::post('/api/subscription/buy-packs', [SubscriptionPaymentController::class, 'buyExtraPacks'])
+        ->name('subscription.buy.packs');
+
     // Webhook (público)
     Route::post('/api/subscription/webhook', [SubscriptionPaymentController::class, 'handleWebhook'])
         ->name('subscription.payment.webhook');
+
+    // Callbacks de pago Packs Extra (públicos)
+    Route::get('/subscription/success_packs', [SubscriptionPaymentController::class, 'handleSuccessPacks'])
+        ->name('subscription.payment.success_packs');
 
     // Callbacks de pago (públicos)
     Route::get('/subscription/success/{plan}', [SubscriptionPaymentController::class, 'handleSuccess'])

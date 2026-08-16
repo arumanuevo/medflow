@@ -286,9 +286,15 @@
                         $customFields = [];
                         if (isset($sensor->group) && isset($sensor->group->template) && isset($sensor->group->template->schema['campos'])) {
                             $customFields = array_filter($sensor->group->template->schema['campos'], function ($campo) use ($mainField) {
-                                // Excluir campos que ya tenemos en el formulario o que son estáticos del Sensor
-                                $isSensorMetadata = isset($campo['contexto']) && $campo['contexto'] === 'sensor';
-                                return !in_array($campo['nombre'], [$mainField, 'consumo_m3', 'foto', 'fecha_medicion', 'valor']) && !$isSensorMetadata;
+                                // 1. Excluir campos estructurales fijos de medición 
+                                if (in_array($campo['nombre'], [$mainField, 'consumo_m3', 'foto', 'fecha_medicion', 'valor', 'identificador'])) {
+                                    return false;
+                                }
+                                
+                                // 2. Comportamiento Estricto: Permitir SOLO si el contexto lo autoriza expresamente
+                                // Si no hay contexto definido, asumimos que es metadata estática del Sensor (por ej: Ocupación, Lote, Ubicación).
+                                $contexto = isset($campo['contexto']) ? strtolower(trim($campo['contexto'])) : 'sensor';
+                                return in_array($contexto, ['medicion', 'ambos']);
                             });
                         }
                     @endphp

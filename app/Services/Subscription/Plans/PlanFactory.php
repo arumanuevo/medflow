@@ -14,7 +14,7 @@ class PlanFactory
         'premium' => PremiumPlan::class,
     ];
 
-    public static function make(string $planKey): PlanInterface
+    public static function make(string $planKey, ?User $user = null): PlanInterface
     {
         $class = self::$plans[$planKey] ?? null;
 
@@ -22,17 +22,17 @@ class PlanFactory
             throw new InvalidArgumentException("Plan no soportado: {$planKey}");
         }
 
-        return new $class();
+        return new $class($user);
     }
 
     public static function makeFromUser(User $user): PlanInterface
     {
         // ✅ 1. Verificar si tiene suscripción activa
         $activeSubscription = $user->getActiveSubscription();
-        
+
         if ($activeSubscription) {
             // Si tiene suscripción activa, usar el plan correspondiente
-            return self::make($activeSubscription->plan);
+            return self::make($activeSubscription->plan, $user);
         }
 
         // ✅ 2. Verificar si tiene un plan asignado en el campo subscription_plan
@@ -42,16 +42,16 @@ class PlanFactory
                 // ✅ Guardar en sesión para que el frontend lo use
                 session(['previous_plan' => $user->subscription_plan]);
             }
-            return self::make($user->subscription_plan);
+            return self::make($user->subscription_plan, $user);
         }
 
         // ✅ 3. Si es admin, darle Premium
         if ($user->hasRole('admin')) {
-            return new PremiumPlan();
+            return new PremiumPlan($user);
         }
 
         // ✅ 4. Por defecto, Free
-        return new FreePlan();
+        return new FreePlan($user);
     }
 
     /**

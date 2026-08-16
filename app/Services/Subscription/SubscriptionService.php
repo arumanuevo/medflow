@@ -34,40 +34,56 @@ class SubscriptionService
     }
 
     /**
-     * Detectar automáticamente si el usuario es colaborador y usar el plan del propietario
+     * Detectar automáticamente si el usuario está actuando en el contexto de un colaborador
      */
     private function detectOwnerPlan(): void
     {
-        // Si el usuario tiene una colaboración activa como colaborador
-        $collaboration = WorkspaceCollaborator::where('user_id', $this->user->id)
-            ->where('status', 'active')
-            ->where('is_paused', false)
-            ->first();
+        $activeWorkspace = null;
 
-        if ($collaboration) {
-            $owner = User::find($collaboration->workspace_id);
-            if ($owner) {
-                $this->ownerPlan = PlanFactory::makeFromUser($owner);
-                Log::info('👥 Colaborador detectado, usando plan del propietario', [
-                    'user_id' => $this->user->id,
-                    'workspace_id' => $collaboration->workspace_id,
-                    'owner_plan' => $this->ownerPlan->getPlanName()
-                ]);
+        // 1. Intentar desde el header de API
+        if (request()->hasHeader('X-Workspace-Id')) {
+            $activeWorkspace = request()->header('X-Workspace-Id');
+        }
+        // 2. Intentar desde input explícito en request
+        elseif (request()->has('workspace_id')) {
+            $activeWorkspace = request()->input('workspace_id');
+        }
+        // 3. Fallback al session web si existe
+        elseif (function_exists('session') && session()->has('active_workspace')) {
+            $activeWorkspace = session('active_workspace');
+        }
+
+        // Si estamos actuando en un workspace distinto al nuestro
+        if ($activeWorkspace && $activeWorkspace != $this->user->id) {
+            $collaboration = WorkspaceCollaborator::where('user_id', $this->user->id)
+                ->where('workspace_id', $activeWorkspace)
+                ->where('status', 'active')
+                ->where('is_paused', false)
+                ->first();
+
+            if ($collaboration) {
+                $owner = User::find($collaboration->workspace_id);
+                if ($owner) {
+                    $this->ownerPlan = PlanFactory::makeFromUser($owner);
+                    Log::info('👥 Colaborador detectado en contexto activo, usando plan del propietario', [
+                        'user_id' => $this->user->id,
+                        'workspace_id' => $collaboration->workspace_id,
+                        'owner_plan' => $this->ownerPlan->getPlanName()
+                    ]);
+                }
             }
         }
     }
 
     /**
-     * Obtener el plan activo (prioriza el plan del propietario si es colaborador)
+     * Obtener el plan del usuario o de su propietario en contexto
      */
-    public function getPlan(): PlanInterface
+    public function getPlan(bool $personalOnly = false): PlanInterface
     {
-        // ✅ Si es colaborador y tiene un plan de propietario, usar ese
-        if ($this->ownerPlan) {
+        if (!$personalOnly && $this->ownerPlan) {
             return $this->ownerPlan;
         }
 
-        // ✅ SIEMPRE calcular el plan desde el usuario actualizado
         return PlanFactory::makeFromUser($this->user);
     }
 
@@ -154,9 +170,9 @@ class SubscriptionService
     /**
      * Obtener estado completo de límites
      */
-    public function getLimitStatus(): array
+    public function getLimitStatus(bool $personalOnly = false): array
     {
-        $plan = $this->getPlan();
+        $plan = $this->getPlan($personalOnly);
         $isUnlimited = fn($value) => $value === PHP_INT_MAX;
 
         return [
@@ -187,7 +203,7 @@ class SubscriptionService
     /**
      * Obtener estado completo de la suscripción
      */
-    public function getFullStatus(): array
+    public function getFullStatus(bool $personalOnly = false): array
     {
         // ✅ PRIMERO: Verificar si la suscripción expiró y actualizar
         $this->checkAndUpdateExpiredSubscription();
@@ -195,8 +211,8 @@ class SubscriptionService
         // ✅ Obtener estado actualizado SIEMPRE del usuario en BD
         $this->user->refresh();
 
-        $plan = $this->getPlan();
-        $limitStatus = $this->getLimitStatus();
+        $plan = $this->getPlan($personalOnly);
+        $limitStatus = $this->getLimitStatus($personalOnly);
         $activeSubscription = $this->user->getActiveSubscription();
 
         return [
@@ -222,7 +238,7 @@ class SubscriptionService
                 'expires_at' => $activeSubscription->expires_at,
                 'paid_at' => $activeSubscription->paid_at,
             ] : null,
-            'has_active_subscription' => $activeSubscription !== null,
+            'has_active_subscription' => $activeSubscription !== null || $plan->getPlanKey() !== 'free',
         ];
     }
 
@@ -319,24 +335,28 @@ class SubscriptionService
      */
     public function checkAndUpdateExpiredSubscription(): bool
     {
-        // Buscar suscripción activa cuya fecha de expiración ya pasó
-        $expiredSubscription = Subscription::where('user_id', $this->user->id)
+        // Buscar TODAS las suscripciones activas cuya fecha de expiración ya pasó
+        $expiredSubscriptions = Subscription::where('user_id', $this->user->id)
             ->where('status', 'active')
             ->whereNotNull('expires_at')
             ->where('expires_at', '<=', now())
-            ->latest()
-            ->first();
+            ->get();
 
-        if (!$expiredSubscription) {
+        if ($expiredSubscriptions->isEmpty()) {
             return false;
         }
 
-        // ✅ 1. Guardar el plan anterior ANTES de actualizar
-        $previousPlan = $expiredSubscription->plan;
+        $previousPlan = null;
+        $lastExpired = null;
 
-        // ✅ 2. Marcar suscripción como expirada
-        $expiredSubscription->status = 'expired';
-        $expiredSubscription->save();
+        // ✅ 2. Marcar TODAS las suscripciones viejas como expiradas
+        foreach ($expiredSubscriptions as $sub) {
+            if (!$previousPlan)
+                $previousPlan = $sub->plan;
+            $sub->status = 'expired';
+            $sub->save();
+            $lastExpired = $sub;
+        }
 
         // ✅ 3. ACTUALIZAR USUARIO A 'free'
         $this->user->refresh();
@@ -347,14 +367,20 @@ class SubscriptionService
         // ✅ 4. ACTUALIZAR ROLES
         $this->user->syncRoles(['consumidor']);
 
-        // ✅ 5. RECARGAR EL USUARIO
+        // ✅ 5. PAUSAR ACCESOS A COLABORADORES SI EXISTEN
+        // Dado que el plan Free no permite colaboradores nativamente, debemos revocar el acceso
+        \App\Models\WorkspaceCollaborator::where('workspace_id', $this->user->id)
+            ->where('status', 'active')
+            ->update(['is_paused' => true]);
+
+        // ✅ 6. RECARGAR EL USUARIO
         $this->user->refresh();
 
-        Log::info('🔄 Suscripción expirada automáticamente - Usuario actualizado a Free', [
+        Log::info('🔄 Suscripciones expiradas automáticamente - Usuario actualizado a Free', [
             'user_id' => $this->user->id,
-            'subscription_id' => $expiredSubscription->id,
+            'subscription_id' => $lastExpired ? $lastExpired->id : null,
             'previous_plan' => $previousPlan,
-            'expired_at' => $expiredSubscription->expires_at,
+            'expired_at' => $lastExpired ? $lastExpired->expires_at : null,
             'new_plan' => 'free'
         ]);
 

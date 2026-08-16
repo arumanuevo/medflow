@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\User;
 use App\Models\WorkspaceCollaborator;
+use App\Models\Sensor;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
@@ -30,7 +31,7 @@ class CollaborationController extends Controller
 
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
-            'role' => 'required|in:admin,inspector,consumidor',
+            'role' => 'required|in:admin,inspector',
             'message' => 'nullable|string|max:500'
         ]);
 
@@ -421,7 +422,7 @@ class CollaborationController extends Controller
         $user = $request->user();
 
         $validator = Validator::make($request->all(), [
-            'role' => 'required|in:admin,inspector,consumidor',
+            'role' => 'required|in:admin,inspector',
         ]);
 
         if ($validator->fails()) {
@@ -471,6 +472,79 @@ class CollaborationController extends Controller
             'success' => true,
             'message' => "Rol cambiado de '{$oldRole}' a '{$request->role}' correctamente. Se ha notificado al usuario.",
             'data' => $collaborator->load('user')
+        ]);
+    }
+
+    // =============================================
+    // ASIGNAR RUTAS DE SENSORES (FASE 38)
+    // =============================================
+    public function getSensors(Request $request, $id)
+    {
+        $user = $request->user();
+        $collaborator = WorkspaceCollaborator::where('workspace_id', $user->id)
+            ->where('id', $id)
+            ->with(['user', 'sensors'])
+            ->first();
+
+        if (!$collaborator) {
+            return response()->json(['success' => false, 'message' => 'Colaborador no encontrado.'], 404);
+        }
+
+        // Obtener todos los sensores primarios puros del Admin Workspace
+        $allSensors = Sensor::whereHas('group', function ($q) use ($user) {
+            $q->where('user_id', $user->id);
+        })->with('group:id,name')->get(); // Incluimos grupo para agrupar en cascada si fuera necesario en UI
+
+        $formattedSensors = $allSensors->map(function ($sensor) {
+            return [
+                'id' => $sensor->id,
+                'nombre' => $sensor->name,
+                'identificador' => $sensor->identifier,
+                'grupo' => $sensor->group ? $sensor->group->name : 'Sin grupo',
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'collaborator_name' => collect(explode(' ', $collaborator->user->name))->first(),
+                'has_restricted_access' => $collaborator->has_restricted_access,
+                'assigned_sensor_ids' => $collaborator->sensors->pluck('id')->toArray(),
+                'available_sensors' => $formattedSensors
+            ]
+        ]);
+    }
+
+    public function syncSensors(Request $request, $id)
+    {
+        $user = $request->user();
+        $collaborator = WorkspaceCollaborator::where('workspace_id', $user->id)
+            ->where('id', $id)
+            ->first();
+
+        if (!$collaborator) {
+            return response()->json(['success' => false, 'message' => 'Colaborador no encontrado.'], 404);
+        }
+
+        $hasRestricted = filter_var($request->input('has_restricted_access', false), FILTER_VALIDATE_BOOLEAN);
+        $assignedIds = $request->input('assigned_ids', []);
+
+        if (!is_array($assignedIds)) {
+            $assignedIds = [];
+        }
+
+        $collaborator->has_restricted_access = $hasRestricted;
+        $collaborator->save();
+
+        if ($hasRestricted) {
+            $collaborator->sensors()->sync($assignedIds);
+        } else {
+            $collaborator->sensors()->detach();
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Ruteo de sensores actualizado correctamente para el colaborador.'
         ]);
     }
 }

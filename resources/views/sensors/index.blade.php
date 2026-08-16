@@ -1,12 +1,17 @@
-@extends('layouts.modern')
+﻿@extends('layouts.modern')
 
 @section('title', 'Mis Sensores')
 
 @push('styles')
     <style>
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.02); }
+            100% { opacity: 1; transform: scale(1); }
+        }
         /* ============================================
-                                               ESTILOS PRINCIPALES
-                                               ============================================ */
+                                                                               ESTILOS PRINCIPALES
+                                                                               ============================================ */
         .sensor-table-wrapper {
             overflow-x: auto;
         }
@@ -57,8 +62,8 @@
         }
 
         /* ============================================
-                                               ORDENAMIENTO
-                                               ============================================ */
+                                                                               ORDENAMIENTO
+                                                                               ============================================ */
         .table th .sort-icon {
             display: inline-block;
             margin-left: 3px;
@@ -96,8 +101,8 @@
         }
 
         /* ============================================
-                                               BADGES Y ETIQUETAS
-                                               ============================================ */
+                                                                               BADGES Y ETIQUETAS
+                                                                               ============================================ */
         .badge-extra-field {
             display: inline-block;
             font-size: 0.7rem;
@@ -136,8 +141,8 @@
         }
 
         /* ============================================
-                                               ACCIONES
-                                               ============================================ */
+                                                                               ACCIONES
+                                                                               ============================================ */
         .table-actions {
             display: flex;
             gap: 3px;
@@ -154,8 +159,8 @@
         }
 
         /* ============================================
-                                               HEADER MEJORADO
-                                               ============================================ */
+                                                                               HEADER MEJORADO
+                                                                               ============================================ */
         .card-header-tools {
             display: flex;
             flex-wrap: wrap;
@@ -192,8 +197,8 @@
         }
 
         /* ============================================
-                                               SUSCRIPCIÓN - ESTILOS ADICIONALES
-                                               ============================================ */
+                                                                               SUSCRIPCIÓN - ESTILOS ADICIONALES
+                                                                               ============================================ */
         .subscription-info-bar {
             background: #f8f9fa;
             border-bottom: 2px solid #e9ecef;
@@ -254,21 +259,6 @@
             opacity: 0.6;
             cursor: not-allowed;
             pointer-events: none;
-            position: relative;
-        }
-
-        .gate-blocked::after {
-            content: '🔒 Premium';
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            font-size: 0.5rem;
-            background: #ffc107;
-            color: #000;
-            padding: 0.1rem 0.4rem;
-            border-radius: 10px;
-            font-weight: 600;
-            white-space: nowrap;
         }
 
         .btn-disabled-by-plan {
@@ -278,19 +268,22 @@
         }
 
         .premium-badge {
-            font-size: 0.5rem;
-            background: #ffc107;
+            font-size: 0.6rem;
+            background: linear-gradient(135deg, #ffc107, #ff9800);
             color: #000;
-            padding: 0.1rem 0.4rem;
-            border-radius: 10px;
-            font-weight: 600;
-            margin-left: 0.3rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 8px;
+            font-weight: 700;
+            margin-left: 0.5rem;
             vertical-align: middle;
+            border: 1px solid #e0a800;
+            box-shadow: 0 2px 4px rgba(255, 193, 7, 0.2);
+            white-space: nowrap;
         }
 
         /* ============================================
-                                               BUSCADOR
-                                               ============================================ */
+                                                                               BUSCADOR
+                                                                               ============================================ */
         .search-wrapper {
             display: flex;
             align-items: center;
@@ -338,8 +331,8 @@
         }
 
         /* ============================================
-                                               PAGINACIÓN
-                                               ============================================ */
+                                                                               PAGINACIÓN
+                                                                               ============================================ */
         .pagination-wrapper {
             display: flex;
             flex-wrap: wrap;
@@ -392,8 +385,8 @@
         }
 
         /* ============================================
-                                               EMPTY STATE
-                                               ============================================ */
+                                                                               EMPTY STATE
+                                                                               ============================================ */
         .empty-state {
             text-align: center;
             padding: 3rem 1.5rem;
@@ -415,8 +408,8 @@
         }
 
         /* ============================================
-                                               SELECTOR DE GRUPOS
-                                               ============================================ */
+                                                                               SELECTOR DE GRUPOS
+                                                                               ============================================ */
         .group-selector-wrapper {
             display: flex;
             align-items: center;
@@ -471,8 +464,8 @@
         }
 
         /* ============================================
-                                               RESPONSIVE
-                                               ============================================ */
+                                                                               RESPONSIVE
+                                                                               ============================================ */
         @media (max-width: 992px) {
             .card-header-tools {
                 flex-direction: column;
@@ -541,8 +534,8 @@
     <div class="container mt-4">
         <div class="card">
             <!-- ============================================
-                                                HEADER MEJORADO
-                                                ============================================ -->
+                                                                                HEADER MEJORADO
+                                                                                ============================================ -->
             <div class="card-header bg-primary text-white">
                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
                     <h4 class="mb-0 d-flex align-items-center gap-2">
@@ -578,10 +571,19 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('sensors.create') }}?community=1"
-                                        class="dropdown-item bg-light border-bottom border-success border-2">
-                                        <i class="bi bi-tree-fill text-success"></i> Sumar Sensor Común (Compartido)
-                                    </a>
+                                    @if($permissions['create_community_sensor'] ?? false)
+                                        <a href="{{ route('sensors.create') }}?community=1"
+                                            class="dropdown-item bg-light border-bottom border-success border-2">
+                                            <i class="bi bi-tree-fill text-success"></i> Sumar Área Común
+                                        </a>
+                                    @else
+                                        <a href="#"
+                                            class="dropdown-item d-flex justify-content-between align-items-center bg-light border-bottom border-success border-2 text-muted gate-blocked pe-2"
+                                            onclick="showGateBlockedNotification(); return false;">
+                                            <span><i class="bi bi-tree-fill text-muted"></i> Sumar Área Común</span>
+                                            <span class="premium-badge"><i class="bi bi-lock-fill"></i> Premium</span>
+                                        </a>
+                                    @endif
                                 </li>
                                 <li>
                                     {{-- ✅ IMPORTACIÓN - depende de permisos --}}
@@ -591,10 +593,11 @@
                                             <i class="bi bi-file-earmark-excel text-info"></i> Importar Sensores
                                         </a>
                                     @else
-                                        <a href="#" class="dropdown-item text-muted" id="importSensorsLink"
-                                            onclick="showGateBlockedNotification(); return false;">
-                                            <i class="bi bi-file-earmark-excel text-info"></i> Importar Sensores
-                                            <span class="badge bg-warning text-dark ms-1">Premium</span>
+                                        <a href="#"
+                                            class="dropdown-item d-flex justify-content-between align-items-center text-muted gate-blocked pe-2"
+                                            id="importSensorsLink" onclick="showGateBlockedNotification(); return false;">
+                                            <span><i class="bi bi-file-earmark-excel text-info"></i> Importar Sensores</span>
+                                            <span class="premium-badge"><i class="bi bi-lock-fill"></i> Premium</span>
                                         </a>
                                     @endif
                                 </li>
@@ -632,8 +635,8 @@
             </div>
 
             <!-- ============================================
-                                                BARRA DE INFORMACIÓN DE SUSCRIPCIÓN
-                                                ============================================ -->
+                                                                                BARRA DE INFORMACIÓN DE SUSCRIPCIÓN
+                                                                                ============================================ -->
             <div class="subscription-info-bar" id="subscriptionInfoBar">
                 <div class="d-flex flex-wrap align-items-center gap-2">
                     <span class="limit-item">
@@ -662,51 +665,66 @@
             </div>
 
             <!-- ============================================
-                                                FILTROS AVANZADOS
-                                                ============================================ -->
-            <div class="p-3 border-bottom shadow-sm" style="background-color: #f8f9fa;">
-                <div class="d-flex flex-wrap align-items-center gap-3">
-                    <div class="group-selector-wrapper">
-                        <strong class="text-primary me-2"><i class="bi bi-funnel-fill"></i> Filtros:</strong>
-                        <span class="filter-label"><i class="bi bi-folder me-1"></i> Por Grupo:</span>
-                        <select class="form-select" id="groupFilter">
+                                                                                FILTROS AVANZADOS / HORIZONTAL TOOLBAR
+                                                                                ============================================ -->
+            <div class="filter-control-panel border-bottom bg-white shadow-sm px-3 py-2">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+
+                    <!-- Etiqueta Principal -->
+                    <div class="d-flex align-items-center">
+                        <strong class="text-primary fs-6 text-nowrap"><i class="bi bi-funnel-fill"></i> Filtros:</strong>
+                    </div>
+
+                    <!-- Filtro por Grupo -->
+                    <div class="input-group input-group-sm flex-nowrap shadow-sm" style="width: auto; max-width: 350px;">
+                        <span class="input-group-text bg-light text-muted border-end-0"><i
+                                class="bi bi-folder2-open"></i></span>
+                        <select class="form-select border-start-0" id="groupFilter" style="min-width: 180px;">
                             <option value="">Todos los grupos</option>
                         </select>
-                        <button class="btn btn-outline-primary btn-sm" id="applyGroupFilter">
-                            <i class="bi bi-funnel"></i> Filtrar Grupo
+                        <button class="btn btn-primary px-3" id="applyGroupFilter" type="button" title="Filtrar">
+                            <i class="bi bi-search"></i>
                         </button>
+                    </div>
 
-                        <!-- Botón de Comunidades -->
-                        <button class="btn btn-outline-success btn-sm ms-2" id="toggleCommunityFilterBtn"
-                            style="white-space:nowrap;">
-                            <i class="bi bi-tree-fill"></i> Áreas Comunes
-                        </button>
+                    <!-- Botón Áreas Comunes -->
+                    <button class="btn btn-outline-success btn-sm fw-medium shadow-sm text-nowrap"
+                        id="toggleCommunityFilterBtn">
+                        <i class="bi bi-tree-fill"></i> Áreas Comunes
+                    </button>
 
-                        <!-- Filtros Dinámicos (Metadata) -->
-                        <div class="d-inline-flex ms-md-4 border-start ps-md-4 gap-2 align-items-center flex-wrap">
-                            <span class="filter-label"><i class="bi bi-tag me-1"></i> Por Dato:</span>
-                            <select class="form-select form-select-sm" id="metaFieldSelect" style="max-width: 150px;">
-                                <option value="">Atributo...</option>
-                            </select>
-                            <select class="form-select form-select-sm" id="metaValueSelect" style="max-width: 150px;"
-                                disabled>
-                                <option value="">Valor...</option>
-                            </select>
+                    <div class="vr d-none d-md-block opacity-25 mx-1"></div>
+
+                    <!-- Filtro por Metadata -->
+                    <div class="input-group input-group-sm flex-nowrap shadow-sm" style="width: auto; max-width: 300px;">
+                        <span class="input-group-text bg-light border-end-0 text-muted"><i
+                                class="bi bi-tag-fill"></i></span>
+                        <select class="form-select border-start-0" id="metaFieldSelect" style="min-width: 120px;">
+                            <option value="">Atributo...</option>
+                        </select>
+                        <select class="form-select border-start-0" id="metaValueSelect" style="min-width: 100px;" disabled>
+                            <option value="">Valor...</option>
+                        </select>
+                    </div>
+
+                    <!-- Alineación derecha: Badges Informativas y Limpieza -->
+                    <div class="ms-auto d-flex align-items-center gap-2 text-nowrap">
+                        <div class="group-info-display text-muted small" id="groupInfoDisplay">
+                            <!-- JS Info badge -->
                         </div>
-
-                        <button class="btn btn-outline-secondary btn-sm ms-auto" id="clearGroupFilter">
-                            <i class="bi bi-x-circle"></i> Limpiar Filtros
+                        <button
+                            class="btn btn-light border bg-white btn-sm text-secondary fw-semibold shadow-sm text-nowrap hover-primary"
+                            id="clearGroupFilter" title="Restaurar parámetros">
+                            <i class="bi bi-x-circle text-danger"></i> Limpiar Filtros
                         </button>
                     </div>
-                    <div class="group-info-display" id="groupInfoDisplay">
-                        <!-- Información del grupo seleccionado se muestra aquí -->
-                    </div>
+
                 </div>
             </div>
 
             <!-- ============================================
-                                                CUERPO - TABLA
-                                                ============================================ -->
+                                                                                CUERPO - TABLA
+                                                                                ============================================ -->
             <div class="card-body p-0">
                 <div class="sensor-table-wrapper p-2">
                     <table class="table table-bordered table-striped table-hover mb-0" id="sensorsTable">
@@ -725,8 +743,8 @@
                 </div>
 
                 <!-- ============================================
-                                                    PAGINACIÓN
-                                                    ============================================ -->
+                                                                                    PAGINACIÓN
+                                                                                    ============================================ -->
                 <div class="pagination-wrapper px-3 pb-3">
                     <div class="pagination-info" id="paginationInfo">
                         Mostrando <strong id="pageStart">0</strong> - <strong id="pageEnd">0</strong> de <strong
@@ -787,14 +805,14 @@
 
             if (!token) {
                 $('#sensorsTableBody').html(`
-                                                    <tr>
-                                                        <td colspan="9" class="text-center text-danger py-4">
-                                                            <i class="fas fa-exclamation-triangle"></i> No se encontró token. 
-                                                            <a href="{{ route('login') }}">Iniciar sesión</a>
-                                                        </td>
-                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td colspan="9" class="text-center text-danger py-4">
+                                                                                            <i class="fas fa-exclamation-triangle"></i> No se encontró token. 
+                                                                                            <a href="{{ route('login') }}">Iniciar sesión</a>
+                                                                                        </td>
+                                                                                    </tr>
 
-                                    `);
+                                                                    `);
                 return;
             }
 
@@ -838,10 +856,7 @@
 
                 groups.forEach(group => {
                     const count = sensorCountByGroup[group.id] || 0;
-                    // Solo mostrar grupos que tienen sensores
-                    if (count > 0 || group.id == selectedGroupId) {
-                        select.append(`<option value="${group.id}">${group.name} (${count} sensores)</option>`);
-                    }
+                    select.append(`<option value="${group.id}">${group.name} (${count} sensores)</option>`);
                 });
 
                 // Si hay un grupo seleccionado previamente, restaurarlo
@@ -862,14 +877,14 @@
                         // ✅ Contar sensores reales del grupo desde los datos cargados
                         const count = allSensorsData.filter(s => (s.group_id || (s.group ? s.group.id : null)) == groupId).length;
                         infoDisplay.html(`
-                                                            <span class="badge bg-primary">
-                                                                <i class="bi bi-folder me-1"></i> ${group.name}
-                                                                <span class="badge bg-light text-dark ms-1">${count}</span>
-                                                            </span>
-                                                            <span class="text-muted small ms-2">
-                                                                <i class="bi bi-info-circle"></i> Mostrando sensores de este grupo
-                                                            </span>
-                                                        `);
+                                                                                            <span class="badge bg-primary">
+                                                                                                <i class="bi bi-folder me-1"></i> ${group.name}
+                                                                                                <span class="badge bg-light text-dark ms-1">${count}</span>
+                                                                                            </span>
+                                                                                            <span class="text-muted small ms-2">
+                                                                                                <i class="bi bi-info-circle"></i> Mostrando sensores de este grupo
+                                                                                            </span>
+                                                                                        `);
                         return;
                     }
                 }
@@ -877,10 +892,10 @@
                 const totalSensors = allSensorsData.length;
                 const totalGroups = allGroups.length;
                 infoDisplay.html(`
-                                                    <span class="text-muted small">
-                                                        <i class="bi bi-database"></i> Total: ${totalSensors} sensores en ${totalGroups} grupos
-                                                    </span>
-                                                `);
+                                                                                    <span class="text-muted small">
+                                                                                        <i class="bi bi-database"></i> Total: ${totalSensors} sensores en ${totalGroups} grupos
+                                                                                    </span>
+                                                                                `);
             }
 
             // ============================================
@@ -946,8 +961,25 @@
                     const remaining = limits.sensors.remaining;
                     sensorLimit.text(`${used} / ${max}`);
                     sensorLimit.removeClass('danger warning');
+                    // ✅ Manejo de Alerta Prominente por Límite de Sensores
+                    $('#sensorLimitReachedWarning').remove(); // Limpiar advertencias previas
+
                     if (remaining <= 0) {
                         sensorLimit.addClass('danger');
+
+                        // Inyectar Pastilla Parpadeante y Botón CTA
+                        const warningHtml = `
+                                <div id="sensorLimitReachedWarning" class="d-flex align-items-center gap-2 ms-auto" style="animation: pulse 2s infinite;">
+                                    <span class="badge bg-danger px-3 py-2 shadow-sm rounded-pill border border-light">
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i> Límite de Sensores Alcanzado
+                                    </span>
+                                    <a href="/profile" class="btn btn-sm btn-warning fw-bold shadow-sm rounded-pill">
+                                        <i class="bi bi-cart-plus-fill"></i> Expandir Capacidad
+                                    </a>
+                                </div>
+                            `;
+                        $('#subscriptionInfoBar .d-flex').append(warningHtml);
+
                     } else if (remaining <= 1) {
                         sensorLimit.addClass('warning');
                     }
@@ -1231,23 +1263,23 @@
                         const directionClass = isActive ? (currentSort.direction === 'asc' ? 'asc' : 'desc') : '';
                         const activeClass = isActive ? 'active' : '';
                         sortIcon = `<span class="sort-icon ${activeClass} ${directionClass}">
-                                                            <i class="bi bi-arrow-up"></i>
-                                                        </span>`;
+                                                                                            <i class="bi bi-arrow-up"></i>
+                                                                                        </span>`;
                     }
 
                     const sortableClass = header.sortable ? 'sortable-header' : 'sortable-header no-sort';
 
                     html += `
-                                                        <th style="width: ${width}; min-width: ${minWidth}" 
-                                                            class="${extraClass} ${sortableClass} ${noSortClass}"
-                                                            data-sort="${header.key}"
-                                                            data-sortable="${header.sortable}">
-                                                            <span class="th-content">
-                                                                ${header.label}${extraIcon}
-                                                                ${sortIcon}
-                                                            </span>
-                                                        </th>
-                                                    `;
+                                                                                        <th style="width: ${width}; min-width: ${minWidth}" 
+                                                                                            class="${extraClass} ${sortableClass} ${noSortClass}"
+                                                                                            data-sort="${header.key}"
+                                                                                            data-sortable="${header.sortable}">
+                                                                                            <span class="th-content">
+                                                                                                ${header.label}${extraIcon}
+                                                                                                ${sortIcon}
+                                                                                            </span>
+                                                                                        </th>
+                                                                                    `;
                 });
                 html += '</tr>';
                 $('#sensorsTableHead').html(html);
@@ -1310,32 +1342,32 @@
                     const canImport = window.canImportSensors || false;
 
                     tbody.html(`
-                                                        <tr>
-                                                            <td colspan="${emptyColspan}" class="text-center py-4">
-                                                                <div class="empty-state">
-                                                                    <i class="fas fa-search"></i>
-                                                                    <h4>No se encontraron sensores</h4>
-                                                                    <p>${searchTerm ? 'Intenta con otro término de búsqueda.' : 'Crea tu primer sensor o importa uno desde Excel.'}</p>
-                                                                    ${!searchTerm ? `
-                                                                    <div class="d-flex gap-2 justify-content-center flex-wrap">
-                                                                        <a href="{{ route('sensors.create') }}" class="btn btn-primary" id="emptyCreateSensor">
-                                                                            <i class="bi bi-plus"></i> Crear Sensor
-                                                                        </a>
-                                                                        ${canImport ? `
-                                                                            <a href="{{ route('sensor-groups.bulk-import') }}" class="btn btn-info" id="emptyImportSensors">
-                                                                                <i class="bi bi-file-earmark-excel"></i> Importar Sensores
-                                                                            </a>
-                                                                        ` : `
-                                                                            <button class="btn btn-info gate-blocked" id="emptyImportSensors" 
-                                                                                    onclick="showGateBlockedNotification(); return false;">
-                                                                                <i class="bi bi-file-earmark-excel"></i> Importar Sensores
-                                                                            </button>
-                                                                        `}
-                                                                    </div>` : ''}
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    `);
+                                                                                        <tr>
+                                                                                            <td colspan="${emptyColspan}" class="text-center py-4">
+                                                                                                <div class="empty-state">
+                                                                                                    <i class="fas fa-search"></i>
+                                                                                                    <h4>No se encontraron sensores</h4>
+                                                                                                    <p>${searchTerm ? 'Intenta con otro término de búsqueda.' : 'Crea tu primer sensor o importa uno desde Excel.'}</p>
+                                                                                                    ${!searchTerm ? `
+                                                                                                    <div class="d-flex gap-2 justify-content-center flex-wrap">
+                                                                                                        <a href="{{ route('sensors.create') }}" class="btn btn-primary" id="emptyCreateSensor">
+                                                                                                            <i class="bi bi-plus"></i> Crear Sensor
+                                                                                                        </a>
+                                                                                                        ${canImport ? `
+                                                                                                            <a href="{{ route('sensor-groups.bulk-import') }}" class="btn btn-info" id="emptyImportSensors">
+                                                                                                                <i class="bi bi-file-earmark-excel"></i> Importar Sensores
+                                                                                                            </a>
+                                                                                                        ` : `
+                                                                                                            <button class="btn btn-info gate-blocked" id="emptyImportSensors" 
+                                                                                                                    onclick="showGateBlockedNotification(); return false;">
+                                                                                                                <i class="bi bi-file-earmark-excel"></i> Importar Sensores
+                                                                                                            </button>
+                                                                                                        `}
+                                                                                                    </div>` : ''}
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    `);
 
                     const createBtn = $('#emptyCreateSensor');
                     if (createBtn.length) {
@@ -1365,9 +1397,10 @@
                     let rowHtml = `<tr data-sensor-id="${sensor.id}">`;
                     const isChecked = selectedSensors.has(sensor.id) ? 'checked' : '';
                     let communityBadge = sensor.is_community ? ' <span class="badge bg-success bg-opacity-10 text-success border border-success ms-1" style="font-size: 0.65rem;" title="Medidor de Consumo Comunitario. Su valor tarifario será prorrateado al total de miembros privados del grupo"><i class="bi bi-tree-fill"></i> Común</span>' : '';
+                    let lockedBadge = sensor.is_measurable === false ? ' <span class="badge bg-danger bg-opacity-10 text-danger border border-danger ms-1" style="font-size: 0.65rem;" title="Límite de Sensores superado en el Plan Actual"><i class="bi bi-lock-fill"></i> Bloqueado</span>' : '';
 
                     rowHtml += `<td class="text-center"><input type="checkbox" class="sensor-checkbox" data-sensor-id="${sensor.id}" ${isChecked}></td>`;
-                    rowHtml += `<td class="text-left"><strong>${sensor.name}</strong>${communityBadge}</td>`;
+                    rowHtml += `<td class="text-left"><strong>${sensor.name}</strong>${communityBadge}${lockedBadge}</td>`;
                     rowHtml += `<td><code>${sensor.identifier}</code></td>`;
                     rowHtml += `<td>${sensor.group?.name || '<span class="no-data">Sin grupo</span>'}</td>`;
 
@@ -1377,26 +1410,39 @@
                     });
 
                     rowHtml += `
-                                                        <td>
-                                                            <div class="table-actions">
-                                                                <a href="/mediciones/create/${sensor.id}" class="btn btn-sm btn-success" title="Tomar Medición">
-                                                                    <i class="bi bi-rulers"></i>
-                                                                </a>
-                                                                <a href="/sensors/${sensor.id}" class="btn btn-sm btn-info" title="Ver Sensor">
-                                                                    <i class="bi bi-eye"></i>
-                                                                </a>
-                                                                <a href="/sensors/${sensor.id}/edit" class="btn btn-sm btn-warning" title="Editar Sensor">
-                                                                    <i class="bi bi-pencil"></i>
-                                                                </a>
-                                                                <button class="btn btn-sm btn-danger delete-sensor-btn"
-                                                                        data-sensor-id="${sensor.id}"
-                                                                        data-sensor-name="${sensor.name}"
-                                                                        title="Eliminar Sensor">
-                                                                    <i class="bi bi-trash"></i>
-                                                                </button>
-                                                            </div>
-                                                        </td>
-                                                    `;
+                                                                                        <td>
+                                                                                            <div class="table-actions">`;
+
+                    if (sensor.is_measurable === false) {
+                        rowHtml += `
+                                                                                                <button class="btn btn-sm btn-secondary opacity-50" title="Sube de plan para medir este sensor" onclick="alert('Límite de sensores de tu plan alcanzado. Cambia a plan superior.'); return false;">
+                                                                                                    <i class="bi bi-lock-fill"></i>
+                                                                                                </button>
+                                                        `;
+                    } else {
+                        rowHtml += `
+                                                                                                <a href="/mediciones/create/${sensor.id}" class="btn btn-sm btn-success" title="Tomar Medición">
+                                                                                                    <i class="bi bi-rulers"></i>
+                                                                                                </a>
+                                                        `;
+                    }
+
+                    rowHtml += `
+                                                                                                <a href="/sensors/${sensor.id}" class="btn btn-sm btn-info" title="Ver Sensor">
+                                                                                                    <i class="bi bi-eye"></i>
+                                                                                                </a>
+                                                                                                <a href="/sensors/${sensor.id}/edit" class="btn btn-sm btn-warning" title="Editar Sensor">
+                                                                                                    <i class="bi bi-pencil"></i>
+                                                                                                </a>
+                                                                                                <button class="btn btn-sm btn-danger delete-sensor-btn"
+                                                                                                        data-sensor-id="${sensor.id}"
+                                                                                                        data-sensor-name="${sensor.name}"
+                                                                                                        title="Eliminar Sensor">
+                                                                                                    <i class="bi bi-trash"></i>
+                                                                                                </button>
+                                                                                            </div>
+                                                                                        </td>
+                                                                                    `;
 
                     rowHtml += '</tr>';
                     tbody.append(rowHtml);
@@ -1413,31 +1459,31 @@
                 const canImport = window.canImportSensors || false;
 
                 $('#sensorsTableBody').html(`
-                                                    <tr>
-                                                        <td colspan="${emptyColspan}" class="text-center py-4">
-                                                            <div class="empty-state">
-                                                                <i class="bi bi-info-circle"></i>
-                                                                <h4>No tienes sensores</h4>
-                                                                <p>Crea tu primer sensor o importa uno desde Excel.</p>
-                                                                <div class="d-flex gap-2 justify-content-center flex-wrap">
-                                                                    <a href="{{ route('sensors.create') }}" class="btn btn-primary" id="emptyCreateSensor">
-                                                                        <i class="bi bi-plus"></i> Crear Sensor
-                                                                    </a>
-                                                                    ${canImport ? `
-                                                                        <a href="{{ route('sensor-groups.bulk-import') }}" class="btn btn-info" id="emptyImportSensors">
-                                                                            <i class="bi bi-file-earmark-excel"></i> Importar Sensores
-                                                                        </a>
-                                                                    ` : `
-                                                                        <button class="btn btn-info gate-blocked" id="emptyImportSensors" 
-                                                                                onclick="showGateBlockedNotification(); return false;">
-                                                                            <i class="bi bi-file-earmark-excel"></i> Importar Sensores
-                                                                        </button>
-                                                                    `}
-                                                                </div>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                `);
+                                                                                    <tr>
+                                                                                        <td colspan="${emptyColspan}" class="text-center py-4">
+                                                                                            <div class="empty-state">
+                                                                                                <i class="bi bi-info-circle"></i>
+                                                                                                <h4>No tienes sensores</h4>
+                                                                                                <p>Crea tu primer sensor o importa uno desde Excel.</p>
+                                                                                                <div class="d-flex gap-2 justify-content-center flex-wrap">
+                                                                                                    <a href="{{ route('sensors.create') }}" class="btn btn-primary" id="emptyCreateSensor">
+                                                                                                        <i class="bi bi-plus"></i> Crear Sensor
+                                                                                                    </a>
+                                                                                                    ${canImport ? `
+                                                                                                        <a href="{{ route('sensor-groups.bulk-import') }}" class="btn btn-info" id="emptyImportSensors">
+                                                                                                            <i class="bi bi-file-earmark-excel"></i> Importar Sensores
+                                                                                                        </a>
+                                                                                                    ` : `
+                                                                                                        <button class="btn btn-info gate-blocked" id="emptyImportSensors" 
+                                                                                                                onclick="showGateBlockedNotification(); return false;">
+                                                                                                            <i class="bi bi-file-earmark-excel"></i> Importar Sensores
+                                                                                                        </button>
+                                                                                                    `}
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                `);
                 $('#totalRecords').text('0');
                 $('#totalCountBadge').text('0');
                 $('#pageStart').text('0');
@@ -1625,8 +1671,8 @@
                 const count = selectedSensors.size;
                 $('#deleteSelectedBtn').prop('disabled', count === 0);
                 $('#deleteSelectedBtn').html(`
-                                                    <i class="bi bi-trash"></i> Eliminar Seleccionados (${count})
-                                                `);
+                                                                                    <i class="bi bi-trash"></i> Eliminar Seleccionados (${count})
+                                                                                `);
 
                 const $selectedCountBadge = $('#selectedCountBadge');
                 if (count > 0) {
@@ -1729,11 +1775,11 @@
                             'fa-info-circle';
 
                 const alertHtml = `
-                                                    <div class="alert ${alertClass} alert-dismissible fade show" role="alert" style="font-size: 0.9rem;">
-                                                        <i class="fas ${icon}"></i> ${message}
-                                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                                    </div>
-                                                `;
+                                                                                    <div class="alert ${alertClass} alert-dismissible fade show" role="alert" style="font-size: 0.9rem;">
+                                                                                        <i class="fas ${icon}"></i> ${message}
+                                                                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                                                                    </div>
+                                                                                `;
                 $('#notificationContainer').append(alertHtml);
 
                 setTimeout(function () {

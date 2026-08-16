@@ -336,9 +336,56 @@
             </div>
         </div>
     </div>
+    <!-- Modal de límite de cuota y Upsell -->
+    <div class="modal fade" id="quotaUpsellModal" tabindex="-1" aria-labelledby="quotaUpsellModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 overflow-hidden shadow-lg">
+                <div class="modal-header bg-warning text-dark border-0">
+                    <h5 class="modal-title" id="quotaUpsellModalLabel">
+                        <i class="bi bi-rocket-takeoff-fill me-2"></i> Límite de Sensores Excedido
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <div class="mb-4">
+                        <i class="bi bi-database-fill-exclamation text-warning" style="font-size: 4rem;"></i>
+                    </div>
+                    <h4 class="mb-3">¡Necesitas más espacio!</h4>
+                    <p class="text-muted mb-2" id="quotaUpsellMessage"></p>
+                    <p class="mb-4">Para importar todo el archivo en bloque, te proponemos adquirir los paquetes necesarios ahora mismo:</p>
+                    
+                    <div class="card bg-light border-0 shadow-sm mb-4">
+                        <div class="card-body">
+                            <h5 class="text-primary mb-3">Expansión Solicitada Automática</h5>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-muted">Sensores faltantes:</span>
+                                <strong id="upsellMissingSensors">0</strong>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-muted">Packs a adquirir (+10 c/u):</span>
+                                <strong id="upsellNeededPacks">0 packs</strong>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-bold">Total a pagar ahora:</span>
+                                <strong class="fs-4 text-success">$<span id="upsellCost">0</span> ARS</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pb-4 justify-content-center">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar importación</button>
+                    <button type="button" class="btn btn-primary px-4 shadow-sm" id="btnBuyAndImport">
+                        <i class="bi bi-cart3 me-2"></i> Comprar Packs e Importar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
     <script>
         // =============================================
         // CONFIGURACIÓN GLOBAL
@@ -397,6 +444,55 @@
             $('#confirmImportBtn').click(function () {
                 $('#confirmImportModal').modal('hide');
                 executeImport();
+            });
+
+            // ✅ Evento Automático de Upsell
+            $('#btnBuyAndImport').click(function () {
+                const btn = $(this);
+                const packs = btn.data('packs');
+                
+                if (!packs) return;
+                
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Procesando pago...');
+                
+                $.ajax({
+                    url: '/api/subscription/buy-packs',
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    data: { packs: packs },
+                    success: function(response) {
+                        if (response.success && response.data.preference_id) {
+                            $('#quotaUpsellModal').modal('hide');
+                            
+                            // ✅ BYPASS PARA ENTORNO LOCAL
+                            if (response.data.is_local) {
+                                showAlert('✅ [DEV] Packs acreditados localmente en Sandbox. Recargando cuotas...', 'success');
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 1500);
+                                return;
+                            }
+                            
+                            showAlert('✅ Redirigiendo a Mercado Pago para confirmar tu compra...', 'success');
+                            
+                            const mp = new MercadoPago('APP_USR-79f9f592-1234-1234-1234-fcba80287103', { locale: 'es-AR' });
+                            mp.checkout({
+                                preference: { id: response.data.preference_id },
+                                autoOpen: true
+                            });
+                        } else {
+                            btn.prop('disabled', false).html('<i class="bi bi-cart3 me-2"></i> Comprar Packs e Importar');
+                            showAlert('Error al generar la preferencia de pago', 'danger');
+                        }
+                    },
+                    error: function() {
+                        btn.prop('disabled', false).html('<i class="bi bi-cart3 me-2"></i> Comprar Packs e Importar');
+                        showAlert('Error de conexión con el procesador de pagos', 'danger');
+                    }
+                });
             });
 
             // =============================================
@@ -750,20 +846,38 @@
     // =============================================
 
     function showAlert(message, type) {
-        const alertHtml = `
-            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        // En lugar de una alerta inline, generamos un Toast flotante moderno
+        if ($('#toast-container-global').length === 0) {
+            $('body').append('<div id="toast-container-global" class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1055;"></div>');
+        }
+
+        const icon = type === 'success' ? 'check-circle' : (type === 'danger' ? 'x-circle' : 'exclamation-circle');
+        const bgColor = type === 'danger' ? 'bg-danger' : (type === 'success' ? 'bg-success' : 'bg-warning');
+        
+        const toastId = 'toast-' + Date.now();
+        const toastHtml = `
+            <div id="${toastId}" class="toast align-items-center text-white ${bgColor} border-0 shadow-lg mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body d-flex align-items-center gap-2" style="font-weight: 500;">
+                        <i class="bi bi-${icon} fs-5"></i>
+                        <span>${message}</span>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
             </div>
         `;
-        $('#alertContainer').append(alertHtml);
-
-        // ✅ Auto-eliminar después de 8 segundos
-        setTimeout(() => {
-            $('#alertContainer .alert').first().fadeOut(500, function() {
-                $(this).remove();
-            });
-        }, 8000);
+        
+        $('#toast-container-global').append(toastHtml);
+        
+        // Inicializar y mostrar el Toast usando Bootstrap directamente
+        const toastElement = document.getElementById(toastId);
+        const toast = new bootstrap.Toast(toastElement, { delay: 6000 });
+        toast.show();
+        
+        // Limpiar el DOM después de que se oculte
+        toastElement.addEventListener('hidden.bs.toast', function () {
+            $(this).remove();
+        });
     }
 
     // =============================================
@@ -930,6 +1044,20 @@
             },
             error: function(xhr) {
                 hideLoading();
+                
+                // ✅ Interceptar Error de Cuota con Oportunidad de Upsell
+                if (xhr.status === 403 && xhr.responseJSON?.error_type === 'quota_exceeded' && xhr.responseJSON?.upsell_data) {
+                    const upsell = xhr.responseJSON.upsell_data;
+                    $('#quotaUpsellMessage').text(xhr.responseJSON.message);
+                    $('#upsellMissingSensors').text(upsell.missing_sensors);
+                    $('#upsellNeededPacks').text(upsell.needed_packs + ' packs');
+                    $('#upsellCost').text(upsell.formatted_cost);
+                    
+                    $('#btnBuyAndImport').data('packs', upsell.needed_packs);
+                    $('#quotaUpsellModal').modal('show');
+                    return;
+                }
+                
                 const errorMessage = xhr.responseJSON?.message || xhr.statusText;
                 showAlert('Error al analizar el archivo: ' + errorMessage, 'danger');
             }
@@ -1534,15 +1662,7 @@
         `);
     }
 
-    function showAlert(message, type) {
-        const alertHtml = `
-            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        `;
-        $('#alertContainer').append(alertHtml);
-    }
+
 
     // =============================================
     // IMPORTACIÓN - VERSIÓN CORREGIDA

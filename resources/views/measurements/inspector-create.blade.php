@@ -286,6 +286,8 @@
                                     $dateField = $campo;
                                 } elseif (isset($campo['es_foto']) && $campo['es_foto'] === true) {
                                     $photoField = $campo;
+                                } elseif ($nombre === 'identificador') {
+                                    continue;
                                 } else {
                                     $extraFields[] = $campo;
                                 }

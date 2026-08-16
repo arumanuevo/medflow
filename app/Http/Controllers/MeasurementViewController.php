@@ -15,21 +15,21 @@ class MeasurementViewController extends Controller
      */
     public function index()
     {
-        
+
         $user = auth()->user();
 
-        $sensors = Sensor::whereHas('group', function($query) use ($user) {
+        $sensors = Sensor::whereHas('group', function ($query) use ($user) {
             $query->where('user_id', $user->id)
-                  ->orWhereHas('sharedAccess', function($q) use ($user) {
-                      $q->where('shared_with', $user->id)
+                ->orWhereHas('sharedAccess', function ($q) use ($user) {
+                    $q->where('shared_with', $user->id)
                         ->whereIn('role', ['inspector', 'admin']);
-                  });
+                });
         })->with(['group'])->get();
 
         $groups = SensorGroup::where('user_id', $user->id)
-            ->orWhereHas('sharedAccess', function($q) use ($user) {
+            ->orWhereHas('sharedAccess', function ($q) use ($user) {
                 $q->where('shared_with', $user->id)
-                  ->whereIn('role', ['inspector', 'admin']);
+                    ->whereIn('role', ['inspector', 'admin']);
             })
             ->with(['user'])
             ->orderBy('name')
@@ -45,7 +45,7 @@ class MeasurementViewController extends Controller
     public function selectSensor(Request $request)
     {
         $user = auth()->user();
-        
+
         // ✅ Obtener el espacio activo (propio o colaborativo)
         $activeWorkspace = session('active_workspace', $user->id);
         $isOwner = $activeWorkspace == $user->id;
@@ -77,15 +77,15 @@ class MeasurementViewController extends Controller
         }
 
         // ✅ Si es propietario, mostrar sus grupos y sensores
-        $groups = SensorGroup::where(function($query) use ($user) {
+        $groups = SensorGroup::where(function ($query) use ($user) {
             $query->where('user_id', $user->id)
-                ->orWhereHas('sharedAccess', function($q) use ($user) {
+                ->orWhereHas('sharedAccess', function ($q) use ($user) {
                     $q->where('shared_with', $user->id)
                         ->whereIn('role', ['inspector', 'admin']);
                 });
         })->with(['user', 'template', 'sensors'])
-        ->orderBy('name')
-        ->get();
+            ->orderBy('name')
+            ->get();
 
         // ✅ Si no hay grupos con sensores, mostrar mensaje
         if ($groups->isEmpty()) {
@@ -102,7 +102,7 @@ class MeasurementViewController extends Controller
 
         // ✅ Verificar que el sensor pertenece al workspace activo
         $sensorOwnerId = $sensor->group->user_id ?? null;
-        
+
         // Si el sensor no pertenece al workspace activo, denegar acceso
         if ($sensorOwnerId != $activeWorkspace && $activeWorkspace != $user->id) {
             abort(403, 'No tienes permiso para tomar mediciones en este sensor.');
@@ -110,17 +110,17 @@ class MeasurementViewController extends Controller
 
         // ✅ Verificar permisos específicos
         $canTakeMeasurement = $user->hasRole('admin') ||
-                            ($sensor->group && $sensor->group->user_id === $user->id) ||
-                            ($sensor->group && $sensor->group->sharedAccess()
-                                ->where('shared_with', $user->id)
-                                ->whereIn('role', ['inspector', 'admin'])
-                                ->exists()) ||
-                            // ✅ También permitir si es colaborador activo en el workspace del propietario
-                            \App\Models\WorkspaceCollaborator::where('workspace_id', $sensorOwnerId)
-                                ->where('user_id', $user->id)
-                                ->where('status', 'active')
-                                ->whereIn('role', ['inspector', 'admin'])
-                                ->exists();
+            ($sensor->group && $sensor->group->user_id === $user->id) ||
+            ($sensor->group && $sensor->group->sharedAccess()
+                ->where('shared_with', $user->id)
+                ->whereIn('role', ['inspector', 'admin'])
+                ->exists()) ||
+            // ✅ También permitir si es colaborador activo en el workspace del propietario
+            \App\Models\WorkspaceCollaborator::where('workspace_id', $sensorOwnerId)
+                ->where('user_id', $user->id)
+                ->where('status', 'active')
+                ->whereIn('role', ['inspector', 'admin'])
+                ->exists();
 
         if (!$canTakeMeasurement) {
             abort(403, 'No tienes permiso para tomar mediciones en este sensor.');
@@ -132,10 +132,10 @@ class MeasurementViewController extends Controller
             $planName = $subscriptionService->getPlan()->getPlanName();
             $maxSensors = $subscriptionService->getPlan()->getMaxSensors();
             $measurableSensors = $subscriptionService->getMeasurableSensorIds();
-            
+
             abort(403, "No puedes tomar mediciones en este sensor con tu plan {$planName}. " .
-                  "Tu plan permite medir solo en los primeros {$maxSensors} sensores. " .
-                  "Actualiza tu plan para medir en todos tus sensores.");
+                "Tu plan permite medir solo en los primeros {$maxSensors} sensores. " .
+                "Actualiza tu plan para medir en todos tus sensores.");
         }
 
         // Verificar plantilla
@@ -160,12 +160,12 @@ class MeasurementViewController extends Controller
         // Verificar si hay más sensores marcados para medición masiva
         $hasMoreSensors = Sensor::where('marcado_para_medicion', true)
             ->where('id', '!=', $sensor->id)
-            ->whereHas('group', function($q) use ($user) {
+            ->whereHas('group', function ($q) use ($user) {
                 $q->where('user_id', $user->id)
-                ->orWhereHas('sharedAccess', function($q2) use ($user) {
-                    $q2->where('shared_with', $user->id)
-                        ->whereIn('role', ['inspector', 'admin']);
-                });
+                    ->orWhereHas('sharedAccess', function ($q2) use ($user) {
+                        $q2->where('shared_with', $user->id)
+                            ->whereIn('role', ['inspector', 'admin']);
+                    });
             })
             ->exists();
 
@@ -188,34 +188,34 @@ class MeasurementViewController extends Controller
      * Mostrar el formulario para editar una medición.
      */
     /**
- * Mostrar el formulario para editar una medición.
- */
-public function edit(Measurement $measurement)
-{
-    $user = auth()->user();
+     * Mostrar el formulario para editar una medición.
+     */
+    public function edit(Measurement $measurement)
+    {
+        $user = auth()->user();
 
-    // Verificar permisos
-    $canEditMeasurement = $user->hasRole('admin') ||
-                         ($measurement->sensor->group && $measurement->sensor->group->user_id === $user->id) ||
-                         ($measurement->sensor->group && $measurement->sensor->group->sharedAccess()
-                             ->where('shared_with', $user->id)
-                             ->whereIn('role', ['inspector', 'admin'])
-                             ->exists());
+        // Verificar permisos
+        $canEditMeasurement = $user->hasRole('admin') ||
+            ($measurement->sensor->group && $measurement->sensor->group->user_id === $user->id) ||
+            ($measurement->sensor->group && $measurement->sensor->group->sharedAccess()
+                ->where('shared_with', $user->id)
+                ->whereIn('role', ['inspector', 'admin'])
+                ->exists());
 
-    if (!$canEditMeasurement) {
-        abort(403, 'No tienes permiso para editar esta medición.');
+        if (!$canEditMeasurement) {
+            abort(403, 'No tienes permiso para editar esta medición.');
+        }
+
+        // Obtener configuraciones globales del usuario
+        $defaultPeriod = UserSetting::get($user->id, 'default_measurement_period', 30);
+        $defaultExpiry = UserSetting::get($user->id, 'default_expiry_days', 5);
+
+        return view('measurements.edit', compact(
+            'measurement',
+            'defaultPeriod',
+            'defaultExpiry'
+        ));
     }
-
-    // Obtener configuraciones globales del usuario
-    $defaultPeriod = UserSetting::get($user->id, 'default_measurement_period', 30);
-    $defaultExpiry = UserSetting::get($user->id, 'default_expiry_days', 5);
-
-    return view('measurements.edit', compact(
-        'measurement',
-        'defaultPeriod',
-        'defaultExpiry'
-    ));
-}
     /**
      * Redirigir al primer sensor marcado para medición masiva
      */
@@ -223,37 +223,37 @@ public function edit(Measurement $measurement)
     {
         $user = auth()->user();
         $activeWorkspace = session('active_workspace', $user->id);
-        
+
         // ✅ Obtener el primer sensor marcado (ordenado por ID ascendente)
         $firstMarked = Sensor::where('marcado_para_medicion', true)
-            ->whereHas('group', function($q) use ($activeWorkspace) {
+            ->whereHas('group', function ($q) use ($activeWorkspace) {
                 $q->where('user_id', $activeWorkspace);
             })
             ->orderBy('id', 'asc')
             ->first();
-        
+
         if (!$firstMarked) {
             return redirect()->route('measurements.select-sensor')
                 ->with('info', 'No hay sensores marcados para medición masiva.');
         }
-        
+
         Log::info('🔄 Redirigiendo a bulkCreate para el primer sensor marcado', [
             'sensor_id' => $firstMarked->id,
             'sensor_name' => $firstMarked->name,
             'active_workspace' => $activeWorkspace
         ]);
-        
+
         return redirect()->route('measurements.bulk-create', $firstMarked->id);
     }
-    
-/**
+
+    /**
      * Mostrar el formulario de medición masiva para un sensor específico
      */
     public function bulkCreate(Sensor $sensor)
     {
         $user = auth()->user();
         $activeWorkspace = session('active_workspace', $user->id);
-        
+
         // ✅ Verificar que el sensor pertenece al workspace activo
         $sensorOwnerId = $sensor->group->user_id ?? $user->id;
         $isOwner = $sensorOwnerId == $user->id;
@@ -261,13 +261,13 @@ public function edit(Measurement $measurement)
 
         // ✅ Verificar si es colaborador activo
         if ($sensorOwnerId && $sensorOwnerId != $user->id) {
-            $collaboration = WorkspaceCollaborator::where('workspace_id', $sensorOwnerId)
+            $collaboration = \App\Models\WorkspaceCollaborator::where('workspace_id', $sensorOwnerId)
                 ->where('user_id', $user->id)
                 ->where('status', 'active')
                 ->where('is_paused', false)
                 ->whereIn('role', ['inspector', 'admin'])
                 ->first();
-            
+
             if ($collaboration) {
                 $isCollaborator = true;
             }
@@ -291,7 +291,7 @@ public function edit(Measurement $measurement)
 
         // ✅ OBTENER TODOS LOS SENSORES MARCADOS
         $allMarkedSensors = Sensor::where('marcado_para_medicion', true)
-            ->whereHas('group', function($q) use ($sensorOwnerId) {
+            ->whereHas('group', function ($q) use ($sensorOwnerId) {
                 $q->where('user_id', $sensorOwnerId);
             })
             ->orderBy('id', 'asc')
@@ -311,7 +311,7 @@ public function edit(Measurement $measurement)
         // ✅ VERIFICAR SIGUIENTE SENSOR
         $nextSensor = null;
         $hasMoreSensors = false;
-        
+
         foreach ($allMarkedSensors as $index => $markedSensor) {
             if ($markedSensor->id === $sensor->id && isset($allMarkedSensors[$index + 1])) {
                 $nextSensor = $allMarkedSensors[$index + 1];
@@ -328,7 +328,7 @@ public function edit(Measurement $measurement)
         $allMeasurements = Measurement::where('sensor_id', $sensor->id)
             ->orderBy('measured_at', 'asc')
             ->get()
-            ->map(function($m) {
+            ->map(function ($m) {
                 return [
                     'id' => $m->id,
                     'date' => $m->measured_at->toISOString(),
@@ -372,13 +372,13 @@ public function edit(Measurement $measurement)
         ));
     }
 
-/**
- * Mostrar formulario de importación masiva de mediciones
- */
-public function showBulkImportForm()
-{
-    return view('measurements.bulk-import');
-}
+    /**
+     * Mostrar formulario de importación masiva de mediciones
+     */
+    public function showBulkImportForm()
+    {
+        return view('measurements.bulk-import');
+    }
 
     /**
      * Mostrar el formulario para seleccionar un sensor (para colaboradores).
@@ -387,10 +387,10 @@ public function showBulkImportForm()
     public function inspectorSelectSensor(Request $request)
     {
         $user = auth()->user();
-        
+
         // ✅ Obtener el espacio activo
         $activeWorkspace = session('active_workspace', $user->id);
-        
+
         \Log::info('🔍 inspectorSelectSensor', [
             'user_id' => $user->id,
             'active_workspace' => $activeWorkspace,
@@ -430,9 +430,26 @@ public function showBulkImportForm()
         $ownerName = $owner ? $owner->name : 'Propietario';
 
         // ✅ Obtener TODOS los sensores del propietario
-        $sensors = \App\Models\Sensor::whereHas('group', function($query) use ($activeWorkspace) {
+        $sensorsQuery = \App\Models\Sensor::whereHas('group', function ($query) use ($activeWorkspace) {
             $query->where('user_id', $activeWorkspace);
-        })->with(['group', 'group.template'])->get();
+        })->with(['group', 'group.template']);
+
+        // ✅ FASE 38: Restricción opcional por Ruteo Asignado
+        if ($collaboration->has_restricted_access) {
+            $sensorsQuery->whereHas('collaborators', function ($q) use ($collaboration) {
+                $q->where('workspace_collaborator_id', $collaboration->id);
+            });
+        }
+
+        $sensors = $sensorsQuery->get();
+
+        // ✅ Evaluar limitantes basados en el PROPIETARIO, no en el colaborador
+        $subscriptionService = new \App\Services\Subscription\SubscriptionService($owner);
+        $measurableSensorIds = $subscriptionService->getMeasurableSensorIds();
+
+        foreach ($sensors as $sensor) {
+            $sensor->is_measurable = in_array($sensor->id, $measurableSensorIds);
+        }
 
         \Log::info('🔍 inspectorSelectSensor resultado', [
             'user_id' => $user->id,
@@ -458,16 +475,29 @@ public function showBulkImportForm()
         }
 
         // ✅ Verificar permisos de colaboración
-        $canTakeMeasurement = $user->hasRole('admin') ||
-                            ($sensor->group && $sensor->group->user_id === $user->id) ||
-                            \App\Models\WorkspaceCollaborator::where('workspace_id', $activeWorkspace)
-                                ->where('user_id', $user->id)
-                                ->where('status', 'active')
-                                ->whereIn('role', ['inspector', 'admin'])
-                                ->exists();
+        $collaboration = null;
+        if (!$user->hasRole('admin') && !($sensor->group && $sensor->group->user_id === $user->id)) {
+            $collaboration = \App\Models\WorkspaceCollaborator::where('workspace_id', $activeWorkspace)
+                ->where('user_id', $user->id)
+                ->where('status', 'active')
+                ->whereIn('role', ['inspector', 'admin'])
+                ->first();
 
-        if (!$canTakeMeasurement) {
-            abort(403, 'No tienes permiso para tomar mediciones en este sensor.');
+            if (!$collaboration) {
+                abort(403, 'No tienes permiso para tomar mediciones en este sensor.');
+            }
+        }
+
+        // ✅ Fase 38: Validar que el inspector pueda acceder a este sensor si está restringido
+        if ($collaboration && $collaboration->has_restricted_access) {
+            $isAssigned = \DB::table('collaborator_sensor')
+                ->where('workspace_collaborator_id', $collaboration->id)
+                ->where('sensor_id', $sensor->id)
+                ->exists();
+
+            if (!$isAssigned) {
+                abort(403, 'Bloqueo Activo: No tienes este sensor asignado en tu cuadrilla/ruta.');
+            }
         }
 
         // ✅ Obtener propietario
@@ -500,26 +530,10 @@ public function showBulkImportForm()
         // ✅ Configuraciones
         $defaultPeriod = (int) \App\Models\UserSetting::get($user->id, 'default_measurement_period', 30);
 
-        // ✅ Verificar si hay más sensores marcados para medición masiva
-        $hasMoreSensors = Sensor::where('marcado_para_medicion', true)
-            ->where('id', '!=', $sensor->id)
-            ->whereHas('group', function($q) use ($activeWorkspace) {
-                $q->where('user_id', $activeWorkspace);
-            })
-            ->exists();
-
-        $totalMarked = Sensor::where('marcado_para_medicion', true)
-            ->whereHas('group', function($q) use ($activeWorkspace) {
-                $q->where('user_id', $activeWorkspace);
-            })
-            ->count();
-
-        $currentPosition = Sensor::where('marcado_para_medicion', true)
-            ->whereHas('group', function($q) use ($activeWorkspace) {
-                $q->where('user_id', $activeWorkspace);
-            })
-            ->where('id', '<=', $sensor->id)
-            ->count();
+        // ✅ Mediciones individuales del inspector NO deben enlazar con secuencia masiva en cola
+        $hasMoreSensors = false;
+        $totalMarked = 1;
+        $currentPosition = 1;
 
         return view('measurements.inspector-create', compact(
             'sensor',

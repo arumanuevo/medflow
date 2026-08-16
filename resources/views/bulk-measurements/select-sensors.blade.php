@@ -89,6 +89,42 @@
             border-radius: 4px;
             min-width: 26px;
         }
+
+        .pagination-wrapper {
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .pagination-info {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .pagination-info strong {
+            color: #212529;
+            font-weight: 600;
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .pagination-controls .per-page-select {
+            padding: 0.25rem 2rem 0.25rem 0.5rem;
+            font-size: 0.85rem;
+            border-radius: 4px;
+            border: 1px solid #ced4da;
+            background-color: white;
+            cursor: pointer;
+        }
     </style>
 
 
@@ -284,6 +320,7 @@
                                                 }
 
                                                 $isMarked = in_array($sensor->id, $markedSensorIds);
+                                                $isLocked = !($sensor->is_measurable ?? true); // Candado limitante
                                             @endphp
                                             <tr data-sensor-id="{{ $sensor->id }}"
                                                 data-sensor-name="{{ strtolower($sensor->name) }}"
@@ -291,16 +328,27 @@
                                                 data-status="{{ strtolower(str_replace(' ', '_', $estado)) }}"
                                                 data-identifier="{{ strtolower($sensor->identifier) }}"
                                                 data-community="{{ $sensor->is_community ? '1' : '0' }}"
-                                                class="{{ $isMarked ? 'selected-row' : '' }}">
+                                                class="{{ $isLocked ? 'table-secondary opacity-75' : '' }}">
                                                 <td>
-                                                    <input type="checkbox" class="sensor-checkbox"
-                                                        data-sensor-id="{{ $sensor->id }}" {{ $isMarked ? 'checked' : '' }}>
+                                                    @if($isLocked)
+                                                        <i class="bi bi-lock-fill text-danger fs-5 ms-2"
+                                                            title="Bloqueado por límite de sensores de Plan"></i>
+                                                    @else
+                                                        <input type="checkbox" class="sensor-checkbox"
+                                                            data-sensor-id="{{ $sensor->id }}">
+                                                    @endif
                                                 </td>
                                                 <td class="text-left">
                                                     <strong>{{ $sensor->name }}</strong>
                                                     @if($sensor->is_community)
                                                         <span class="badge bg-success ms-1" style="font-size:0.6rem;"><i
                                                                 class="bi bi-tree-fill"></i> Común</span>
+                                                    @endif
+                                                    @if($isLocked)
+                                                        <span
+                                                            class="badge bg-danger bg-opacity-10 text-danger border border-danger ms-1"
+                                                            style="font-size: 0.65rem;" title="Límite del Plan Superado"><i
+                                                                class="bi bi-lock-fill"></i> Bloqueado</span>
                                                     @endif
                                                 </td>
                                                 <td><code>{{ $sensor->identifier }}</code></td>
@@ -332,6 +380,35 @@
                                         @endforelse
                                     </tbody>
                                 </table>
+                            </div>
+
+                            {{-- Paginación Client-Side --}}
+                            <div class="pagination-wrapper px-3 py-2 border rounded shadow-sm bg-white mb-3 mt-2">
+                                <div class="pagination-info text-muted small" id="paginationInfo">
+                                    Mostrando <strong id="pageStart">0</strong> - <strong id="pageEnd">0</strong> de <strong
+                                        id="totalRecords">0</strong> sensores
+                                </div>
+                                <div class="pagination-controls d-flex align-items-center gap-3">
+                                    <div class="d-flex align-items-center gap-1">
+                                        <select class="form-select form-select-sm w-auto" id="perPageSelect">
+                                            <option value="10">10</option>
+                                            <option value="25" selected>25</option>
+                                            <option value="50">50</option>
+                                            <option value="100">100</option>
+                                        </select>
+                                        <span class="text-muted small">por pág</span>
+                                    </div>
+                                    <div class="btn-group" id="paginationButtons">
+                                        <button class="btn btn-outline-secondary btn-sm" id="pagePrev" disabled>
+                                            <i class="bi bi-chevron-left"></i>
+                                        </button>
+                                        <span class="d-flex align-items-center px-2 small bg-light border-top border-bottom"
+                                            id="pageInfo">Página 1</span>
+                                        <button class="btn btn-outline-secondary btn-sm" id="pageNext" disabled>
+                                            <i class="bi bi-chevron-right"></i>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="mt-3">
@@ -475,13 +552,13 @@
                 const useSelectionOrder = $useSelectionOrder.is(':checked');
                 if (useSelectionOrder && selectionOrder.length > 0) {
                     $('#bulkMeasurementForm').append(`
-                                    <input type="hidden" name="selection_order" value="${selectionOrder.join(',')}">
-                                    <input type="hidden" name="use_selection_order" value="1">
-                                `);
+                                                        <input type="hidden" name="selection_order" value="${selectionOrder.join(',')}">
+                                                        <input type="hidden" name="use_selection_order" value="1">
+                                                    `);
                 } else {
                     $('#bulkMeasurementForm').append(`
-                                    <input type="hidden" name="use_selection_order" value="0">
-                                `);
+                                                        <input type="hidden" name="use_selection_order" value="0">
+                                                    `);
                 }
 
                 $modalSelectedCount.text(selectedCount);
@@ -528,11 +605,17 @@
                 applyFilters();
             });
 
+            // Paginación Globales
+            let currentPage = 1;
+            let itemsPerPage = 25;
+
             // Filtros
             function applyFilters() {
                 const group = $groupFilter.val().toLowerCase();
                 const status = $statusFilter.val().toLowerCase();
                 const search = $searchFilter.val().toLowerCase();
+
+                let visibleRows = [];
 
                 $sensorRows.each(function () {
                     const $row = $(this);
@@ -546,39 +629,61 @@
 
                     let show = true;
 
-                    if (filterOnlyCommunity && isCommunity !== '1') {
-                        show = false;
-                    }
+                    if (filterOnlyCommunity && isCommunity !== '1') show = false;
+                    if (group && rowGroup !== group) show = false;
+                    if (status && rowStatus !== status) show = false;
+                    if (search && !rowName.includes(search) && !rowIdentifier.includes(search)) show = false;
 
-                    if (group && rowGroup !== group) {
-                        show = false;
+                    if (show) {
+                        visibleRows.push(this);
                     }
-
-                    if (status && rowStatus !== status) {
-                        show = false;
-                    }
-
-                    if (search && !rowName.includes(search) && !rowIdentifier.includes(search)) {
-                        show = false;
-                    }
-
-                    $row.toggle(show);
+                    $row.toggle(false); // Ocultar todo inicialmente
                 });
+
+                // Cálculos de Paginación
+                const total = visibleRows.length;
+                const totalPages = Math.ceil(total / itemsPerPage) || 1;
+
+                if (currentPage > totalPages) currentPage = totalPages;
+                if (currentPage < 1) currentPage = 1;
+
+                const start = (currentPage - 1) * itemsPerPage;
+                const end = start + itemsPerPage;
+
+                // Mostrar solo el segmento correspondiente
+                $(visibleRows).slice(start, end).toggle(true);
+
+                // Actualizar interfaz
+                $('#pageStart').text(total === 0 ? 0 : start + 1);
+                $('#pageEnd').text(Math.min(end, total));
+                $('#totalRecords').text(total);
+                $('#pageInfo').text(`Página ${currentPage} de ${totalPages}`);
+
+                $('#pagePrev').prop('disabled', currentPage <= 1);
+                $('#pageNext').prop('disabled', currentPage >= totalPages);
             }
+
+            // Bind de Eventos Paginación
+            $('#pagePrev').click(function (e) { e.preventDefault(); currentPage--; applyFilters(); });
+            $('#pageNext').click(function (e) { e.preventDefault(); currentPage++; applyFilters(); });
+            $('#perPageSelect').change(function () { itemsPerPage = parseInt($(this).val()); currentPage = 1; applyFilters(); });
 
             $('#filterBtn').click(applyFilters);
             $groupFilter.change(applyFilters);
             $statusFilter.change(applyFilters);
             $searchFilter.on('input', applyFilters);
 
+            // Iniciar paginación en el renderizado inicial
+            applyFilters();
+
             // Mostrar alertas
             function showAlert(message, type) {
                 const alertHtml = `
-                                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                                    ${message}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                </div>
-                            `;
+                                                    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                                                        ${message}
+                                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                                    </div>
+                                                `;
                 $('.card-body').prepend(alertHtml);
 
                 setTimeout(() => {

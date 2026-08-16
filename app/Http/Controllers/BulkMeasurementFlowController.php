@@ -57,6 +57,13 @@ class BulkMeasurementFlowController extends Controller
 
         $sensors = $query->orderBy('name')->get();
 
+        $subscriptionService = new \App\Services\Subscription\SubscriptionService($user);
+        $measurableSensorIds = $subscriptionService->getMeasurableSensorIds();
+
+        foreach ($sensors as $sensor) {
+            $sensor->is_measurable = in_array($sensor->id, $measurableSensorIds);
+        }
+
         // Obtener los sensores actualmente marcados para medición
         $markedSensorIds = Sensor::where('marcado_para_medicion', true)
             ->whereHas('group', function ($q) use ($activeWorkspace, $user, $isOwner) {

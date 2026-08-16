@@ -14,27 +14,29 @@ class SubscriptionPlanController extends Controller
     {
         try {
             $user = $request->user();
-            
+
             if (!$user) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Usuario no autenticado'
                 ], 401);
             }
-            
+            $isPersonal = $request->boolean('personal_only');
+
             $service = new SubscriptionService($user);
-            $status = $service->getFullStatus();
-            
+            // Si es vista personal, evitar leer plan de colaborador
+            $status = $service->getFullStatus($isPersonal);
+
             return response()->json([
                 'success' => true,
                 'data' => $status
             ]);
-            
+
         } catch (\Exception $e) {
             \Log::error('❌ Error en SubscriptionPlanController@status: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Error al obtener el estado de la suscripción: ' . $e->getMessage()

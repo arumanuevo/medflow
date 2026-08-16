@@ -110,13 +110,6 @@ class SidebarService
                 'url' => '/profile',
                 'active' => request()->is('profile*'),
             ],
-            [
-                'icon' => 'bi bi-gear',
-                'label' => 'Administración',
-                'url' => '/admin',
-                'active' => request()->is('admin*'),
-                'admin_only' => true,
-            ],
         ]);
 
         return $menu;
@@ -127,6 +120,16 @@ class SidebarService
      */
     private function getCollaboratorMenu($role)
     {
+        // ✅ Para ADMIN: Acceso casi total, menos Mi Perfil y Colaboraciones
+        if ($role === 'admin') {
+            $menu = $this->getOwnerMenu();
+            // Filtrar "Mi Perfil" y "Colaboraciones" (ya que siempre son del usuario autenticado)
+            $menu = array_filter($menu, function ($item) {
+                return $item['url'] !== '/profile' && $item['url'] !== '/collaborations';
+            });
+            return array_values($menu);
+        }
+
         // ✅ Para INSPECTOR: solo tomar mediciones (usando la vista de inspector)
         if ($role === 'inspector') {
             return [
@@ -143,138 +146,10 @@ class SidebarService
                     'active' => request()->is('mediciones/inspector*'),
                     'highlight' => true,
                 ],
-                [
-                    'icon' => 'bi bi-person-circle',
-                    'label' => 'Mi Perfil',
-                    'url' => '/profile',
-                    'active' => request()->is('profile*'),
-                ],
             ];
         }
 
-        // Comprobar suscripción premium
-        $subService = app(\App\Services\Subscription\SubscriptionService::class, ['user' => auth()->user()]);
-        $hasPremium = $subService->getPlan()->getPlanKey() === 'premium';
-
-        // ✅ Para ADMIN (colaborador): menú casi completo
-        if ($role === 'admin') {
-            $menu = [
-                [
-                    'icon' => 'bi bi-house',
-                    'label' => 'Dashboard',
-                    'url' => '/dashboard',
-                    'active' => request()->is('dashboard') || request()->is('/'),
-                ],
-                [
-                    'icon' => 'bi bi-rulers',
-                    'label' => 'Tomar Mediciones',
-                    'url' => '/mediciones/select-sensor',
-                    'active' => request()->is('mediciones/select-sensor*'),
-                    'highlight' => true,
-                ],
-                [
-                    'icon' => 'bi bi-speedometer',
-                    'label' => 'Sensores',
-                    'url' => '/sensors',
-                    'active' => request()->is('sensors*') && !request()->is('sensors/create*'),
-                ],
-                [
-                    'icon' => 'bi bi-graph-up',
-                    'label' => 'Mediciones',
-                    'url' => '/mediciones',
-                    'active' => request()->is('mediciones'),
-                ],
-                [
-                    'icon' => 'bi bi-bar-chart-line',
-                    'label' => 'Consumos',
-                    'url' => '/consumptions',
-                    'active' => request()->is('consumptions*'),
-                ]
-            ];
-
-            if ($hasPremium) {
-                $menu[] = [
-                    'icon' => 'bi bi-broadcast',
-                    'label' => 'Campañas Públicas',
-                    'url' => '/campaigns/bulk',
-                    'active' => request()->is('campaigns/bulk*'),
-                ];
-            }
-
-            $menu = array_merge($menu, [
-                [
-                    'icon' => 'bi bi-folder',
-                    'label' => 'Grupos',
-                    'url' => '/sensor-groups',
-                    'active' => request()->is('sensor-groups*'),
-                ],
-                [
-                    'icon' => 'bi bi-file-earmark-text',
-                    'label' => 'Plantillas',
-                    'url' => '/templates',
-                    'active' => request()->is('templates*'),
-                ],
-                [
-                    'icon' => 'bi bi-people',
-                    'label' => 'Colaboraciones',
-                    'url' => '/collaborations',
-                    'active' => request()->is('collaborations*'),
-                    'badge' => $this->getPendingInvitationsCount(),
-                ],
-                [
-                    'icon' => 'bi bi-person-circle',
-                    'label' => 'Mi Perfil',
-                    'url' => '/profile',
-                    'active' => request()->is('profile*'),
-                ],
-            ]);
-
-            return $menu;
-        }
-
-        // ✅ Para CONSUMIDOR: solo ver
-        if ($role === 'consumidor') {
-            return [
-                [
-                    'icon' => 'bi bi-house',
-                    'label' => 'Dashboard',
-                    'url' => '/dashboard',
-                    'active' => request()->is('dashboard') || request()->is('/'),
-                ],
-                [
-                    'icon' => 'bi bi-speedometer',
-                    'label' => 'Sensores',
-                    'url' => '/sensors',
-                    'active' => request()->is('sensors*') && !request()->is('sensors/create*'),
-                ],
-                [
-                    'icon' => 'bi bi-graph-up',
-                    'label' => 'Mediciones',
-                    'url' => '/mediciones',
-                    'active' => request()->is('mediciones'),
-                ],
-                [
-                    'icon' => 'bi bi-bar-chart-line',
-                    'label' => 'Consumos',
-                    'url' => '/consumptions',
-                    'active' => request()->is('consumptions*'),
-                ],
-                [
-                    'icon' => 'bi bi-people',
-                    'label' => 'Colaboraciones',
-                    'url' => '/collaborations',
-                    'active' => request()->is('collaborations*'),
-                    'badge' => $this->getPendingInvitationsCount(),
-                ],
-                [
-                    'icon' => 'bi bi-person-circle',
-                    'label' => 'Mi Perfil',
-                    'url' => '/profile',
-                    'active' => request()->is('profile*'),
-                ],
-            ];
-        }
-
+        // ✅ Si el invitado tiene roles perdidos o remanentes, forzar por defecto interface silenciosa
         return $this->getDefaultMenu();
     }
 
@@ -289,13 +164,7 @@ class SidebarService
                 'label' => 'Dashboard',
                 'url' => '/dashboard',
                 'active' => request()->is('dashboard') || request()->is('/'),
-            ],
-            [
-                'icon' => 'bi bi-person-circle',
-                'label' => 'Mi Perfil',
-                'url' => '/profile',
-                'active' => request()->is('profile*'),
-            ],
+            ]
         ];
     }
 

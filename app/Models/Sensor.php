@@ -5,6 +5,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Sensor extends Model
 {
@@ -77,5 +78,13 @@ class Sensor extends Model
     public function sharedAccess(): HasMany
     {
         return $this->hasMany(SensorSharedAccess::class);
+    }
+
+    /**
+     * Relación inversa con colaboradores (Fase 38).
+     */
+    public function collaborators(): BelongsToMany
+    {
+        return $this->belongsToMany(WorkspaceCollaborator::class, 'collaborator_sensor', 'sensor_id', 'workspace_collaborator_id');
     }
 }

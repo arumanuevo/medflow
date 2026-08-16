@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Shuchkin\SimpleXLSX;
 use Carbon\Carbon;
+use App\Services\Subscription\SubscriptionService;
 
 class BulkSensorImportController extends Controller
 {
@@ -70,6 +71,28 @@ class BulkSensorImportController extends Controller
             // ✅ Contar el total de filas (excluyendo encabezados)
             $totalRows = max(0, count($allData) - 1);
 
+            // ✅ Obtener cuota disponible
+            $subscriptionService = new SubscriptionService($user);
+            $limitStatus = $subscriptionService->getLimitStatus()['sensors'];
+
+            if (!$limitStatus['is_unlimited'] && $totalRows > $limitStatus['remaining']) {
+                $missingSensors = $totalRows - $limitStatus['remaining'];
+                $neededPacks = ceil($missingSensors / 10);
+                $cost = number_format($neededPacks * 10000, 0, ',', '.'); // 10000 ARS per pack
+
+                return response()->json([
+                    'success' => false,
+                    'error_type' => 'quota_exceeded',
+                    'message' => "Atención: El archivo contiene {$totalRows} sensores, pero solo tienes espacio libre para {$limitStatus['remaining']}.",
+                    'upsell_data' => [
+                        'missing_sensors' => $missingSensors,
+                        'needed_packs' => $neededPacks,
+                        'estimated_cost' => $neededPacks * 10000,
+                        'formatted_cost' => $cost
+                    ]
+                ], 403);
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Archivo analizado correctamente',
@@ -80,7 +103,12 @@ class BulkSensorImportController extends Controller
                     'total_rows' => $totalRows,
                     'preview_rows' => count($sampleData),
                     'delimiter' => $delimiter ?? 'auto',
-                    'encoding' => $encoding ?? 'UTF-8'
+                    'encoding' => $encoding ?? 'UTF-8',
+                    'quota' => [
+                        'max' => $limitStatus['max'],
+                        'remaining' => $limitStatus['remaining'],
+                        'is_unlimited' => $limitStatus['is_unlimited']
+                    ]
                 ]
             ]);
 
@@ -593,10 +621,10 @@ class BulkSensorImportController extends Controller
             // ✅ Verificar permisos del grupo
             $group = SensorGroup::findOrFail($request->group_id);
             $canAccessGroup = $user->hasRole('admin') ||
-                $group->user_id === $user->id ||
+                $group->user_id == $user->id ||
                 $group->sharedAccess()
                     ->where('shared_with', $user->id)
-                    ->whereIn('role', ['inspector', 'admin'])
+                    ->whereIn('role', ['inspector', 'admin', 'editor'])
                     ->exists();
 
             if (!$canAccessGroup) {
@@ -628,6 +656,27 @@ class BulkSensorImportController extends Controller
                     'success' => false,
                     'message' => 'El archivo no contiene datos o solo tiene encabezados'
                 ], 400);
+            }
+
+            // ✅ VERIFICAR CUOTAS DE SENSORES
+            $subscriptionService = new SubscriptionService($user);
+            $limitStatus = $subscriptionService->getLimitStatus()['sensors'];
+
+            // Calculamos cuántos sensores válidos vienen
+            $incomingSensors = 0;
+            for ($i = 1; $i < count($allData); $i++) {
+                if (!empty($allData[$i]) && count(array_filter($allData[$i])) > 0) {
+                    $incomingSensors++;
+                }
+            }
+
+            if (!$limitStatus['is_unlimited'] && $incomingSensors > $limitStatus['remaining']) {
+                $statusPlan = $subscriptionService->getPlan()->getPlanName();
+                return response()->json([
+                    'success' => false,
+                    'message' => "Atención: El archivo contiene {$incomingSensors} sensores y tienes espacio para {$limitStatus['remaining']}. " .
+                        "Para procesar este listado, adquiere Packs Extra desde Mi Perfil o depura tu base de datos actual.",
+                ], 403);
             }
 
             // ... CONTINUAR CON EL RESTO DE LA IMPORTACIÓN ...
@@ -810,10 +859,10 @@ class BulkSensorImportController extends Controller
 
             // Verificar permisos
             $canAccess = $user->hasRole('admin') ||
-                $group->user_id === $user->id ||
+                $group->user_id == $user->id ||
                 $group->sharedAccess()
                     ->where('shared_with', $user->id)
-                    ->whereIn('role', ['inspector', 'admin'])
+                    ->whereIn('role', ['inspector', 'admin', 'editor'])
                     ->exists();
 
             if (!$canAccess) {

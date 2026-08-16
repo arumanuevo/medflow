@@ -19,12 +19,23 @@ class SensorGroupViewController extends Controller
                 });
         })->with(['user', 'template', 'sensors'])->get();
 
-        return view('sensor-groups.index', compact('groups'));
+        $subscriptionService = new \App\Services\Subscription\SubscriptionService($user);
+        $canCreateGroup = $subscriptionService->canCreateGroup();
+
+        return view('sensor-groups.index', compact('groups', 'canCreateGroup'));
     }
 
     public function create()
     {
         $user = auth()->user();
+
+        // REVISIÓN DE CUOTA PRE-VUELO
+        $subscriptionService = new \App\Services\Subscription\SubscriptionService($user);
+        if (!$subscriptionService->canCreateGroup()) {
+            $planName = $subscriptionService->getPlan()->getPlanName();
+            return redirect()->route('sensor-groups.index')->with('error', "Has alcanzado el límite de grupos para tu plan {$planName}. Sube de plan para crear más.");
+        }
+
         $templates = Template::where(function ($q) use ($user) {
             $q->where('is_default', true)
                 ->orWhereNull('created_by')

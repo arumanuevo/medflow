@@ -3,16 +3,21 @@
 
 namespace App\Services\Subscription\Plans;
 
+use App\Models\User;
+
 class BasicoPlan implements PlanInterface
 {
+    public function __construct(protected ?User $user = null)
+    {
+    }
     public function getMaxSensors(): int
     {
-        return 2; // ✅ 2 sensores para pruebas (en producción sería 10)
+        return 10;
     }
 
     public function getMaxGroups(): int
     {
-        return 2; // ✅ 2 grupos para pruebas (en producción sería 5)
+        return 2;
     }
 
     public function getMaxCollaborators(): int

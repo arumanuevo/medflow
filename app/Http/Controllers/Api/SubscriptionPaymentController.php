@@ -20,7 +20,7 @@ class SubscriptionPaymentController extends Controller
     {
         // ✅ Configurar el ACCESS_TOKEN de Mercado Pago
         $this->accessToken = config('mercadopago.access_token');
-        
+
         if ($this->accessToken) {
             try {
                 MercadoPagoConfig::setAccessToken($this->accessToken);
@@ -85,7 +85,7 @@ class SubscriptionPaymentController extends Controller
         // Verificar si el usuario ya tiene una suscripción activa
         $activeSubscription = Subscription::where('user_id', $user->id)
             ->where('status', 'active')
-            ->where(function($q) {
+            ->where(function ($q) {
                 $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
             })
             ->first();
@@ -147,8 +147,8 @@ class SubscriptionPaymentController extends Controller
             $preference = $client->create($preferenceData);
 
             Log::info('✅ Preferencia creada con éxito', [
-                'preference_id' => $preference['id'],
-                'init_point' => $preference['init_point'] ?? 'N/A'
+                'preference_id' => $preference->id,
+                'init_point' => $preference->init_point ?? 'N/A'
             ]);
 
             // Guardar la preferencia en la base de datos
@@ -156,12 +156,12 @@ class SubscriptionPaymentController extends Controller
                 'user_id' => $user->id,
                 'plan' => $plan,
                 'status' => 'pending',
-                'preference_id' => $preference['id'],
+                'preference_id' => $preference->id,
                 'amount' => (float) $planConfig['price'] / 100,
                 'currency' => $planConfig['currency'],
             ]);
 
-            session(['preference_id' => $preference['id']]);
+            session(['preference_id' => $preference->id]);
 
             Log::info('✅ Suscripción creada en BD', [
                 'subscription_id' => $subscription->id,
@@ -171,7 +171,7 @@ class SubscriptionPaymentController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'preference_id' => $preference['id'],
+                    'preference_id' => $preference->id,
                     'subscription_id' => $subscription->id,
                     'public_key' => config('mercadopago.public_key'),
                 ]
@@ -184,7 +184,7 @@ class SubscriptionPaymentController extends Controller
                 'status' => $response ? $response->getStatusCode() : 'N/A',
                 'response' => $response ? $response->getContent() : 'N/A'
             ]);
-            
+
             $errorMessage = 'Error en la API de Mercado Pago: ';
             if ($response && $response->getContent()) {
                 $content = json_decode($response->getContent(), true);
@@ -196,12 +196,12 @@ class SubscriptionPaymentController extends Controller
             } else {
                 $errorMessage .= $e->getMessage();
             }
-            
+
             return response()->json([
                 'success' => false,
                 'message' => $errorMessage
             ], 500);
-            
+
         } catch (\Exception $e) {
             Log::error('❌ Error al crear preferencia', [
                 'message' => $e->getMessage(),
@@ -241,12 +241,13 @@ class SubscriptionPaymentController extends Controller
             try {
                 $client = new PaymentClient();
                 $payment = $client->get($paymentId);
-                
+
                 if ($payment->status === 'approved') {
                     $subscription->markAsPaid($paymentId);
-                    
+
                     $user->subscription_type = $plan === 'premium' ? 'corporativo' : 'domiciliario';
                     $user->subscription_plan = $plan;
+                    // Al renovar el plan completo, preserva la cantidad de packs, pero si el monto del request indicó menos packs, podría limpiarse, pero como es renovación general los asume.
                     $user->save();
 
                     if ($plan === 'premium') {
@@ -355,7 +356,7 @@ class SubscriptionPaymentController extends Controller
                         'amount' => $payment->transaction_amount ?? 0,
                         'currency' => $payment->currency_id ?? 'ARS',
                         'paid_at' => now(),
-                        'expires_at' => now()->addYear(),
+                        'expires_at' => now()->addMinutes(3), // 💡 Modificado a 3 min para QA
                     ]);
                 } else {
                     $subscription->markAsPaid($paymentId);
@@ -399,7 +400,7 @@ class SubscriptionPaymentController extends Controller
 
             $subscription = Subscription::where('user_id', $user->id)
                 ->where('status', 'active')
-                ->where(function($q) {
+                ->where(function ($q) {
                     $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
                 })
                 ->latest()
@@ -430,6 +431,134 @@ class SubscriptionPaymentController extends Controller
         }
     }
 
+    /**
+     * Comprar Packs Extras separados (Upgrade Mid-Cycle)
+     */
+    public function buyExtraPacks(Request $request)
+    {
+        $user = auth()->user();
+
+        $validator = Validator::make($request->all(), [
+            'packs' => 'required|integer|min:1|max:100', // Ampliado a 100 para testing de importaciones masivas
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $packs = (int) $request->packs;
+
+        // ✅ BYPASS PARA ENTORNO DE DESARROLLO (LOCAL)
+        if (app()->environment('local')) {
+            $user->additional_sensor_packs += $packs;
+            $user->save();
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'preference_id' => 'sandbox_debug_' . time(),
+                    'is_local' => true
+                ]
+            ]);
+        }
+
+        if (!$this->accessToken) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Mercado Pago no está configurado.'
+            ], 500);
+        }
+
+        $pricePerPack = 10000; // 10.000 ARS por Pack de 10 sensores
+
+        try {
+            $client = new PreferenceClient();
+            $baseUrl = config('app.url');
+
+            // Creamos un plan ficticio "packs"
+            $successUrl = $baseUrl . '/subscription/success_packs?packs=' . $packs;
+            $failureUrl = $baseUrl . '/subscription/failure/premium';
+            $pendingUrl = $baseUrl . '/subscription/pending/premium';
+
+            $preferenceData = [
+                "items" => [
+                    [
+                        "title" => "Pack Extra de Sensores x" . ($packs * 10) . ' - MedFlow',
+                        "description" => "Expansión de capacidad para " . ($packs * 10) . " sensores adicionales.",
+                        "quantity" => 1,
+                        "unit_price" => (float) ($packs * $pricePerPack),
+                        "currency_id" => "ARS"
+                    ]
+                ],
+                "payer" => [
+                    "email" => $user->email,
+                    "name" => $user->name,
+                ],
+                "back_urls" => [
+                    "success" => $successUrl,
+                    "failure" => $failureUrl,
+                    "pending" => $pendingUrl
+                ],
+                "auto_return" => "approved",
+                "external_reference" => $user->id . '_packs_' . time(),
+                "statement_descriptor" => "MedFlow Extra",
+            ];
+
+            $preference = $client->create($preferenceData);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'preference_id' => $preference->id,
+                    'public_key' => config('mercadopago.public_key'),
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al crear la preferencia de packs: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Handlers for success packs
+     */
+    public function handleSuccessPacks(Request $request)
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            return redirect('/login')->with('error', 'Debes iniciar sesión.');
+        }
+
+        $paymentId = $request->query('payment_id');
+        $packs = (int) $request->query('packs', 0);
+
+        if ($paymentId && $packs > 0) {
+            try {
+                $client = new PaymentClient();
+                $payment = $client->get($paymentId);
+
+                if ($payment->status === 'approved') {
+                    $user->additional_sensor_packs += $packs;
+                    $user->save();
+
+                    return redirect('/profile')->with('success', "¡Excelente! Has expandido tu límite exitosamente instalando {$packs} paquete(s) de expansión.");
+                }
+            } catch (\Exception $e) {
+                Log::error('Error validando pago de packs: ' . $e->getMessage());
+            }
+        }
+
+        return redirect('/profile')->with('error', 'Hubo un problema verificando el pago de tu pack.');
+    }
+
     // =============================================
     // ✅ MÉTODOS DE DEPURACIÓN (SOLO LOCAL)
     // =============================================
@@ -450,7 +579,7 @@ class SubscriptionPaymentController extends Controller
         try {
             $user = $request->user();
             $plan = $request->input('plan', 'basico');
-            $durationMinutes = $request->input('duration_minutes', 43200); // ✅ 30 días por defecto
+            $durationMinutes = $request->input('duration_minutes', 43200); // ✅ 30 días para QA/Producción
 
             // Validar plan
             if (!in_array($plan, ['free', 'basico', 'premium'])) {
@@ -467,14 +596,14 @@ class SubscriptionPaymentController extends Controller
 
             // ✅ Crear nueva suscripción de prueba
             $expiresAt = ($plan === 'free') ? null : now()->addMinutes($durationMinutes);
-            
+
             $amount = 0.00;
             if ($plan === 'premium') {
                 $amount = 25.00;
             } elseif ($plan === 'basico') {
                 $amount = 10.00;
             }
-            
+
             $subscription = Subscription::create([
                 'user_id' => $user->id,
                 'plan' => $plan,
@@ -531,69 +660,72 @@ class SubscriptionPaymentController extends Controller
         }
     }
 
-/**
- * Forzar expiración de la suscripción (debug)
- */
-public function debugExpire(Request $request)
-{
-    // ✅ Solo permitir en entorno local
-    if (!app()->environment('local')) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Esta acción solo está disponible en entorno de desarrollo.'
-        ], 403);
-    }
-
-    try {
-        $user = $request->user();
-
-        $subscription = Subscription::where('user_id', $user->id)
-            ->where('status', 'active')
-            ->latest()
-            ->first();
-
-        if (!$subscription) {
+    /**
+     * Forzar expiración de la suscripción (debug)
+     */
+    public function debugExpire(Request $request)
+    {
+        // ✅ Solo permitir en entorno local
+        if (!app()->environment('local')) {
             return response()->json([
                 'success' => false,
-                'message' => 'No hay suscripción activa para expirar.'
-            ], 404);
+                'message' => 'Esta acción solo está disponible en entorno de desarrollo.'
+            ], 403);
         }
 
-        // ✅ 1. Marcar suscripción como expirada
-        $subscription->status = 'expired';
-        $subscription->expires_at = now()->subSecond();
-        $subscription->save();
+        try {
+            $user = $request->user();
 
-        // ✅ 2. ACTUALIZAR USUARIO A 'free' (MISMA LÓGICA QUE checkAndUpdate)
-        $user->subscription_type = 'domiciliario';
-        $user->subscription_plan = 'free';
-        $user->save();
-        $user->syncRoles(['consumidor']);
+            $subscriptions = Subscription::where('user_id', $user->id)
+                ->where('status', 'active')
+                ->get();
 
-        Log::info('⏰ Suscripción expirada por depuración', [
-            'user_id' => $user->id,
-            'subscription_id' => $subscription->id,
-            'new_plan' => 'free'
-        ]);
+            $subId = null;
+            if ($subscriptions->isNotEmpty()) {
+                // ✅ 1. Marcar TODAS las suscripciones como expiradas
+                foreach ($subscriptions as $subscription) {
+                    $subscription->status = 'expired';
+                    $subscription->expires_at = now()->subSecond();
+                    $subscription->save();
+                    $subId = $subscription->id;
+                }
+            }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Suscripción expirada correctamente. Usuario cambiado a Free.',
-            'data' => [
-                'subscription_id' => $subscription->id,
-                'expired_at' => now()->toDateTimeString(),
+            // ✅ 2. ACTUALIZAR USUARIO A 'free' (MISMA LÓGICA QUE checkAndUpdate)
+            $user->subscription_type = 'domiciliario';
+            $user->subscription_plan = 'free';
+            $user->save();
+            $user->syncRoles(['consumidor']);
+
+            // ✅ 3. PAUSAR ACCESOS A COLABORADORES SI EXISTEN
+            \App\Models\WorkspaceCollaborator::where('workspace_id', $user->id)
+                ->where('status', 'active')
+                ->update(['is_paused' => true]);
+
+            Log::info('⏰ Suscripción expirada o reseteada por depuración', [
+                'user_id' => $user->id,
+                'subscription_id' => $subId,
                 'new_plan' => 'free'
-            ]
-        ]);
+            ]);
 
-    } catch (\Exception $e) {
-        Log::error('❌ Error en debugExpire: ' . $e->getMessage());
-        return response()->json([
-            'success' => false,
-            'message' => 'Error al expirar suscripción: ' . $e->getMessage()
-        ], 500);
+            return response()->json([
+                'success' => true,
+                'message' => 'Suscripción expirada correctamente. Usuario cambiado a Free.',
+                'data' => [
+                    'subscription_id' => $subId,
+                    'expired_at' => now()->toDateTimeString(),
+                    'new_plan' => 'free'
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('❌ Error en debugExpire: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al expirar suscripción: ' . $e->getMessage()
+            ], 500);
+        }
     }
-}
 
     /**
      * Limpiar todo el historial de suscripciones del usuario (debug)
@@ -617,9 +749,14 @@ public function debugExpire(Request $request)
 
             // ✅ Resetear el usuario a estado por defecto
             $user->subscription_type = 'domiciliario';
-            $user->subscription_plan = 'básico';
+            $user->subscription_plan = 'free';
             $user->save();
             $user->syncRoles(['consumidor']);
+
+            // ✅ Pausar accesos iterativos
+            \App\Models\WorkspaceCollaborator::where('workspace_id', $user->id)
+                ->where('status', 'active')
+                ->update(['is_paused' => true]);
 
             Log::info('🧹 Historial de suscripciones limpiado', [
                 'user_id' => $user->id,
@@ -654,7 +791,7 @@ public function debugExpire(Request $request)
         }
 
         $user = $request->user();
-        
+
         $currentSubscription = Subscription::where('user_id', $user->id)
             ->where('status', 'active')
             ->latest()
@@ -686,7 +823,7 @@ public function debugExpire(Request $request)
         $user = $request->user();
         $service = new \App\Services\Subscription\SubscriptionService($user);
         $expired = $service->checkAndUpdateExpiredSubscription();
-        
+
         return response()->json([
             'success' => true,
             'expired' => $expired,

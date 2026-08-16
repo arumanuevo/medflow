@@ -208,7 +208,7 @@
                     $customFields = [];
                     if (isset($sensor->group) && isset($sensor->group->template) && isset($sensor->group->template->schema['campos'])) {
                         $customFields = array_filter($sensor->group->template->schema['campos'], function($campo) {
-                            return !in_array($campo['nombre'], ['consumo_m3', 'foto', 'fecha_medicion']);
+                            return !in_array($campo['nombre'], ['consumo_m3', 'foto', 'fecha_medicion', 'identificador']);
                         });
                     }
                 @endphp

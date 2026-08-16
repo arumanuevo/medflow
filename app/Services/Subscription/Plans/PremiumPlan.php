@@ -3,11 +3,19 @@
 
 namespace App\Services\Subscription\Plans;
 
+use App\Models\User;
+
 class PremiumPlan implements PlanInterface
 {
+    public function __construct(protected ?User $user = null)
+    {
+    }
+
     public function getMaxSensors(): int
     {
-        return PHP_INT_MAX; // Ilimitado
+        $base = 20;
+        $extraPacks = $this->user ? ($this->user->additional_sensor_packs ?? 0) : 0;
+        return $base + ($extraPacks * 10);
     }
 
     public function getMaxGroups(): int

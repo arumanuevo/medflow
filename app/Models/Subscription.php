@@ -47,7 +47,7 @@ class Subscription extends Model
         if ($paymentId) {
             $this->payment_id = $paymentId;
         }
-        $this->expires_at = now()->addYear(); // 1 año de suscripción
+        $this->expires_at = now()->addDays(30); // 30 días de suscripción
         $this->save();
     }
 

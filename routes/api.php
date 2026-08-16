@@ -324,6 +324,11 @@ Route::middleware('auth:sanctum')->group(function () {
             ->middleware('subscription.gate:add_collaborator');
         Route::put('/{id}/role', [CollaborationController::class, 'changeRole'])
             ->middleware('subscription.gate:add_collaborator');
+
+        // ✅ FASE 38: Ruteo de Sensores
+        Route::get('/{id}/sensors', [CollaborationController::class, 'getSensors']);
+        Route::post('/{id}/sensors', [CollaborationController::class, 'syncSensors']);
+
         Route::get('/activity', [CollaborationController::class, 'getActivityLog']);
     });
 
@@ -379,6 +384,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/can-create-sensor', [SubscriptionPlanController::class, 'canCreateSensor']);
         Route::get('/can-create-group', [SubscriptionPlanController::class, 'canCreateGroup']);
         Route::get('/can-add-collaborator', [SubscriptionPlanController::class, 'canAddCollaborator']);
+    });
+
+    // =====================================================
+    // ✅ MOBILE OFFLINE API (MVP)
+    // =====================================================
+    Route::prefix('mobile/v1')->group(function () {
+        Route::get('/sensors', [\App\Http\Controllers\Api\MobileOfflineController::class, 'getSensors']);
+        Route::post('/sync', [\App\Http\Controllers\Api\MobileOfflineController::class, 'syncMeasurements']);
     });
 
 }); // ✅ CIERRE DEL GRUPO auth:sanctum

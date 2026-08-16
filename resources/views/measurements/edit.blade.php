@@ -459,8 +459,14 @@
                     $customFields = [];
                     if (isset($measurement->sensor->group) && isset($measurement->sensor->group->template) && isset($measurement->sensor->group->template->schema['campos'])) {
                         $customFields = array_filter($measurement->sensor->group->template->schema['campos'], function($campo) use ($systemFields) {
-                            // ✅ Excluir campos del sistema
-                            return !in_array($campo['nombre'], $systemFields);
+                            if (in_array($campo['nombre'], $systemFields)) {
+                                return false;
+                            }
+                            
+                            // Comportamiento Estricto: Permitir SOLO si el contexto lo autoriza expresamente
+                            // Asumimos que los campos sin contexto son metadata estática del Sensor
+                            $contexto = isset($campo['contexto']) ? strtolower(trim($campo['contexto'])) : 'sensor';
+                            return in_array($contexto, ['medicion', 'ambos']);
                         });
                     }
                 @endphp

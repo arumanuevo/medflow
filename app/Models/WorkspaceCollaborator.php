@@ -17,11 +17,13 @@ class WorkspaceCollaborator extends Model
         'expires_at',
         'is_paused',      // ✅ Nuevo campo
         'last_active_at', // ✅ Nuevo campo
+        'has_restricted_access', // ✅ Fase 38
     ];
 
     protected $casts = [
         'expires_at' => 'datetime',
         'is_paused' => 'boolean',
+        'has_restricted_access' => 'boolean',
         'last_active_at' => 'datetime',
     ];
 
@@ -38,6 +40,11 @@ class WorkspaceCollaborator extends Model
     public function inviter()
     {
         return $this->belongsTo(User::class, 'invited_by');
+    }
+
+    public function sensors()
+    {
+        return $this->belongsToMany(Sensor::class, 'collaborator_sensor', 'workspace_collaborator_id', 'sensor_id');
     }
 
     public static function generateToken()

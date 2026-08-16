@@ -63,8 +63,12 @@ class SensorController extends Controller
             ->orderBy('name')
             ->get();
 
-        $sensors->map(function ($sensor) {
+        $subscriptionService = new SubscriptionService($user);
+        $measurableIds = $subscriptionService->getMeasurableSensorIds();
+
+        $sensors->map(function ($sensor) use ($measurableIds) {
             $sensor->last_measurement = $sensor->measurements->first();
+            $sensor->is_measurable = in_array($sensor->id, $measurableIds);
             unset($sensor->measurements);
             return $sensor;
         });
@@ -132,6 +136,17 @@ class SensorController extends Controller
 
         // ✅ VERIFICAR LÍMITE DE SUSCRIPCIÓN
         $subscriptionService = new SubscriptionService($user);
+
+        // ✅ VERIFICAR PERMISO DE SENSOR COMUNITARIO
+        if ($request->boolean('is_community', false)) {
+            $gate = new \App\Services\Subscription\SubscriptionGate($user);
+            if (!$gate->allows('create_community_sensor')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tu plan actual no permite la creación de Sensores Comunitarios. Por favor, adquiere el plan Premium.',
+                ], 403);
+            }
+        }
 
         if (!$subscriptionService->canCreateSensor()) {
             $status = $subscriptionService->getLimitStatus()['sensors'];
@@ -344,6 +359,17 @@ class SensorController extends Controller
                 ], 403);
             }
 
+            if ($sensor->measurements()->exists()) {
+                Log::warning("Intento de eliminación de sensor con mediciones", [
+                    'user_id' => $user->id,
+                    'sensor_id' => $sensor->id
+                ]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se puede eliminar este sensor porque tiene historial de mediciones asociadas. Elimina sus mediciones primero.'
+                ], 409);
+            }
+
             $sensor->delete();
 
             Log::info("Sensor eliminado correctamente", [
@@ -535,6 +561,19 @@ class SensorController extends Controller
                 'success' => false,
                 'message' => 'No tienes permiso para eliminar uno o más de los sensores seleccionados.'
             ], 403);
+        }
+
+        // Verificar dependencias con mediciones para la baja masiva
+        $sensorsWithDependencies = $validSensors->filter(function ($sensor) {
+            return $sensor->measurements()->exists();
+        });
+
+        if ($sensorsWithDependencies->isNotEmpty()) {
+            $count = $sensorsWithDependencies->count();
+            return response()->json([
+                'success' => false,
+                'message' => "Operación cancelada. $count sensor(es) poseen historial de mediciones asociadas. Por seguridad, depura las mediciones primero antes de eliminar los sensores."
+            ], 409);
         }
 
         // Eliminar

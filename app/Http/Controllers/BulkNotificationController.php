@@ -56,7 +56,7 @@ class BulkNotificationController extends Controller
             ], 403);
         }
 
-        $group = SensorGroup::find($request->group_id);
+        $group = SensorGroup::findOrFail($request->group_id);
 
         // Control de permisos estrictos sobre el grupo
         if ($group->user_id !== $user->id && !$group->sharedAccess()->where('shared_with', $user->id)->where('role', 'admin')->exists()) {
@@ -164,6 +164,22 @@ class BulkNotificationController extends Controller
         // Control de permisos estrictos sobre el grupo
         if ($group->user_id !== $user->id && !$group->sharedAccess()->where('shared_with', $user->id)->where('role', 'admin')->exists()) {
             abort(403, 'No tienes permisos administrativos sobre este grupo.');
+        }
+
+        if ($request->wantsJson()) {
+            $data = [];
+            foreach ($group->sensors as $sensor) {
+                if (empty($sensor->public_token)) {
+                    $sensor->public_token = \Illuminate\Support\Str::random(32);
+                    $sensor->save();
+                }
+                $data[] = [
+                    'id' => $sensor->id,
+                    'name' => $sensor->name,
+                    'url' => route('public.visor', ['token' => $sensor->public_token])
+                ];
+            }
+            return response()->json(['success' => true, 'data' => $data]);
         }
 
         $headers = [

@@ -3,16 +3,21 @@
 
 namespace App\Services\Subscription\Plans;
 
+use App\Models\User;
+
 class FreePlan implements PlanInterface
 {
+    public function __construct(protected ?User $user = null)
+    {
+    }
     public function getMaxSensors(): int
     {
-        return 1; // ✅ 1 sensor para pruebas
+        return 2; // ✅ 2 sensores permitidos
     }
 
     public function getMaxGroups(): int
     {
-        return 1; // ✅ 1 grupo para pruebas
+        return 1; // ✅ 1 grupo permitido
     }
 
     public function getMaxCollaborators(): int
