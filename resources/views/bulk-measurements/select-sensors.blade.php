@@ -599,13 +599,13 @@
                 const useSelectionOrder = $useSelectionOrder.is(':checked');
                 if (useSelectionOrder && selectionOrder.length > 0) {
                     $('#bulkMeasurementForm').append(`
-                                                            <input type="hidden" name="selection_order" value="${selectionOrder.join(',')}">
-                                                            <input type="hidden" name="use_selection_order" value="1">
-                                                        `);
+                                                                <input type="hidden" name="selection_order" value="${selectionOrder.join(',')}">
+                                                                <input type="hidden" name="use_selection_order" value="1">
+                                                            `);
                 } else {
                     $('#bulkMeasurementForm').append(`
-                                                            <input type="hidden" name="use_selection_order" value="0">
-                                                        `);
+                                                                <input type="hidden" name="use_selection_order" value="0">
+                                                            `);
                 }
 
                 $modalSelectedCount.text(selectedCount);
@@ -752,8 +752,19 @@
                     },
                     body: JSON.stringify({ email: email, sensor_limit: limit })
                 })
-                    .then(res => res.json())
+                    .then(async res => {
+                        const text = await res.text();
+                        if (!res.ok) {
+                            // Mostrar HTTP status y snippet de la respuesta para debug
+                            let snippet = text.substring(0, 300).replace(/</g, '&lt;');
+                            msgDiv.innerHTML = `<div class="alert alert-danger py-2">❌ Error HTTP <strong>${res.status}</strong>:<br><code style="font-size:11px">${snippet}</code></div>`;
+                            msgDiv.classList.remove('d-none');
+                            return null;
+                        }
+                        try { return JSON.parse(text); } catch { return null; }
+                    })
                     .then(data => {
+                        if (!data) return;
                         if (data.success) {
                             msgDiv.innerHTML = `<div class="alert alert-success py-2">✅ Enlace enviado a <strong>${email}</strong>.</div>`;
                         } else {
@@ -761,8 +772,8 @@
                         }
                         msgDiv.classList.remove('d-none');
                     })
-                    .catch(() => {
-                        msgDiv.innerHTML = '<div class="alert alert-danger py-2">❌ Error de red. Verificá tu conexión.</div>';
+                    .catch(err => {
+                        msgDiv.innerHTML = `<div class="alert alert-danger py-2">❌ Error de red: ${err.message}</div>`;
                         msgDiv.classList.remove('d-none');
                     })
                     .finally(() => {
@@ -775,11 +786,11 @@
             // Mostrar alertas
             function showAlert(message, type) {
                 const alertHtml = `
-                                                        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                                                            ${message}
-                                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                                        </div>
-                                                    `;
+                                                            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                                                                ${message}
+                                                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                                            </div>
+                                                        `;
                 $('.card-body').prepend(alertHtml);
 
                 setTimeout(() => {
