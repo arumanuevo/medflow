@@ -141,10 +141,57 @@
                                 <h4 class="mb-0"><i class="bi bi-rulers"></i> Medición Masiva</h4>
                                 <small>Espacio de: <strong>{{ $ownerName ?? 'Propietario' }}</strong></small>
                             </div>
-                            <div>
+                            <div class="d-flex align-items-center gap-2">
                                 <span class="badge bg-light text-dark">
                                     <i class="bi bi-sensors"></i> {{ $sensors->count() }} sensores
                                 </span>
+                                <button type="button" class="btn btn-sm btn-light" data-bs-toggle="modal"
+                                    data-bs-target="#mobileInviteModal" title="Invitar Inspector Móvil">
+                                    📱 Invitar Inspector
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- ✅ MODAL: Invitación a App Móvil --}}
+                    <div class="modal fade" id="mobileInviteModal" tabindex="-1" aria-labelledby="mobileInviteModalLabel"
+                        aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-0 shadow">
+                                <div class="modal-header bg-dark text-white border-0">
+                                    <h5 class="modal-title" id="mobileInviteModalLabel">📱 Invitar Inspector a App Móvil
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white"
+                                        data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p class="text-muted small mb-3">
+                                        Se generará un enlace de acceso temporal y se enviará al correo del operario.
+                                        Al tocarlo desde su celular, se autorizará automáticamente en la App de MedFlow
+                                        Inspector.
+                                    </p>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Email del Inspector</label>
+                                        <input type="email" id="inviteEmail" class="form-control"
+                                            placeholder="inspector@empresa.com">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Límite de Sensores</label>
+                                        <input type="number" id="inviteLimit" class="form-control"
+                                            placeholder="0 = sin límite (acceso total)" min="0">
+                                        <div class="form-text">Para pruebas iniciales se recomienda poner 5.</div>
+                                    </div>
+                                    <div id="inviteResultMsg" class="d-none"></div>
+                                </div>
+                                <div class="modal-footer border-0">
+                                    <button type="button" class="btn btn-secondary btn-sm"
+                                        data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="button" class="btn btn-primary btn-sm" id="sendInviteBtn">
+                                        <span id="sendInviteBtnText">Enviar Enlace de Acceso</span>
+                                        <span id="sendInviteBtnSpinner"
+                                            class="spinner-border spinner-border-sm d-none ms-1"></span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -552,13 +599,13 @@
                 const useSelectionOrder = $useSelectionOrder.is(':checked');
                 if (useSelectionOrder && selectionOrder.length > 0) {
                     $('#bulkMeasurementForm').append(`
-                                                        <input type="hidden" name="selection_order" value="${selectionOrder.join(',')}">
-                                                        <input type="hidden" name="use_selection_order" value="1">
-                                                    `);
+                                                            <input type="hidden" name="selection_order" value="${selectionOrder.join(',')}">
+                                                            <input type="hidden" name="use_selection_order" value="1">
+                                                        `);
                 } else {
                     $('#bulkMeasurementForm').append(`
-                                                        <input type="hidden" name="use_selection_order" value="0">
-                                                    `);
+                                                            <input type="hidden" name="use_selection_order" value="0">
+                                                        `);
                 }
 
                 $modalSelectedCount.text(selectedCount);
@@ -676,14 +723,63 @@
             // Iniciar paginación en el renderizado inicial
             applyFilters();
 
+            // ✅ MODAL: Enviar invitación de acceso a Inspector Móvil
+            document.getElementById('sendInviteBtn').addEventListener('click', function () {
+                const email = document.getElementById('inviteEmail').value.trim();
+                const limit = parseInt(document.getElementById('inviteLimit').value) || 0;
+                const msgDiv = document.getElementById('inviteResultMsg');
+                const btn = this;
+                const spinner = document.getElementById('sendInviteBtnSpinner');
+                const btnText = document.getElementById('sendInviteBtnText');
+
+                if (!email) {
+                    msgDiv.innerHTML = '<div class="alert alert-warning py-2">Por favor ingresá un email válido.</div>';
+                    msgDiv.classList.remove('d-none');
+                    return;
+                }
+
+                btn.disabled = true;
+                spinner.classList.remove('d-none');
+                btnText.textContent = 'Enviando...';
+                msgDiv.classList.add('d-none');
+
+                fetch('/api/mobile/v1/invite', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                        'Authorization': 'Bearer ' + (localStorage.getItem('sanctum_token') ?? '')
+                    },
+                    body: JSON.stringify({ email: email, sensor_limit: limit })
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            msgDiv.innerHTML = `<div class="alert alert-success py-2">✅ Enlace enviado a <strong>${email}</strong>.</div>`;
+                        } else {
+                            msgDiv.innerHTML = `<div class="alert alert-danger py-2">❌ ${data.message ?? 'Error al enviar.'}</div>`;
+                        }
+                        msgDiv.classList.remove('d-none');
+                    })
+                    .catch(() => {
+                        msgDiv.innerHTML = '<div class="alert alert-danger py-2">❌ Error de red. Verificá tu conexión.</div>';
+                        msgDiv.classList.remove('d-none');
+                    })
+                    .finally(() => {
+                        btn.disabled = false;
+                        spinner.classList.add('d-none');
+                        btnText.textContent = 'Enviar Enlace de Acceso';
+                    });
+            });
+
             // Mostrar alertas
             function showAlert(message, type) {
                 const alertHtml = `
-                                                    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                                                        ${message}
-                                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                                    </div>
-                                                `;
+                                                        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                                                            ${message}
+                                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                                        </div>
+                                                    `;
                 $('.card-body').prepend(alertHtml);
 
                 setTimeout(() => {

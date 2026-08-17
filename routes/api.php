@@ -392,6 +392,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('mobile/v1')->group(function () {
         Route::get('/sensors', [\App\Http\Controllers\Api\MobileOfflineController::class, 'getSensors']);
         Route::post('/sync', [\App\Http\Controllers\Api\MobileOfflineController::class, 'syncMeasurements']);
+        Route::post('/invite', [\App\Http\Controllers\Api\MobileOfflineController::class, 'inviteOperator']);
     });
 
 }); // ✅ CIERRE DEL GRUPO auth:sanctum
