@@ -34,6 +34,11 @@ class MobileAccessInvite extends Mailable
     {
         return new Content(
             view: 'emails.mobile_access',
+            with: [
+                'deepLink' => $this->deepLink,
+                'senderName' => $this->senderName,
+                'sensorLimit' => $this->sensorLimit,
+            ],
         );
     }
 }

@@ -168,6 +168,24 @@
                     </a>
                 </div>
 
+                @php
+                    $queryStr = parse_url($deepLink, PHP_URL_QUERY) ?? '';
+                    parse_str($queryStr, $params);
+                    $syncToken = $params['token'] ?? null;
+                    $workspaceId = $params['workspace'] ?? null;
+                    $sensorLimitParam = $params['limit'] ?? 0;
+                @endphp
+
+                @if($syncToken)
+                <div class="manual-sync">
+                    <p style="color:#94a3b8;font-size:13px;margin:0 0 10px;font-weight:600;">¿No se abre la app? Copiá este token y pegalo manualmente en MedFlow Inspector:</p>
+                    <div style="background:#0f1117;border:1px dashed #334155;border-radius:8px;padding:12px 14px;font-family:monospace;font-size:12px;color:#60a5fa;word-break:break-all;letter-spacing:0.3px;">{{ $syncToken }}</div>
+                    @if($workspaceId)
+                    <p style="color:#475569;font-size:11px;margin:8px 0 0;">Workspace: <strong style="color:#64748b">{{ $workspaceId }}</strong> @if($sensorLimitParam > 0)· Límite de sensores: <strong style="color:#64748b">{{ $sensorLimitParam }}</strong>@endif</p>
+                    @endif
+                </div>
+                @endif
+
                 <div class="warning">
                     <p>⚠️ Este enlace es personal e intransferible. No lo compartas con terceros. El acceso puede ser
                         revocado por el administrador en cualquier momento.</p>
