@@ -745,10 +745,11 @@
 
                 fetch('/api/mobile/v1/invite', {
                     method: 'POST',
+                    credentials: 'same-origin', // Envía la cookie de sesión web activa
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
-                        'Authorization': 'Bearer ' + (localStorage.getItem('sanctum_token') ?? '')
+                        'Accept': 'application/json',
                     },
                     body: JSON.stringify({ email: email, sensor_limit: limit })
                 })
