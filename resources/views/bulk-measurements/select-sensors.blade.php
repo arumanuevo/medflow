@@ -743,13 +743,20 @@
                 btnText.textContent = 'Enviando...';
                 msgDiv.classList.add('d-none');
 
+                const authToken = localStorage.getItem('token');
+                if (!authToken) {
+                    msgDiv.innerHTML = '<div class="alert alert-warning py-2">No hay sesión activa. Por favor, volvé a iniciar sesión e intentá nuevamente.</div>';
+                    msgDiv.classList.remove('d-none');
+                    return;
+                }
+
                 fetch('/api/mobile/v1/invite', {
                     method: 'POST',
-                    credentials: 'same-origin', // Envía la cookie de sesión web activa
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
                         'Accept': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
                     },
                     body: JSON.stringify({ email: email, sensor_limit: limit })
                 })
