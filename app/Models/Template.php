@@ -60,6 +60,18 @@ class Template extends Model
         'personalizado' => 'Personalizado',
     ];
 
+    // Mapeo de tipos a iconos (Font Awesome 6 classes)
+    public static $typeIcons = [
+        'agua' => 'fa-solid fa-droplet',
+        'gas' => 'fa-solid fa-fire-flame-curved',
+        'electricidad' => 'fa-solid fa-bolt-lightning',
+        'temperatura' => 'fa-solid fa-temperature-half',
+        'presion' => 'fa-solid fa-gauge-high',
+        'caudal' => 'fa-solid fa-water',
+        'luz' => 'fa-solid fa-lightbulb',
+        'personalizado' => 'fa-solid fa-gear',
+    ];
+
     // =============================================
     // RELACIONES
     // =============================================

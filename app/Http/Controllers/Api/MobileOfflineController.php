@@ -72,11 +72,13 @@ class MobileOfflineController extends Controller
                 $lastValue = $sensor->lastMeasurement->data[$mainField];
             }
 
-            // Tipo y unidad de medición, derivados de la plantilla del grupo
+            // Tipo, unidad e icono de medición, derivados de la plantilla del grupo
             $measurementType = $sensor->group?->template?->type;
             $measurementUnit = '';
+            $measurementIcon = '';
             if ($measurementType) {
                 $measurementUnit = Template::$defaultUnits[$measurementType] ?? '';
+                $measurementIcon = Template::$typeIcons[$measurementType] ?? 'fa-solid fa-circle';
             }
 
             return [
@@ -88,6 +90,7 @@ class MobileOfflineController extends Controller
                 'main_field_name' => $mainField,
                 'measurement_type' => $measurementType,
                 'measurement_unit' => $measurementUnit,
+                'measurement_icon' => $measurementIcon,
             ];
         });
 
