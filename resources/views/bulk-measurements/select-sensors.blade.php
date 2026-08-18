@@ -145,10 +145,29 @@
                                 <span class="badge bg-light text-dark">
                                     <i class="bi bi-sensors"></i> {{ $sensors->count() }} sensores
                                 </span>
-                                <button type="button" class="btn btn-sm btn-light" data-bs-toggle="modal"
-                                    data-bs-target="#mobileInviteModal" title="Invitar Inspector Móvil">
+                                <button type="button" class="btn btn-sm btn-light" id="inviteInspectorBtn"
+                                    title="Invitar Inspector a App Móvil">
                                     📱 Invitar Inspector
                                 </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- ✅ MODAL: Advertencia - no hay sensores seleccionados --}}
+                    <div class="modal fade" id="noSelectionModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-0 shadow">
+                                <div class="modal-header bg-warning text-dark border-0">
+                                    <h5 class="modal-title">⚠️ Sin sensores seleccionados</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Debes seleccionar al menos un sensor antes de invitar a un inspector móvil.</p>
+                                    <p class="text-muted small">Usá los checkboxes de la tabla para marcar los sensores que el inspector podrá medir.</p>
+                                </div>
+                                <div class="modal-footer border-0">
+                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Entendido</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -175,11 +194,11 @@
                                         <input type="email" id="inviteEmail" class="form-control"
                                             placeholder="inspector@empresa.com">
                                     </div>
+                                    <input type="hidden" id="inviteLimit" value="0">
                                     <div class="mb-3">
-                                        <label class="form-label fw-semibold">Límite de Sensores</label>
-                                        <input type="number" id="inviteLimit" class="form-control"
-                                            placeholder="0 = sin límite (acceso total)" min="0">
-                                        <div class="form-text">Para pruebas iniciales se recomienda poner 5.</div>
+                                        <label class="form-label fw-semibold">Sensores seleccionados</label>
+                                        <div class="form-control-plaintext text-primary fw-semibold" id="inviteSelectedCount">0</div>
+                                        <div class="form-text">Solo el inspector podrá medir estos sensores.</div>
                                     </div>
                                     <div id="inviteResultMsg" class="d-none"></div>
                                 </div>
@@ -723,10 +742,36 @@
             // Iniciar paginación en el renderizado inicial
             applyFilters();
 
+            // ✅ BOTÓN: Abrir modal de invitación SOLO si hay sensores seleccionados
+            document.getElementById('inviteInspectorBtn').addEventListener('click', function () {
+                const selectedCount = getSelectedCount();
+                if (selectedCount === 0) {
+                    // Mostrar modal de advertencia
+                    const $noSelectionModal = new bootstrap.Modal(document.getElementById('noSelectionModal'));
+                    $noSelectionModal.show();
+                    return;
+                }
+                // Abrir modal de invitación y setear el count
+                const $inviteModal = new bootstrap.Modal(document.getElementById('mobileInviteModal'));
+                document.getElementById('inviteLimit').value = selectedCount;
+                document.getElementById('inviteSelectedCount').textContent = selectedCount + ' sensores';
+                $inviteModal.show();
+            });
+
             // ✅ MODAL: Enviar invitación de acceso a Inspector Móvil
             document.getElementById('sendInviteBtn').addEventListener('click', function () {
                 const email = document.getElementById('inviteEmail').value.trim();
                 const limit = parseInt(document.getElementById('inviteLimit').value) || 0;
+                const selectedCount = getSelectedCount();
+                if (selectedCount === 0) {
+                    // No debería pasar porque el botón de abrir el modal ya valida,
+                    // pero por seguridad
+                    document.getElementById('inviteResultMsg').innerHTML = '<div class="alert alert-warning py-2">No hay sensores seleccionados.</div>';
+                    document.getElementById('inviteResultMsg').classList.remove('d-none');
+                    return;
+                }
+                // Usar la cantidad de seleccionados como límite
+                document.getElementById('inviteLimit').value = selectedCount;
                 const msgDiv = document.getElementById('inviteResultMsg');
                 const btn = this;
                 const spinner = document.getElementById('sendInviteBtnSpinner');

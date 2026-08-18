@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Sensor;
 use App\Models\Measurement;
+use App\Models\Template;
 use App\Mail\MobileAccessInvite;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -71,6 +72,13 @@ class MobileOfflineController extends Controller
                 $lastValue = $sensor->lastMeasurement->data[$mainField];
             }
 
+            // Tipo y unidad de medición, derivados de la plantilla del grupo
+            $measurementType = $sensor->group?->template?->type;
+            $measurementUnit = '';
+            if ($measurementType) {
+                $measurementUnit = Template::$defaultUnits[$measurementType] ?? '';
+            }
+
             return [
                 'id' => $sensor->id,
                 'identifier' => $sensor->identifier,
@@ -78,6 +86,8 @@ class MobileOfflineController extends Controller
                 'group_name' => $sensor->group->name ?? 'Sin grupo',
                 'last_value' => $lastValue,
                 'main_field_name' => $mainField,
+                'measurement_type' => $measurementType,
+                'measurement_unit' => $measurementUnit,
             ];
         });
 
