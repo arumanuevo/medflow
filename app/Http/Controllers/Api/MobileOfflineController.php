@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Sensor;
+use App\Models\SensorGroup;
 use App\Models\Measurement;
 use App\Mail\MobileAccessInvite;
 use Illuminate\Support\Facades\DB;
@@ -23,6 +24,17 @@ class MobileOfflineController extends Controller
     public function getSensors(Request $request)
     {
         $user = $request->user();
+
+        // DEBUG TEMPORAL - eliminar después de diagnosticar
+        Log::info('MOBILE_GET_SENSORS_DEBUG', [
+            'user_id' => $user?->id,
+            'user_email' => $user?->email,
+            'has_bearer' => $request->bearerToken() !== null,
+            'bearer_prefix' => substr($request->bearerToken() ?? '', 0, 6),
+            'session_id' => $request->hasSession() ? $request->session()->getId() : null,
+            'cookies_count' => count($request->cookies->all()),
+        ]);
+
         $limit = (int) $request->query('limit', 0); // 0 = sin límite
 
         $query = Sensor::with(['group', 'lastMeasurement'])
@@ -60,11 +72,23 @@ class MobileOfflineController extends Controller
             ];
         });
 
+        $totalSensorsGlobally = Sensor::count();
+        $totalGroupsForUser = $user ? SensorGroup::where('user_id', $user->id)->count() : -1;
+
         return response()->json([
             'success' => true,
             'message' => 'Payload descargado correctamente.',
             'count' => $sensors->count(),
             'data' => $sensors,
+            '_debug' => [
+                'authenticated_user_id' => $user?->id,
+                'authenticated_user_email' => $user?->email,
+                'has_bearer_token' => $request->bearerToken() !== null,
+                'bearer_token_prefix' => substr($request->bearerToken() ?? '', 0, 6),
+                'total_sensors_in_db' => $totalSensorsGlobally,
+                'total_groups_for_user' => $totalGroupsForUser,
+                'limit_applied' => $limit,
+            ],
         ]);
     }
 
