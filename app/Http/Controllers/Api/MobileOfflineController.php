@@ -23,7 +23,28 @@ class MobileOfflineController extends Controller
     public function getSensors(Request $request)
     {
         $user = $request->user();
-        $limit = (int) $request->query('limit', 0); // 0 = sin límite
+
+        // Límite de sensores: se respeta el más restrictivo entre el definido
+        // en el token (ability 'sensor-limit:N', fijado por el admin) y el query
+        // param ?limit=N (override temporal). 0 = sin límite.
+        $tokenLimit = 0;
+        $accessToken = $user?->currentAccessToken();
+        if ($accessToken && method_exists($accessToken, 'getAttribute')) {
+            $abilities = $accessToken->getAttribute('abilities');
+            if (is_array($abilities)) {
+                foreach ($abilities as $ability) {
+                    if (is_string($ability) && str_starts_with($ability, 'sensor-limit:')) {
+                        $tokenLimit = (int) substr($ability, strlen('sensor-limit:'));
+                        break;
+                    }
+                }
+            }
+        }
+        $queryLimit = (int) $request->query('limit', 0);
+        // Tomar el más restrictivo (>0). Si ambos son 0, sin límite.
+        $limit = ($tokenLimit > 0 && $queryLimit > 0)
+            ? min($tokenLimit, $queryLimit)
+            : max($tokenLimit, $queryLimit);
 
         $query = Sensor::with(['group', 'lastMeasurement'])
             ->whereHas('group', function ($q) use ($user) {
@@ -83,8 +104,14 @@ class MobileOfflineController extends Controller
         $user = $request->user();
         $sensorLimit = (int) $request->input('sensor_limit', 0);
 
-        // Generar Token Sanctum con ability de lectura móvil
-        $tokenResult = $user->createToken('mobile-inspector-token', ['mobile:read']);
+        // Generar Token Sanctum con ability de lectura móvil + límite de sensores
+        // embebido como 'sensor-limit:N' para que el endpoint lo respete sin depender
+        // del cliente.
+        $abilities = ['mobile:read'];
+        if ($sensorLimit > 0) {
+            $abilities[] = 'sensor-limit:' . $sensorLimit;
+        }
+        $tokenResult = $user->createToken('mobile-inspector-token', $abilities);
         $plainToken = $tokenResult->plainTextToken;
 
         // Construir el Deep Link con scope embebido
