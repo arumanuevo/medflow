@@ -195,6 +195,7 @@
                                             placeholder="inspector@empresa.com">
                                     </div>
                                     <input type="hidden" id="inviteLimit" value="0">
+                                    <input type="hidden" id="inviteSensorIds" value="">
                                     <div class="mb-3">
                                         <label class="form-label fw-semibold">Sensores seleccionados</label>
                                         <div class="form-control-plaintext text-primary fw-semibold" id="inviteSelectedCount">0</div>
@@ -751,9 +752,14 @@
                     $noSelectionModal.show();
                     return;
                 }
-                // Abrir modal de invitación y setear el count
+                // Obtener IDs de los sensores seleccionados
+                const selectedSensorIds = $sensorCheckboxes.filter(':checked').map(function () {
+                    return $(this).data('sensor-id');
+                }).get().join(',');
+                // Abrir modal de invitación y setear el count y los IDs
                 const $inviteModal = new bootstrap.Modal(document.getElementById('mobileInviteModal'));
                 document.getElementById('inviteLimit').value = selectedCount;
+                document.getElementById('inviteSensorIds').value = selectedSensorIds;
                 document.getElementById('inviteSelectedCount').textContent = selectedCount + ' sensores';
                 $inviteModal.show();
             });
@@ -803,7 +809,11 @@
                         'Authorization': 'Bearer ' + localStorage.getItem('token'),
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
                     },
-                    body: JSON.stringify({ email: email, sensor_limit: limit })
+                    body: JSON.stringify({ 
+                        email: email, 
+                        sensor_limit: limit,
+                        sensor_ids: document.getElementById('inviteSensorIds').value
+                    })
                 })
                     .then(async res => {
                         const text = await res.text();

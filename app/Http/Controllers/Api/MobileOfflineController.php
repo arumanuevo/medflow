@@ -25,18 +25,22 @@ class MobileOfflineController extends Controller
     {
         $user = $request->user();
 
-        // Límite de sensores: se respeta el más restrictivo entre el definido
-        // en el token (ability 'sensor-limit:N', fijado por el admin) y el query
-        // param ?limit=N (override temporal). 0 = sin límite.
+        // Límite de sensores y IDs específicos desde el token
         $tokenLimit = 0;
+        $tokenSensorIds = [];
         $accessToken = $user?->currentAccessToken();
         if ($accessToken && method_exists($accessToken, 'getAttribute')) {
             $abilities = $accessToken->getAttribute('abilities');
             if (is_array($abilities)) {
                 foreach ($abilities as $ability) {
-                    if (is_string($ability) && str_starts_with($ability, 'sensor-limit:')) {
-                        $tokenLimit = (int) substr($ability, strlen('sensor-limit:'));
-                        break;
+                    if (is_string($ability)) {
+                        if (str_starts_with($ability, 'sensor-limit:')) {
+                            $tokenLimit = (int) substr($ability, strlen('sensor-limit:'));
+                        }
+                        if (str_starts_with($ability, 'sensor-ids:')) {
+                            $idsStr = substr($ability, strlen('sensor-ids:'));
+                            $tokenSensorIds = array_filter(explode(',', $idsStr));
+                        }
                     }
                 }
             }
@@ -52,7 +56,15 @@ class MobileOfflineController extends Controller
                 $q->where('user_id', $user->id);
             });
 
-        if ($limit > 0) {
+        // Si el token tiene IDs específicos, filtrar SOLO por esos IDs
+        // (y respetar el límite de cantidad si aplica)
+        if (!empty($tokenSensorIds)) {
+            $query->whereIn('id', $tokenSensorIds);
+            // Si además hay límite de cantidad, tomar los primeros N
+            if ($limit > 0) {
+                $query->take($limit);
+            }
+        } elseif ($limit > 0) {
             $query->take($limit);
         }
 
@@ -112,17 +124,21 @@ class MobileOfflineController extends Controller
         $request->validate([
             'email' => 'required|email',
             'sensor_limit' => 'nullable|integer|min:0',
+            'sensor_ids' => 'nullable|string',
         ]);
 
         $user = $request->user();
         $sensorLimit = (int) $request->input('sensor_limit', 0);
+        $sensorIds = $request->input('sensor_ids', '');
 
         // Generar Token Sanctum con ability de lectura móvil + límite de sensores
-        // embebido como 'sensor-limit:N' para que el endpoint lo respete sin depender
-        // del cliente.
+        // y los IDs específicos de los sensores seleccionados.
         $abilities = ['mobile:read'];
         if ($sensorLimit > 0) {
             $abilities[] = 'sensor-limit:' . $sensorLimit;
+        }
+        if ($sensorIds !== '') {
+            $abilities[] = 'sensor-ids:' . $sensorIds;
         }
         $tokenResult = $user->createToken('mobile-inspector-token', $abilities);
         $plainToken = $tokenResult->plainTextToken;
