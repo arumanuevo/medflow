@@ -163,10 +163,12 @@
                                 </div>
                                 <div class="modal-body">
                                     <p>Debes seleccionar al menos un sensor antes de invitar a un inspector móvil.</p>
-                                    <p class="text-muted small">Usá los checkboxes de la tabla para marcar los sensores que el inspector podrá medir.</p>
+                                    <p class="text-muted small">Usá los checkboxes de la tabla para marcar los sensores que
+                                        el inspector podrá medir.</p>
                                 </div>
                                 <div class="modal-footer border-0">
-                                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Entendido</button>
+                                    <button type="button" class="btn btn-secondary btn-sm"
+                                        data-bs-dismiss="modal">Entendido</button>
                                 </div>
                             </div>
                         </div>
@@ -194,11 +196,22 @@
                                         <input type="email" id="inviteEmail" class="form-control"
                                             placeholder="inspector@empresa.com">
                                     </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-semibold">Grupo Asignado (Ruta de Inspección)</label>
+                                        <select id="inviteGroupId" class="form-select">
+                                            <option value="">Acceso Total (Todos los grupos)</option>
+                                            @foreach($availableGroups as $grp)
+                                                <option value="{{ $grp->id }}">{{ $grp->name }}</option>
+                                            @endforeach
+                                        </select>
+                                        <div class="form-text">Asigná una zona específica para evitar solapamientos.</div>
+                                    </div>
                                     <input type="hidden" id="inviteLimit" value="0">
                                     <input type="hidden" id="inviteSensorIds" value="">
                                     <div class="mb-3">
                                         <label class="form-label fw-semibold">Sensores seleccionados</label>
-                                        <div class="form-control-plaintext text-primary fw-semibold" id="inviteSelectedCount">0</div>
+                                        <div class="form-control-plaintext text-primary fw-semibold"
+                                            id="inviteSelectedCount">0</div>
                                         <div class="form-text">Solo el inspector podrá medir estos sensores.</div>
                                     </div>
                                     <div id="inviteResultMsg" class="d-none"></div>
@@ -619,13 +632,13 @@
                 const useSelectionOrder = $useSelectionOrder.is(':checked');
                 if (useSelectionOrder && selectionOrder.length > 0) {
                     $('#bulkMeasurementForm').append(`
-                                                                <input type="hidden" name="selection_order" value="${selectionOrder.join(',')}">
-                                                                <input type="hidden" name="use_selection_order" value="1">
-                                                            `);
+                                                                    <input type="hidden" name="selection_order" value="${selectionOrder.join(',')}">
+                                                                    <input type="hidden" name="use_selection_order" value="1">
+                                                                `);
                 } else {
                     $('#bulkMeasurementForm').append(`
-                                                                <input type="hidden" name="use_selection_order" value="0">
-                                                            `);
+                                                                    <input type="hidden" name="use_selection_order" value="0">
+                                                                `);
                 }
 
                 $modalSelectedCount.text(selectedCount);
@@ -767,17 +780,8 @@
             // ✅ MODAL: Enviar invitación de acceso a Inspector Móvil
             document.getElementById('sendInviteBtn').addEventListener('click', function () {
                 const email = document.getElementById('inviteEmail').value.trim();
-                const limit = parseInt(document.getElementById('inviteLimit').value) || 0;
-                const selectedCount = getSelectedCount();
-                if (selectedCount === 0) {
-                    // No debería pasar porque el botón de abrir el modal ya valida,
-                    // pero por seguridad
-                    document.getElementById('inviteResultMsg').innerHTML = '<div class="alert alert-warning py-2">No hay sensores seleccionados.</div>';
-                    document.getElementById('inviteResultMsg').classList.remove('d-none');
-                    return;
-                }
-                // Usar la cantidad de seleccionados como límite
-                document.getElementById('inviteLimit').value = selectedCount;
+                const groupId = parseInt(document.getElementById('inviteGroupId').value) || 0;
+                
                 const msgDiv = document.getElementById('inviteResultMsg');
                 const btn = this;
                 const spinner = document.getElementById('sendInviteBtnSpinner');
@@ -794,25 +798,17 @@
                 btnText.textContent = 'Enviando...';
                 msgDiv.classList.add('d-none');
 
-                const authToken = localStorage.getItem('token');
-                if (!authToken) {
-                    msgDiv.innerHTML = '<div class="alert alert-warning py-2">No hay sesión activa. Por favor, volvé a iniciar sesión e intentá nuevamente.</div>';
-                    msgDiv.classList.remove('d-none');
-                    return;
-                }
-
                 fetch('/api/mobile/v1/invite', {
                     method: 'POST',
+                    credentials: 'same-origin', // Envía la cookie de sesión web activa
                     headers: {
                         'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                        'Accept': 'application/json',
                     },
-                    body: JSON.stringify({ 
-                        email: email, 
-                        sensor_limit: limit,
-                        sensor_ids: document.getElementById('inviteSensorIds').value
+                    body: JSON.stringify({
+                        email: email,
+                        group_id: groupId
                     })
                 })
                     .then(async res => {
@@ -849,11 +845,11 @@
             // Mostrar alertas
             function showAlert(message, type) {
                 const alertHtml = `
-                                                            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                                                                ${message}
-                                                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                                            </div>
-                                                        `;
+                                                                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                                                                    ${message}
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                                                </div>
+                                                            `;
                 $('.card-body').prepend(alertHtml);
 
                 setTimeout(() => {

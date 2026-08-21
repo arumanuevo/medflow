@@ -86,13 +86,18 @@ class BulkMeasurementFlowController extends Controller
         $gate = new \App\Services\Subscription\SubscriptionGate($user);
         $permissions = $gate->getAllPermissions();
 
+        // ✅ Extraer los grupos únicos accesibles en esta vista para el Modal de Invitar Inspector
+        $availableGroups = SensorGroup::whereIn('id', $sensors->pluck('group_id')->unique()->filter())
+            ->orderBy('name')->get();
+
         return view('bulk-measurements.select-sensors', compact(
             'sensors',
             'markedSensorIds',
             'ownerName',
             'activeWorkspace',
             'isOwner',
-            'permissions'
+            'permissions',
+            'availableGroups'
         ));
     }
 
