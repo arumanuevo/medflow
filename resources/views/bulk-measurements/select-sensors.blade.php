@@ -632,13 +632,13 @@
                 const useSelectionOrder = $useSelectionOrder.is(':checked');
                 if (useSelectionOrder && selectionOrder.length > 0) {
                     $('#bulkMeasurementForm').append(`
-                                                                    <input type="hidden" name="selection_order" value="${selectionOrder.join(',')}">
-                                                                    <input type="hidden" name="use_selection_order" value="1">
-                                                                `);
+                                                                        <input type="hidden" name="selection_order" value="${selectionOrder.join(',')}">
+                                                                        <input type="hidden" name="use_selection_order" value="1">
+                                                                    `);
                 } else {
                     $('#bulkMeasurementForm').append(`
-                                                                    <input type="hidden" name="use_selection_order" value="0">
-                                                                `);
+                                                                        <input type="hidden" name="use_selection_order" value="0">
+                                                                    `);
                 }
 
                 $modalSelectedCount.text(selectedCount);
@@ -781,7 +781,7 @@
             document.getElementById('sendInviteBtn').addEventListener('click', function () {
                 const email = document.getElementById('inviteEmail').value.trim();
                 const groupId = parseInt(document.getElementById('inviteGroupId').value) || 0;
-                
+
                 const msgDiv = document.getElementById('inviteResultMsg');
                 const btn = this;
                 const spinner = document.getElementById('sendInviteBtnSpinner');
@@ -798,13 +798,20 @@
                 btnText.textContent = 'Enviando...';
                 msgDiv.classList.add('d-none');
 
+                const authToken = localStorage.getItem('token');
+                if (!authToken) {
+                    msgDiv.innerHTML = '<div class="alert alert-warning py-2">No hay sesión activa. Por favor, volvé a iniciar sesión e intentá nuevamente.</div>';
+                    msgDiv.classList.remove('d-none');
+                    return;
+                }
+
                 fetch('/api/mobile/v1/invite', {
                     method: 'POST',
-                    credentials: 'same-origin', // Envía la cookie de sesión web activa
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
                         'Accept': 'application/json',
+                        'Authorization': 'Bearer ' + authToken,
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
                     },
                     body: JSON.stringify({
                         email: email,
@@ -845,11 +852,11 @@
             // Mostrar alertas
             function showAlert(message, type) {
                 const alertHtml = `
-                                                                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                                                                    ${message}
-                                                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                                                </div>
-                                                            `;
+                                                                    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                                                                        ${message}
+                                                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                                                    </div>
+                                                                `;
                 $('.card-body').prepend(alertHtml);
 
                 setTimeout(() => {
