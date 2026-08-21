@@ -15,12 +15,14 @@ class MobileAccessInvite extends Mailable
     public string $deepLink;
     public string $senderName;
     public int $sensorLimit;
+    public string $groupName;
 
-    public function __construct(string $deepLink, string $senderName, int $sensorLimit)
+    public function __construct(string $deepLink, string $senderName, int $sensorLimit, string $groupName = '')
     {
         $this->deepLink = $deepLink;
         $this->senderName = $senderName;
         $this->sensorLimit = $sensorLimit;
+        $this->groupName = $groupName;
     }
 
     public function envelope(): Envelope
@@ -38,6 +40,7 @@ class MobileAccessInvite extends Mailable
                 'deepLink' => $this->deepLink,
                 'senderName' => $this->senderName,
                 'sensorLimit' => $this->sensorLimit,
+                'groupName' => $this->groupName,
             ],
         );
     }

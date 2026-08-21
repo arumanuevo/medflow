@@ -179,7 +179,7 @@ class MobileOfflineController extends Controller
 
         // Despachar el correo corporativo
         Mail::to($request->input('email'))
-            ->send(new MobileAccessInvite($deepLink, $user->name, $groupName));
+            ->send(new MobileAccessInvite($deepLink, $user->name, $sensorLimit, $groupName));
 
         Log::info("Token móvil generado para inspector: {$request->input('email')} | limit={$sensorLimit} | GroupID={$groupId}");
 
