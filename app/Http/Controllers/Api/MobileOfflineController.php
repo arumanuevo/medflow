@@ -16,39 +16,53 @@ use Carbon\Carbon;
 class MobileOfflineController extends Controller
 {
     /**
-     * Endpoint 1: "Descarga del Payload de Rutas" (Maneja el Re-Despacho Automático)
-     * GET /api/mobile/v1/sensors
-     * Devuelve la lista de sensores al celular filtrando mágicamente los que YA fueron medidos.
+     * Endpoint 1: "Vomitador de Sensores" (Descarga del Payload)
+     * GET /api/mobile/v1/sensors?limit=N
+     * Devuelve la lista de sensores a la App Móvil para guardarlos localmente en SQLite.
      */
     public function getSensors(Request $request)
     {
         $user = $request->user();
 
-        // Extraer Grupo Asignado desde el Token (Binding Geográfico)
-        $tokenGroupId = 0;
+        // Límite de sensores y IDs específicos desde el token
+        $tokenLimit = 0;
+        $tokenSensorIds = [];
         $accessToken = $user?->currentAccessToken();
         if ($accessToken && method_exists($accessToken, 'getAttribute')) {
             $abilities = $accessToken->getAttribute('abilities');
             if (is_array($abilities)) {
                 foreach ($abilities as $ability) {
-                    if (is_string($ability) && str_starts_with($ability, 'group-id:')) {
-                        $tokenGroupId = (int) substr($ability, strlen('group-id:'));
+                    if (is_string($ability)) {
+                        if (str_starts_with($ability, 'sensor-limit:')) {
+                            $tokenLimit = (int) substr($ability, strlen('sensor-limit:'));
+                        }
+                        if (str_starts_with($ability, 'sensor-ids:')) {
+                            $idsStr = substr($ability, strlen('sensor-ids:'));
+                            $tokenSensorIds = array_filter(explode(',', $idsStr));
+                        }
                     }
                 }
             }
         }
-
-        $queryRequestGroupId = (int) $request->query('group_id', 0);
-        $groupId = $tokenGroupId > 0 ? $tokenGroupId : $queryRequestGroupId;
+        $queryLimit = (int) $request->query('limit', 0);
+        // Tomar el más restrictivo (>0). Si ambos son 0, sin límite.
+        $limit = ($tokenLimit > 0 && $queryLimit > 0)
+            ? min($tokenLimit, $queryLimit)
+            : max($tokenLimit, $queryLimit);
 
         $query = Sensor::with(['group', 'lastMeasurement'])
             ->whereHas('group', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             });
 
-        // 1. Aplicar Zona Geográfica / Ruta Asignada
-        if ($groupId > 0) {
-            $query->where('group_id', $groupId);
+        // Si el token tiene IDs específicos, filtrar SOLO por esos IDs
+        if (!empty($tokenSensorIds)) {
+            $query->whereIn('id', $tokenSensorIds);
+            if ($limit > 0) {
+                $query->take($limit);
+            }
+        } elseif ($limit > 0) {
+            $query->take($limit);
         }
 
         // 2. MAGIA DE SINCRONIZACIÓN INTELIGENTE: (Evita medir algo dos veces)
@@ -73,9 +87,14 @@ class MobileOfflineController extends Controller
                 $lastValue = $sensor->lastMeasurement->data[$mainField];
             }
 
+            // Tipo, unidad e icono de medición, derivados de la plantilla del grupo
             $measurementType = $sensor->group?->template?->type;
-            $measurementUnit = $measurementType ? (Template::$defaultUnits[$measurementType] ?? '') : '';
-            $measurementIcon = $measurementType ? (Template::$typeIcons[$measurementType] ?? 'fa-solid fa-circle') : '';
+            $measurementUnit = '';
+            $measurementIcon = '';
+            if ($measurementType) {
+                $measurementUnit = Template::$defaultUnits[$measurementType] ?? '';
+                $measurementIcon = Template::$typeIcons[$measurementType] ?? 'fa-solid fa-circle';
+            }
 
             return [
                 'id' => $sensor->id,
@@ -92,7 +111,7 @@ class MobileOfflineController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Payload de ruta descargado correctamente.',
+            'message' => 'Payload descargado correctamente.',
             'count' => $sensors->count(),
             'data' => $sensors,
         ]);
@@ -101,56 +120,55 @@ class MobileOfflineController extends Controller
     /**
      * Endpoint 2: "Invitar Inspector Móvil"
      * POST /api/mobile/v1/invite
-     * Asigna un Grupo/Ruta al Inspector Móvil y envía el Deep Link corporativo.
+     * Genera un Token Sanctum con alcance definido y lo envía por correo al operario.
      */
     public function inviteOperator(Request $request)
     {
         $request->validate([
             'email' => 'required|email',
-            'group_id' => 'nullable|integer|min:0',
+            'sensor_limit' => 'nullable|integer|min:0',
+            'sensor_ids' => 'nullable|string',
         ]);
 
         $user = $request->user();
-        $groupId = (int) $request->input('group_id', 0);
+        $sensorLimit = (int) $request->input('sensor_limit', 0);
+        $sensorIds = $request->input('sensor_ids', '');
 
-        // Binding del Token a un Grupo (Ruta de Inspección)
+        // Generar Token Sanctum con ability de lectura móvil + límite de sensores
+        // y los IDs específicos de los sensores seleccionados.
         $abilities = ['mobile:read'];
-        if ($groupId > 0) {
-            $abilities[] = 'group-id:' . $groupId;
+        if ($sensorLimit > 0) {
+            $abilities[] = 'sensor-limit:' . $sensorLimit;
         }
-
+        if ($sensorIds !== '') {
+            $abilities[] = 'sensor-ids:' . $sensorIds;
+        }
         $tokenResult = $user->createToken('mobile-inspector-token', $abilities);
         $plainToken = $tokenResult->plainTextToken;
 
-        // Construir el Deep Link con los parámetros
+        // Construir el Deep Link con scope embebido
         $deepLink = 'medflowapp://auth/sync?' . http_build_query([
             'token' => $plainToken,
             'workspace' => $user->id,
-            'group_id' => $groupId,
+            'limit' => $sensorLimit,
         ]);
 
-        $groupName = '';
-        if ($groupId > 0) {
-            $group = \App\Models\SensorGroup::find($groupId);
-            $groupName = $group ? $group->name : '';
-        }
-
-        // Despachar el correo corporativo (pasando Name en vez de Limit)
+        // Despachar el correo corporativo
         Mail::to($request->input('email'))
-            ->send(new MobileAccessInvite($deepLink, $user->name, $groupName));
+            ->send(new MobileAccessInvite($deepLink, $user->name, $sensorLimit));
 
-        Log::info("Ruta de inspección enviada. Destino: {$request->input('email')} | GroupID={$groupId}");
+        Log::info("Token móvil generado para inspector: {$request->input('email')} | limit={$sensorLimit}");
 
         return response()->json([
             'success' => true,
-            'message' => "Ruta enviada a {$request->input('email')} correctamente.",
+            'message' => "Enlace de acceso enviado a {$request->input('email')} correctamente.",
         ]);
     }
 
     /**
      * Endpoint 3: "Sincronizador Cíclico" (Bulk Sync con Idempotencia)
      * POST /api/mobile/v1/sync
-     * Recibe los datos y usa mobile_uuid para descartar duplicados sin afectar consumo.
+     * Recibe una lista de lecturas tomadas offline por el móvil y las persiste.
      */
     public function syncMeasurements(Request $request)
     {
@@ -204,7 +222,6 @@ class MobileOfflineController extends Controller
                     'measured_at' => Carbon::now(),
                     'proxima_medicion' => Carbon::now()->addDays($sensor->group->periodo_medicion ?? 30),
                     'periodo_medicion' => $sensor->group->periodo_medicion ?? 30,
-                    // Grabar el UUID dentro de data JSON para evitar alterar la estructura SQL
                     'data' => [$mainField => $item['value'], 'mobile_uuid' => $item['mobile_uuid']],
                     'created_by' => $user->id,
                 ]);
@@ -222,10 +239,10 @@ class MobileOfflineController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Fallo Crítico al Sincronizar App Offline: ' . $e->getMessage());
+            Log::error('Fallo al Sincronizar App Offline: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Ocurrió un error en la persistencia local de la Nube.',
+                'message' => 'Ocurrió un error general durante la transacción de sincronización.',
             ], 500);
         }
     }
