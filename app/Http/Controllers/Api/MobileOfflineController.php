@@ -27,6 +27,7 @@ class MobileOfflineController extends Controller
         // Límite de sensores y IDs específicos desde el token
         $tokenLimit = 0;
         $tokenSensorIds = [];
+        $tokenGroupId = 0;
         $accessToken = $user?->currentAccessToken();
         if ($accessToken && method_exists($accessToken, 'getAttribute')) {
             $abilities = $accessToken->getAttribute('abilities');
@@ -40,20 +41,31 @@ class MobileOfflineController extends Controller
                             $idsStr = substr($ability, strlen('sensor-ids:'));
                             $tokenSensorIds = array_filter(explode(',', $idsStr));
                         }
+                        if (str_starts_with($ability, 'group-id:')) {
+                            $tokenGroupId = (int) substr($ability, strlen('group-id:'));
+                        }
                     }
                 }
             }
         }
         $queryLimit = (int) $request->query('limit', 0);
+        $queryGroupId = (int) $request->query('group_id', 0);
         // Tomar el más restrictivo (>0). Si ambos son 0, sin límite.
         $limit = ($tokenLimit > 0 && $queryLimit > 0)
             ? min($tokenLimit, $queryLimit)
             : max($tokenLimit, $queryLimit);
 
+        $groupId = $tokenGroupId > 0 ? $tokenGroupId : $queryGroupId;
+
         $query = Sensor::with(['group', 'lastMeasurement'])
             ->whereHas('group', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             });
+
+        // Aplicar Zona Geográfica / Ruta Asignada
+        if ($groupId > 0) {
+            $query->where('group_id', $groupId);
+        }
 
         // Si el token tiene IDs específicos, filtrar SOLO por esos IDs
         if (!empty($tokenSensorIds)) {
@@ -128,20 +140,25 @@ class MobileOfflineController extends Controller
             'email' => 'required|email',
             'sensor_limit' => 'nullable|integer|min:0',
             'sensor_ids' => 'nullable|string',
+            'group_id' => 'nullable|integer|min:0',
         ]);
 
         $user = $request->user();
         $sensorLimit = (int) $request->input('sensor_limit', 0);
         $sensorIds = $request->input('sensor_ids', '');
+        $groupId = (int) $request->input('group_id', 0);
 
         // Generar Token Sanctum con ability de lectura móvil + límite de sensores
-        // y los IDs específicos de los sensores seleccionados.
+        // y los IDs específicos de los sensores seleccionados + Grupo Asignado
         $abilities = ['mobile:read'];
         if ($sensorLimit > 0) {
             $abilities[] = 'sensor-limit:' . $sensorLimit;
         }
         if ($sensorIds !== '') {
             $abilities[] = 'sensor-ids:' . $sensorIds;
+        }
+        if ($groupId > 0) {
+            $abilities[] = 'group-id:' . $groupId;
         }
         $tokenResult = $user->createToken('mobile-inspector-token', $abilities);
         $plainToken = $tokenResult->plainTextToken;
@@ -151,13 +168,20 @@ class MobileOfflineController extends Controller
             'token' => $plainToken,
             'workspace' => $user->id,
             'limit' => $sensorLimit,
+            'group_id' => $groupId,
         ]);
+
+        $groupName = '';
+        if ($groupId > 0) {
+            $group = \App\Models\SensorGroup::find($groupId);
+            $groupName = $group ? $group->name : '';
+        }
 
         // Despachar el correo corporativo
         Mail::to($request->input('email'))
-            ->send(new MobileAccessInvite($deepLink, $user->name, $sensorLimit));
+            ->send(new MobileAccessInvite($deepLink, $user->name, $groupName));
 
-        Log::info("Token móvil generado para inspector: {$request->input('email')} | limit={$sensorLimit}");
+        Log::info("Token móvil generado para inspector: {$request->input('email')} | limit={$sensorLimit} | GroupID={$groupId}");
 
         return response()->json([
             'success' => true,
