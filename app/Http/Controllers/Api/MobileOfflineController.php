@@ -241,12 +241,30 @@ class MobileOfflineController extends Controller
                     }
                 }
 
+                $payloadData = [$mainField => $item['value'], 'mobile_uuid' => $item['mobile_uuid']];
+
+                // Procesamiento Asignado de Evidencia Fotográfica (Conviniendo tabulación estándar de la API V1)
+                if (!empty($item['photo_base64'])) {
+                    $imageData = base64_decode($item['photo_base64']);
+                    $filename = time() . '_' . \Illuminate\Support\Str::slug($sensor->name) . '_' . uniqid() . '.jpg';
+
+                    $uploadPath = public_path('measurements/fotos');
+                    if (!file_exists($uploadPath)) {
+                        mkdir($uploadPath, 0755, true);
+                    }
+
+                    file_put_contents($uploadPath . '/' . $filename, $imageData);
+                    $payloadData['foto'] = '/measurements/fotos/' . $filename;
+                } else {
+                    $payloadData['foto'] = 'Sin Foto';
+                }
+
                 Measurement::create([
                     'sensor_id' => $sensor->id,
                     'measured_at' => Carbon::now(),
                     'proxima_medicion' => Carbon::now()->addDays($sensor->group->periodo_medicion ?? 30),
                     'periodo_medicion' => $sensor->group->periodo_medicion ?? 30,
-                    'data' => [$mainField => $item['value'], 'mobile_uuid' => $item['mobile_uuid']],
+                    'data' => $payloadData,
                     'created_by' => $user->id,
                 ]);
 
