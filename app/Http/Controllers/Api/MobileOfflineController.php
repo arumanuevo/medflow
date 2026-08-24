@@ -241,7 +241,13 @@ class MobileOfflineController extends Controller
                     }
                 }
 
-                $payloadData = [$mainField => $item['value'], 'mobile_uuid' => $item['mobile_uuid']];
+                $measurementType = $sensor->group?->template?->type ?? 'Desconocido';
+
+                $payloadData = [
+                    $mainField => $item['value'],
+                    'mobile_uuid' => $item['mobile_uuid'],
+                    'tipo' => $measurementType
+                ];
 
                 // Procesamiento Asignado de Evidencia Fotográfica (Conviniendo tabulación estándar de la API V1)
                 if (!empty($item['photo_base64'])) {

@@ -322,10 +322,18 @@
             INFO DE LA MEDICIÓN ACTUAL
             ============================================ -->
             @php
-                $mainField = 'consumo_m3';
-                $currentValue = $measurement->data[$mainField] ?? null;
+                $mainField = 'valor';
+                if (isset($measurement->sensor->group->template->schema['campos'])) {
+                    foreach ($measurement->sensor->group->template->schema['campos'] as $campo) {
+                        if ($campo['tipo'] === 'numero' && ($campo['requerido'] ?? false)) {
+                            $mainField = $campo['nombre'];
+                            break;
+                        }
+                    }
+                }
+                $currentValue = $measurement->data[$mainField] ?? $measurement->data['valor'] ?? $measurement->data['consumo_m3'] ?? 0;
                 $currentDate = $measurement->measured_at;
-                $unit = 'm³';
+                $unit = $measurement->sensor->group->template->schema['unidad'] ?? $measurement->sensor->group->unidad_medida ?? 'm³';
                 $fotoPath = $measurement->data['foto'] ?? 'Sin Foto';
             @endphp
 
@@ -361,14 +369,14 @@
                 <div class="mb-3">
                     <label for="consumo_m3" class="form-label">
                         <i class="bi bi-speedometer2 me-1 text-primary"></i>
-                        Consumo (m³) <span class="text-danger">*</span>
+                        Valor ({{$unit}}) <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
                         <input type="number" step="0.01" class="form-control" id="consumo_m3" 
-                               name="data[consumo_m3]" 
-                               value="{{ old('consumo_m3', $currentValue) }}"
+                               name="data[{{$mainField}}]" 
+                               value="{{ old($mainField, $currentValue) }}"
                                placeholder="Ej: 125.50" required autofocus>
-                        <span class="input-group-text">m³</span>
+                        <span class="input-group-text">{{$unit}}</span>
                     </div>
                     <small class="text-muted">
                         <i class="bi bi-info-circle me-1"></i>
@@ -412,7 +420,7 @@
                             <div class="col-md-7">
                                 <div class="photo-preview-box" id="photoPreviewBox">
                                     @if($fotoPath !== 'Sin Foto')
-                                        <img id="photoPreviewImg" src="/{{ $fotoPath }}" alt="Foto actual">
+                                        <img id="photoPreviewImg" src="{{ Str::startsWith($fotoPath, '/') ? $fotoPath : '/'.$fotoPath }}" alt="Foto actual">
                                         <button type="button" class="btn-remove-photo" id="btnRemovePhoto">
                                             <i class="bi bi-x"></i>
                                         </button>
@@ -599,7 +607,7 @@ $(document).ready(function() {
             if (originalPhoto !== 'Sin Foto' && !isNewPhoto) {
                 $('#photo').val(originalPhoto);
                 $('#photoNameDisplay').text(originalPhoto);
-                $('#photoPreviewImg').attr('src', '/' + originalPhoto).removeClass('d-none');
+                $('#photoPreviewImg').attr('src', originalPhoto.startsWith('/') ? originalPhoto : '/' + originalPhoto).removeClass('d-none');
                 $('#photoPlaceholder').addClass('d-none');
                 $('#btnRemovePhoto').show();
                 $('#photoPreviewBox').addClass('has-photo');
