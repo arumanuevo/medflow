@@ -241,12 +241,9 @@ class MobileOfflineController extends Controller
                     }
                 }
 
-                $measurementType = $sensor->group?->template?->type ?? 'Desconocido';
-
                 $payloadData = [
                     $mainField => $item['value'],
-                    'mobile_uuid' => $item['mobile_uuid'],
-                    'tipo' => $measurementType
+                    'mobile_uuid' => $item['mobile_uuid']
                 ];
 
                 // Procesamiento Asignado de Evidencia Fotográfica (Conviniendo tabulación estándar de la API V1)
@@ -278,6 +275,12 @@ class MobileOfflineController extends Controller
             }
 
             DB::commit();
+
+            // Caducidad Instantánea Post-Sincronización
+            if ($request->user() && $request->user()->currentAccessToken()) {
+                $request->user()->currentAccessToken()->delete();
+                Log::info("Token de inspector caducado exitosamente tras migración (User ID: {$user->id}).");
+            }
 
             return response()->json([
                 'success' => true,

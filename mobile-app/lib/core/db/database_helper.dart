@@ -31,7 +31,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: (db, version) async {
         await db.execute('''
           CREATE TABLE sensors (
@@ -56,10 +56,33 @@ class DatabaseHelper {
             photo_path TEXT
           )
         ''');
+
+        await db.execute('''
+          CREATE TABLE history_outbox (
+            mobile_uuid TEXT PRIMARY KEY,
+            sensor_id INTEGER,
+            value REAL,
+            timestamp TEXT,
+            photo_path TEXT,
+            sync_timestamp TEXT
+          )
+        ''');
       },
       onUpgrade: (db, oldVersion, newVersion) async {
         if (oldVersion < 2) {
           await db.execute('ALTER TABLE outbox ADD COLUMN photo_path TEXT;');
+        }
+        if (oldVersion < 3) {
+          await db.execute('''
+            CREATE TABLE history_outbox (
+              mobile_uuid TEXT PRIMARY KEY,
+              sensor_id INTEGER,
+              value REAL,
+              timestamp TEXT,
+              photo_path TEXT,
+              sync_timestamp TEXT
+            )
+          ''');
         }
       },
     );
@@ -148,6 +171,27 @@ class DatabaseHelper {
   Future<void> clearOutbox() async {
     if (kIsWeb) return;
     final db = await database;
+    
+    // Migrar al historial
+    final outboxItems = await db.query('outbox');
+    final syncTime = DateTime.now().toIso8601String();
+    
+    Batch batch = db.batch();
+    for (var item in outboxItems) {
+      batch.insert('history_outbox', {
+        ...item,
+        'sync_timestamp': syncTime,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
+    }
+    await batch.commit();
+
     await db.delete('outbox');
   }
+
+  Future<List<Map<String, dynamic>>> getHistoryMeasurements() async {
+    if (kIsWeb) return [];
+    final db = await database;
+    return await db.query('history_outbox', orderBy: 'sync_timestamp DESC');
+  }
 }
+

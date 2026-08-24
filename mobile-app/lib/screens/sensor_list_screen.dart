@@ -19,6 +19,7 @@ class SensorListScreen extends StatefulWidget {
 class _SensorListScreenState extends State<SensorListScreen> {
   List<SensorModel> _pendingSensors = [];
   List<SensorModel> _completedSensors = [];
+  List<Map<String, dynamic>> _historyRecords = [];
   bool _isLoading = true;
 
   @override
@@ -32,10 +33,12 @@ class _SensorListScreenState extends State<SensorListScreen> {
     try {
       final allSensors = await DatabaseHelper().getSensors();
       final completedIds = await DatabaseHelper().getCompletedSensorIds();
-      
+      final history = await DatabaseHelper().getHistoryMeasurements();
+
       setState(() {
         _pendingSensors = allSensors.where((s) => !completedIds.contains(s.id)).toList();
         _completedSensors = allSensors.where((s) => completedIds.contains(s.id)).toList();
+        _historyRecords = history;
         _isLoading = false;
       });
     } catch (e) {
@@ -58,7 +61,7 @@ class _SensorListScreenState extends State<SensorListScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
         appBar: AppBar(
@@ -88,6 +91,7 @@ class _SensorListScreenState extends State<SensorListScreen> {
             tabs: const [
               Tab(icon: Icon(Icons.pending_actions), text: 'PENDIENTES'),
               Tab(icon: Icon(Icons.done_all), text: 'TOMADOS'),
+              Tab(icon: Icon(Icons.history), text: 'HISTORIAL'),
             ],
           ),
         ),
@@ -97,6 +101,7 @@ class _SensorListScreenState extends State<SensorListScreen> {
                 children: [
                   _pendingSensors.isEmpty ? _buildEmptyStatePending(theme) : _buildList(_pendingSensors, theme, isPending: true),
                   _completedSensors.isEmpty ? _buildEmptyStateCompleted(theme) : _buildList(_completedSensors, theme, isPending: false),
+                  _historyRecords.isEmpty ? _buildEmptyHistory(theme) : _buildHistoryList(_historyRecords, theme),
                 ],
               ),
         floatingActionButton: FloatingActionButton.extended(
@@ -124,6 +129,21 @@ class _SensorListScreenState extends State<SensorListScreen> {
               if (refresh['success'] == true) {
                 final sensors = (refresh['data'] as List).map((j) => SensorModel.fromJson(j)).toList();
                 await DatabaseHelper().replaceSensors(sensors);
+              } else {
+                // Token fue revocado exitosamente por seguridad o caducó
+                await DatabaseHelper().clearOutbox(); // o empty todo?
+                // En su lugar, deslogueamos.
+                await prefs.remove(AppConstants.tokenKey);
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                  content: Text('¡Sincronización Exitosa! Tu token ha caducado por seguridad.'), 
+                  backgroundColor: AppTheme.success
+                ));
+                if (mounted) {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  );
+                }
+                return;
               }
 
               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -182,6 +202,66 @@ class _SensorListScreenState extends State<SensorListScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildEmptyHistory(ThemeData theme) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.history, size: 80, color: theme.colorScheme.onSurface.withOpacity(0.1)),
+          const SizedBox(height: 20),
+          Text(
+            'Historial Vacío',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Tus mediciones sincronizadas\naparecerán aquí.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.6)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHistoryList(List<Map<String, dynamic>> records, ThemeData theme) {
+    return ListView.builder(
+      padding: const EdgeInsets.only(top: 16, bottom: 100),
+      itemCount: records.length,
+      itemBuilder: (context, index) {
+        final rec = records[index];
+        final bool hasPhoto = rec['photo_path'] != null;
+        DateTime syncDt = DateTime.parse(rec['sync_timestamp']).toLocal();
+        String formattedSync = '${syncDt.day.toString().padLeft(2, '0')}/${syncDt.month.toString().padLeft(2, '0')} ${syncDt.hour.toString().padLeft(2, '0')}:${syncDt.minute.toString().padLeft(2, '0')}';
+        
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: theme.colorScheme.onSurface.withOpacity(0.1)),
+          ),
+          child: ListTile(
+            contentPadding: const EdgeInsets.all(16),
+            leading: const Icon(Icons.cloud_done, color: AppTheme.success),
+            title: Text(
+              'Medición: ${rec['value']}',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: theme.colorScheme.onSurface),
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Sensor ID: ${rec['sensor_id']}'),
+                Text('Sincronizado: $formattedSync'),
+              ],
+            ),
+            trailing: hasPhoto ? const Icon(Icons.camera_alt, color: AppTheme.primary) : null,
+          ),
+        );
+      },
     );
   }
 
