@@ -172,6 +172,19 @@
                     </a>
                 </div>
 
+                <div class="manual-sync" style="margin-top:20px; border-left: 3px solid #3b82f6;">
+                    <p style="color:#e2e8f0;font-size:14px;margin:0 0 10px;font-weight:600;">¿Aún no tenés la app
+                        instalada?</p>
+                    <p style="color:#94a3b8;font-size:13px;margin:0 0 15px;">Descargá el instalador oficial de
+                        <strong>MedFlow Inspector para Android</strong> directamente al teléfono:</p>
+                    <div style="text-align: center;">
+                        <a href="{{ url('/downloads/medflow-inspector-app.apk') }}"
+                            style="display:inline-block; background-color:#1e293b; color:#38bdf8; text-decoration:none; padding:10px 16px; border-radius:6px; font-weight:600; font-size:13px; border:1px solid #334155;">
+                            ⬇️ Descargar App (APK)
+                        </a>
+                    </div>
+                </div>
+
                 @php
                     $queryStr = parse_url($deepLink, PHP_URL_QUERY) ?? '';
                     parse_str($queryStr, $params);
@@ -186,7 +199,8 @@
                             este token y pegalo manualmente en MedFlow Inspector:</p>
                         <div
                             style="background:#0f1117;border:1px dashed #334155;border-radius:8px;padding:12px 14px;font-family:monospace;font-size:12px;color:#60a5fa;word-break:break-all;letter-spacing:0.3px;">
-                            {{ $syncToken }}</div>
+                            {{ $syncToken }}
+                        </div>
                         @if($workspaceId)
                             <p style="color:#475569;font-size:11px;margin:8px 0 0;">Workspace: <strong
                                     style="color:#64748b">{{ $workspaceId }}</strong> @if($sensorLimitParam > 0)· Límite de

@@ -8,6 +8,7 @@ import 'package:medflow_mobile/screens/login_screen.dart';
 import 'package:medflow_mobile/screens/measurement_screen.dart';
 import 'package:medflow_mobile/main.dart' as importMain;
 import 'package:medflow_mobile/core/services/api_service.dart';
+import 'dart:io';
 
 class SensorListScreen extends StatefulWidget {
   const SensorListScreen({Key? key}) : super(key: key);
@@ -259,6 +260,33 @@ class _SensorListScreenState extends State<SensorListScreen> {
               ],
             ),
             trailing: hasPhoto ? const Icon(Icons.camera_alt, color: AppTheme.primary) : null,
+            onTap: () {
+              if (hasPhoto) {
+                showDialog(
+                  context: context,
+                  builder: (ctx) => Dialog(
+                    backgroundColor: Colors.transparent,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.file(File(rec['photo_path']), fit: BoxFit.contain),
+                        ),
+                        Positioned(
+                          top: 10,
+                          right: 10,
+                          child: IconButton(
+                            icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                            onPressed: () => Navigator.of(ctx).pop(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+            },
           ),
         );
       },
