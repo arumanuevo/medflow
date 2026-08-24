@@ -77,11 +77,7 @@ class MobileOfflineController extends Controller
             $query->take($limit);
         }
 
-        // 2. MAGIA DE SINCRONIZACIÓN INTELIGENTE: (Evita medir algo dos veces)
-        // Ignorar los sensores que hayan recibido una medición 'hoy'.
-        $query->whereDoesntHave('measurements', function ($q) {
-            $q->whereDate('measured_at', Carbon::today());
-        });
+
 
         $sensors = $query->get()->map(function ($sensor) {
             $mainField = 'valor';
