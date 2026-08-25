@@ -10,7 +10,7 @@
             filter: brightness(0) invert(1);
         }
 
-        /* ✅ Estilos para la sección de suscripción */
+        /*  Estilos para la seccin de suscripcin */
         #subscriptionStatus .btn-outline-primary:hover {
             background: #0d6efd;
             color: #fff;
@@ -26,7 +26,7 @@
             border-color: #d39e00;
         }
 
-        /* ✅ Estilos para el contador regresivo */
+        /*  Estilos para el contador regresivo */
         .countdown-timer {
             font-size: 1.2rem;
             font-weight: 600;
@@ -56,7 +56,7 @@
             }
         }
 
-        /* ✅ Badge de estado */
+        /*  Badge de estado */
         .status-badge {
             font-size: 0.85rem;
             padding: 0.3rem 0.8rem;
@@ -78,7 +78,7 @@
             color: #856404;
         }
 
-        /* ✅ Botones de depuración */
+        /*  Botones de depuracin */
         .debug-btn {
             border: 2px dashed #6c757d;
             background: #f8f9fa;
@@ -104,7 +104,7 @@
             letter-spacing: 0.5px;
         }
 
-        /* Estilos para el modal de confirmación */
+        /* Estilos para el modal de confirmacin */
         #confirmDeleteAllDataModal .modal-header {
             border-bottom: none;
         }
@@ -118,7 +118,7 @@
             box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
         }
 
-        /* ✅ Estilos para la sección de suscripción mejorada */
+        /*  Estilos para la seccin de suscripcin mejorada */
         #subscriptionStatus .card {
             border-radius: 10px;
             overflow: hidden;
@@ -184,7 +184,7 @@
 
                                     <div class="mb-3">
                                         <label for="email" class="form-label small fw-semibold text-muted mb-1">Correo
-                                            electrónico</label>
+                                            electrnico</label>
                                         <div class="input-group shadow-sm">
                                             <span class="input-group-text bg-white text-muted border-end-0"><i
                                                     class="bi bi-envelope"></i></span>
@@ -214,18 +214,18 @@
                                     <div id="passwordFields" class="{{ $user->google_id ? 'd-none' : '' }}">
                                         <div class="mb-3">
                                             <label for="password" class="form-label small fw-semibold text-muted mb-1">Nueva
-                                                contraseña</label>
+                                                contrasea</label>
                                             <div class="input-group shadow-sm">
                                                 <span class="input-group-text bg-white text-muted border-end-0"><i
                                                         class="bi bi-key"></i></span>
                                                 <input type="password" class="form-control border-start-0 ps-0"
-                                                    id="password" name="password" placeholder="Mínimo 8 caracteres">
+                                                    id="password" name="password" placeholder="Mnimo 8 caracteres">
                                             </div>
                                         </div>
                                         <div class="mb-3">
                                             <label for="password_confirmation"
                                                 class="form-label small fw-semibold text-muted mb-1">Confirmar
-                                                contraseña</label>
+                                                contrasea</label>
                                             <div class="input-group shadow-sm">
                                                 <span class="input-group-text bg-white text-muted border-end-0"><i
                                                         class="bi bi-shield-lock"></i></span>
@@ -255,7 +255,7 @@
 
                         <hr>
                         <div class="mt-3" id="userStats">
-                            <h6>Estadísticas de la cuenta</h6>
+                            <h6>Estadsticas de la cuenta</h6>
                             <div class="row">
                                 <div class="col-md-4">
                                     <div class="card bg-light">
@@ -286,11 +286,11 @@
 
                         <div class="mt-4 mb-2">
                             <h6 class="text-uppercase text-muted fw-bold mb-3"
-                                style="font-size: 0.75rem; letter-spacing: 1px;">Detalles de Acceso Crítico</h6>
+                                style="font-size: 0.75rem; letter-spacing: 1px;">Detalles de Acceso Crtico</h6>
                             <div class="row g-3">
                                 <div class="col-sm-6 col-md-3">
                                     <div class="p-3 bg-white border rounded shadow-sm h-100">
-                                        <small class="text-muted d-block mb-1">Identificador Único</small>
+                                        <small class="text-muted d-block mb-1">Identificador nico</small>
                                         <div class="d-flex align-items-center gap-2">
                                             <i class="bi bi-hash text-primary"></i>
                                             <strong class="fs-6" id="userId">-</strong>
@@ -308,7 +308,7 @@
                                 </div>
                                 <div class="col-sm-6 col-md-3">
                                     <div class="p-3 bg-white border rounded shadow-sm h-100">
-                                        <small class="text-muted d-block mb-1">Adhesión al Sistema</small>
+                                        <small class="text-muted d-block mb-1">Adhesin al Sistema</small>
                                         <div class="d-flex align-items-center gap-2">
                                             <i class="bi bi-calendar-plus text-info"></i>
                                             <strong style="font-size: 0.85rem;" id="userCreatedAt">-</strong>
@@ -317,7 +317,7 @@
                                 </div>
                                 <div class="col-sm-6 col-md-3">
                                     <div class="p-3 bg-white border rounded shadow-sm h-100">
-                                        <small class="text-muted d-block mb-1">Última Edición</small>
+                                        <small class="text-muted d-block mb-1">ltima Edicin</small>
                                         <div class="d-flex align-items-center gap-2">
                                             <i class="bi bi-clock-history text-warning"></i>
                                             <strong style="font-size: 0.85rem;" id="userUpdatedAt">-</strong>
@@ -326,10 +326,10 @@
                                 </div>
                             </div>
                         </div>
-                        {{-- ✅ SECCIÓN DE SUSCRIPCIÓN --}}
+                        {{--  SECCIN DE SUSCRIPCIN --}}
                         <div class="mt-4 pt-3 border-top">
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <h6 class="mb-0"><i class="bi bi-credit-card"></i> Suscripción</h6>
+                                <h6 class="mb-0"><i class="bi bi-credit-card"></i> Suscripcin</h6>
                                 <span class="badge bg-secondary" id="subscriptionEnv">
                                     <i class="bi bi-tag"></i> {{ app()->environment() }}
                                 </span>
@@ -338,12 +338,12 @@
                             <div id="subscriptionStatus">
                                 <div class="d-flex align-items-center gap-2">
                                     <span class="spinner-border spinner-border-sm" role="status"></span>
-                                    <span>Cargando estado de suscripción...</span>
+                                    <span>Cargando estado de suscripcin...</span>
                                 </div>
                             </div>
                         </div>
 
-                        {{-- SECCIÓN DE INFORMACIÓN DE PLANES --}}
+                        {{-- SECCIN DE INFORMACIN DE PLANES --}}
                         <div class="mt-4 pt-3 border-top">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <h6 class="mb-0"><i class="bi bi-info-circle"></i> Alcances de los Planes</h6>
@@ -359,11 +359,11 @@
                                             <ul class="list-unstyled mb-0">
                                                 <li class="d-flex align-items-center mb-1">
                                                     <i class="bi bi-check-circle-fill text-success me-2"></i>
-                                                    <small>1 grupo máximo</small>
+                                                    <small>1 grupo mximo</small>
                                                 </li>
                                                 <li class="d-flex align-items-center mb-1">
                                                     <i class="bi bi-check-circle-fill text-success me-2"></i>
-                                                    <small>1 sensor máximo</small>
+                                                    <small>1 sensor mximo</small>
                                                 </li>
                                                 <li class="d-flex align-items-center mb-1">
                                                     <i class="bi bi-x-circle-fill text-danger me-2"></i>
@@ -371,7 +371,7 @@
                                                 </li>
                                                 <li class="d-flex align-items-center mb-1">
                                                     <i class="bi bi-x-circle-fill text-danger me-2"></i>
-                                                    <small>Sin importación masiva</small>
+                                                    <small>Sin importacin masiva</small>
                                                 </li>
                                                 <li class="d-flex align-items-center mb-1">
                                                     <i class="bi bi-x-circle-fill text-danger me-2"></i>
@@ -381,21 +381,21 @@
                                         </div>
                                     </div>
                                 </div>
-                                <!-- Plan Básico -->
+                                <!-- Plan Bsico -->
                                 <div class="col-md-4">
                                     <div class="card h-100 border-success">
                                         <div class="card-header bg-success text-white">
-                                            <h6 class="mb-0"><i class="bi bi-gem"></i> Plan Básico</h6>
+                                            <h6 class="mb-0"><i class="bi bi-gem"></i> Plan Bsico</h6>
                                         </div>
                                         <div class="card-body">
                                             <ul class="list-unstyled mb-0">
                                                 <li class="d-flex align-items-center mb-1">
                                                     <i class="bi bi-check-circle-fill text-success me-2"></i>
-                                                    <small>2 grupos máximo</small>
+                                                    <small>2 grupos mximo</small>
                                                 </li>
                                                 <li class="d-flex align-items-center mb-1">
                                                     <i class="bi bi-check-circle-fill text-success me-2"></i>
-                                                    <small>2 sensores máximo</small>
+                                                    <small>2 sensores mximo</small>
                                                 </li>
                                                 <li class="d-flex align-items-center mb-1">
                                                     <i class="bi bi-check-circle-fill text-success me-2"></i>
@@ -403,7 +403,7 @@
                                                 </li>
                                                 <li class="d-flex align-items-center mb-1">
                                                     <i class="bi bi-x-circle-fill text-danger me-2"></i>
-                                                    <small>Sin importación masiva</small>
+                                                    <small>Sin importacin masiva</small>
                                                 </li>
                                                 <li class="d-flex align-items-center mb-1">
                                                     <i class="bi bi-check-circle-fill text-success me-2"></i>
@@ -435,7 +435,7 @@
                                                 </li>
                                                 <li class="d-flex align-items-center mb-1">
                                                     <i class="bi bi-check-circle-fill text-success me-2"></i>
-                                                    <small>Importación masiva</small>
+                                                    <small>Importacin masiva</small>
                                                 </li>
                                                 <li class="d-flex align-items-center mb-1">
                                                     <i class="bi bi-check-circle-fill text-success me-2"></i>
@@ -450,10 +450,10 @@
 
 
 
-                        {{-- SECCIÓN DE FACTURACIÓN --}}
+                        {{-- SECCIN DE FACTURACIN --}}
                         <div class="mt-4 pt-3 border-top">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="mb-0 fw-bold"><i class="bi bi-receipt"></i> Facturación y Comprobantes</h6>
+                                <h6 class="mb-0 fw-bold"><i class="bi bi-receipt"></i> Facturacin y Comprobantes</h6>
                             </div>
 
                             <!-- Datos Impositivos -->
@@ -468,7 +468,7 @@
                                                 placeholder="Ej: 30-12345678-9" value="{{ $user->cuit ?? '' }}" required>
                                         </div>
                                         <div class="col-md-4">
-                                            <label class="form-label small">Condición IVA</label>
+                                            <label class="form-label small">Condicin IVA</label>
                                             <select name="condicion_iva" class="form-select" required>
                                                 <option value="" {{ empty($user->condicion_iva) ? 'selected' : '' }}>
                                                     Seleccionar...</option>
@@ -484,8 +484,8 @@
                                                     Exterior</option>
                                                 <option value="Cliente del Exterior" {{ ($user->condicion_iva ?? '') == 'Cliente del Exterior' ? 'selected' : '' }}>Cliente del Exterior
                                                 </option>
-                                                <option value="IVA Liberado - Ley Nº 19.640" {{ ($user->condicion_iva ?? '') == 'IVA Liberado - Ley Nº 19.640' ? 'selected' : '' }}>IVA Liberado -
-                                                    Ley Nº 19.640</option>
+                                                <option value="IVA Liberado - Ley N 19.640" {{ ($user->condicion_iva ?? '') == 'IVA Liberado - Ley N 19.640' ? 'selected' : '' }}>IVA Liberado -
+                                                    Ley N 19.640</option>
                                                 <option value="Monotributista Social" {{ ($user->condicion_iva ?? '') == 'Monotributista Social' ? 'selected' : '' }}>Monotributista Social
                                                 </option>
                                                 <option value="IVA No Alcanzado" {{ ($user->condicion_iva ?? '') == 'IVA No Alcanzado' ? 'selected' : '' }}>IVA No Alcanzado</option>
@@ -494,20 +494,20 @@
                                             </select>
                                         </div>
                                     <div class="col-md-4">
-                                                <label class="form-label small">Email de Envío de Factura</label>
+                                                <label class="form-label small">Email de Envo de Factura</label>
                                                 <input type="text" name="email_facturacion" class="form-control" placeholder="Ej: admin@empresa.com, pagos@empresa.com" value="{{ $user->email_facturacion ?? $user->email }}" required>
                                             </div>
                                         </div>
                                         <div class="row g-2 align-items-end mb-2">
                                             <div class="col-md-4">
-                                                <label class="form-label small">Condición de Venta</label>
+                                                <label class="form-label small">Condicin de Venta</label>
                                                 <select name="condicion_venta" class="form-select" required>
                                                     <option value="" {{ empty($user->condicion_venta) ? 'selected' : '' }}>
                                                         Seleccionar...</option>
                                                     <option value="Contado" {{ ($user->condicion_venta ?? '') == 'Contado' ? 'selected' : '' }}>Contado</option>
-                                                    <option value="Tarjeta de Crédito" {{ ($user->condicion_venta ?? '') == 'Tarjeta de Crédito' ? 'selected' : '' }}>Tarjeta de Crédito
+                                                    <option value="Tarjeta de Crdito" {{ ($user->condicion_venta ?? '') == 'Tarjeta de Crdito' ? 'selected' : '' }}>Tarjeta de Crdito
                                                     </option>
-                                                    <option value="Tarjeta de Débito" {{ ($user->condicion_venta ?? '') == 'Tarjeta de Débito' ? 'selected' : '' }}>Tarjeta de Débito</option>
+                                                    <option value="Tarjeta de Dbito" {{ ($user->condicion_venta ?? '') == 'Tarjeta de Dbito' ? 'selected' : '' }}>Tarjeta de Dbito</option>
                                                     <option value="Cuenta Corriente" {{ ($user->condicion_venta ?? '') == 'Cuenta Corriente' ? 'selected' : '' }}>Cuenta Corriente</option>
                                                     <option value="Cheque" {{ ($user->condicion_venta ?? '') == 'Cheque' ? 'selected' : '' }}>Cheque</option>
                                                     <option value="Ticket" {{ ($user->condicion_venta ?? '') == 'Ticket' ? 'selected' : '' }}>Ticket</option>
@@ -515,9 +515,9 @@
                                                 </select>
                                             </div>
                                             <div class="col-md-6">
-                                                <label class="form-label small">Descripción para Factura (Opcional)</label>
+                                                <label class="form-label small">Descripcin para Factura (Opcional)</label>
                                                 <input type="text" name="descripcion_servicio" class="form-control"
-                                                    placeholder="Ej: Suscripción Medflow - Barrio Las Lomas"
+                                                    placeholder="Ej: Suscripcin Medflow - Barrio Las Lomas"
                                                     value="{{ $user->descripcion_servicio ?? '' }}">
                                             </div>
                                             <div class="col-md-2">
@@ -525,8 +525,8 @@
                                                     Guardar</button>
                                             </div>
                                         </div>
-                                        <small class="text-muted mt-2 d-block"><i class="bi bi-info-circle"></i> Completá estos
-                                            datos si requerís la emisión de tu Factura oficial.</small>
+                                        <small class="text-muted mt-2 d-block"><i class="bi bi-info-circle"></i> Complet estos
+                                            datos si requers la emisin de tu Factura oficial.</small>
                                     </form>
                                 </div>
 
@@ -570,12 +570,12 @@
                                 @else
                                     <div class="alert alert-secondary text-center">
                                         <i class="bi bi-inbox fs-4 d-block mb-2"></i>
-                                        Aún no hay registros de pagos en tu historial.
+                                        An no hay registros de pagos en tu historial.
                                     </div>
                                 @endif
                             </div>
 
-                            {{-- SECCIÓN DE ELIMINACIÓN DE DATOS --}}
+                            {{-- SECCIN DE ELIMINACIN DE DATOS --}}
                             <div class="mt-4 pt-3 border-top">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <h6 class="mb-0 text-danger">
@@ -587,7 +587,7 @@
                                     <i class="bi bi-exclamation-triangle-fill me-2"></i>
                                     <strong>TODOS</strong> tus datos: sensores, mediciones, fotos asociadas, grupos,
                                     colaboraciones, suscripciones y configuraciones.
-                                    <strong>No podrás recuperar esta información.</strong>
+                                    <strong>No podrs recuperar esta informacin.</strong>
                                 </div>
                                 <button type="button" class="btn btn-danger w-100" id="deleteAllDataBtn">
                                     <i class="bi bi-trash-fill me-2"></i>
@@ -600,7 +600,7 @@
             </div>
         </div>
 
-        <!-- Modal de confirmación para eliminar todos los datos -->
+        <!-- Modal de confirmacin para eliminar todos los datos -->
         <div class="modal fade" id="confirmDeleteAllDataModal" tabindex="-1" aria-labelledby="confirmDeleteAllDataModalLabel"
             aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
@@ -608,7 +608,7 @@
                     <div class="modal-header bg-danger text-white">
                         <h5 class="modal-title" id="confirmDeleteAllDataModalLabel">
                             <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                            ¿Estás seguro de que deseas eliminar TODOS tus datos?
+                            ?Ests seguro de que deseas eliminar TODOS tus datos?
                         </h5>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                             aria-label="Close"></button>
@@ -616,11 +616,11 @@
                     <div class="modal-body">
                         <div class="alert alert-warning">
                             <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                            <strong>¡Advertencia: Esta acción eliminará TODOS tus datos:</strong> sensores, mediciones, fotos
-                            asociadas, grupos, colaboraciones, suscripciones y configuraciones. No podrás recuperar esta
-                            información.
+                            <strong>Advertencia: Esta accin eliminar TODOS tus datos:</strong> sensores, mediciones, fotos
+                            asociadas, grupos, colaboraciones, suscripciones y configuraciones. No podrs recuperar esta
+                            informacin.
                         </div>
-                        <p>Se eliminarán:</p>
+                        <p>Se eliminarn:</p>
                         <ul>
                             <li><i class="bi bi-check-circle-fill text-danger me-2"></i> Todos tus sensores</li>
                             <li><i class="bi bi-check-circle-fill text-danger me-2"></i> Todas tus mediciones</li>
@@ -632,7 +632,7 @@
                             <li><i class="bi bi-check-circle-fill text-danger me-2"></i> Tus suscripciones</li>
                             <li><i class="bi bi-check-circle-fill text-danger me-2"></i> Tus configuraciones personales</li>
                         </ul>
-                        <p>Tu cuenta será anonimizada (nombre y email cambiados).</p>
+                        <p>Tu cuenta ser anonimizada (nombre y email cambiados).</p>
                         <div class="form-group">
                             <label for="confirmationText" class="form-label">Para confirmar, escribe <strong>"ELIMINAR
                                     TODO"</strong>:</label>
@@ -644,7 +644,7 @@
                             <i class="bi bi-x-circle me-1"></i> Cancelar
                         </button>
                         <button type="button" class="btn btn-danger" id="confirmDeleteAllData">
-                            <i class="bi bi-trash-fill me-1"></i> Sí, eliminar todo
+                            <i class="bi bi-trash-fill me-1"></i> S, eliminar todo
                         </button>
                     </div>
                 </div>
@@ -657,24 +657,24 @@
                         // ===============    =    ======    =======
                         =    =======
                        =    =======
-        // ✅ FUNCIONES DE ACCIÓN DE SUSCRIP    CIÓN (GLOBALES)
+        //  FUNCIONES DE ACCIN DE SUSCRIP    CIN (GLOBALES)
         // =======================    ====     =================
 
         /**
-         * Subir de plan (Free → Básico, Free → Premium, Básico → Premium)
+         * Subir de plan (Free  Bsico, Free  Premium, Bsico  Premium)
          */
         function upgradePlan(targetPlan) {
             const planNames = {
-                'basico': 'Básico ($10 ARS)',
+                'basico': 'Bsico ($10 ARS)',
                 'premium': 'Premium ($25 ARS)'
             };
 
             const planIcons = {
-                'basico': '📋',
-                'premium': '⭐'
+                'basico': '',
+                'premium': ''
             };
 
-            if (!confirm(`¿Deseas cambiar al plan ${planIcons[targetPlan]} ${planNames[targetPlan]}?`)) {
+            if (!confirm(`?Deseas cambiar al plan ${planIcons[targetPlan]} ${planNames[targetPlan]}?`)) {
                 return;
             }
 
@@ -686,35 +686,35 @@
                                                                                                             }
 
         /**
-         * B     ajar de plan (Premium → Básico)
+         * B     ajar de plan (Premium  Bsico)
          */
         function downgradePlan(targetPlan) {
             const planNames = {
-                'basico': 'Básico ($10 ARS)',
+                'basico': 'Bsico ($10 ARS)',
                 'free': 'Free (Gratuito)'
             };
 
             const planIcons = {
-                'basico': '📋',
-                'free': '🎁'
+                'basico': '',
+                'free': ''
             };
 
-            if (!confirm(`¿Deseas bajar al plan ${planIcons[targetPlan]} ${planNames[targetPlan]}?`)) {
+            if (!confirm(`?Deseas bajar al plan ${planIcons[targetPlan]} ${planNames[targetPlan]}?`)) {
                 return;
             }
 
             @if(app()->environment('local'))
                 debugActivateSubscription(targetPlan);
             @else
-                showAlert('⚠️ La bajada de plan se aplicará al finalizar el período actual.', 'warning');
+                showAlert(' La bajada de plan se aplicar al finalizar el perodo actual.', 'warning');
             @endif
                                                                                     }
 
         /**
-         * Cancelar suscripción
+         * Cancelar suscripcin
          */
         function cancelSubscription() {
-            if (!confirm('¿Estás seguro de que deseas cancelar tu suscripción? Perderás los beneficios al final del período actual.')) {
+            if (!confirm('?Ests seguro de que deseas cancelar tu suscripcin? Perders los beneficios al final del perodo actual.')) {
                 return;
             }
 
@@ -731,43 +731,43 @@
                     },
                     success: function (response) {
                         if (response.success) {
-                            showAlert('✅ Suscripción cancelada correctamente.', 'success');
+                            showAlert(' Suscripcin cancelada correctamente.', 'success');
                             loadSubscriptionStatus();
                         } else {
-                            showAlert('❌ ' + (response.message || 'Error al cancelar'), 'danger');
+                            showAlert(' ' + (response.message || 'Error al cancelar'), 'danger');
                         }
                     },
                     error: function (xhr) {
-                        showAlert('❌ Error: ' + (xhr.responseJSON?.message || xhr.statusText), 'danger');
+                        showAlert(' Error: ' + (xhr.responseJSON?.message || xhr.statusText), 'danger');
                     }
                 });
             @endif
                                                                                     }
 
         // =============================================
-        // ✅ FUNCIONES DE DEPURACIÓN (SOLO LOCAL)
+        //  FUNCIONES DE DEPURACIN (SOLO LOCAL)
         // =============================================
 
         @if(app()->environment('local'))
             function debugActivateSubscription(plan) {
                 const planNames = {
                     'free': 'Plan Free',
-                    'basico': 'Plan Básico',
+                    'basico': 'Plan Bsico',
                     'premium': 'Plan Premium'
                 };
 
                 const planIcons = {
-                    'free': '🎁',
-                    'basico': '📋',
-                    'premium': '⭐'
+                    'free': '',
+                    'basico': '',
+                    'premium': ''
                 };
 
-                // ✅ Cambiar duración: 30 días para planes de prueba (43200 minutos)
-                const duration = plan === 'free' ? 9999 : 43200; // 30 días = 43200 minutos
-                const durationText = plan === 'free' ? 'tiempo indefinido' : '30 días';
+                //  Cambiar duracin: 30 das para planes de prueba (43200 minutos)
+                const duration = plan === 'free' ? 9999 : 43200; // 30 das = 43200 minutos
+                const durationText = plan === 'free' ? 'tiempo indefinido' : '30 das';
 
                 showAlert(
-                    `🔄 Activando ${planNames[plan]} por ${durationText}...`,
+                    ` Activando ${planNames[plan]} por ${durationText}...`,
                     'info'
                 );
 
@@ -786,18 +786,18 @@
                     success: function (response) {
                         if (response.success) {
                             showAlert(
-                                `✅ ${planIcons[plan]} ${planNames[plan]} activado correctamente${plan === 'free' ? ' (permanente)' : ' por 30 días'}.`,
+                                ` ${planIcons[plan]} ${planNames[plan]} activado correctamente${plan === 'free' ? ' (permanente)' : ' por 30 das'}.`,
                                 'success'
                             );
 
-                            // ✅ Si se activa Free, limpiar el plan anterior
+                            //  Si se activa Free, limpiar el plan anterior
                             if (plan === 'free') {
                                 localStorage.removeItem('previous_plan');
                             } else {
                                 localStorage.setItem('previous_plan', plan);
                             }
 
-                            // ✅ REFRESCAR TODO
+                            //  REFRESCAR TODO
                             loadSubscriptionStatus();
                             loadStats();
                             loadProfile();
@@ -807,12 +807,12 @@
                                 refreshSubscriptionStatus();
                             }
                         } else {
-                            showAlert('❌ ' + (response.message || 'Error al activar'), 'danger');
+                            showAlert(' ' + (response.message || 'Error al activar'), 'danger');
                         }
                     },
                     error: function (xhr) {
                         showAlert(
-                            '❌ Error: ' + (xhr.responseJSON?.message || xhr.statusText),
+                            ' Error: ' + (xhr.responseJSON?.message || xhr.statusText),
                             'danger'
                         );
                     }
@@ -820,7 +820,7 @@
             }
 
             function debugExpireSubscription() {
-                showAlert('⏰ Forzando expiración de la suscripción...', 'warning');
+                showAlert(' Forzando expiracin de la suscripcin...', 'warning');
 
                 $.ajax({
                     url: '/api/subscription/debug/expire',
@@ -831,9 +831,9 @@
                     },
                     success: function (response) {
                         if (response.success) {
-                            showAlert('✅ Suscripción expirada correctamente', 'success');
+                            showAlert(' Suscripcin expirada correctamente', 'success');
 
-                            // ✅ RECARGAR TODO
+                            //  RECARGAR TODO
                             loadSubscriptionStatus();
                             loadStats();
                             loadProfile();
@@ -843,12 +843,12 @@
                                 refreshSubscriptionStatus();
                             }
                         } else {
-                            showAlert('❌ ' + (response.message || 'Error al expirar'), 'danger');
+                            showAlert(' ' + (response.message || 'Error al expirar'), 'danger');
                         }
                     },
                     error: function (xhr) {
                         showAlert(
-                            '❌ Error: ' + (xhr.responseJSON?.message || xhr.statusText),
+                            ' Error: ' + (xhr.responseJSON?.message || xhr.statusText),
                             'danger'
                         );
                     }
@@ -856,11 +856,11 @@
             }
 
             function debugClearSubscriptions() {
-                if (!confirm('⚠️ ¿Estás seguro de que quieres eliminar TODO el historial de suscripciones?')) {
+                if (!confirm(' ?Ests seguro de que quieres eliminar TODO el historial de suscripciones?')) {
                     return;
                 }
 
-                showAlert('🧹 Limpiando historial de suscripciones...', 'warning');
+                showAlert(' Limpiando historial de suscripciones...', 'warning');
 
                 $.ajax({
                     url: '/api/subscription/debug/clear',
@@ -871,17 +871,17 @@
                     },
                     success: function (response) {
                         if (response.success) {
-                            showAlert('✅ Historial limpiado correctamente', 'success');
+                            showAlert(' Historial limpiado correctamente', 'success');
                             loadSubscriptionStatus();
                             loadStats();
                             loadProfile();
                         } else {
-                            showAlert('❌ ' + (response.message || 'Error al limpiar'), 'danger');
+                            showAlert(' ' + (response.message || 'Error al limpiar'), 'danger');
                         }
                     },
                     error: function (xhr) {
                         showAlert(
-                            '❌ Error: ' + (xhr.responseJSON?.message || xhr.statusText),
+                            ' Error: ' + (xhr.responseJSON?.message || xhr.statusText),
                             'danger'
                         );
                     }
@@ -901,18 +901,18 @@
                             const currentPlan = response.data.subscription.plan;
                             debugActivateSubscription(currentPlan);
                         } else {
-                            showAlert('❌ No hay suscripción activa para renovar', 'warning');
+                            showAlert(' No hay suscripcin activa para renovar', 'warning');
                         }
                     },
                     error: function () {
-                        showAlert('❌ Error al obtener el plan actual', 'danger');
+                        showAlert(' Error al obtener el plan actual', 'danger');
                     }
                 });
             };
         @endif
 
             // =============================================
-            // ✅ FUNCIONES DE ALERTAS Y UTILIDADES
+            //  FUNCIONES DE ALERTAS Y UTILIDADES
             // =============================================
 
             function showAlert(message, type) {
@@ -932,11 +932,11 @@
             }
 
         // =============================================
-        // ✅ RENDERIZAR ESTADO DE SUSCRIPCIÓN
+        //  RENDERIZAR ESTADO DE SUSCRIPCIN
         // =============================================
 
         function renderSubscriptionStatus(data) {
-            console.log('📊 Renderizando estado de suscripción:', data);
+            console.log(' Renderizando estado de suscripcin:', data);
 
             let html = '';
 
@@ -959,10 +959,10 @@
             const isExpired = sub && sub.status === 'expired';
             const isPending = sub && sub.status === 'pending';
 
-            console.log('📊 Estado:', { hasActive, planKey, isExpired, isPending });
+            console.log(' Estado:', { hasActive, planKey, isExpired, isPending });
 
             // =============================================
-            // CASO 1: SUSCRIPCIÓN ACTIVA
+            // CASO 1: SUSCRIPCIN ACTIVA
             // =============================================
             if (hasActive) {
                 let statusText = '';
@@ -976,34 +976,34 @@
                 let expiresAtDate = null;
 
                 if (isPremium) {
-                    statusText = '⭐ Premium Activo';
+                    statusText = ' Premium Activo';
                     statusClass = 'success';
                     statusIcon = 'bi-star-fill';
                     showCancel = true;
                     showDowngrade = true;
                 } else if (isBasico) {
-                    statusText = '📋 Básico Activo';
+                    statusText = ' Bsico Activo';
                     statusClass = 'primary';
                     statusIcon = 'bi-credit-card';
                     showCancel = true;
                     showUpgradePremium = true;
                 } else if (isFree) {
-                    statusText = '🎁 Free Activo';
+                    statusText = ' Free Activo';
                     statusClass = 'info';
                     statusIcon = 'bi-gift';
                     showUpgradeBasico = true;
                     showUpgradePremium = true;
                 }
 
-                // ✅ CONTADOR REGRESIVO - CUANDO TERMINA LLAMA A debugExpireSubscription() (igual que el botón Cancelar)
-                // ✅ CONTADOR REGRESIVO CON FORMATO DE DÍAS, HORAS Y MINUTOS
+                //  CONTADOR REGRESIVO - CUANDO TERMINA LLAMA A debugExpireSubscription() (igual que el botn Cancelar)
+                //  CONTADOR REGRESIVO CON FORMATO DE DAS, HORAS Y MINUTOS
                 if (sub && sub.expires_at) {
                     expiresAtDate = new Date(sub.expires_at);
                     const now = new Date();
                     const diffMs = expiresAtDate - now;
 
                     if (diffMs > 0) {
-                        // Calcular días, horas, minutos
+                        // Calcular das, horas, minutos
                         const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
                         const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                         const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
@@ -1022,13 +1022,13 @@
                         countdownHtml = `
                                                                                                         <div class="mt-1">
                                                                                                             <span class="countdown-timer ${isExpiring ? 'expiring' : ''}" id="countdownDisplay">
-                                                                                                                ⏱️ ${timeStr}
+                                                                                                                 ${timeStr}
                                                                                                             </span>
                                                                                                             <small class="text-muted ms-2">tiempo restante</small>
                                                                                                         </div>
                                                                                                     `;
 
-                        // ✅ INICIAR CONTADOR CON VERIFICACIÓN DE EXPIRACIÓN (actualiza cada minuto)
+                        //  INICIAR CONTADOR CON VERIFICACIN DE EXPIRACIN (actualiza cada minuto)
                         countdownInterval = setInterval(function () {
                             const now2 = new Date();
                             const diffMs2 = expiresAtDate - now2;
@@ -1036,7 +1036,7 @@
                             if (diffMs2 <= 0) {
                                 clearInterval(countdownInterval);
 
-                                showAlert('⏰ Tu suscripción ha expirado. Volviendo al plan Free.', 'warning');
+                                showAlert(' Tu suscripcin ha expirado. Volviendo al plan Free.', 'warning');
 
                                 setTimeout(function () {
                                     debugExpireSubscription();
@@ -1044,7 +1044,7 @@
                                 return;
                             }
 
-                            // Recalcular días, horas, minutos
+                            // Recalcular das, horas, minutos
                             const diffDays2 = Math.floor(diffMs2 / (1000 * 60 * 60 * 24));
                             const diffHours2 = Math.floor((diffMs2 % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                             const diffMinutes2 = Math.floor((diffMs2 % (1000 * 60 * 60)) / (1000 * 60));
@@ -1060,16 +1060,16 @@
 
                             const display = $('#countdownDisplay');
                             if (display.length) {
-                                display.text(`⏱️ ${timeStr2}`);
+                                display.text(` ${timeStr2}`);
                                 if (diffDays2 === 0 && diffHours2 === 0 && diffMinutes2 < 5) {
                                     display.addClass('expiring');
                                 } else {
                                     display.removeClass('expiring');
                                 }
                             }
-                        }, 60000); // ✅ Actualizar cada minuto (60000 ms) en lugar de cada segundo
+                        }, 60000); //  Actualizar cada minuto (60000 ms) en lugar de cada segundo
                     } else {
-                        // ✅ Si ya expiró, ejecutar inmediatamente
+                        //  Si ya expir, ejecutar inmediatamente
                         setTimeout(function () {
                             debugExpireSubscription();
                         }, 500);
@@ -1102,7 +1102,7 @@
                                                                                                     <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm">
                                                                                                         <div class="d-flex flex-column">
                                                                                                             <span class="text-muted small">Costo del Ciclo Base</span>
-                                                                                                            <strong class="fs-6 text-dark">${planName === 'Premium' ? '$25.000 ARS' : (planName === 'Básico' ? '$10.000 ARS' : 'Sin Costo')}</strong>
+                                                                                                            <strong class="fs-6 text-dark">${planName === 'Premium' ? '$25.000 ARS' : (planName === 'Bsico' ? '$10.000 ARS' : 'Sin Costo')}</strong>
                                                                                                         </div>
                                                                                                         <i class="bi bi-credit-card-2-front text-${statusClass} fs-3 opacity-50"></i>
                                                                                                     </div>
@@ -1119,7 +1119,7 @@
 
                                                                                                     <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm border-start border-4 border-${statusClass}">
                                                                                                         <div class="d-flex flex-column">
-                                                                                                            <span class="text-muted small">Renovación / Vencimiento</span>
+                                                                                                            <span class="text-muted small">Renovacin / Vencimiento</span>
                                                                                                             <strong class="fs-6 text-dark">${expiresDate}</strong>
                                                                                                         </div>
                                                                                                         <i class="bi bi-calendar-check text-${statusClass} fs-3 opacity-50"></i>
@@ -1129,12 +1129,12 @@
 
                                                                                             <!-- Right Column: Capacity Telemetry -->
                                                                                             <div class="col-lg-7 col-md-6 ps-lg-4">
-                                                                                                <h6 class="text-uppercase text-muted fw-bold mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">Telemetría de Capacidad</h6>
+                                                                                                <h6 class="text-uppercase text-muted fw-bold mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">Telemetra de Capacidad</h6>
 
                                                                                                 ${data.limits?.sensors ? `
                                                                                                     <div class="mb-4 bg-white p-3 rounded shadow-sm border-start border-3 border-${data.limits.sensors.used >= data.limits.sensors.max ? 'danger' : 'primary'}">
                                                                                                         <div class="d-flex justify-content-between mb-2">
-                                                                                                            <span class="small fw-semibold text-dark">Sensores Físicos (Licencias)</span>
+                                                                                                            <span class="small fw-semibold text-dark">Sensores Fsicos (Licencias)</span>
                                                                                                             <span class="small fw-bold badge bg-${data.limits.sensors.used >= data.limits.sensors.max ? 'danger' : 'primary'} px-2 py-1">
                                                                                                                 ${data.limits.sensors.used} / ${data.limits.sensors.max}
                                                                                                             </span>
@@ -1159,9 +1159,9 @@
                                                                                                 ${data.limits?.groups ? `
                                                                                                     <div class="mb-2 bg-white p-3 rounded shadow-sm border-start border-3 border-${data.limits.groups.used >= data.limits.groups.max ? 'danger' : 'info'}">
                                                                                                         <div class="d-flex justify-content-between mb-2">
-                                                                                                            <span class="small fw-semibold text-dark">Lotes Lógicos (Grupos)</span>
+                                                                                                            <span class="small fw-semibold text-dark">Lotes Lgicos (Grupos)</span>
                                                                                                             <span class="small fw-bold badge bg-${data.limits.groups.used >= data.limits.groups.max ? 'danger' : 'info'} text-white px-2 py-1">
-                                                                                                                ${data.limits.groups.used} / ${data.limits.groups.max || '∞'}
+                                                                                                                ${data.limits.groups.used} / ${data.limits.groups.max || ''}
                                                                                                             </span>
                                                                                                         </div>
                                                                                                         ${data.limits.groups.max ? `
@@ -1194,7 +1194,7 @@
                                                                                                 <div class="input-group shadow-sm">
                                                                                                     <span class="input-group-text bg-light border-end-0" style="padding-right: 8px;"><i class="bi bi-box-seam text-success"></i></span>
                                                                                                     <select class="form-select border-start-0 ps-0 text-secondary" id="extraPacksSelect" style="font-size: 0.85rem; cursor: pointer;">
-                                                                                                        <option value="">Añadir Paquetes de Sensores Extra...</option>
+                                                                                                        <option value="">Aadir Paquetes de Sensores Extra...</option>
                                                                                                         <option value="1">+10 Pack (+$10,000 ARS)</option>
                                                                                                         <option value="2">+20 Pack (+$20,000 ARS)</option>
                                                                                                         <option value="3">+30 Pack (+$30,000 ARS)</option>
@@ -1218,7 +1218,7 @@
 
                                                                                             ${showUpgradeBasico ? `
                                                                                                 <button class="btn btn-outline-primary rounded-pill px-4 shadow-sm transition-all text-nowrap" onclick="upgradePlan('basico')">
-                                                                                                    <i class="bi bi-credit-card me-1"></i> Renovar Básico
+                                                                                                    <i class="bi bi-credit-card me-1"></i> Renovar Bsico
                                                                                                 </button>
                                                                                             ` : ''}
                                                                                             ${showUpgradePremium ? `
@@ -1228,7 +1228,7 @@
                                                                                             ` : ''}
                                                                                             ${showDowngrade ? `
                                                                                                 <button class="btn btn-outline-secondary rounded-pill px-3 transition-all text-nowrap" onclick="downgradePlan('basico')">
-                                                                                                    <i class="bi bi-arrow-down-circle me-1"></i> Descender Básico
+                                                                                                    <i class="bi bi-arrow-down-circle me-1"></i> Descender Bsico
                                                                                                 </button>
                                                                                             ` : ''}
                                                                                             ${showCancel ? `
@@ -1249,11 +1249,11 @@
                                                                                                 <div class="card border-warning">
                                                                                                     <div class="card-header bg-warning text-dark">
                                                                                                         <i class="bi bi-hourglass-split me-2"></i>
-                                                                                                        <strong>Pago pendiente de confirmación</strong>
+                                                                                                        <strong>Pago pendiente de confirmacin</strong>
                                                                                                     </div>
                                                                                                     <div class="card-body">
                                                                                                         <p class="mb-0 text-muted">
-                                                                                                            Tu pago está siendo procesado. Esto puede tomar unos minutos.
+                                                                                                            Tu pago est siendo procesado. Esto puede tomar unos minutos.
                                                                                                             <br>
                                                                                                             <small>Si el problema persiste, contacta con soporte.</small>
                                                                                                         </p>
@@ -1262,20 +1262,20 @@
                                                                                             `;
 
                 // =============================================
-                // CASO 3: SUSCRIPCIÓN EXPIRADA
+                // CASO 3: SUSCRIPCIN EXPIRADA
                 // =============================================
             } else if (isExpired) {
                 html = `
                                                                                                 <div class="card border-danger">
                                                                                                     <div class="card-header bg-danger text-white">
                                                                                                         <i class="bi bi-exclamation-triangle me-2"></i>
-                                                                                                        <strong>Suscripción expirada</strong>
+                                                                                                        <strong>Suscripcin expirada</strong>
                                                                                                     </div>
                                                                                                     <div class="card-body">
                                                                                                         <div class="row align-items-center">
                                                                                                             <div class="col-md-7">
                                                                                                                 <p class="mb-0">
-                                                                                                                    Tu suscripción <strong>${planName}</strong> ha expirado.
+                                                                                                                    Tu suscripcin <strong>${planName}</strong> ha expirado.
                                                                                                                     <br>
                                                                                                                     <small class="text-muted">Renueva para seguir disfrutando de los beneficios.</small>
                                                                                                                 </p>
@@ -1283,7 +1283,7 @@
                                                                                                             <div class="col-md-5 mt-2 mt-md-0">
                                                                                                                 <div class="d-flex flex-wrap gap-2 justify-content-md-end">
                                                                                                                     <button class="btn btn-primary btn-sm" onclick="upgradePlan('basico')">
-                                                                                                                        <i class="bi bi-credit-card me-1"></i> Plan Básico ($10 ARS)
+                                                                                                                        <i class="bi bi-credit-card me-1"></i> Plan Bsico ($10 ARS)
                                                                                                                     </button>
                                                                                                                     <button class="btn btn-warning btn-sm" onclick="upgradePlan('premium')">
                                                                                                                         <i class="bi bi-star me-1"></i> Plan Premium ($25 ARS)
@@ -1301,7 +1301,7 @@
                                                                                             `;
 
                 // =============================================
-                // CASO 4: SIN SUSCRIPCIÓN ACTIVA
+                // CASO 4: SIN SUSCRIPCIN ACTIVA
                 // =============================================
             } else {
                 html = `
@@ -1314,7 +1314,7 @@
                                                                 <i class="bi bi-gift-fill fs-4"></i>
                                                                 <div class="d-flex flex-column">
                                                                     <h5 class="mb-0 fw-bold">Plan Free (Licencia Gratuita)</h5>
-                                                                    <span class="opacity-75" style="font-size: 0.8rem;">Estás usando funcionalidades limitadas básicas</span>
+                                                                    <span class="opacity-75" style="font-size: 0.8rem;">Ests usando funcionalidades limitadas bsicas</span>
                                                                 </div>
                                                             </div>
                                                             <span class="badge bg-white text-secondary rounded-pill px-3 py-2 shadow-sm fw-bold">
@@ -1326,7 +1326,7 @@
                                                         <div class="card-body bg-light p-0">
                                                             <div class="row g-0">
 
-                                                                <!-- Columna Izquierda: Información Financiera (Vacía en Free) & CTA -->
+                                                                <!-- Columna Izquierda: Informacin Financiera (Vaca en Free) & CTA -->
                                                                 <div class="col-lg-5 col-md-6 border-end border-light-subtle bg-white h-100 p-4">
                                                                     <h6 class="text-uppercase text-muted fw-bold mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">Estado de Licencia</h6>
 
@@ -1340,17 +1340,17 @@
                                                                         </div>
                                                                     </div>
 
-                                                                    <p class="text-muted small mb-0">Esta licencia restringe el acceso masivo a colaboración y limita el registro de sensores. Realiza un Upgrade a Premium o Básico para liberar tu entorno.</p>
+                                                                    <p class="text-muted small mb-0">Esta licencia restringe el acceso masivo a colaboracin y limita el registro de sensores. Realiza un Upgrade a Premium o Bsico para liberar tu entorno.</p>
                                                                 </div>
 
                                                                 <!-- Columna Derecha: Telemetry -->
                                                                 <div class="col-lg-7 col-md-6 bg-white h-100 p-4">
-                                                                    <h6 class="text-uppercase text-muted fw-bold mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">Telemetría de Capacidad</h6>
+                                                                    <h6 class="text-uppercase text-muted fw-bold mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">Telemetra de Capacidad</h6>
 
                                                                     ${data.limits?.sensors ? `
                                                                         <div class="mb-4 bg-white p-3 rounded shadow-sm border-start border-3 border-${data.limits.sensors.used >= data.limits.sensors.max ? 'danger' : 'secondary'}">
                                                                             <div class="d-flex justify-content-between mb-2">
-                                                                                <span class="small fw-semibold text-dark">Sensores Físicos (Licencias)</span>
+                                                                                <span class="small fw-semibold text-dark">Sensores Fsicos (Licencias)</span>
                                                                                 <span class="small fw-bold badge bg-${data.limits.sensors.used >= data.limits.sensors.max ? 'danger' : 'secondary'} px-2 py-1">
                                                                                     ${data.limits.sensors.used} / ${data.limits.sensors.max}
                                                                                 </span>
@@ -1370,7 +1370,7 @@
                                                                     ${data.limits?.groups ? `
                                                                         <div class="mb-2 bg-white p-3 rounded shadow-sm border-start border-3 border-${data.limits.groups.used >= data.limits.groups.max ? 'danger' : 'secondary'}">
                                                                             <div class="d-flex justify-content-between mb-2">
-                                                                                <span class="small fw-semibold text-dark">Lotes Lógicos (Grupos)</span>
+                                                                                <span class="small fw-semibold text-dark">Lotes Lgicos (Grupos)</span>
                                                                                 <span class="small fw-bold badge bg-${data.limits.groups.used >= data.limits.groups.max ? 'danger' : 'secondary'} px-2 py-1">
                                                                                     ${data.limits.groups.used} / ${data.limits.groups.max}
                                                                                 </span>
@@ -1390,7 +1390,7 @@
                                                         <!-- Footer Upgrades -->
                                                         <div class="card-footer bg-light p-3 border-top d-flex gap-2 justify-content-center flex-wrap">
                                                             <button class="btn btn-primary rounded-pill px-4 shadow-sm transition-all" onclick="upgradePlan('basico')">
-                                                                <i class="bi bi-credit-card me-1"></i> Subir a Básico ($10 ARS)
+                                                                <i class="bi bi-credit-card me-1"></i> Subir a Bsico ($10 ARS)
                                                             </button>
                                                             <button class="btn btn-warning rounded-pill px-4 shadow-sm fw-bold text-dark transition-all" onclick="upgradePlan('premium')">
                                                                 <i class="bi bi-star-fill me-1 text-dark"></i> Escalar a Premium ($25 ARS)
@@ -1407,11 +1407,11 @@
 
             $('#subscriptionStatus').html(html);
 
-            // ✅ ACTUALIZAR BADGE DEL HEADER
+            //  ACTUALIZAR BADGE DEL HEADER
             updateHeaderBadge(data);
         }
 
-        // ✅ FUNCIÓN PARA ACTUALIZAR EL BADGE DEL HEADER
+        //  FUNCIN PARA ACTUALIZAR EL BADGE DEL HEADER
         function updateHeaderBadge(data) {
             const planKey = data.plan.key;
             const hasActive = data.has_active_subscription;
@@ -1424,7 +1424,7 @@
             let label = 'Gratuito';
             let dotClass = 'expired';
 
-            // ✅ Si está activo, mostrar según el plan
+            //  Si est activo, mostrar segn el plan
             if (hasActive) {
                 if (planKey === 'premium') {
                     icon = 'bi-star-fill';
@@ -1434,7 +1434,7 @@
                 } else if (planKey === 'basico') {
                     icon = 'bi-credit-card';
                     className = 'basico';
-                    label = 'Básico';
+                    label = 'Bsico';
                     dotClass = 'active';
                 } else {
                     icon = 'bi-gift';
@@ -1443,22 +1443,22 @@
                     dotClass = 'active';
                 }
             } else {
-                // ✅ Si NO está activo, mostrar según el plan del usuario
+                //  Si NO est activo, mostrar segn el plan del usuario
                 if (planKey === 'free') {
                     icon = 'bi-gift';
                     className = 'free';
                     label = 'Free';
-                    dotClass = 'expired'; // Mantener el punto rojo para indicar que no hay suscripción activa
+                    dotClass = 'expired'; // Mantener el punto rojo para indicar que no hay suscripcin activa
                 } else if (planKey === 'basico' || planKey === 'premium') {
-                    // Si tiene un plan pago pero no está activo (expirado)
+                    // Si tiene un plan pago pero no est activo (expirado)
                     icon = 'bi-exclamation-triangle';
                     className = 'expired';
-                    label = planKey === 'premium' ? 'Premium (Expirado)' : 'Básico (Expirado)';
+                    label = planKey === 'premium' ? 'Premium (Expirado)' : 'Bsico (Expirado)';
                     dotClass = 'expired';
                 } else {
                     icon = 'bi-exclamation-triangle';
                     className = 'expired';
-                    label = 'Sin suscripción';
+                    label = 'Sin suscripcin';
                     dotClass = 'expired';
                 }
             }
@@ -1475,9 +1475,9 @@
             $('#subscriptionStatus').html(`
                                                                                             <div class="alert alert-danger">
                                                                                                 <i class="bi bi-exclamation-triangle me-2"></i>
-                                                                                                <strong>Error al cargar el estado de la suscripción.</strong>
+                                                                                                <strong>Error al cargar el estado de la suscripcin.</strong>
                                                                                                 <br>
-                                                                                                <small class="text-muted">Intenta recargar la página. Si el problema persiste, contacta con soporte.</small>
+                                                                                                <small class="text-muted">Intenta recargar la pgina. Si el problema persiste, contacta con soporte.</small>
                                                                                                 <br>
                                                                                                 <button class="btn btn-sm btn-outline-danger mt-2" onclick="loadSubscriptionStatus()">
                                                                                                     <i class="bi bi-arrow-repeat me-1"></i> Reintentar
@@ -1487,14 +1487,14 @@
         }
 
         // =============================================
-        // ✅ FUNCIONES DE CARGA DE DATOS
+        //  FUNCIONES DE CARGA DE DATOS
         // =============================================
 
         function loadSubscriptionStatus() {
             const token = localStorage.getItem('token');
             if (!token) return;
 
-            // ✅ Obtener plan anterior del input oculto
+            //  Obtener plan anterior del input oculto
             const previousPlanInput = document.getElementById('previousPlanValue');
             if (previousPlanInput && previousPlanInput.value) {
                 localStorage.setItem('previous_plan', previousPlanInput.value);
@@ -1510,7 +1510,7 @@
                 cache: false,
                 success: function (response) {
                     if (response.success) {
-                        // ✅ Si hay un plan anterior en localStorage, pasarlo a los datos
+                        //  Si hay un plan anterior en localStorage, pasarlo a los datos
                         const previousPlan = localStorage.getItem('previous_plan');
                         if (previousPlan) {
                             response.data.previous_plan = previousPlan;
@@ -1520,7 +1520,7 @@
                         updateAccountInfo();
                         updateHeaderBadge(response.data);
 
-                        // ✅ Actualizar badge de downgrade
+                        //  Actualizar badge de downgrade
                         if (typeof updateDowngradeBadge === 'function') {
                             updateDowngradeBadge(response.data);
                         }
@@ -1529,7 +1529,7 @@
                     }
                 },
                 error: function (xhr) {
-                    console.error('Error al cargar estado de suscripción:', xhr);
+                    console.error('Error al cargar estado de suscripcin:', xhr);
                     renderSubscriptionError();
                 }
             });
@@ -1556,7 +1556,7 @@
                     }
                 },
                 error: function (xhr) {
-                    console.error('Error al cargar estadísticas:', xhr);
+                    console.error('Error al cargar estadsticas:', xhr);
                 }
             });
         }
@@ -1579,17 +1579,17 @@
                         $('#email').val(user.email || '');
                         $('#userId').text(user.id || '-');
 
-                        // ✅ Mostrar el plan REAL (si es free, mostrar "Free")
+                        //  Mostrar el plan REAL (si es free, mostrar "Free")
                         let planDisplay = 'Free';
                         if (subscription && subscription.plan) {
                             const planKey = subscription.plan.key || subscription.plan;
                             if (planKey === 'premium') planDisplay = 'Premium';
-                            else if (planKey === 'basico') planDisplay = 'Básico';
+                            else if (planKey === 'basico') planDisplay = 'Bsico';
                             else if (planKey === 'free') planDisplay = 'Free';
                         } else {
-                            // Si no hay suscripción, usar el plan del usuario
+                            // Si no hay suscripcin, usar el plan del usuario
                             const userPlan = user.subscription_plan || 'free';
-                            planDisplay = userPlan === 'basico' ? 'Básico' :
+                            planDisplay = userPlan === 'basico' ? 'Bsico' :
                                 userPlan === 'premium' ? 'Premium' :
                                     userPlan === 'free' ? 'Free' : 'Free';
                         }
@@ -1640,7 +1640,7 @@
                     'Authorization': 'Bearer ' + token,
                     'Accept': 'application/json'
                 },
-                cache: false, // ✅ Evitar caché
+                cache: false, //  Evitar cach
                 success: function (response) {
                     if (response.success && response.data) {
                         const user = response.data.user;
@@ -1650,16 +1650,16 @@
                         $('#userCreatedAt').text(user.created_at ? new Date(user.created_at).toLocaleDateString('es-ES') : '-');
                         $('#userUpdatedAt').text(user.updated_at ? new Date(user.updated_at).toLocaleDateString('es-ES') : '-');
 
-                        // ✅ Mostrar el plan REAL desde la suscripción
+                        //  Mostrar el plan REAL desde la suscripcin
                         let planDisplay = 'Free';
                         if (subscription && subscription.plan) {
                             const planKey = subscription.plan.key || subscription.plan;
                             if (planKey === 'premium') planDisplay = 'Premium';
-                            else if (planKey === 'basico') planDisplay = 'Básico';
+                            else if (planKey === 'basico') planDisplay = 'Bsico';
                             else if (planKey === 'free') planDisplay = 'Free';
                         } else {
-                            // Si no hay suscripción, usar el plan del usuario
-                            planDisplay = user.subscription_plan === 'basico' ? 'Básico' :
+                            // Si no hay suscripcin, usar el plan del usuario
+                            planDisplay = user.subscription_plan === 'basico' ? 'Bsico' :
                                 user.subscription_plan === 'premium' ? 'Premium' :
                                     user.subscription_plan === 'free' ? 'Free' : 'Free';
                         }
@@ -1667,7 +1667,7 @@
                     }
                 },
                 error: function (xhr) {
-                    console.error('Error al cargar información de la cuenta:', xhr.status, xhr.statusText);
+                    console.error('Error al cargar informacin de la cuenta:', xhr.status, xhr.statusText);
                 }
             });
         }
@@ -1688,18 +1688,18 @@
                 const passwordConf = passwordConfField.val();
 
                 if ((password && !passwordConf) || (!password && passwordConf)) {
-                    showAlert('Debes completar ambos campos de contraseña o dejarlos vacíos.', 'danger');
+                    showAlert('Debes completar ambos campos de contrasea o dejarlos vacos.', 'danger');
                     return;
                 }
 
                 if (password && passwordConf) {
                     if (password !== passwordConf) {
-                        showAlert('Las contraseñas no coinciden.', 'danger');
+                        showAlert('Las contraseas no coinciden.', 'danger');
                         return;
                     }
 
                     if (password.length < 8) {
-                        showAlert('La contraseña debe tener al menos 8 caracteres.', 'danger');
+                        showAlert('La contrasea debe tener al menos 8 caracteres.', 'danger');
                         return;
                     }
 
@@ -1782,7 +1782,7 @@
                 },
                 complete: function () {
                     $('#confirmDeleteAllData').prop('disabled', false).html(`
-                                                                                                    <i class="bi bi-trash-fill me-1"></i> Sí, eliminar todo
+                                                                                                    <i class="bi bi-trash-fill me-1"></i> S, eliminar todo
                                                                                                 `);
                 }
             });
@@ -1795,12 +1795,12 @@
             const packs = $('#extraPacksSelect').val();
 
             if (!packs) {
-                // Implementación de Snackbar flotante en vez del alerta global
+                // Implementacin de Snackbar flotante en vez del alerta global
                 let snackHtml = `
                                                                                         <div class="toast align-items-center text-white bg-warning border-0 position-fixed top-0 start-50 translate-middle-x mt-4" role="alert" aria-live="assertive" aria-atomic="true" style="z-index: 9999;">
                                                                                           <div class="d-flex">
                                                                                             <div class="toast-body">
-                                                                                              <i class="bi bi-exclamation-circle me-2"></i> Por favor, selecciona cuántos packs deseas comprar primero.
+                                                                                              <i class="bi bi-exclamation-circle me-2"></i> Por favor, selecciona cuntos packs deseas comprar primero.
                                                                                             </div>
                                                                                             <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
                                                                                           </div>
@@ -1817,8 +1817,8 @@
                 return;
             }
 
-            if (confirm(`Estás por comprar una expansión de +${packs * 10} sensores por $${packs * 10000} ARS hasta fin de mes. ¿Estás seguro?`)) {
-                showAlert('🔄 Generando preferencia de pago...', 'info');
+            if (confirm(`Ests por comprar una expansin de +${packs * 10} sensores por $${packs * 10000} ARS hasta fin de mes. ?Ests seguro?`)) {
+                showAlert(' Generando preferencia de pago...', 'info');
 
                 $.ajax({
                     url: '/api/subscription/buy-packs',
@@ -1833,14 +1833,14 @@
                     success: function (response) {
                         if (response.success && response.data.preference_id) {
 
-                            // ✅ BYPASS PARA ENTORNO LOCAL
+                            //  BYPASS PARA ENTORNO LOCAL
                             if (response.data.is_local) {
-                                showAlert('✅ [DEV] Packs acreditados localmente en Sandbox. Recargando perfil...', 'success');
+                                showAlert(' [DEV] Packs acreditados localmente en Sandbox. Recargando perfil...', 'success');
                                 setTimeout(() => window.location.reload(), 1500);
                                 return;
                             }
 
-                            showAlert('✅ Redirigiendo a Mercado Pago...', 'success');
+                            showAlert(' Redirigiendo a Mercado Pago...', 'success');
                             // Inicializar Checkout Pro
                             const devEnv = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
                             const mp = new MercadoPago(response.data.public_key, {
@@ -1848,7 +1848,7 @@
                             });
 
                             if (devEnv) {
-                                showAlert('⚠️ Modo Desarrollo: Simulando redirección. Por favor aprueba en sandbox mercadopago.', 'warning');
+                                showAlert(' Modo Desarrollo: Simulando redireccin. Por favor aprueba en sandbox mercadopago.', 'warning');
                             }
 
                             mp.checkout({
@@ -1858,7 +1858,7 @@
                                 autoOpen: true,
                             });
                         } else {
-                            showAlert('Error: ' + (response.message || 'Respuesta inválida al general link de pago'), 'danger');
+                            showAlert('Error: ' + (response.message || 'Respuesta invlida al general link de pago'), 'danger');
                         }
                     },
                     error: function (xhr) {
@@ -1866,14 +1866,14 @@
                         if (xhr.responseJSON && xhr.responseJSON.message) {
                             errorMsg = xhr.responseJSON.message;
                         }
-                        showAlert('❌ ' + errorMsg, 'danger');
+                        showAlert(' ' + errorMsg, 'danger');
                     }
                 });
             }
         };
 
         // =============================================
-        // ✅ DOCUMENT READY - INICIALIZACIÓN
+        //  DOCUMENT READY - INICIALIZACIN
         // =============================================
         $(document).ready(function () {
             let countdownInterval = null;
@@ -1887,7 +1887,7 @@
             loadStats();
             loadSubscriptionStatus();
 
-            // Configuración de intervalos
+            // Configuracin de intervalos
             subscriptionCheckInterval = setInterval(function () {
                 loadSubscriptionStatus();
             }, 10000);
@@ -1899,7 +1899,7 @@
                 loadSubscriptionStatus();
             });
 
-            // Eventos de depuración (solo local)
+            // Eventos de depuracin (solo local)
             @if(app()->environment('local'))
                 $('#debugActivateFree').click(function () {
                     debugActivateSubscription('free');
@@ -1923,7 +1923,7 @@
 
                 $('#debugCheckStatus').click(function () {
                     loadSubscriptionStatus();
-                    showAlert('✅ Estado actualizado', 'info');
+                    showAlert(' Estado actualizado', 'info');
                 });
             @endif
 
@@ -1959,20 +1959,20 @@
                         } else {
                             showAlert(response.message || 'Error al generar token', 'danger');
                             $('#confirmDeleteAllData').prop('disabled', false).html(`
-                                                                                                            <i class="bi bi-trash-fill me-1"></i> Sí, eliminar todo
+                                                                                                            <i class="bi bi-trash-fill me-1"></i> S, eliminar todo
                                                                                                         `);
                         }
                     },
                     error: function (xhr) {
                         showAlert('Error: ' + (xhr.responseJSON?.message || xhr.statusText), 'danger');
                         $('#confirmDeleteAllData').prop('disabled', false).html(`
-                                                                                                        <i class="bi bi-trash-fill me-1"></i> Sí, eliminar todo
+                                                                                                        <i class="bi bi-trash-fill me-1"></i> S, eliminar todo
                                                                                                     `);
                     }
                 });
             });
 
-            // Actualizar información de la cuenta
+            // Actualizar informacin de la cuenta
             updateAccountInfo();
 
             // Escuchar eventos
@@ -1983,7 +1983,7 @@
             // Actualizar cada 30 segundos
             setInterval(updateAccountInfo, 30000);
 
-            // Función para actualizar solo el plan
+            // Funcin para actualizar solo el plan
             window.updatePlanInfo = function () {
                 updateAccountInfo();
             };
