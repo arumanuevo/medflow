@@ -848,4 +848,35 @@ class SubscriptionPaymentController extends Controller
             'plan' => $service->getFullStatus()
         ]);
     }
+
+    /**
+     * Cancelar una suscripción activa
+     */
+    public function cancel(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Usuario no autenticado'], 401);
+        }
+
+        $subscription = Subscription::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->latest()
+            ->first();
+
+        if ($subscription) {
+            $subscription->status = 'cancelled';
+            $subscription->expires_at = now();
+            $subscription->save();
+        }
+
+        // Downgrade a Free
+        $user->subscription_plan = 'free';
+        $user->subscription_type = 'domiciliario';
+        $user->save();
+        $user->removeRole('inspector');
+
+        return response()->json(['success' => true, 'message' => 'Suscripción cancelada con éxito.']);
+    }
 }

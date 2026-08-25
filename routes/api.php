@@ -414,4 +414,8 @@ if (app()->environment('local')) {
     });
 }
 
+Route::middleware(['auth:sanctum', \Illuminate\Routing\Middleware\SubstituteBindings::class])->group(function () {
+    Route::post('/subscription/cancel', [SubscriptionPaymentController::class, 'cancel']);
+});
+
 Route::middleware(['auth:sanctum'])->get('/subscription/check-expiration', [SubscriptionPaymentController::class, 'checkExpiration']);
