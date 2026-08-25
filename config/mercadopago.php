@@ -6,15 +6,16 @@ return [
     'plans' => [
         'basico' => [
             'name' => 'Plan Básico',
-            'price' => env('MERCADO_PAGO_PLAN_BASICO', 1000), // $10.00 ARS en centavos
+            'price' => env('MERCADO_PAGO_PLAN_BASICO', 100000), // $10.00 ARS en centavos
             'currency' => 'ARS',
             'description' => 'Acceso a funcionalidades básicas de MedFlow'
         ],
         'premium' => [
             'name' => 'Plan Premium',
-            'price' => 2500, // $25.00 ARS
+            'price' => env('MERCADO_PAGO_PLAN_PREMIUM', 200000), // $25.00 ARS
             'currency' => 'ARS',
             'description' => 'Acceso a todas las funcionalidades de MedFlow'
         ]
     ]
 ];
+
