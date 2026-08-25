@@ -109,7 +109,7 @@ class SubscriptionPaymentController extends Controller
             $client = new PreferenceClient();
 
             // ✅ Generar URLs dinámicas
-            $baseUrl = config('app.url');
+            $baseUrl = rtrim(config('app.url'), '/');
             $successUrl = $baseUrl . '/subscription/success/' . $plan;
             $failureUrl = $baseUrl . '/subscription/failure/' . $plan;
             $pendingUrl = $baseUrl . '/subscription/pending/' . $plan;
@@ -495,7 +495,7 @@ class SubscriptionPaymentController extends Controller
 
         try {
             $client = new PreferenceClient();
-            $baseUrl = config('app.url');
+            $baseUrl = rtrim(config('app.url'), '/');
 
             // Creamos un plan ficticio "packs"
             $successUrl = $baseUrl . '/subscription/success_packs?packs=' . $packs;
