@@ -72,9 +72,10 @@ class ProfileViewController extends Controller
     public function updateBilling(Request $request)
     {
         $request->validate([
-            'cuit' => 'nullable|string|max:20',
-            'condicion_iva' => 'nullable|string|max:50',
-            'condicion_venta' => 'nullable|string|max:50',
+            'cuit' => 'required|string|max:20',
+            'condicion_iva' => 'required|string|max:50',
+            'condicion_venta' => 'required|string|max:50',
+            'email_facturacion' => 'required|string|max:255',
             'descripcion_servicio' => 'nullable|string|max:255',
         ]);
 
@@ -82,6 +83,7 @@ class ProfileViewController extends Controller
         $user->cuit = $request->cuit;
         $user->condicion_iva = $request->condicion_iva;
         $user->condicion_venta = $request->condicion_venta;
+        $user->email_facturacion = $request->email_facturacion;
         $user->descripcion_servicio = $request->descripcion_servicio;
         $user->save();
 

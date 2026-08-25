@@ -16,7 +16,8 @@
         <div style="background-color: #f9f9f9; padding: 15px; margin: 20px 0; border-left: 4px solid #4CAF50;">
             <h3 style="margin-top: 0;">Datos del Cliente</h3>
             <p><strong>Nombre/Razón Social:</strong> {{ $user->name }}</p>
-            <p><strong>Email:</strong> {{ $user->email }}</p>
+            <p><strong>Email de Registro:</strong> {{ $user->email }}</p>
+            <p><strong>Email a enviar Factura:</strong> {{ $user->email_facturacion ?? $user->email }}</p>
             <p><strong>CUIT:</strong> {{ $user->cuit ?? 'No cargado' }}</p>
             <p><strong>Condición IVA:</strong> {{ $user->condicion_iva ?? 'No cargada' }}</p>
             <p><strong>Condición de Venta:</strong> {{ $user->condicion_venta ?? 'No indicada' }}</p>

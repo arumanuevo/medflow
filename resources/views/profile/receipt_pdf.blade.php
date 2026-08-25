@@ -85,7 +85,11 @@
         </tr>
         <tr>
             <th>Cliente:</th>
-            <td>{{ $user->name }} ({{ $user->email }})</td>
+            <td>{{ $user->name }}</td>
+        </tr>
+        <tr>
+            <th>Emails Comerciales:</th>
+            <td>{{ $user->email_facturacion ?? $user->email }}</td>
         </tr>
         <tr>
             <th>CUIT:</th>
