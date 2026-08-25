@@ -19,10 +19,15 @@
             <p><strong>Email:</strong> {{ $user->email }}</p>
             <p><strong>CUIT:</strong> {{ $user->cuit ?? 'No cargado' }}</p>
             <p><strong>Condición IVA:</strong> {{ $user->condicion_iva ?? 'No cargada' }}</p>
+            <p><strong>Condición de Venta:</strong> {{ $user->condicion_venta ?? 'No indicada' }}</p>
+            <p><strong>Concepto / Descripción a Facturar:</strong>
+                {{ $user->descripcion_servicio ?? ('Suscripción MedFlow - Plan ' . strtoupper($subscription->plan)) }}
+            </p>
 
             <h3 style="margin-bottom: 0;">Datos del Pago</h3>
             <p><strong>Monto:</strong> ${{ number_format($subscription->amount, 2, ',', '.') }}
-                {{ $subscription->currency }}</p>
+                {{ $subscription->currency }}
+            </p>
             <p><strong>Plan:</strong> {{ strtoupper($subscription->plan) }}</p>
             <p><strong>Ticket / Referencia de Pago:</strong> {{ $subscription->payment_id ?? 'N/A' }}</p>
         </div>

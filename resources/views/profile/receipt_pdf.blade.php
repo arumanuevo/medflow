@@ -96,8 +96,13 @@
             <td>{{ $user->condicion_iva ?? 'No declarada' }}</td>
         </tr>
         <tr>
-            <th>Concepto:</th>
-            <td>Suscripción MedFlow - Plan {{ strtoupper($subscription->plan) }}</td>
+            <th>Condición de Venta:</th>
+            <td>{{ $user->condicion_venta ?? 'N/A' }}</td>
+        </tr>
+        <tr>
+            <th>Concepto / Descripción:</th>
+            <td>{{ $user->descripcion_servicio ?? ('Suscripción MedFlow - Plan ' . strtoupper($subscription->plan)) }}
+            </td>
         </tr>
         <tr>
             <th>Estado:</th>
@@ -110,7 +115,8 @@
         <tr>
             <th>Monto Total:</th>
             <td style="font-size: 18px; font-weight: bold;">${{ number_format($subscription->amount, 2, ',', '.') }}
-                {{ $subscription->currency }}</td>
+                {{ $subscription->currency }}
+            </td>
         </tr>
     </table>
 

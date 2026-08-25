@@ -74,11 +74,15 @@ class ProfileViewController extends Controller
         $request->validate([
             'cuit' => 'nullable|string|max:20',
             'condicion_iva' => 'nullable|string|max:50',
+            'condicion_venta' => 'nullable|string|max:50',
+            'descripcion_servicio' => 'nullable|string|max:255',
         ]);
 
         $user = Auth::user();
         $user->cuit = $request->cuit;
         $user->condicion_iva = $request->condicion_iva;
+        $user->condicion_venta = $request->condicion_venta;
+        $user->descripcion_servicio = $request->descripcion_servicio;
         $user->save();
 
         return back()->with('success', 'Datos fiscales actualizados correctamente.');
