@@ -254,10 +254,13 @@ class SubscriptionPaymentController extends Controller
                         $user->assignRole('inspector');
                     }
 
-                    try {
-                        \Illuminate\Support\Facades\Mail::to('scastellano10@gmail.com')->send(new \App\Mail\AdminPaymentAlert($user, $subscription));
-                    } catch (\Exception $e) {
-                        \Illuminate\Support\Facades\Log::error('Error al enviar alerta de AFIP: ' . $e->getMessage());
+                    // ✅ SOLO enviar alerta a SCastellano10 si el usuario cargó su CUIT (requiere Factura A/C)
+                    if (!empty($user->cuit)) {
+                        try {
+                            \Illuminate\Support\Facades\Mail::to('scastellano10@gmail.com')->send(new \App\Mail\AdminPaymentAlert($user, $subscription));
+                        } catch (\Exception $e) {
+                            \Illuminate\Support\Facades\Log::error('Error al enviar alerta de AFIP: ' . $e->getMessage());
+                        }
                     }
 
                     Log::info('Pago verificado exitosamente', [
@@ -378,10 +381,13 @@ class SubscriptionPaymentController extends Controller
                         $user->assignRole('inspector');
                     }
 
-                    try {
-                        \Illuminate\Support\Facades\Mail::to('scastellano10@gmail.com')->send(new \App\Mail\AdminPaymentAlert($user, $subscription));
-                    } catch (\Exception $e) {
-                        \Illuminate\Support\Facades\Log::error('Error al enviar alerta de AFIP webhooks: ' . $e->getMessage());
+                    // ✅ SOLO enviar alerta si solicita comprobante fiscal (tiene CUIT)
+                    if (!empty($user->cuit)) {
+                        try {
+                            \Illuminate\Support\Facades\Mail::to('scastellano10@gmail.com')->send(new \App\Mail\AdminPaymentAlert($user, $subscription));
+                        } catch (\Exception $e) {
+                            \Illuminate\Support\Facades\Log::error('Error al enviar alerta de AFIP webhooks: ' . $e->getMessage());
+                        }
                     }
                 }
 
