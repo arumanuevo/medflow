@@ -182,6 +182,7 @@ class MobileOfflineController extends Controller
         return response()->json([
             'success' => true,
             'message' => "Enlace de acceso enviado a {$request->input('email')} correctamente.",
+            'invite_link' => $deepLink
         ]);
     }
 
@@ -294,3 +295,4 @@ class MobileOfflineController extends Controller
         }
     }
 }
+

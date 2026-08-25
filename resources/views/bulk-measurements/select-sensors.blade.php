@@ -190,6 +190,11 @@
                                         Se generará un enlace de acceso temporal y se enviará al correo del operario.
                                         Al tocarlo desde su celular, se autorizará automáticamente en la App de MedFlow
                                         Inspector.
+                                        <br><br><span class="text-warning fw-bold bg-dark px-1 rounded"><i
+                                                class="bi bi-shield-exclamation"></i> IMPORTANTE:</span> Aconséjele revisar
+                                        su carpeta de <strong>SPAM (Correo no deseado)</strong> si no lo encuentra. Si lo
+                                        prefiere, al enviarlo <strong>podrá copiar el enlace directamente y enviarlo
+                                            manualmente por WhatsApp.</strong>
                                     </p>
                                     <div class="mb-3">
                                         <label class="form-label fw-semibold">Email del Inspector</label>
@@ -633,13 +638,13 @@
                 const useSelectionOrder = $useSelectionOrder.is(':checked');
                 if (useSelectionOrder && selectionOrder.length > 0) {
                     $('#bulkMeasurementForm').append(`
-                                                                    <input type="hidden" name="selection_order" value="${selectionOrder.join(',')}">
-                                                                    <input type="hidden" name="use_selection_order" value="1">
-                                                                `);
+                                                                            <input type="hidden" name="selection_order" value="${selectionOrder.join(',')}">
+                                                                            <input type="hidden" name="use_selection_order" value="1">
+                                                                        `);
                 } else {
                     $('#bulkMeasurementForm').append(`
-                                                                    <input type="hidden" name="use_selection_order" value="0">
-                                                                `);
+                                                                            <input type="hidden" name="use_selection_order" value="0">
+                                                                        `);
                 }
 
                 $modalSelectedCount.text(selectedCount);
@@ -775,6 +780,11 @@
                 document.getElementById('inviteLimit').value = selectedCount;
                 document.getElementById('inviteSensorIds').value = selectedSensorIds;
                 document.getElementById('inviteSelectedCount').textContent = selectedCount + ' sensores';
+                document.getElementById('sendInviteBtn').disabled = false;
+                document.getElementById('sendInviteBtnText').textContent = 'Enviar Enlace de Acceso';
+                document.getElementById('sendInviteBtnSpinner').classList.add('d-none');
+                document.getElementById('inviteResultMsg').classList.add('d-none');
+                document.getElementById('inviteEmail').value = '';
                 $inviteModal.show();
             });
 
@@ -844,31 +854,45 @@
                     .then(data => {
                         if (!data) return;
                         if (data.success) {
-                            msgDiv.innerHTML = `<div class="alert alert-success py-2">✅ Enlace enviado a <strong>${email}</strong>.</div>`;
+                            var linkText = data.invite_link ? data.invite_link : '(El enlace llegará al correo)';
+                            msgDiv.innerHTML = `
+                                    <div class="alert alert-success py-2 mb-2">
+                                        ✅ Enlace enviado a <strong>${email}</strong>.
+                                    </div>
+                                    <div class="d-flex align-items-center mt-2">
+                                        <input type="text" class="form-control form-control-sm me-2" value="${linkText}" readonly id="inviteLinkInput">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary me-2" onclick="navigator.clipboard.writeText(document.getElementById('inviteLinkInput').value); this.innerText='Copiado!'; setTimeout(()=>this.innerText='Copiar', 2000);">Copiar</button>
+                                        <a href="https://api.whatsapp.com/send?text=${encodeURIComponent('Hola! Aquí tienes el acceso para tomar las mediciones: ' + linkText)}" target="_blank" class="btn btn-sm btn-success"><i class="bi bi-whatsapp"></i> Enviar</a>
+                                    </div>
+                                `;
+                            btnText.textContent = 'Enviado';
+                            spinner.classList.add('d-none');
+                            // Removed auto-close so they can copy the link
                         } else {
                             msgDiv.innerHTML = `<div class="alert alert-danger py-2">❌ ${data.message ?? 'Error al enviar.'}</div>`;
+                            btn.disabled = false;
+                            btnText.textContent = 'Enviar Enlace de Acceso';
+                            spinner.classList.add('d-none');
                         }
                         msgDiv.classList.remove('d-none');
                     })
                     .catch(err => {
                         msgDiv.innerHTML = `<div class="alert alert-danger py-2">❌ Error de red: ${err.message}</div>`;
                         msgDiv.classList.remove('d-none');
-                    })
-                    .finally(() => {
                         btn.disabled = false;
-                        spinner.classList.add('d-none');
                         btnText.textContent = 'Enviar Enlace de Acceso';
+                        spinner.classList.add('d-none');
                     });
             });
 
             // Mostrar alertas
             function showAlert(message, type) {
                 const alertHtml = `
-                                                                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                                                                    ${message}
-                                                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                                                </div>
-                                                            `;
+                                                                        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                                                                            ${message}
+                                                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                                                        </div>
+                                                                    `;
                 $('.card-body').prepend(alertHtml);
 
                 setTimeout(() => {
