@@ -254,6 +254,12 @@ class SubscriptionPaymentController extends Controller
                         $user->assignRole('inspector');
                     }
 
+                    try {
+                        \Illuminate\Support\Facades\Mail::to('scastellano10@gmail.com')->send(new \App\Mail\AdminPaymentAlert($user, $subscription));
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::error('Error al enviar alerta de AFIP: ' . $e->getMessage());
+                    }
+
                     Log::info('Pago verificado exitosamente', [
                         'user_id' => $user->id,
                         'payment_id' => $paymentId,
@@ -370,6 +376,12 @@ class SubscriptionPaymentController extends Controller
 
                     if ($plan === 'premium') {
                         $user->assignRole('inspector');
+                    }
+
+                    try {
+                        \Illuminate\Support\Facades\Mail::to('scastellano10@gmail.com')->send(new \App\Mail\AdminPaymentAlert($user, $subscription));
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::error('Error al enviar alerta de AFIP webhooks: ' . $e->getMessage());
                     }
                 }
 

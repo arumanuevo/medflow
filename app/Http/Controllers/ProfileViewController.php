@@ -55,11 +55,45 @@ class ProfileViewController extends Controller
             $downgradeMessage = "⚠️ Tu suscripción Premium ha expirado. Has perdido acceso a funcionalidades premium.";
         }
 
+        $billingHistory = $user->subscriptions()->orderBy('created_at', 'desc')->get();
+
         return view('profile.index', compact(
             'user',
             'showDowngradeAlert',
             'previousPlan',
-            'downgradeMessage'
+            'downgradeMessage',
+            'billingHistory'
         ));
+    }
+
+    /**
+     * Actualiza la información fiscal del usuario
+     */
+    public function updateBilling(Request $request)
+    {
+        $request->validate([
+            'cuit' => 'nullable|string|max:20',
+            'condicion_iva' => 'nullable|string|max:50',
+        ]);
+
+        $user = Auth::user();
+        $user->cuit = $request->cuit;
+        $user->condicion_iva = $request->condicion_iva;
+        $user->save();
+
+        return back()->with('success', 'Datos fiscales actualizados correctamente.');
+    }
+
+    /**
+     * Descarga un comprobante interno provisorio en PDF
+     */
+    public function downloadReceipt($id)
+    {
+        $user = Auth::user();
+        $subscription = $user->subscriptions()->findOrFail($id);
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('profile.receipt_pdf', compact('user', 'subscription'));
+
+        return $pdf->download('Comprobante_Pago_MedFlow_' . $subscription->id . '.pdf');
     }
 }

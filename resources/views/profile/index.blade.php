@@ -450,6 +450,89 @@
 
 
 
+                        {{-- SECCIÓN DE FACTURACIÓN --}}
+                        <div class="mt-4 pt-3 border-top">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0 fw-bold"><i class="bi bi-receipt"></i> Facturación y Comprobantes</h6>
+                            </div>
+
+                            <!-- Datos Impositivos -->
+                            <div class="alert bg-light border">
+                                <form action="{{ route('profile.update-billing') }}" method="POST">
+                                    @csrf
+                                    <h6 class="fs-6 mb-3">Tus Datos Fiscales (Para Factura AFIP)</h6>
+                                    <div class="row g-2 align-items-end">
+                                        <div class="col-md-5">
+                                            <label class="form-label small">CUIT / CUIL</label>
+                                            <input type="text" name="cuit" class="form-control"
+                                                placeholder="Ej: 30-12345678-9" value="{{ $user->cuit ?? '' }}">
+                                        </div>
+                                        <div class="col-md-5">
+                                            <label class="form-label small">Condición IVA</label>
+                                            <select name="condicion_iva" class="form-select">
+                                                <option value="" {{ empty($user->condicion_iva) ? 'selected' : '' }}>
+                                                    Seleccionar...</option>
+                                                <option value="Responsable Inscripto" {{ ($user->condicion_iva ?? '') == 'Responsable Inscripto' ? 'selected' : '' }}>Responsable Inscripto
+                                                </option>
+                                                <option value="Monotributo" {{ ($user->condicion_iva ?? '') == 'Monotributo' ? 'selected' : '' }}>Monotributo</option>
+                                                <option value="Exento" {{ ($user->condicion_iva ?? '') == 'Exento' ? 'selected' : '' }}>Exento</option>
+                                                <option value="Consumidor Final" {{ ($user->condicion_iva ?? '') == 'Consumidor Final' ? 'selected' : '' }}>Consumidor Final</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <button type="submit" class="btn btn-primary w-100"><i class="bi bi-save"></i>
+                                                Guardar</button>
+                                        </div>
+                                    </div>
+                                    <small class="text-muted mt-2 d-block"><i class="bi bi-info-circle"></i> Completá estos
+                                        datos si requerís la emisión de tu Factura oficial.</small>
+                                </form>
+                            </div>
+
+                            <!-- Historial de Pagos -->
+                            <h6 class="fs-6 mt-4 mb-3">Historial de Pagos</h6>
+                            @if(isset($billingHistory) && $billingHistory->count() > 0)
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-hover align-middle">
+                                        <thead class="table-light text-center small text-uppercase">
+                                            <tr>
+                                                <th>Fecha</th>
+                                                <th>Plan</th>
+                                                <th>Ref. de Pago</th>
+                                                <th>Monto</th>
+                                                <th>Comprobante</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="text-center text-sm">
+                                            @foreach($billingHistory as $receipt)
+                                                <tr>
+                                                    <td>{{ $receipt->created_at->format('d/m/Y') }}</td>
+                                                    <td class="text-uppercase fw-bold">{{ $receipt->plan }}</td>
+                                                    <td class="text-muted">
+                                                        <small>#{{ $receipt->payment_id ?? $receipt->id }}</small></td>
+                                                    <td>${{ number_format($receipt->amount, 2, ',', '.') }} {{ $receipt->currency }}
+                                                    </td>
+                                                    <td>
+                                                        <a target="_blank"
+                                                            href="{{ route('profile.download-receipt', $receipt->id) }}"
+                                                            class="btn btn-sm btn-outline-secondary"
+                                                            title="Descargar Comprobante Provisorio">
+                                                            <i class="bi bi-file-earmark-pdf"></i> Recibo
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @else
+                                <div class="alert alert-secondary text-center">
+                                    <i class="bi bi-inbox fs-4 d-block mb-2"></i>
+                                    Aún no hay registros de pagos en tu historial.
+                                </div>
+                            @endif
+                        </div>
+
                         {{-- SECCIÓN DE ELIMINACIÓN DE DATOS --}}
                         <div class="mt-4 pt-3 border-top">
                             <div class="d-flex justify-content-between align-items-center mb-2">
@@ -556,7 +639,7 @@
             @else
                 window.location.href = `/suscripcion/${targetPlan}/pagar`;
             @endif
-                                                                                        }
+                                                                                            }
 
         /**
          * B     ajar de plan (Premium → Básico)
@@ -581,7 +664,7 @@
             @else
                 showAlert('⚠️ La bajada de plan se aplicará al finalizar el período actual.', 'warning');
             @endif
-                                                                }
+                                                                    }
 
         /**
          * Cancelar suscripción
@@ -615,7 +698,7 @@
                     }
                 });
             @endif
-                                                                }
+                                                                    }
 
         // =============================================
         // ✅ FUNCIONES DE DEPURACIÓN (SOLO LOCAL)
@@ -790,11 +873,11 @@
 
             function showAlert(message, type) {
                 const alertHtml = `
-                                                                        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                                                                            ${message}
-                                                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                                                        </div>
-                                                                    `;
+                                                                            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                                                                                ${message}
+                                                                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                                                            </div>
+                                                                        `;
                 $('#alertContainer').append(alertHtml);
 
                 setTimeout(() => {
@@ -893,13 +976,13 @@
                         const isExpiring = diffDays === 0 && diffHours === 0 && diffMinutes < 5;
 
                         countdownHtml = `
-                                                                                    <div class="mt-1">
-                                                                                        <span class="countdown-timer ${isExpiring ? 'expiring' : ''}" id="countdownDisplay">
-                                                                                            ⏱️ ${timeStr}
-                                                                                        </span>
-                                                                                        <small class="text-muted ms-2">tiempo restante</small>
-                                                                                    </div>
-                                                                                `;
+                                                                                        <div class="mt-1">
+                                                                                            <span class="countdown-timer ${isExpiring ? 'expiring' : ''}" id="countdownDisplay">
+                                                                                                ⏱️ ${timeStr}
+                                                                                            </span>
+                                                                                            <small class="text-muted ms-2">tiempo restante</small>
+                                                                                        </div>
+                                                                                    `;
 
                         // ✅ INICIAR CONTADOR CON VERIFICACIÓN DE EXPIRACIÓN (actualiza cada minuto)
                         countdownInterval = setInterval(function () {
@@ -952,330 +1035,330 @@
                 const expiresDate = sub && sub.expires_at ? new Date(sub.expires_at).toLocaleDateString('es-ES') : 'No definida';
 
                 html = `
-                                                            <div class="card shadow-sm border-0 mb-4" style="border-radius: 12px; overflow: hidden;">
-                                                                <!-- Sleek Header -->
-                                                                <div class="p-3 bg-${statusClass} bg-gradient text-white d-flex justify-content-between align-items-center">
-                                                                    <div class="d-flex align-items-center gap-2">
-                                                                        <i class="bi ${statusIcon} fs-5"></i>
-                                                                        <h5 class="mb-0 fw-semibold">${statusText}</h5>
+                                                                <div class="card shadow-sm border-0 mb-4" style="border-radius: 12px; overflow: hidden;">
+                                                                    <!-- Sleek Header -->
+                                                                    <div class="p-3 bg-${statusClass} bg-gradient text-white d-flex justify-content-between align-items-center">
+                                                                        <div class="d-flex align-items-center gap-2">
+                                                                            <i class="bi ${statusIcon} fs-5"></i>
+                                                                            <h5 class="mb-0 fw-semibold">${statusText}</h5>
+                                                                        </div>
+                                                                        <span class="badge bg-white text-${statusClass} px-3 py-2 rounded-pill shadow-sm" style="font-size: 0.85rem;">
+                                                                            <i class="bi bi-patch-check-fill me-1"></i> Plan ${planName}
+                                                                        </span>
                                                                     </div>
-                                                                    <span class="badge bg-white text-${statusClass} px-3 py-2 rounded-pill shadow-sm" style="font-size: 0.85rem;">
-                                                                        <i class="bi bi-patch-check-fill me-1"></i> Plan ${planName}
-                                                                    </span>
-                                                                </div>
 
-                                                                <div class="card-body p-4 bg-light">
-                                                                    <div class="row g-4 align-items-center">
+                                                                    <div class="card-body p-4 bg-light">
+                                                                        <div class="row g-4 align-items-center">
 
-                                                                        <!-- Left Column: Current Status & Money -->
-                                                                        <div class="col-lg-5 col-md-6 border-end-md">
-                                                                            <h6 class="text-uppercase text-muted fw-bold mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">Resumen Financiero</h6>
+                                                                            <!-- Left Column: Current Status & Money -->
+                                                                            <div class="col-lg-5 col-md-6 border-end-md">
+                                                                                <h6 class="text-uppercase text-muted fw-bold mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">Resumen Financiero</h6>
 
-                                                                            <div class="d-flex flex-column gap-3">
-                                                                                <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm">
-                                                                                    <div class="d-flex flex-column">
-                                                                                        <span class="text-muted small">Costo del Ciclo Base</span>
-                                                                                        <strong class="fs-6 text-dark">${planName === 'Premium' ? '$25.000 ARS' : (planName === 'Básico' ? '$10.000 ARS' : 'Sin Costo')}</strong>
-                                                                                    </div>
-                                                                                    <i class="bi bi-credit-card-2-front text-${statusClass} fs-3 opacity-50"></i>
-                                                                                </div>
-
-                                                                                ${planName === 'Premium' && data.limits?.sensors?.max > 20 ? `
-                                                                                    <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm border-start border-4 border-success">
+                                                                                <div class="d-flex flex-column gap-3">
+                                                                                    <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm">
                                                                                         <div class="d-flex flex-column">
-                                                                                            <span class="text-muted small">Packs Extras x${(data.limits.sensors.max - 20) / 10}</span>
-                                                                                            <strong class="fs-6 text-success">+$${((data.limits.sensors.max - 20) / 10) * 10000} ARS</strong>
+                                                                                            <span class="text-muted small">Costo del Ciclo Base</span>
+                                                                                            <strong class="fs-6 text-dark">${planName === 'Premium' ? '$25.000 ARS' : (planName === 'Básico' ? '$10.000 ARS' : 'Sin Costo')}</strong>
                                                                                         </div>
-                                                                                        <i class="bi bi-cart-plus text-success fs-3 opacity-50"></i>
+                                                                                        <i class="bi bi-credit-card-2-front text-${statusClass} fs-3 opacity-50"></i>
+                                                                                    </div>
+
+                                                                                    ${planName === 'Premium' && data.limits?.sensors?.max > 20 ? `
+                                                                                        <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm border-start border-4 border-success">
+                                                                                            <div class="d-flex flex-column">
+                                                                                                <span class="text-muted small">Packs Extras x${(data.limits.sensors.max - 20) / 10}</span>
+                                                                                                <strong class="fs-6 text-success">+$${((data.limits.sensors.max - 20) / 10) * 10000} ARS</strong>
+                                                                                            </div>
+                                                                                            <i class="bi bi-cart-plus text-success fs-3 opacity-50"></i>
+                                                                                        </div>
+                                                                                    ` : ''}
+
+                                                                                    <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm border-start border-4 border-${statusClass}">
+                                                                                        <div class="d-flex flex-column">
+                                                                                            <span class="text-muted small">Renovación / Vencimiento</span>
+                                                                                            <strong class="fs-6 text-dark">${expiresDate}</strong>
+                                                                                        </div>
+                                                                                        <i class="bi bi-calendar-check text-${statusClass} fs-3 opacity-50"></i>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+
+                                                                            <!-- Right Column: Capacity Telemetry -->
+                                                                            <div class="col-lg-7 col-md-6 ps-lg-4">
+                                                                                <h6 class="text-uppercase text-muted fw-bold mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">Telemetría de Capacidad</h6>
+
+                                                                                ${data.limits?.sensors ? `
+                                                                                    <div class="mb-4 bg-white p-3 rounded shadow-sm border-start border-3 border-${data.limits.sensors.used >= data.limits.sensors.max ? 'danger' : 'primary'}">
+                                                                                        <div class="d-flex justify-content-between mb-2">
+                                                                                            <span class="small fw-semibold text-dark">Sensores Físicos (Licencias)</span>
+                                                                                            <span class="small fw-bold badge bg-${data.limits.sensors.used >= data.limits.sensors.max ? 'danger' : 'primary'} px-2 py-1">
+                                                                                                ${data.limits.sensors.used} / ${data.limits.sensors.max}
+                                                                                            </span>
+                                                                                        </div>
+                                                                                        <div class="progress" style="height: 10px; border-radius: 6px; background-color: #e9ecef;">
+                                                                                            <div class="progress-bar ${data.limits.sensors.used >= data.limits.sensors.max ? 'bg-danger' : 'bg-primary'}" 
+                                                                                                 role="progressbar" 
+                                                                                                 style="width: ${(data.limits.sensors.used / data.limits.sensors.max) * 100}%" 
+                                                                                                 aria-valuenow="${data.limits.sensors.used}" 
+                                                                                                 aria-valuemin="0" 
+                                                                                                 aria-valuemax="${data.limits.sensors.max}">
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <div class="text-end mt-2">
+                                                                                            <small class="text-muted" style="font-size: 0.7rem;">
+                                                                                                Quedan <span class="fw-bold ${data.limits.sensors.remaining === 0 ? 'text-danger' : 'text-success'}">${data.limits.sensors.remaining}</span> celdas libres
+                                                                                            </small>
+                                                                                        </div>
                                                                                     </div>
                                                                                 ` : ''}
 
-                                                                                <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm border-start border-4 border-${statusClass}">
-                                                                                    <div class="d-flex flex-column">
-                                                                                        <span class="text-muted small">Renovación / Vencimiento</span>
-                                                                                        <strong class="fs-6 text-dark">${expiresDate}</strong>
-                                                                                    </div>
-                                                                                    <i class="bi bi-calendar-check text-${statusClass} fs-3 opacity-50"></i>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-
-                                                                        <!-- Right Column: Capacity Telemetry -->
-                                                                        <div class="col-lg-7 col-md-6 ps-lg-4">
-                                                                            <h6 class="text-uppercase text-muted fw-bold mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">Telemetría de Capacidad</h6>
-
-                                                                            ${data.limits?.sensors ? `
-                                                                                <div class="mb-4 bg-white p-3 rounded shadow-sm border-start border-3 border-${data.limits.sensors.used >= data.limits.sensors.max ? 'danger' : 'primary'}">
-                                                                                    <div class="d-flex justify-content-between mb-2">
-                                                                                        <span class="small fw-semibold text-dark">Sensores Físicos (Licencias)</span>
-                                                                                        <span class="small fw-bold badge bg-${data.limits.sensors.used >= data.limits.sensors.max ? 'danger' : 'primary'} px-2 py-1">
-                                                                                            ${data.limits.sensors.used} / ${data.limits.sensors.max}
-                                                                                        </span>
-                                                                                    </div>
-                                                                                    <div class="progress" style="height: 10px; border-radius: 6px; background-color: #e9ecef;">
-                                                                                        <div class="progress-bar ${data.limits.sensors.used >= data.limits.sensors.max ? 'bg-danger' : 'bg-primary'}" 
-                                                                                             role="progressbar" 
-                                                                                             style="width: ${(data.limits.sensors.used / data.limits.sensors.max) * 100}%" 
-                                                                                             aria-valuenow="${data.limits.sensors.used}" 
-                                                                                             aria-valuemin="0" 
-                                                                                             aria-valuemax="${data.limits.sensors.max}">
+                                                                                ${data.limits?.groups ? `
+                                                                                    <div class="mb-2 bg-white p-3 rounded shadow-sm border-start border-3 border-${data.limits.groups.used >= data.limits.groups.max ? 'danger' : 'info'}">
+                                                                                        <div class="d-flex justify-content-between mb-2">
+                                                                                            <span class="small fw-semibold text-dark">Lotes Lógicos (Grupos)</span>
+                                                                                            <span class="small fw-bold badge bg-${data.limits.groups.used >= data.limits.groups.max ? 'danger' : 'info'} text-white px-2 py-1">
+                                                                                                ${data.limits.groups.used} / ${data.limits.groups.max || '∞'}
+                                                                                            </span>
                                                                                         </div>
-                                                                                    </div>
-                                                                                    <div class="text-end mt-2">
-                                                                                        <small class="text-muted" style="font-size: 0.7rem;">
-                                                                                            Quedan <span class="fw-bold ${data.limits.sensors.remaining === 0 ? 'text-danger' : 'text-success'}">${data.limits.sensors.remaining}</span> celdas libres
-                                                                                        </small>
-                                                                                    </div>
-                                                                                </div>
-                                                                            ` : ''}
-
-                                                                            ${data.limits?.groups ? `
-                                                                                <div class="mb-2 bg-white p-3 rounded shadow-sm border-start border-3 border-${data.limits.groups.used >= data.limits.groups.max ? 'danger' : 'info'}">
-                                                                                    <div class="d-flex justify-content-between mb-2">
-                                                                                        <span class="small fw-semibold text-dark">Lotes Lógicos (Grupos)</span>
-                                                                                        <span class="small fw-bold badge bg-${data.limits.groups.used >= data.limits.groups.max ? 'danger' : 'info'} text-white px-2 py-1">
-                                                                                            ${data.limits.groups.used} / ${data.limits.groups.max || '∞'}
-                                                                                        </span>
-                                                                                    </div>
-                                                                                    ${data.limits.groups.max ? `
-                                                                                        <div class="progress" style="height: 10px; border-radius: 6px; background-color: #e9ecef;">
-                                                                                            <div class="progress-bar ${data.limits.groups.used >= data.limits.groups.max ? 'bg-danger' : 'bg-info'}" 
-                                                                                                 role="progressbar" 
-                                                                                                 style="width: ${(data.limits.groups.used / data.limits.groups.max) * 100}%" 
-                                                                                                 aria-valuenow="${data.limits.groups.used}" 
-                                                                                                 aria-valuemin="0" 
-                                                                                                 aria-valuemax="${data.limits.groups.max}">
+                                                                                        ${data.limits.groups.max ? `
+                                                                                            <div class="progress" style="height: 10px; border-radius: 6px; background-color: #e9ecef;">
+                                                                                                <div class="progress-bar ${data.limits.groups.used >= data.limits.groups.max ? 'bg-danger' : 'bg-info'}" 
+                                                                                                     role="progressbar" 
+                                                                                                     style="width: ${(data.limits.groups.used / data.limits.groups.max) * 100}%" 
+                                                                                                     aria-valuenow="${data.limits.groups.used}" 
+                                                                                                     aria-valuemin="0" 
+                                                                                                     aria-valuemax="${data.limits.groups.max}">
+                                                                                                </div>
                                                                                             </div>
-                                                                                        </div>
-                                                                                    ` : `
-                                                                                        <div class="progress" style="height: 10px; border-radius: 6px; background-color: #e9ecef;">
-                                                                                            <div class="progress-bar bg-info progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%;"></div>
-                                                                                        </div>
-                                                                                    `}
+                                                                                        ` : `
+                                                                                            <div class="progress" style="height: 10px; border-radius: 6px; background-color: #e9ecef;">
+                                                                                                <div class="progress-bar bg-info progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%;"></div>
+                                                                                            </div>
+                                                                                        `}
+                                                                                    </div>
+                                                                                ` : ''}
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <!-- Actions Footer -->
+                                                                    <div class="card-footer bg-white p-3 border-top-0 d-flex flex-wrap justify-content-between align-items-center gap-4">
+
+                                                                        <!-- Left: Extra Packs Cart or Countdown -->
+                                                                        <div class="flex-grow-1" style="min-width: 250px;">
+                                                                            ${planName === 'Premium' ? `
+                                                                                <div class="input-group shadow-sm">
+                                                                                    <span class="input-group-text bg-light border-end-0" style="padding-right: 8px;"><i class="bi bi-box-seam text-success"></i></span>
+                                                                                    <select class="form-select border-start-0 ps-0 text-secondary" id="extraPacksSelect" style="font-size: 0.85rem; cursor: pointer;">
+                                                                                        <option value="">Añadir Paquetes de Sensores Extra...</option>
+                                                                                        <option value="1">+10 Pack (+$10,000 ARS)</option>
+                                                                                        <option value="2">+20 Pack (+$20,000 ARS)</option>
+                                                                                        <option value="3">+30 Pack (+$30,000 ARS)</option>
+                                                                                        <option value="4">+40 Pack (+$40,000 ARS)</option>
+                                                                                        <option value="5">+50 Pack (+$50,000 ARS)</option>
+                                                                                    </select>
+                                                                                    <button class="btn btn-success fw-bold px-3 d-flex align-items-center gap-1" onclick="buyExtraPacks()">
+                                                                                        <i class="bi bi-cart"></i> Comprar
+                                                                                    </button>
                                                                                 </div>
+                                                                            ` : (countdownHtml ? `<div class="bg-light px-3 py-2 rounded shadow-sm d-inline-block border">${countdownHtml}</div>` : '')}
+                                                                        </div>
+
+                                                                        <!-- Right: Lifecycle Controls -->
+                                                                        <div class="d-flex align-items-center gap-2 flex-wrap ms-auto">
+                                                                            ${planName === 'Premium' && countdownHtml ? `
+                                                                                <div class="me-3 bg-light px-3 py-1 rounded shadow-sm border border-light-subtle d-flex align-items-center">
+                                                                                    ${countdownHtml}
+                                                                                </div>
+                                                                            ` : ''}
+
+                                                                            ${showUpgradeBasico ? `
+                                                                                <button class="btn btn-outline-primary rounded-pill px-4 shadow-sm transition-all text-nowrap" onclick="upgradePlan('basico')">
+                                                                                    <i class="bi bi-credit-card me-1"></i> Renovar Básico
+                                                                                </button>
+                                                                            ` : ''}
+                                                                            ${showUpgradePremium ? `
+                                                                                <button class="btn btn-warning rounded-pill px-4 shadow-sm fw-bold text-dark transition-all text-nowrap" onclick="upgradePlan('premium')">
+                                                                                    <i class="bi bi-star-fill me-1 text-dark"></i> Escalar a Premium
+                                                                                </button>
+                                                                            ` : ''}
+                                                                            ${showDowngrade ? `
+                                                                                <button class="btn btn-outline-secondary rounded-pill px-3 transition-all text-nowrap" onclick="downgradePlan('basico')">
+                                                                                    <i class="bi bi-arrow-down-circle me-1"></i> Descender Básico
+                                                                                </button>
+                                                                            ` : ''}
+                                                                            ${showCancel ? `
+                                                                                <button class="btn btn-light text-danger rounded-pill px-3 transition-all shadow-sm border border-danger-subtle text-nowrap" onclick="cancelSubscription()">
+                                                                                    <i class="bi bi-x-circle me-1"></i> Desactivar
+                                                                                </button>
                                                                             ` : ''}
                                                                         </div>
                                                                     </div>
                                                                 </div>
-
-                                                                <!-- Actions Footer -->
-                                                                <div class="card-footer bg-white p-3 border-top-0 d-flex flex-wrap justify-content-between align-items-center gap-4">
-
-                                                                    <!-- Left: Extra Packs Cart or Countdown -->
-                                                                    <div class="flex-grow-1" style="min-width: 250px;">
-                                                                        ${planName === 'Premium' ? `
-                                                                            <div class="input-group shadow-sm">
-                                                                                <span class="input-group-text bg-light border-end-0" style="padding-right: 8px;"><i class="bi bi-box-seam text-success"></i></span>
-                                                                                <select class="form-select border-start-0 ps-0 text-secondary" id="extraPacksSelect" style="font-size: 0.85rem; cursor: pointer;">
-                                                                                    <option value="">Añadir Paquetes de Sensores Extra...</option>
-                                                                                    <option value="1">+10 Pack (+$10,000 ARS)</option>
-                                                                                    <option value="2">+20 Pack (+$20,000 ARS)</option>
-                                                                                    <option value="3">+30 Pack (+$30,000 ARS)</option>
-                                                                                    <option value="4">+40 Pack (+$40,000 ARS)</option>
-                                                                                    <option value="5">+50 Pack (+$50,000 ARS)</option>
-                                                                                </select>
-                                                                                <button class="btn btn-success fw-bold px-3 d-flex align-items-center gap-1" onclick="buyExtraPacks()">
-                                                                                    <i class="bi bi-cart"></i> Comprar
-                                                                                </button>
-                                                                            </div>
-                                                                        ` : (countdownHtml ? `<div class="bg-light px-3 py-2 rounded shadow-sm d-inline-block border">${countdownHtml}</div>` : '')}
-                                                                    </div>
-
-                                                                    <!-- Right: Lifecycle Controls -->
-                                                                    <div class="d-flex align-items-center gap-2 flex-wrap ms-auto">
-                                                                        ${planName === 'Premium' && countdownHtml ? `
-                                                                            <div class="me-3 bg-light px-3 py-1 rounded shadow-sm border border-light-subtle d-flex align-items-center">
-                                                                                ${countdownHtml}
-                                                                            </div>
-                                                                        ` : ''}
-
-                                                                        ${showUpgradeBasico ? `
-                                                                            <button class="btn btn-outline-primary rounded-pill px-4 shadow-sm transition-all text-nowrap" onclick="upgradePlan('basico')">
-                                                                                <i class="bi bi-credit-card me-1"></i> Renovar Básico
-                                                                            </button>
-                                                                        ` : ''}
-                                                                        ${showUpgradePremium ? `
-                                                                            <button class="btn btn-warning rounded-pill px-4 shadow-sm fw-bold text-dark transition-all text-nowrap" onclick="upgradePlan('premium')">
-                                                                                <i class="bi bi-star-fill me-1 text-dark"></i> Escalar a Premium
-                                                                            </button>
-                                                                        ` : ''}
-                                                                        ${showDowngrade ? `
-                                                                            <button class="btn btn-outline-secondary rounded-pill px-3 transition-all text-nowrap" onclick="downgradePlan('basico')">
-                                                                                <i class="bi bi-arrow-down-circle me-1"></i> Descender Básico
-                                                                            </button>
-                                                                        ` : ''}
-                                                                        ${showCancel ? `
-                                                                            <button class="btn btn-light text-danger rounded-pill px-3 transition-all shadow-sm border border-danger-subtle text-nowrap" onclick="cancelSubscription()">
-                                                                                <i class="bi bi-x-circle me-1"></i> Desactivar
-                                                                            </button>
-                                                                        ` : ''}
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        `;
+                                                            `;
 
                 // =============================================
                 // CASO 2: PAGO PENDIENTE
                 // =============================================
             } else if (isPending) {
                 html = `
-                                                                            <div class="card border-warning">
-                                                                                <div class="card-header bg-warning text-dark">
-                                                                                    <i class="bi bi-hourglass-split me-2"></i>
-                                                                                    <strong>Pago pendiente de confirmación</strong>
+                                                                                <div class="card border-warning">
+                                                                                    <div class="card-header bg-warning text-dark">
+                                                                                        <i class="bi bi-hourglass-split me-2"></i>
+                                                                                        <strong>Pago pendiente de confirmación</strong>
+                                                                                    </div>
+                                                                                    <div class="card-body">
+                                                                                        <p class="mb-0 text-muted">
+                                                                                            Tu pago está siendo procesado. Esto puede tomar unos minutos.
+                                                                                            <br>
+                                                                                            <small>Si el problema persiste, contacta con soporte.</small>
+                                                                                        </p>
+                                                                                    </div>
                                                                                 </div>
-                                                                                <div class="card-body">
-                                                                                    <p class="mb-0 text-muted">
-                                                                                        Tu pago está siendo procesado. Esto puede tomar unos minutos.
-                                                                                        <br>
-                                                                                        <small>Si el problema persiste, contacta con soporte.</small>
-                                                                                    </p>
-                                                                                </div>
-                                                                            </div>
-                                                                        `;
+                                                                            `;
 
                 // =============================================
                 // CASO 3: SUSCRIPCIÓN EXPIRADA
                 // =============================================
             } else if (isExpired) {
                 html = `
-                                                                            <div class="card border-danger">
-                                                                                <div class="card-header bg-danger text-white">
-                                                                                    <i class="bi bi-exclamation-triangle me-2"></i>
-                                                                                    <strong>Suscripción expirada</strong>
-                                                                                </div>
-                                                                                <div class="card-body">
-                                                                                    <div class="row align-items-center">
-                                                                                        <div class="col-md-7">
-                                                                                            <p class="mb-0">
-                                                                                                Tu suscripción <strong>${planName}</strong> ha expirado.
-                                                                                                <br>
-                                                                                                <small class="text-muted">Renueva para seguir disfrutando de los beneficios.</small>
-                                                                                            </p>
-                                                                                        </div>
-                                                                                        <div class="col-md-5 mt-2 mt-md-0">
-                                                                                            <div class="d-flex flex-wrap gap-2 justify-content-md-end">
-                                                                                                <button class="btn btn-primary btn-sm" onclick="upgradePlan('basico')">
-                                                                                                    <i class="bi bi-credit-card me-1"></i> Plan Básico ($10 ARS)
-                                                                                                </button>
-                                                                                                <button class="btn btn-warning btn-sm" onclick="upgradePlan('premium')">
-                                                                                                    <i class="bi bi-star me-1"></i> Plan Premium ($25 ARS)
-                                                                                                </button>
-                                                                                                @if(app()->environment('local'))
-                                                                                                    <button class="btn btn-secondary btn-sm" onclick="debugActivateSubscription('free')">
-                                                                                                        <i class="bi bi-gift me-1"></i> Emular Free
+                                                                                <div class="card border-danger">
+                                                                                    <div class="card-header bg-danger text-white">
+                                                                                        <i class="bi bi-exclamation-triangle me-2"></i>
+                                                                                        <strong>Suscripción expirada</strong>
+                                                                                    </div>
+                                                                                    <div class="card-body">
+                                                                                        <div class="row align-items-center">
+                                                                                            <div class="col-md-7">
+                                                                                                <p class="mb-0">
+                                                                                                    Tu suscripción <strong>${planName}</strong> ha expirado.
+                                                                                                    <br>
+                                                                                                    <small class="text-muted">Renueva para seguir disfrutando de los beneficios.</small>
+                                                                                                </p>
+                                                                                            </div>
+                                                                                            <div class="col-md-5 mt-2 mt-md-0">
+                                                                                                <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+                                                                                                    <button class="btn btn-primary btn-sm" onclick="upgradePlan('basico')">
+                                                                                                        <i class="bi bi-credit-card me-1"></i> Plan Básico ($10 ARS)
                                                                                                     </button>
-                                                                                                @endif
+                                                                                                    <button class="btn btn-warning btn-sm" onclick="upgradePlan('premium')">
+                                                                                                        <i class="bi bi-star me-1"></i> Plan Premium ($25 ARS)
+                                                                                                    </button>
+                                                                                                    @if(app()->environment('local'))
+                                                                                                        <button class="btn btn-secondary btn-sm" onclick="debugActivateSubscription('free')">
+                                                                                                            <i class="bi bi-gift me-1"></i> Emular Free
+                                                                                                        </button>
+                                                                                                    @endif
+                                                                                                </div>
                                                                                             </div>
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
-                                                                            </div>
-                                                                        `;
+                                                                            `;
 
                 // =============================================
                 // CASO 4: SIN SUSCRIPCIÓN ACTIVA
                 // =============================================
             } else {
                 html = `
-                                <div class="card shadow-sm border-0 mb-4" style="border-radius: 12px; overflow: hidden;">
+                                    <div class="card shadow-sm border-0 mb-4" style="border-radius: 12px; overflow: hidden;">
 
-                                    <!-- Header Free -->
-                                    <div class="card-header border-0 text-white p-3 d-flex justify-content-between align-items-center" 
-                                         style="background: linear-gradient(135deg, #6c757d 0%, #495057 100%);">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <i class="bi bi-gift-fill fs-4"></i>
-                                            <div class="d-flex flex-column">
-                                                <h5 class="mb-0 fw-bold">Plan Free (Licencia Gratuita)</h5>
-                                                <span class="opacity-75" style="font-size: 0.8rem;">Estás usando funcionalidades limitadas básicas</span>
+                                        <!-- Header Free -->
+                                        <div class="card-header border-0 text-white p-3 d-flex justify-content-between align-items-center" 
+                                             style="background: linear-gradient(135deg, #6c757d 0%, #495057 100%);">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <i class="bi bi-gift-fill fs-4"></i>
+                                                <div class="d-flex flex-column">
+                                                    <h5 class="mb-0 fw-bold">Plan Free (Licencia Gratuita)</h5>
+                                                    <span class="opacity-75" style="font-size: 0.8rem;">Estás usando funcionalidades limitadas básicas</span>
+                                                </div>
                                             </div>
+                                            <span class="badge bg-white text-secondary rounded-pill px-3 py-2 shadow-sm fw-bold">
+                                                Sin Costo Mensual
+                                            </span>
                                         </div>
-                                        <span class="badge bg-white text-secondary rounded-pill px-3 py-2 shadow-sm fw-bold">
-                                            Sin Costo Mensual
-                                        </span>
-                                    </div>
 
-                                    <!-- Panel de Datos -->
-                                    <div class="card-body bg-light p-0">
-                                        <div class="row g-0">
+                                        <!-- Panel de Datos -->
+                                        <div class="card-body bg-light p-0">
+                                            <div class="row g-0">
 
-                                            <!-- Columna Izquierda: Información Financiera (Vacía en Free) & CTA -->
-                                            <div class="col-lg-5 col-md-6 border-end border-light-subtle bg-white h-100 p-4">
-                                                <h6 class="text-uppercase text-muted fw-bold mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">Estado de Licencia</h6>
+                                                <!-- Columna Izquierda: Información Financiera (Vacía en Free) & CTA -->
+                                                <div class="col-lg-5 col-md-6 border-end border-light-subtle bg-white h-100 p-4">
+                                                    <h6 class="text-uppercase text-muted fw-bold mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">Estado de Licencia</h6>
 
-                                                <div class="d-flex flex-column gap-3 mb-4">
-                                                    <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm border-start border-4 border-secondary">
-                                                        <div class="d-flex flex-column">
-                                                            <span class="text-muted small">Costo del Ciclo Base</span>
-                                                            <strong class="fs-6 text-dark">$0 ARS</strong>
+                                                    <div class="d-flex flex-column gap-3 mb-4">
+                                                        <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm border-start border-4 border-secondary">
+                                                            <div class="d-flex flex-column">
+                                                                <span class="text-muted small">Costo del Ciclo Base</span>
+                                                                <strong class="fs-6 text-dark">$0 ARS</strong>
+                                                            </div>
+                                                            <i class="bi bi-wallet2 text-secondary fs-3 opacity-50"></i>
                                                         </div>
-                                                        <i class="bi bi-wallet2 text-secondary fs-3 opacity-50"></i>
                                                     </div>
+
+                                                    <p class="text-muted small mb-0">Esta licencia restringe el acceso masivo a colaboración y limita el registro de sensores. Realiza un Upgrade a Premium o Básico para liberar tu entorno.</p>
                                                 </div>
 
-                                                <p class="text-muted small mb-0">Esta licencia restringe el acceso masivo a colaboración y limita el registro de sensores. Realiza un Upgrade a Premium o Básico para liberar tu entorno.</p>
-                                            </div>
+                                                <!-- Columna Derecha: Telemetry -->
+                                                <div class="col-lg-7 col-md-6 bg-white h-100 p-4">
+                                                    <h6 class="text-uppercase text-muted fw-bold mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">Telemetría de Capacidad</h6>
 
-                                            <!-- Columna Derecha: Telemetry -->
-                                            <div class="col-lg-7 col-md-6 bg-white h-100 p-4">
-                                                <h6 class="text-uppercase text-muted fw-bold mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">Telemetría de Capacidad</h6>
-
-                                                ${data.limits?.sensors ? `
-                                                    <div class="mb-4 bg-white p-3 rounded shadow-sm border-start border-3 border-${data.limits.sensors.used >= data.limits.sensors.max ? 'danger' : 'secondary'}">
-                                                        <div class="d-flex justify-content-between mb-2">
-                                                            <span class="small fw-semibold text-dark">Sensores Físicos (Licencias)</span>
-                                                            <span class="small fw-bold badge bg-${data.limits.sensors.used >= data.limits.sensors.max ? 'danger' : 'secondary'} px-2 py-1">
-                                                                ${data.limits.sensors.used} / ${data.limits.sensors.max}
-                                                            </span>
-                                                        </div>
-                                                        <div class="progress" style="height: 10px; border-radius: 6px; background-color: #e9ecef;">
-                                                            <div class="progress-bar ${data.limits.sensors.used >= data.limits.sensors.max ? 'bg-danger' : 'bg-secondary'}" 
-                                                                 role="progressbar" 
-                                                                 style="width: ${(data.limits.sensors.used / data.limits.sensors.max) * 100}%">
+                                                    ${data.limits?.sensors ? `
+                                                        <div class="mb-4 bg-white p-3 rounded shadow-sm border-start border-3 border-${data.limits.sensors.used >= data.limits.sensors.max ? 'danger' : 'secondary'}">
+                                                            <div class="d-flex justify-content-between mb-2">
+                                                                <span class="small fw-semibold text-dark">Sensores Físicos (Licencias)</span>
+                                                                <span class="small fw-bold badge bg-${data.limits.sensors.used >= data.limits.sensors.max ? 'danger' : 'secondary'} px-2 py-1">
+                                                                    ${data.limits.sensors.used} / ${data.limits.sensors.max}
+                                                                </span>
+                                                            </div>
+                                                            <div class="progress" style="height: 10px; border-radius: 6px; background-color: #e9ecef;">
+                                                                <div class="progress-bar ${data.limits.sensors.used >= data.limits.sensors.max ? 'bg-danger' : 'bg-secondary'}" 
+                                                                     role="progressbar" 
+                                                                     style="width: ${(data.limits.sensors.used / data.limits.sensors.max) * 100}%">
+                                                                </div>
+                                                            </div>
+                                                            <div class="text-end mt-2">
+                                                                <small class="text-muted" style="font-size: 0.7rem;">Quedan <span class="fw-bold ${data.limits.sensors.remaining === 0 ? 'text-danger' : 'text-success'}">${data.limits.sensors.remaining}</span> celdas libres</small>
                                                             </div>
                                                         </div>
-                                                        <div class="text-end mt-2">
-                                                            <small class="text-muted" style="font-size: 0.7rem;">Quedan <span class="fw-bold ${data.limits.sensors.remaining === 0 ? 'text-danger' : 'text-success'}">${data.limits.sensors.remaining}</span> celdas libres</small>
-                                                        </div>
-                                                    </div>
-                                                ` : ''}
+                                                    ` : ''}
 
-                                                ${data.limits?.groups ? `
-                                                    <div class="mb-2 bg-white p-3 rounded shadow-sm border-start border-3 border-${data.limits.groups.used >= data.limits.groups.max ? 'danger' : 'secondary'}">
-                                                        <div class="d-flex justify-content-between mb-2">
-                                                            <span class="small fw-semibold text-dark">Lotes Lógicos (Grupos)</span>
-                                                            <span class="small fw-bold badge bg-${data.limits.groups.used >= data.limits.groups.max ? 'danger' : 'secondary'} px-2 py-1">
-                                                                ${data.limits.groups.used} / ${data.limits.groups.max}
-                                                            </span>
-                                                        </div>
-                                                        <div class="progress" style="height: 10px; border-radius: 6px; background-color: #e9ecef;">
-                                                            <div class="progress-bar ${data.limits.groups.used >= data.limits.groups.max ? 'bg-danger' : 'bg-secondary'}" 
-                                                                 role="progressbar" 
-                                                                 style="width: ${(data.limits.groups.used / data.limits.groups.max) * 100}%">
+                                                    ${data.limits?.groups ? `
+                                                        <div class="mb-2 bg-white p-3 rounded shadow-sm border-start border-3 border-${data.limits.groups.used >= data.limits.groups.max ? 'danger' : 'secondary'}">
+                                                            <div class="d-flex justify-content-between mb-2">
+                                                                <span class="small fw-semibold text-dark">Lotes Lógicos (Grupos)</span>
+                                                                <span class="small fw-bold badge bg-${data.limits.groups.used >= data.limits.groups.max ? 'danger' : 'secondary'} px-2 py-1">
+                                                                    ${data.limits.groups.used} / ${data.limits.groups.max}
+                                                                </span>
+                                                            </div>
+                                                            <div class="progress" style="height: 10px; border-radius: 6px; background-color: #e9ecef;">
+                                                                <div class="progress-bar ${data.limits.groups.used >= data.limits.groups.max ? 'bg-danger' : 'bg-secondary'}" 
+                                                                     role="progressbar" 
+                                                                     style="width: ${(data.limits.groups.used / data.limits.groups.max) * 100}%">
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                ` : ''}
+                                                    ` : ''}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <!-- Footer Upgrades -->
-                                    <div class="card-footer bg-light p-3 border-top d-flex gap-2 justify-content-center flex-wrap">
-                                        <button class="btn btn-primary rounded-pill px-4 shadow-sm transition-all" onclick="upgradePlan('basico')">
-                                            <i class="bi bi-credit-card me-1"></i> Subir a Básico ($10 ARS)
-                                        </button>
-                                        <button class="btn btn-warning rounded-pill px-4 shadow-sm fw-bold text-dark transition-all" onclick="upgradePlan('premium')">
-                                            <i class="bi bi-star-fill me-1 text-dark"></i> Escalar a Premium ($25 ARS)
-                                        </button>
-                                        @if(app()->environment('local'))
-                                            <button class="btn btn-outline-secondary rounded-pill px-3 transition-all" onclick="debugActivateSubscription('free')">
-                                                <i class="bi bi-bug me-1"></i> Restablecer Free
+                                        <!-- Footer Upgrades -->
+                                        <div class="card-footer bg-light p-3 border-top d-flex gap-2 justify-content-center flex-wrap">
+                                            <button class="btn btn-primary rounded-pill px-4 shadow-sm transition-all" onclick="upgradePlan('basico')">
+                                                <i class="bi bi-credit-card me-1"></i> Subir a Básico ($10 ARS)
                                             </button>
-                                        @endif
+                                            <button class="btn btn-warning rounded-pill px-4 shadow-sm fw-bold text-dark transition-all" onclick="upgradePlan('premium')">
+                                                <i class="bi bi-star-fill me-1 text-dark"></i> Escalar a Premium ($25 ARS)
+                                            </button>
+                                            @if(app()->environment('local'))
+                                                <button class="btn btn-outline-secondary rounded-pill px-3 transition-all" onclick="debugActivateSubscription('free')">
+                                                    <i class="bi bi-bug me-1"></i> Restablecer Free
+                                                </button>
+                                            @endif
+                                        </div>
                                     </div>
-                                </div>
-                            `;
+                                `;
             }
 
             $('#subscriptionStatus').html(html);
@@ -1338,25 +1421,25 @@
 
             badge.className = `subscription-badge ${className}`;
             badge.innerHTML = `
-                                                                        <span class="badge-dot ${dotClass}"></span>
-                                                                        <i class="bi ${icon}"></i>
-                                                                        ${label}
-                                                                    `;
+                                                                            <span class="badge-dot ${dotClass}"></span>
+                                                                            <i class="bi ${icon}"></i>
+                                                                            ${label}
+                                                                        `;
         }
 
         function renderSubscriptionError() {
             $('#subscriptionStatus').html(`
-                                                                        <div class="alert alert-danger">
-                                                                            <i class="bi bi-exclamation-triangle me-2"></i>
-                                                                            <strong>Error al cargar el estado de la suscripción.</strong>
-                                                                            <br>
-                                                                            <small class="text-muted">Intenta recargar la página. Si el problema persiste, contacta con soporte.</small>
-                                                                            <br>
-                                                                            <button class="btn btn-sm btn-outline-danger mt-2" onclick="loadSubscriptionStatus()">
-                                                                                <i class="bi bi-arrow-repeat me-1"></i> Reintentar
-                                                                            </button>
-                                                                        </div>
-                                                                    `);
+                                                                            <div class="alert alert-danger">
+                                                                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                                                                <strong>Error al cargar el estado de la suscripción.</strong>
+                                                                                <br>
+                                                                                <small class="text-muted">Intenta recargar la página. Si el problema persiste, contacta con soporte.</small>
+                                                                                <br>
+                                                                                <button class="btn btn-sm btn-outline-danger mt-2" onclick="loadSubscriptionStatus()">
+                                                                                    <i class="bi bi-arrow-repeat me-1"></i> Reintentar
+                                                                                </button>
+                                                                            </div>
+                                                                        `);
         }
 
         // =============================================
@@ -1592,8 +1675,8 @@
                 data: JSON.stringify(formData),
                 beforeSend: function () {
                     $('#saveProfileBtn').prop('disabled', true).html(`
-                                                                                <span class="spinner-border spinner-border-sm" role="status"></span> Guardando...
-                                                                            `);
+                                                                                    <span class="spinner-border spinner-border-sm" role="status"></span> Guardando...
+                                                                                `);
                 },
                 success: function (response) {
                     if (response.success) {
@@ -1619,8 +1702,8 @@
                 },
                 complete: function () {
                     $('#saveProfileBtn').prop('disabled', false).html(`
-                                                                                <i class="fas fa-save"></i> Guardar cambios
-                                                                            `);
+                                                                                    <i class="fas fa-save"></i> Guardar cambios
+                                                                                `);
                 }
             });
         }
@@ -1655,8 +1738,8 @@
                 },
                 complete: function () {
                     $('#confirmDeleteAllData').prop('disabled', false).html(`
-                                                                                <i class="bi bi-trash-fill me-1"></i> Sí, eliminar todo
-                                                                            `);
+                                                                                    <i class="bi bi-trash-fill me-1"></i> Sí, eliminar todo
+                                                                                `);
                 }
             });
         }
@@ -1670,15 +1753,15 @@
             if (!packs) {
                 // Implementación de Snackbar flotante en vez del alerta global
                 let snackHtml = `
-                                                                    <div class="toast align-items-center text-white bg-warning border-0 position-fixed top-0 start-50 translate-middle-x mt-4" role="alert" aria-live="assertive" aria-atomic="true" style="z-index: 9999;">
-                                                                      <div class="d-flex">
-                                                                        <div class="toast-body">
-                                                                          <i class="bi bi-exclamation-circle me-2"></i> Por favor, selecciona cuántos packs deseas comprar primero.
+                                                                        <div class="toast align-items-center text-white bg-warning border-0 position-fixed top-0 start-50 translate-middle-x mt-4" role="alert" aria-live="assertive" aria-atomic="true" style="z-index: 9999;">
+                                                                          <div class="d-flex">
+                                                                            <div class="toast-body">
+                                                                              <i class="bi bi-exclamation-circle me-2"></i> Por favor, selecciona cuántos packs deseas comprar primero.
+                                                                            </div>
+                                                                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                                                                          </div>
                                                                         </div>
-                                                                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                                                                      </div>
-                                                                    </div>
-                                                                `;
+                                                                    `;
                 $('body').append(snackHtml);
                 let toastEl = $('.toast').last();
                 let toast = new bootstrap.Toast(toastEl, { delay: 3500 });
@@ -1823,8 +1906,8 @@
                     },
                     beforeSend: function () {
                         $('#confirmDeleteAllData').prop('disabled', true).html(`
-                                                                                    <span class="spinner-border spinner-border-sm" role="status"></span> Procesando...
-                                                                                `);
+                                                                                        <span class="spinner-border spinner-border-sm" role="status"></span> Procesando...
+                                                                                    `);
                     },
                     success: function (response) {
                         if (response.success) {
@@ -1832,15 +1915,15 @@
                         } else {
                             showAlert(response.message || 'Error al generar token', 'danger');
                             $('#confirmDeleteAllData').prop('disabled', false).html(`
-                                                                                        <i class="bi bi-trash-fill me-1"></i> Sí, eliminar todo
-                                                                                    `);
+                                                                                            <i class="bi bi-trash-fill me-1"></i> Sí, eliminar todo
+                                                                                        `);
                         }
                     },
                     error: function (xhr) {
                         showAlert('Error: ' + (xhr.responseJSON?.message || xhr.statusText), 'danger');
                         $('#confirmDeleteAllData').prop('disabled', false).html(`
-                                                                                    <i class="bi bi-trash-fill me-1"></i> Sí, eliminar todo
-                                                                                `);
+                                                                                        <i class="bi bi-trash-fill me-1"></i> Sí, eliminar todo
+                                                                                    `);
                     }
                 });
             });

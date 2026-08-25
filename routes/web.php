@@ -180,9 +180,9 @@ Route::middleware(['auth'])->group(function () {
     // PERFIL
     // =============================================
 
-    Route::get('/profile', function () {
-        return view('profile.index', ['user' => auth()->user()]);
-    })->name('profile.index')->middleware('auth');
+    Route::get('/profile', [\App\Http\Controllers\ProfileViewController::class, 'index'])->name('profile.index');
+    Route::post('/profile/billing', [\App\Http\Controllers\ProfileViewController::class, 'updateBilling'])->name('profile.update-billing');
+    Route::get('/profile/receipt/{id}', [\App\Http\Controllers\ProfileViewController::class, 'downloadReceipt'])->name('profile.download-receipt');
 
     // =============================================
     // COLABORACIONES
