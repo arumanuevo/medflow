@@ -422,3 +422,6 @@ Route::middleware(['auth:sanctum', \Illuminate\Routing\Middleware\SubstituteBind
 });
 
 Route::middleware(['auth:sanctum'])->get('/subscription/check-expiration', [SubscriptionPaymentController::class, 'checkExpiration']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/sensors/{sensor}/share', [\App\Http\Controllers\Api\SensorController::class, 'shareReport'])->name('api.sensors.share');
+});
