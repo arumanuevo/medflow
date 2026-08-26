@@ -8,17 +8,6 @@ use Carbon\Carbon;
 
 class SuperAdminController extends Controller
 {
-    public function __construct()
-    {
-        // Forzar check de superadmin
-        $this->middleware(function ($request, $next) {
-            if (auth()->check() && auth()->user()->email === 'scastellanoadmin@gmail.com') {
-                return $next($request);
-            }
-            abort(403, 'No tienes permiso de SuperAdmin.');
-        });
-    }
-
     public function index()
     {
         $users = User::withCount('sensors', 'measurements')->get();
