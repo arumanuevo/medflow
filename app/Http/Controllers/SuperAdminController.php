@@ -10,7 +10,7 @@ class SuperAdminController extends Controller
 {
     public function index()
     {
-        $users = User::withCount('sensors', 'measurements')->get();
+        $users = User::all();
         return view('superadmin.users', compact('users'));
     }
 

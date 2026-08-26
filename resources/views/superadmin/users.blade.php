@@ -26,7 +26,6 @@
                                 <th>Nombre</th>
                                 <th>Email</th>
                                 <th>Plan Actual</th>
-                                <th>Sensores</th>
                                 <th>Registro</th>
                                 <th class="text-end">Acciones</th>
                             </tr>
