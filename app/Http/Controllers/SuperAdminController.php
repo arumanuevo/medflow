@@ -55,11 +55,20 @@ class SuperAdminController extends Controller
     public function sendReceipt(Request $request, User $user)
     {
         try {
+            // Generar un mock de suscripción para el recibo manual
+            $subscription = new \stdClass();
+            $subscription->id = rand(1000, 9999);
+            $subscription->created_at = Carbon::now();
+            $subscription->plan = $user->subscription_plan ?: 'premium';
+            $subscription->payment_id = 'MANUAL-' . strtoupper(uniqid());
+            // Asignar monto realista según el plan (1000 básico / 2000 premium)
+            $subscription->amount = $subscription->plan == 'premium' ? 2000 : 1000;
+            $subscription->currency = 'ARS';
+
             // Reutilizar la vista de recibo existente del sistema
             $pdf = Pdf::loadView('profile.receipt_pdf', [
                 'user' => $user,
-                'plan' => $user->subscription_plan,
-                'expires_at' => $user->subscription_expires_at
+                'subscription' => $subscription
             ]);
 
             $pdfContent = $pdf->output();
