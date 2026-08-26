@@ -85,17 +85,16 @@
                                 <label for="endDate" class="form-label mb-1">Fecha hasta</label>
                                 <input type="date" class="form-control form-control-sm" id="endDate">
                             </div>
-                            <div class="col-md-2" style="min-width: 15rem;">
+                            <div class="col-md-4">
                                 <label class="form-label">&nbsp;</label>
                                 <div class="d-flex gap-2 w-100">
-                                    <button type="button" class="btn btn-outline-success" id="btnFilterCommunity"
-                                        style="white-space: nowrap;">
-                                        <i class="bi bi-tree-fill"></i> ├üreas Comunes
+                                    <button type="button" class="btn btn-outline-success" id="btnFilterCommunity" class="btn-sm" style="white-space: nowrap;">
+                                        <i class="bi bi-tree-fill"></i> Áreas Comunes
                                     </button>
-                                    <button type="button" class="btn btn-primary" id="applyFiltersBtn">
+                                    <button type="button" class="btn btn-primary" id="applyFiltersBtn" class="btn-sm">
                                         <i class="bi bi-funnel"></i> Filtrar
                                     </button>
-                                    <button type="button" class="btn btn-outline-secondary" id="clearFiltersBtn">
+                                    <button type="button" class="btn btn-outline-secondary" id="clearFiltersBtn" class="btn-sm">
                                         <i class="bi bi-x-lg"></i> Limpiar
                                     </button>
                                 </div>
@@ -113,25 +112,25 @@
                                         <th>Grupo</th>
                                         <th>Consumo Total</th>
                                         <th>Unidad</th>
-                                        <th>Per├¡odo</th>
-                                        <th>D├¡as transcurridos</th>
+                                        <th>Período</th>
+                                        <th>Días transcurridos</th>
                                         <th>Promedio Diario</th>
                                         <th style="width: 100px;">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody id="consumptionsTable">
-                                    <!-- Los consumos se cargar├ín aqu├¡ por JS -->
+                                    <!-- Los consumos se cargarán aquí por JS -->
                                 </tbody>
                             </table>
                         </div>
                     </div>
 
-                    <!-- Paginaci├│n (opcional, si se implementa) -->
+                    <!-- Paginación (opcional, si se implementa) -->
                     <div class="d-flex justify-content-between align-items-center mt-3">
                         <div id="paginationInfo"></div>
                         <nav aria-label="Page navigation">
                             <ul class="pagination" id="pagination">
-                                <!-- Paginaci├│n se generar├í din├ímicamente -->
+                                <!-- Paginación se generará dinámicamente -->
                             </ul>
                         </nav>
                     </div>
@@ -139,6 +138,7 @@
             </div>
         </div>
     </div>
+
     <!-- Modal para detalles del consumo -->
     <div class="modal fade" id="consumptionDetailsModal" tabindex="-1" aria-labelledby="consumptionDetailsModalLabel"
         aria-hidden="true">
@@ -149,7 +149,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="consumptionDetailsContent">
-                    <!-- Contenido din├ímico -->
+                    <!-- Contenido dinámico -->
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -158,13 +158,13 @@
         </div>
     </div>
 
-    <!-- Modal para An├ílisis Avanzado de Rango -->
+    <!-- Modal para Análisis Avanzado de Rango -->
     <div class="modal fade" id="analyzeSensorModal" tabindex="-1" aria-labelledby="analyzeSensorModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered compact-modal">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="analyzeSensorModalLabel"><i class="bi bi-bar-chart-fill"></i> An├ílisis
+                    <h5 class="modal-title" id="analyzeSensorModalLabel"><i class="bi bi-bar-chart-fill"></i> Análisis
                         Avanzado: <span id="analyzeSensorName"></span></h5>
                     <div class="d-flex align-items-center ms-auto">
                         <button type="button" class="btn btn-sm btn-outline-light me-1" id="btnPrevAnalyzeSensor"
@@ -191,7 +191,7 @@
                             id="metaLastDate"></span>
                     </div>
 
-                    <!-- Configuraci├│n del rango -->
+                    <!-- Configuración del rango -->
                     <div class="row align-items-end mb-3 bg-light p-2 rounded mx-0 border">
                         <div class="col-md-3">
                             <label for="analyzeStartDate" class="form-label mb-1">Inicio</label>
@@ -202,8 +202,8 @@
                             <input type="date" class="form-control form-control-sm" id="analyzeEndDate">
                         </div>
                         <div class="col-md-2">
-                            <label for="analyzeThreshold" class="form-label mb-1 text-danger"
-                                title="Salto en la tasa diaria"><i class="bi bi-exclamation-triangle"></i> Anomal├¡a</label>
+                            <label for="analyzeThreshold" class="form-label mb-1 text-danger small"
+                                title="Salto en la tasa diaria"><i class="bi bi-exclamation-triangle"></i> Anomalía</label>
                             <div class="input-group input-group-sm">
                                 <input type="number" class="form-control text-danger fw-bold" id="analyzeThreshold"
                                     value="50" min="1" step="5">
@@ -211,13 +211,13 @@
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <label for="analyzeStagnation" class="form-label mb-1 text-secondary"
-                                title="Alerta si delta es 0 luego de X d├¡as"><i class="bi bi-hourglass-top"></i>
+                            <label for="analyzeStagnation" class="form-label mb-1 text-secondary small"
+                                title="Alerta si delta es 0 luego de X días"><i class="bi bi-hourglass-top"></i>
                                 Estancamiento</label>
                             <div class="input-group input-group-sm">
                                 <input type="number" class="form-control text-secondary fw-bold" id="analyzeStagnation"
                                     value="15" min="1" step="1">
-                                <span class="input-group-text">D├¡as</span>
+                                <span class="input-group-text">Días</span>
                             </div>
                         </div>
                         <div class="col-md-1 d-grid px-1">
@@ -227,32 +227,32 @@
                         </div>
                     </div>
 
-                    <!-- Explicaci├│n Sensibilidad Inteligente -->
+                    <!-- Explicación Sensibilidad Inteligente -->
                     <div class="alert alert-secondary py-2 px-3 mb-3 pointer-events-none">
-                        <strong class="text-danger small"><i class="bi bi-shield-exclamation"></i> ┬┐Qu├® es la sensibilidad
+                        <strong class="text-danger small"><i class="bi bi-shield-exclamation"></i> ¿Qué es la sensibilidad
                             inteligente?</strong><br>
                         <small class="text-muted" style="font-size: 0.8rem;">
-                            El sistema analiza matem├íticamente la <b>tasa diaria de consumo</b> en lugar del salto
-                            bruto. Si detecta que la aceleraci├│n de consumo entre mediciones supera el <strong
+                            El sistema analiza matemáticamente la <b>tasa diaria de consumo</b> en lugar del salto
+                            bruto. Si detecta que la aceleración de consumo entre mediciones supera el <strong
                                 class="text-danger"><span id="infoThreshold">50</span>%</strong>, o si detecta estancamiento
                             por
-                            m├ís de <strong class="text-secondary"><span id="infoStagnation">15</span> d├¡as</strong>,
-                            dibujar├í
-                            ese punto con una alerta ÔÜá´©Å
-                            roja. Esto previene distorsiones causadas por tiempos de inspecci├│n irregulares.
+                            más de <strong class="text-secondary"><span id="infoStagnation">15</span> días</strong>,
+                            dibujará
+                            ese punto con una alerta ⚠️
+                            roja. Esto previene distorsiones causadas por tiempos de inspección irregulares.
                         </small>
                     </div>
 
                     <input type="hidden" id="analyzeSensorId" value="">
 
-                    <!-- Resultados del Dashboard Anal├¡tico -->
+                    <!-- Resultados del Dashboard Analítico -->
                     <div id="analyzeResults" class="d-none">
                         <div class="row g-2 mb-3">
                             <div class="row g-2 mb-3">
                                 <div class="col-md-12 mb-1">
                                     <div class="card border-dark shadow-sm" style="background-color: #f8f9fa;">
                                         <div class="card-body text-center py-2">
-                                            <h6 class="text-muted mb-0"><i class="bi bi-cash-coin"></i> Facturaci├│n Total
+                                            <h6 class="text-muted mb-0"><i class="bi bi-cash-coin"></i> Facturación Total
                                                 Estimada</h6>
                                             <h3 class="text-dark my-1 fw-bold" id="resFinalBilledTotal">0</h3>
                                         </div>
@@ -286,14 +286,14 @@
                                                     class="bi bi-calendar3"></i> Prom. Diario</h6>
                                             <h4 class="text-secondary my-1 fw-bold" id="resDailyAvg">0</h4>
                                             <p class="mb-0 text-muted" style="font-size: 0.65rem;"><span
-                                                    id="resDaysBetween"></span> d├¡as</p>
+                                                    id="resDaysBetween"></span> días</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Gr├ífico Chart.js -->
+                        <!-- Gráfico Chart.js -->
                         <div class="card shadow-sm border-0 mb-2">
                             <div class="card-body p-2" style="position: relative; height: 230px; width: 100%;">
                                 <canvas id="evolutionChart"></canvas>
@@ -301,23 +301,23 @@
                         </div>
                     </div>
 
-                    <!-- Panel de Inspecci├│n de Anomal├¡as (Solo visible si hay anomal├¡as en el rango) -->
+                    <!-- Panel de Inspección de Anomalías (Solo visible si hay anomalías en el rango) -->
                     <div id="anomaliesInspectionContainer" class="d-none mt-4 mb-3 border rounded p-3 bg-light">
                         <h6 class="text-danger fw-bold border-bottom pb-2 mb-3">
-                            <i class="bi bi-camera-fill"></i> Auditor├¡a Visual de Anomal├¡as
+                            <i class="bi bi-camera-fill"></i> Auditoría Visual de Anomalías
                         </h6>
                         <p class="small text-muted mb-3">
-                            Se requiere verificaci├│n manual visual sobre los siguientes puntos at├¡picos generados. Compara
+                            Se requiere verificación manual visual sobre los siguientes puntos atípicos generados. Compara
                             si el registro se corresponde con la foto de prueba adjunta:
                         </p>
                         <div class="row g-3" id="anomaliesInspectionGrid">
-                            <!-- Cards din├ímicas inyectadas por JS -->
+                            <!-- Cards dinámicas inyectadas por JS -->
                         </div>
                     </div>
 
                     <div class="alert alert-secondary mb-0 pointer-events-none">
-                        <strong><i class="bi bi-info-circle"></i> Resumen del per├¡odo:</strong>
-                        El c├ílculo abarca desde la lectura inicial <strong id="resStartLog"></strong> (<span
+                        <strong><i class="bi bi-info-circle"></i> Resumen del período:</strong>
+                        El cálculo abarca desde la lectura inicial <strong id="resStartLog"></strong> (<span
                             id="resStartVal"></span>)
                         hasta el corte de <strong id="resEndLog"></strong> (<span id="resEndVal"></span>).
                     </div>
@@ -326,38 +326,36 @@
                 <!-- Loading / Estacionario state -->
                 <div id="analyzeLoading" class="text-center d-none py-4">
                     <div class="spinner-border text-primary" role="status"></div>
-                    <p class="mt-2 text-muted mb-0">Calculando anal├¡ticas y dibujando trazados...</p>
+                    <p class="mt-2 text-muted mb-0">Calculando analíticas y dibujando trazados...</p>
                 </div>
             </div>
             <div class="modal-footer p-2">
-                <button type="button" class="btn btn-outline-success btn-sm me-auto" id="btnShareAnalysis"><i class="bi bi-share"></i> Compartir Informe</button>
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>
-    </div>
 
-    <!-- Modal para Radar Global de Anomal├¡as -->
+    <!-- Modal para Radar Global de Anomalías -->
     <div class="modal fade" id="globalRadarModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-warning text-dark">
-                    <h5 class="modal-title"><i class="bi bi-radar"></i> Radar Global de Anomal├¡as</h5>
+                    <h5 class="modal-title"><i class="bi bi-radar"></i> Radar Global de Anomalías</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="alert alert-secondary py-2 px-3 mb-3 pointer-events-none">
-                        <strong class="text-danger small"><i class="bi bi-shield-exclamation"></i> ┬┐Qu├® hace este
+                        <strong class="text-danger small"><i class="bi bi-shield-exclamation"></i> ¿Qué hace este
                             Radar?</strong><br>
                         <small class="text-muted" style="font-size: 0.8rem;">
-                            Escanear├í <b>absolutamente todos tus sensores</b> en el fondo utilizando inteligencia de
-                            <b>tasa diaria</b> y regresar├í solo un listado de los sensores que est├®n arrojando alertas
-                            rojas bajo tu sensibilidad de umbral especificada, ahorr├índote el trabajo manual de
+                            Escaneará <b>absolutamente todos tus sensores</b> en el fondo utilizando inteligencia de
+                            <b>tasa diaria</b> y regresará solo un listado de los sensores que estén arrojando alertas
+                            rojas bajo tu sensibilidad de umbral especificada, ahorrándote el trabajo manual de
                             analizarlos uno a uno.
                         </small>
                     </div>
 
-                    <!-- Configuraci├│n del escaneo -->
+                    <!-- Configuración del escaneo -->
                     <div class="row align-items-end mb-3 bg-light p-2 rounded mx-0 border">
                         <div class="col-md-3">
                             <label for="radarStartDate" class="form-label mb-1">Cota Inicial</label>
@@ -370,7 +368,7 @@
                         <div class="col-md-2">
                             <label for="radarThreshold" class="form-label mb-1 text-danger"
                                 title="Salto en la tasa diaria"><i class="bi bi-exclamation-triangle"></i>
-                                Anomal├¡a</label>
+                                Anomalía</label>
                             <div class="input-group input-group-sm">
                                 <input type="number" class="form-control text-danger fw-bold" id="radarThreshold" value="50"
                                     min="1" step="5">
@@ -379,12 +377,12 @@
                         </div>
                         <div class="col-md-2">
                             <label for="radarStagnation" class="form-label mb-1 text-secondary"
-                                title="Alerta si delta es 0 luego de X d├¡as"><i class="bi bi-hourglass-top"></i>
+                                title="Alerta si delta es 0 luego de X días"><i class="bi bi-hourglass-top"></i>
                                 Estancamiento</label>
                             <div class="input-group input-group-sm">
                                 <input type="number" class="form-control text-secondary fw-bold" id="radarStagnation"
                                     value="15" min="1" step="1">
-                                <span class="input-group-text">D├¡as</span>
+                                <span class="input-group-text">Días</span>
                             </div>
                         </div>
                         <div class="col-md-2 d-grid px-1">
@@ -396,7 +394,7 @@
 
                     <div id="radarLoading" class="text-center d-none py-4">
                         <div class="spinner-border text-warning" role="status"></div>
-                        <p class="mt-2 text-muted mb-0">Rastreando trazos matem├íticos, por favor espere...</p>
+                        <p class="mt-2 text-muted mb-0">Rastreando trazos matemáticos, por favor espere...</p>
                     </div>
 
                     <div id="radarResults" class="d-none">
@@ -418,7 +416,7 @@
                                     <tr>
                                         <th>Sensor</th>
                                         <th>Incidenicas</th>
-                                        <th>Acci├│n Directa</th>
+                                        <th>Acción Directa</th>
                                     </tr>
                                 </thead>
                                 <tbody id="radarTableBody">
@@ -457,65 +455,9 @@
             $('#analyzeThreshold').change(function () {
                 localStorage.setItem('medflow_analyze_threshold', $(this).val());
             });
-        $('#btnShareAnalysis').click(function() {
-            const sensorId = $('#analyzeSensorId').val();
-            const sensorName = $('#analyzeSensorName').text();
-            if (!sensorId) return;
-
-            const email = prompt('Ingrese el correo electr├│nico para enviar el reporte de ' + sensorName + ':');
-            if (email) {
-                $.ajax({
-                    url: '/api/sensors/' + sensorId + '/share',
-                    type: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                        'Accept': 'application/json'
-                    },
-                    data: { email: email },
-                    success: function (res) {
-                        if(res.success) {
-                            alert('Informe enviado correctamente a ' + email);
-                        } else {
-                            alert('Error: ' + res.message);
-                        }
-                    },
-                    error: function(xhr) {
-                        alert('Error de conexi├│n al enviar informe.');
-                    }
-                });
-            }
-        });
             $('#analyzeStagnation').change(function () {
                 localStorage.setItem('medflow_analyze_stagnation', $(this).val());
             });
-        $('#btnShareAnalysis').click(function() {
-            const sensorId = $('#analyzeSensorId').val();
-            const sensorName = $('#analyzeSensorName').text();
-            if (!sensorId) return;
-
-            const email = prompt('Ingrese el correo electr├│nico para enviar el reporte de ' + sensorName + ':');
-            if (email) {
-                $.ajax({
-                    url: '/api/sensors/' + sensorId + '/share',
-                    type: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                        'Accept': 'application/json'
-                    },
-                    data: { email: email },
-                    success: function (res) {
-                        if(res.success) {
-                            alert('Informe enviado correctamente a ' + email);
-                        } else {
-                            alert('Error: ' + res.message);
-                        }
-                    },
-                    error: function(xhr) {
-                        alert('Error de conexi├│n al enviar informe.');
-                    }
-                });
-            }
-        });
 
             // Cargar sensores del usuario para el filtro
             loadSensors();
@@ -538,129 +480,17 @@
                 currentPage = 1;
                 loadConsumptions();
             });
-        $('#btnShareAnalysis').click(function() {
-            const sensorId = $('#analyzeSensorId').val();
-            const sensorName = $('#analyzeSensorName').text();
-            if (!sensorId) return;
-
-            const email = prompt('Ingrese el correo electr├│nico para enviar el reporte de ' + sensorName + ':');
-            if (email) {
-                $.ajax({
-                    url: '/api/sensors/' + sensorId + '/share',
-                    type: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                        'Accept': 'application/json'
-                    },
-                    data: { email: email },
-                    success: function (res) {
-                        if(res.success) {
-                            alert('Informe enviado correctamente a ' + email);
-                        } else {
-                            alert('Error: ' + res.message);
-                        }
-                    },
-                    error: function(xhr) {
-                        alert('Error de conexi├│n al enviar informe.');
-                    }
-                });
-            }
-        });
 
             // Configurar botones de filtro locales
             $('#applyFiltersBtn').click(function () {
                 currentPage = 1;
                 loadConsumptions();
             });
-        $('#btnShareAnalysis').click(function() {
-            const sensorId = $('#analyzeSensorId').val();
-            const sensorName = $('#analyzeSensorName').text();
-            if (!sensorId) return;
-
-            const email = prompt('Ingrese el correo electr├│nico para enviar el reporte de ' + sensorName + ':');
-            if (email) {
-                $.ajax({
-                    url: '/api/sensors/' + sensorId + '/share',
-                    type: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                        'Accept': 'application/json'
-                    },
-                    data: { email: email },
-                    success: function (res) {
-                        if(res.success) {
-                            alert('Informe enviado correctamente a ' + email);
-                        } else {
-                            alert('Error: ' + res.message);
-                        }
-                    },
-                    error: function(xhr) {
-                        alert('Error de conexi├│n al enviar informe.');
-                    }
-                });
-            }
-        });
             $('#resetFilters').click(resetFilters);
             $('#sensorFilter, #startDate, #endDate').change(function () {
                 currentPage = 1;
                 loadConsumptions();
             });
-        $('#btnShareAnalysis').click(function() {
-            const sensorId = $('#analyzeSensorId').val();
-            const sensorName = $('#analyzeSensorName').text();
-            if (!sensorId) return;
-
-            const email = prompt('Ingrese el correo electr├│nico para enviar el reporte de ' + sensorName + ':');
-            if (email) {
-                $.ajax({
-                    url: '/api/sensors/' + sensorId + '/share',
-                    type: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                        'Accept': 'application/json'
-                    },
-                    data: { email: email },
-                    success: function (res) {
-                        if(res.success) {
-                            alert('Informe enviado correctamente a ' + email);
-                        } else {
-                            alert('Error: ' + res.message);
-                        }
-                    },
-                    error: function(xhr) {
-                        alert('Error de conexi├│n al enviar informe.');
-                    }
-                });
-            }
-        });
-        });
-        $('#btnShareAnalysis').click(function() {
-            const sensorId = $('#analyzeSensorId').val();
-            const sensorName = $('#analyzeSensorName').text();
-            if (!sensorId) return;
-
-            const email = prompt('Ingrese el correo electr├│nico para enviar el reporte de ' + sensorName + ':');
-            if (email) {
-                $.ajax({
-                    url: '/api/sensors/' + sensorId + '/share',
-                    type: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                        'Accept': 'application/json'
-                    },
-                    data: { email: email },
-                    success: function (res) {
-                        if(res.success) {
-                            alert('Informe enviado correctamente a ' + email);
-                        } else {
-                            alert('Error: ' + res.message);
-                        }
-                    },
-                    error: function(xhr) {
-                        alert('Error de conexi├│n al enviar informe.');
-                    }
-                });
-            }
         });
 
         // Cargar sensores del usuario
@@ -681,68 +511,12 @@
                         response.data.forEach(function (sensor) {
                             sensorFilter.append('<option value="' + sensor.id + '">' + sensor.name + ' (' + sensor.identifier + ')</option>');
                         });
-        $('#btnShareAnalysis').click(function() {
-            const sensorId = $('#analyzeSensorId').val();
-            const sensorName = $('#analyzeSensorName').text();
-            if (!sensorId) return;
-
-            const email = prompt('Ingrese el correo electr├│nico para enviar el reporte de ' + sensorName + ':');
-            if (email) {
-                $.ajax({
-                    url: '/api/sensors/' + sensorId + '/share',
-                    type: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                        'Accept': 'application/json'
-                    },
-                    data: { email: email },
-                    success: function (res) {
-                        if(res.success) {
-                            alert('Informe enviado correctamente a ' + email);
-                        } else {
-                            alert('Error: ' + res.message);
-                        }
-                    },
-                    error: function(xhr) {
-                        alert('Error de conexi├│n al enviar informe.');
-                    }
-                });
-            }
-        });
                     }
                 },
                 error: function (xhr) {
                     showAlert('Error al cargar sensores: ' + (xhr.responseJSON?.message || xhr.statusText), 'danger');
                 }
             });
-        $('#btnShareAnalysis').click(function() {
-            const sensorId = $('#analyzeSensorId').val();
-            const sensorName = $('#analyzeSensorName').text();
-            if (!sensorId) return;
-
-            const email = prompt('Ingrese el correo electr├│nico para enviar el reporte de ' + sensorName + ':');
-            if (email) {
-                $.ajax({
-                    url: '/api/sensors/' + sensorId + '/share',
-                    type: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                        'Accept': 'application/json'
-                    },
-                    data: { email: email },
-                    success: function (res) {
-                        if(res.success) {
-                            alert('Informe enviado correctamente a ' + email);
-                        } else {
-                            alert('Error: ' + res.message);
-                        }
-                    },
-                    error: function(xhr) {
-                        alert('Error de conexi├│n al enviar informe.');
-                    }
-                });
-            }
-        });
         }
 
         // Cargar consumos
@@ -784,7 +558,7 @@
                 success: function (response) {
                     if (response.success) {
                         renderConsumptions(response.data);
-                        // Si la respuesta incluye paginaci├│n con meta, renderizarla
+                        // Si la respuesta incluye paginación con meta, renderizarla
                         if (response.meta) {
                             renderPagination(response.meta);
                         }
@@ -796,34 +570,6 @@
                     showAlert('Error al cargar consumos: ' + (xhr.responseJSON?.message || xhr.statusText), 'danger');
                 }
             });
-        $('#btnShareAnalysis').click(function() {
-            const sensorId = $('#analyzeSensorId').val();
-            const sensorName = $('#analyzeSensorName').text();
-            if (!sensorId) return;
-
-            const email = prompt('Ingrese el correo electr├│nico para enviar el reporte de ' + sensorName + ':');
-            if (email) {
-                $.ajax({
-                    url: '/api/sensors/' + sensorId + '/share',
-                    type: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                        'Accept': 'application/json'
-                    },
-                    data: { email: email },
-                    success: function (res) {
-                        if(res.success) {
-                            alert('Informe enviado correctamente a ' + email);
-                        } else {
-                            alert('Error: ' + res.message);
-                        }
-                    },
-                    error: function(xhr) {
-                        alert('Error de conexi├│n al enviar informe.');
-                    }
-                });
-            }
-        });
         }
 
         // Renderizar consumos en la tabla
@@ -846,7 +592,7 @@
                 return;
             }
 
-            // Filtrar sensores ├║nicos para navegaci├│n modal
+            // Filtrar sensores únicos para navegación modal
             analyzedSensorsList = [];
             const seen = new Set();
             consumptions.forEach(c => {
@@ -856,64 +602,8 @@
                         id: c.sensor.id,
                         name: c.sensor.name || 'Sensor desconocido'
                     });
-        $('#btnShareAnalysis').click(function() {
-            const sensorId = $('#analyzeSensorId').val();
-            const sensorName = $('#analyzeSensorName').text();
-            if (!sensorId) return;
-
-            const email = prompt('Ingrese el correo electr├│nico para enviar el reporte de ' + sensorName + ':');
-            if (email) {
-                $.ajax({
-                    url: '/api/sensors/' + sensorId + '/share',
-                    type: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                        'Accept': 'application/json'
-                    },
-                    data: { email: email },
-                    success: function (res) {
-                        if(res.success) {
-                            alert('Informe enviado correctamente a ' + email);
-                        } else {
-                            alert('Error: ' + res.message);
-                        }
-                    },
-                    error: function(xhr) {
-                        alert('Error de conexi├│n al enviar informe.');
-                    }
-                });
-            }
-        });
                 }
             });
-        $('#btnShareAnalysis').click(function() {
-            const sensorId = $('#analyzeSensorId').val();
-            const sensorName = $('#analyzeSensorName').text();
-            if (!sensorId) return;
-
-            const email = prompt('Ingrese el correo electr├│nico para enviar el reporte de ' + sensorName + ':');
-            if (email) {
-                $.ajax({
-                    url: '/api/sensors/' + sensorId + '/share',
-                    type: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                        'Accept': 'application/json'
-                    },
-                    data: { email: email },
-                    success: function (res) {
-                        if(res.success) {
-                            alert('Informe enviado correctamente a ' + email);
-                        } else {
-                            alert('Error: ' + res.message);
-                        }
-                    },
-                    error: function(xhr) {
-                        alert('Error de conexi├│n al enviar informe.');
-                    }
-                });
-            }
-        });
 
             consumptions.forEach(function (consumption) {
                 // Asegurar que el sensor y grupo existan
@@ -922,7 +612,7 @@
 
                 let sensorNameHtml = sNameObj;
                 if (isCommunity === '1') {
-                    sensorNameHtml += ' <span class="badge bg-success ms-1" style="font-size:0.6rem;"><i class="bi bi-tree-fill"></i> Com├║n</span>';
+                    sensorNameHtml += ' <span class="badge bg-success ms-1" style="font-size:0.6rem;"><i class="bi bi-tree-fill"></i> Común</span>';
                 }
 
                 const sensorIdentifier = (consumption.sensor && consumption.sensor.identifier) ? consumption.sensor.identifier : 'N/A';
@@ -931,9 +621,9 @@
 
                 const startDate = new Date(consumption.period_start).toLocaleString('es-ES');
                 const endDate = new Date(consumption.period_end).toLocaleString('es-ES');
-                const period = startDate + ' ÔåÆ ' + endDate;
+                const period = startDate + ' → ' + endDate;
 
-                // Redondear d├¡as a 2 decimales
+                // Redondear días a 2 decimales
                 const daysBetween = consumption.days_between ? parseFloat(consumption.days_between).toFixed(2) : 0;
                 const dailyAverage = consumption.daily_average ? parseFloat(consumption.daily_average).toFixed(2) : 0;
 
@@ -951,7 +641,7 @@
                     '       <button class="btn btn-sm py-0 px-2 viewConsumptionBtn" data-consumption-id="' + consumption.id + '" title="Ver detalles">' +
                     '           <i class="bi bi-eye"></i>' +
                     '       </button>' +
-                    '       <button class="btn btn-sm py-0 px-2 ms-1 analyzeSensorBtn" data-sensor-id="' + consumption.sensor.id + '" data-sensor-name="' + (consumption.sensor ? consumption.sensor.name : '') + '" title="An├ílisis de Rango">' +
+                    '       <button class="btn btn-sm py-0 px-2 ms-1 analyzeSensorBtn" data-sensor-id="' + consumption.sensor.id + '" data-sensor-name="' + (consumption.sensor ? consumption.sensor.name : '') + '" title="Análisis de Rango">' +
                     '           <i class="bi bi-bar-chart-fill"></i>' +
                     '       </button>' +
                     '   </td>' +
@@ -959,103 +649,19 @@
 
                 tableBody.append(row);
             });
-        $('#btnShareAnalysis').click(function() {
-            const sensorId = $('#analyzeSensorId').val();
-            const sensorName = $('#analyzeSensorName').text();
-            if (!sensorId) return;
-
-            const email = prompt('Ingrese el correo electr├│nico para enviar el reporte de ' + sensorName + ':');
-            if (email) {
-                $.ajax({
-                    url: '/api/sensors/' + sensorId + '/share',
-                    type: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                        'Accept': 'application/json'
-                    },
-                    data: { email: email },
-                    success: function (res) {
-                        if(res.success) {
-                            alert('Informe enviado correctamente a ' + email);
-                        } else {
-                            alert('Error: ' + res.message);
-                        }
-                    },
-                    error: function(xhr) {
-                        alert('Error de conexi├│n al enviar informe.');
-                    }
-                });
-            }
-        });
 
             // Asignar eventos a los botones de ver detalles
             $('.viewConsumptionBtn').click(function () {
                 const consumptionId = $(this).data('consumption-id');
                 viewConsumptionDetails(consumptionId);
             });
-        $('#btnShareAnalysis').click(function() {
-            const sensorId = $('#analyzeSensorId').val();
-            const sensorName = $('#analyzeSensorName').text();
-            if (!sensorId) return;
 
-            const email = prompt('Ingrese el correo electr├│nico para enviar el reporte de ' + sensorName + ':');
-            if (email) {
-                $.ajax({
-                    url: '/api/sensors/' + sensorId + '/share',
-                    type: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                        'Accept': 'application/json'
-                    },
-                    data: { email: email },
-                    success: function (res) {
-                        if(res.success) {
-                            alert('Informe enviado correctamente a ' + email);
-                        } else {
-                            alert('Error: ' + res.message);
-                        }
-                    },
-                    error: function(xhr) {
-                        alert('Error de conexi├│n al enviar informe.');
-                    }
-                });
-            }
-        });
-
-            // Asignar eventos a los botones de an├ílisis
+            // Asignar eventos a los botones de análisis
             $('.analyzeSensorBtn').click(function () {
                 const sId = $(this).data('sensor-id');
                 const sName = $(this).data('sensor-name');
                 openAnalyticsModal(sId, sName);
             });
-        $('#btnShareAnalysis').click(function() {
-            const sensorId = $('#analyzeSensorId').val();
-            const sensorName = $('#analyzeSensorName').text();
-            if (!sensorId) return;
-
-            const email = prompt('Ingrese el correo electr├│nico para enviar el reporte de ' + sensorName + ':');
-            if (email) {
-                $.ajax({
-                    url: '/api/sensors/' + sensorId + '/share',
-                    type: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                        'Accept': 'application/json'
-                    },
-                    data: { email: email },
-                    success: function (res) {
-                        if(res.success) {
-                            alert('Informe enviado correctamente a ' + email);
-                        } else {
-                            alert('Error: ' + res.message);
-                        }
-                    },
-                    error: function(xhr) {
-                        alert('Error de conexi├│n al enviar informe.');
-                    }
-                });
-            }
-        });
         }
 
         function openAnalyticsModal(sensorId, sensorName, autoCalc = false, inheritStartDate = null, inheritEndDate = null) {
@@ -1115,34 +721,6 @@
                     }
                 }
             });
-        $('#btnShareAnalysis').click(function() {
-            const sensorId = $('#analyzeSensorId').val();
-            const sensorName = $('#analyzeSensorName').text();
-            if (!sensorId) return;
-
-            const email = prompt('Ingrese el correo electr├│nico para enviar el reporte de ' + sensorName + ':');
-            if (email) {
-                $.ajax({
-                    url: '/api/sensors/' + sensorId + '/share',
-                    type: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                        'Accept': 'application/json'
-                    },
-                    data: { email: email },
-                    success: function (res) {
-                        if(res.success) {
-                            alert('Informe enviado correctamente a ' + email);
-                        } else {
-                            alert('Error: ' + res.message);
-                        }
-                    },
-                    error: function(xhr) {
-                        alert('Error de conexi├│n al enviar informe.');
-                    }
-                });
-            }
-        });
         }
 
         function updateModalNavigationButtons() {
@@ -1156,67 +734,11 @@
                 openAnalyticsModal(prev.id, prev.name, true);
             }
         });
-        $('#btnShareAnalysis').click(function() {
-            const sensorId = $('#analyzeSensorId').val();
-            const sensorName = $('#analyzeSensorName').text();
-            if (!sensorId) return;
-
-            const email = prompt('Ingrese el correo electr├│nico para enviar el reporte de ' + sensorName + ':');
-            if (email) {
-                $.ajax({
-                    url: '/api/sensors/' + sensorId + '/share',
-                    type: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                        'Accept': 'application/json'
-                    },
-                    data: { email: email },
-                    success: function (res) {
-                        if(res.success) {
-                            alert('Informe enviado correctamente a ' + email);
-                        } else {
-                            alert('Error: ' + res.message);
-                        }
-                    },
-                    error: function(xhr) {
-                        alert('Error de conexi├│n al enviar informe.');
-                    }
-                });
-            }
-        });
 
         $('#btnNextAnalyzeSensor').click(function () {
             if (currentAnalyzedIndex !== -1 && currentAnalyzedIndex < analyzedSensorsList.length - 1) {
                 const nxt = analyzedSensorsList[currentAnalyzedIndex + 1];
                 openAnalyticsModal(nxt.id, nxt.name, true);
-            }
-        });
-        $('#btnShareAnalysis').click(function() {
-            const sensorId = $('#analyzeSensorId').val();
-            const sensorName = $('#analyzeSensorName').text();
-            if (!sensorId) return;
-
-            const email = prompt('Ingrese el correo electr├│nico para enviar el reporte de ' + sensorName + ':');
-            if (email) {
-                $.ajax({
-                    url: '/api/sensors/' + sensorId + '/share',
-                    type: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                        'Accept': 'application/json'
-                    },
-                    data: { email: email },
-                    success: function (res) {
-                        if(res.success) {
-                            alert('Informe enviado correctamente a ' + email);
-                        } else {
-                            alert('Error: ' + res.message);
-                        }
-                    },
-                    error: function(xhr) {
-                        alert('Error de conexi├│n al enviar informe.');
-                    }
-                });
             }
         });
 
@@ -1260,34 +782,6 @@
                     );
                 }
             });
-        $('#btnShareAnalysis').click(function() {
-            const sensorId = $('#analyzeSensorId').val();
-            const sensorName = $('#analyzeSensorName').text();
-            if (!sensorId) return;
-
-            const email = prompt('Ingrese el correo electr├│nico para enviar el reporte de ' + sensorName + ':');
-            if (email) {
-                $.ajax({
-                    url: '/api/sensors/' + sensorId + '/share',
-                    type: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                        'Accept': 'application/json'
-                    },
-                    data: { email: email },
-                    success: function (res) {
-                        if(res.success) {
-                            alert('Informe enviado correctamente a ' + email);
-                        } else {
-                            alert('Error: ' + res.message);
-                        }
-                    },
-                    error: function(xhr) {
-                        alert('Error de conexi├│n al enviar informe.');
-                    }
-                });
-            }
-        });
         }
 
         // Renderizar detalles del consumo en el modal
@@ -1298,7 +792,7 @@
 
             let html = '<div class="row small">' +
                 '   <div class="col-md-6 mb-3">' +
-                '       <h6 class="border-bottom pb-2 text-primary fw-bold"><i class="bi bi-info-circle"></i> Informaci├│n General</h6>' +
+                '       <h6 class="border-bottom pb-2 text-primary fw-bold"><i class="bi bi-info-circle"></i> Información General</h6>' +
                 '       <dl class="row mb-0">' +
                 '           <dt class="col-sm-4 text-muted">ID:</dt>' +
                 '           <dd class="col-sm-8 mb-1">' + consumption.id + '</dd>' +
@@ -1315,16 +809,16 @@
                 '       <dl class="row mb-0">' +
                 '           <dt class="col-sm-4 text-muted">Valor:</dt>' +
                 '           <dd class="col-sm-8 mb-1 fw-bold">' + consumption.value + ' ' + consumption.unit + '</dd>' +
-                '           <dt class="col-sm-4 text-muted">D├¡as:</dt>' +
+                '           <dt class="col-sm-4 text-muted">Días:</dt>' +
                 '           <dd class="col-sm-8 mb-1">' + consumption.days_between + '</dd>' +
                 '           <dt class="col-sm-4 text-muted">Prom. Diario:</dt>' +
-                '           <dd class="col-sm-8 mb-1">' + dailyAverage + ' ' + consumption.unit + '/d├¡a</dd>' +
+                '           <dd class="col-sm-8 mb-1">' + dailyAverage + ' ' + consumption.unit + '/día</dd>' +
                 '       </dl>' +
                 '   </div>' +
                 '</div>' +
                 '<div class="row small">' +
                 '   <div class="col-md-12 mb-3">' +
-                '       <h6 class="border-bottom pb-2 text-primary fw-bold"><i class="bi bi-calendar-range"></i> Per├¡odo</h6>' +
+                '       <h6 class="border-bottom pb-2 text-primary fw-bold"><i class="bi bi-calendar-range"></i> Período</h6>' +
                 '       <dl class="row mb-0">' +
                 '           <dt class="col-sm-2 text-muted">Inicio:</dt>' +
                 '           <dd class="col-sm-4 mb-1">' + startDate + '</dd>' +
@@ -1334,7 +828,7 @@
                 '   </div>' +
                 '</div>';
 
-            // Funci├│n para obtener el valor de una medici├│n (soporta diferentes campos)
+            // Función para obtener el valor de una medición (soporta diferentes campos)
             function getMeasurementValue(measurement) {
                 if (!measurement || !measurement.data) return 'N/A';
 
@@ -1346,7 +840,7 @@
                     }
                 }
 
-                // Si no se encuentra ning├║n campo conocido, devolver el primer valor num├®rico
+                // Si no se encuentra ningún campo conocido, devolver el primer valor numérico
                 for (const [key, value] of Object.entries(measurement.data)) {
                     if (typeof value === 'number') {
                         return value;
@@ -1356,14 +850,14 @@
                 return 'N/A';
             }
 
-            // Agregar informaci├│n de las mediciones si est├ín disponibles
+            // Agregar información de las mediciones si están disponibles
             if (consumption.start_measurement) {
                 const startValue = getMeasurementValue(consumption.start_measurement) || 'N/A';
                 const startMeasurementDate = new Date(consumption.start_measurement.measured_at).toLocaleString('es-ES');
 
                 html += '<div class="row small mt-2">' +
                     '   <div class="col-md-6 mb-3">' +
-                    '       <h6 class="border-bottom pb-2 text-primary fw-bold"><i class="bi bi-arrow-down-left"></i> Medici├│n Inicial</h6>' +
+                    '       <h6 class="border-bottom pb-2 text-primary fw-bold"><i class="bi bi-arrow-down-left"></i> Medición Inicial</h6>' +
                     '       <dl class="row mb-0">' +
                     '           <dt class="col-sm-4 text-muted">ID:</dt>' +
                     '           <dd class="col-sm-8 mb-1">' + consumption.start_measurement.id + '</dd>' +
@@ -1379,7 +873,7 @@
                     const endMeasurementDate = new Date(consumption.end_measurement.measured_at).toLocaleString('es-ES');
 
                     html += '   <div class="col-md-6 mb-3">' +
-                        '       <h6 class="border-bottom pb-2 text-primary fw-bold"><i class="bi bi-arrow-up-right"></i> Medici├│n Final</h6>' +
+                        '       <h6 class="border-bottom pb-2 text-primary fw-bold"><i class="bi bi-arrow-up-right"></i> Medición Final</h6>' +
                         '       <dl class="row mb-0">' +
                         '           <dt class="col-sm-4 text-muted">ID:</dt>' +
                         '           <dd class="col-sm-8 mb-1">' + consumption.end_measurement.id + '</dd>' +
@@ -1398,7 +892,7 @@
 
         // Calcular consumos para todos los sensores
         function calculateAllConsumptions() {
-            if (!confirm('┬┐Est├ís seguro de que deseas recalcular todos los consumos? Esto puede tardar unos segundos.')) {
+            if (!confirm('¿Estás seguro de que deseas recalcular todos los consumos? Esto puede tardar unos segundos.')) {
                 return;
             }
 
@@ -1431,34 +925,6 @@
                     );
                 }
             });
-        $('#btnShareAnalysis').click(function() {
-            const sensorId = $('#analyzeSensorId').val();
-            const sensorName = $('#analyzeSensorName').text();
-            if (!sensorId) return;
-
-            const email = prompt('Ingrese el correo electr├│nico para enviar el reporte de ' + sensorName + ':');
-            if (email) {
-                $.ajax({
-                    url: '/api/sensors/' + sensorId + '/share',
-                    type: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                        'Accept': 'application/json'
-                    },
-                    data: { email: email },
-                    success: function (res) {
-                        if(res.success) {
-                            alert('Informe enviado correctamente a ' + email);
-                        } else {
-                            alert('Error: ' + res.message);
-                        }
-                    },
-                    error: function(xhr) {
-                        alert('Error de conexi├│n al enviar informe.');
-                    }
-                });
-            }
-        });
         }
 
         // Exportar consumos a Excel
@@ -1486,7 +952,7 @@
             loadConsumptions();
         }
 
-        // Renderizar paginaci├│n
+        // Renderizar paginación
         function renderPagination(meta) {
             if (!meta || !meta.last_page) {
                 $('#pagination').html('');
@@ -1501,9 +967,9 @@
 
             let paginationHtml = '';
 
-            // Funci├│n global para que sea accesible desde html inline si lo hay
+            // Función global para que sea accesible desde html inline si lo hay
             window.changePage = function (page) {
-                // Obtenemos la referencia a trav├®s de scope o usamos la variable principal si existe
+                // Obtenemos la referencia a través de scope o usamos la variable principal si existe
                 if (typeof currentPage !== 'undefined') {
                     currentPage = page;
                 } else {
@@ -1626,7 +1092,7 @@
 
                         renderEvolutionChart(d.chart_data, d.unit);
 
-                        // Poblar la Auditor├¡a Visual si hay anomal├¡as
+                        // Poblar la Auditoría Visual si hay anomalías
                         const grid = $('#anomaliesInspectionGrid');
                         grid.empty();
 
@@ -1638,14 +1104,14 @@
                                     : null;
 
                                 let imgHtml = imgPath
-                                    ? '<a href="' + imgPath + '" target="_blank"><img src="' + imgPath + '" class="img-fluid rounded border mt-2" style="max-height:120px; object-fit:cover; width:100%" alt="Foto medici├│n"></a>'
-                                    : '<div class="text-muted small mt-2 p-3 bg-white border rounded text-center"><i class="bi bi-camera-video-off"></i> Sin registro fotogr├ífico</div>';
+                                    ? '<a href="' + imgPath + '" target="_blank"><img src="' + imgPath + '" class="img-fluid rounded border mt-2" style="max-height:120px; object-fit:cover; width:100%" alt="Foto medición"></a>'
+                                    : '<div class="text-muted small mt-2 p-3 bg-white border rounded text-center"><i class="bi bi-camera-video-off"></i> Sin registro fotográfico</div>';
 
                                 grid.append(
                                     '<div class="col-md-4">' +
                                     '   <div class="card h-100 border-danger shadow-sm">' +
                                     '       <div class="card-header bg-danger text-white py-1 small">' +
-                                    '           <i class="bi bi-exclamation-triangle-fill"></i> Punto At├¡pico #' + (idx + 1) +
+                                    '           <i class="bi bi-exclamation-triangle-fill"></i> Punto Atípico #' + (idx + 1) +
                                     '       </div>' +
                                     '       <div class="card-body p-2">' +
                                     '           <div class="fw-bold">' + anom.date + '</div>' +
@@ -1656,34 +1122,6 @@
                                     '</div>'
                                 );
                             });
-        $('#btnShareAnalysis').click(function() {
-            const sensorId = $('#analyzeSensorId').val();
-            const sensorName = $('#analyzeSensorName').text();
-            if (!sensorId) return;
-
-            const email = prompt('Ingrese el correo electr├│nico para enviar el reporte de ' + sensorName + ':');
-            if (email) {
-                $.ajax({
-                    url: '/api/sensors/' + sensorId + '/share',
-                    type: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                        'Accept': 'application/json'
-                    },
-                    data: { email: email },
-                    success: function (res) {
-                        if(res.success) {
-                            alert('Informe enviado correctamente a ' + email);
-                        } else {
-                            alert('Error: ' + res.message);
-                        }
-                    },
-                    error: function(xhr) {
-                        alert('Error de conexi├│n al enviar informe.');
-                    }
-                });
-            }
-        });
                             $('#anomaliesInspectionContainer').removeClass('d-none');
                         } else {
                             $('#anomaliesInspectionContainer').addClass('d-none');
@@ -1691,70 +1129,14 @@
 
                         $('#analyzeResults').removeClass('d-none');
                     } else {
-                        alert(res.message || 'Error en c├ílculo.');
+                        alert(res.message || 'Error en cálculo.');
                     }
                 },
                 error: function (xhr) {
                     $('#analyzeLoading').addClass('d-none');
-                    alert(xhr.responseJSON?.message || 'Hubo un problema. No hay mediciones v├ílidas para tu solicitud.');
+                    alert(xhr.responseJSON?.message || 'Hubo un problema. No hay mediciones válidas para tu solicitud.');
                 }
             });
-        $('#btnShareAnalysis').click(function() {
-            const sensorId = $('#analyzeSensorId').val();
-            const sensorName = $('#analyzeSensorName').text();
-            if (!sensorId) return;
-
-            const email = prompt('Ingrese el correo electr├│nico para enviar el reporte de ' + sensorName + ':');
-            if (email) {
-                $.ajax({
-                    url: '/api/sensors/' + sensorId + '/share',
-                    type: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                        'Accept': 'application/json'
-                    },
-                    data: { email: email },
-                    success: function (res) {
-                        if(res.success) {
-                            alert('Informe enviado correctamente a ' + email);
-                        } else {
-                            alert('Error: ' + res.message);
-                        }
-                    },
-                    error: function(xhr) {
-                        alert('Error de conexi├│n al enviar informe.');
-                    }
-                });
-            }
-        });
-        });
-        $('#btnShareAnalysis').click(function() {
-            const sensorId = $('#analyzeSensorId').val();
-            const sensorName = $('#analyzeSensorName').text();
-            if (!sensorId) return;
-
-            const email = prompt('Ingrese el correo electr├│nico para enviar el reporte de ' + sensorName + ':');
-            if (email) {
-                $.ajax({
-                    url: '/api/sensors/' + sensorId + '/share',
-                    type: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                        'Accept': 'application/json'
-                    },
-                    data: { email: email },
-                    success: function (res) {
-                        if(res.success) {
-                            alert('Informe enviado correctamente a ' + email);
-                        } else {
-                            alert('Error: ' + res.message);
-                        }
-                    },
-                    error: function(xhr) {
-                        alert('Error de conexi├│n al enviar informe.');
-                    }
-                });
-            }
         });
 
         function renderEvolutionChart(chartData, unit) {
@@ -1804,7 +1186,7 @@
                                     const pointData = chartData[context.dataIndex];
                                     let label = raw + ' ' + unit;
                                     if (pointData.anomaly) {
-                                        label += ' (ÔÜá´©Å Salto at├¡pico)';
+                                        label += ' (⚠️ Salto atípico)';
                                     }
                                     return label;
                                 }
@@ -1831,34 +1213,6 @@
                     }
                 }
             });
-        $('#btnShareAnalysis').click(function() {
-            const sensorId = $('#analyzeSensorId').val();
-            const sensorName = $('#analyzeSensorName').text();
-            if (!sensorId) return;
-
-            const email = prompt('Ingrese el correo electr├│nico para enviar el reporte de ' + sensorName + ':');
-            if (email) {
-                $.ajax({
-                    url: '/api/sensors/' + sensorId + '/share',
-                    type: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                        'Accept': 'application/json'
-                    },
-                    data: { email: email },
-                    success: function (res) {
-                        if(res.success) {
-                            alert('Informe enviado correctamente a ' + email);
-                        } else {
-                            alert('Error: ' + res.message);
-                        }
-                    },
-                    error: function(xhr) {
-                        alert('Error de conexi├│n al enviar informe.');
-                    }
-                });
-            }
-        });
         }
 
         function openGlobalRadarModal() {
@@ -1928,7 +1282,7 @@
                         tbody.empty();
 
                         if (res.data.length === 0) {
-                            tbody.append('<tr><td colspan="3" class="text-center text-success"><i class="bi bi-check-circle-fill"></i> Todos los sistemas bajo l├¡mites nominales. Cero anomal├¡as temporales encontradas.</td></tr>');
+                            tbody.append('<tr><td colspan="3" class="text-center text-success"><i class="bi bi-check-circle-fill"></i> Todos los sistemas bajo límites nominales. Cero anomalías temporales encontradas.</td></tr>');
                         } else {
                             res.data.forEach(function (item) {
                                 let tagsHtml = '';
@@ -1936,7 +1290,7 @@
                                     tagsHtml += '<span class="badge bg-danger shadow-sm me-1 mt-1" title="Saltos Acelerados"><i class="bi bi-graph-up-arrow"></i> ' + item.acceleration_count + ' picos</span>';
                                 }
                                 if (item.stagnation_count > 0) {
-                                    tagsHtml += '<span class="badge bg-secondary shadow-sm me-1 mt-1" title="D├¡as 0"><i class="bi bi-hourglass-bottom"></i> ' + item.stagnation_count + ' estancados</span>';
+                                    tagsHtml += '<span class="badge bg-secondary shadow-sm me-1 mt-1" title="Días 0"><i class="bi bi-hourglass-bottom"></i> ' + item.stagnation_count + ' estancados</span>';
                                 }
 
                                 tbody.append(
@@ -1949,34 +1303,6 @@
                                     '</tr>'
                                 );
                             });
-        $('#btnShareAnalysis').click(function() {
-            const sensorId = $('#analyzeSensorId').val();
-            const sensorName = $('#analyzeSensorName').text();
-            if (!sensorId) return;
-
-            const email = prompt('Ingrese el correo electr├│nico para enviar el reporte de ' + sensorName + ':');
-            if (email) {
-                $.ajax({
-                    url: '/api/sensors/' + sensorId + '/share',
-                    type: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                        'Accept': 'application/json'
-                    },
-                    data: { email: email },
-                    success: function (res) {
-                        if(res.success) {
-                            alert('Informe enviado correctamente a ' + email);
-                        } else {
-                            alert('Error: ' + res.message);
-                        }
-                    },
-                    error: function(xhr) {
-                        alert('Error de conexi├│n al enviar informe.');
-                    }
-                });
-            }
-        });
                         }
                         $('#radarResults').removeClass('d-none');
                         // Reset search field
@@ -1987,65 +1313,9 @@
                 },
                 error: function (xhr) {
                     $('#radarLoading').addClass('d-none');
-                    alert(xhr.responseJSON?.message || 'Error escaneando anomal├¡as masivas.');
+                    alert(xhr.responseJSON?.message || 'Error escaneando anomalías masivas.');
                 }
             });
-        $('#btnShareAnalysis').click(function() {
-            const sensorId = $('#analyzeSensorId').val();
-            const sensorName = $('#analyzeSensorName').text();
-            if (!sensorId) return;
-
-            const email = prompt('Ingrese el correo electr├│nico para enviar el reporte de ' + sensorName + ':');
-            if (email) {
-                $.ajax({
-                    url: '/api/sensors/' + sensorId + '/share',
-                    type: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                        'Accept': 'application/json'
-                    },
-                    data: { email: email },
-                    success: function (res) {
-                        if(res.success) {
-                            alert('Informe enviado correctamente a ' + email);
-                        } else {
-                            alert('Error: ' + res.message);
-                        }
-                    },
-                    error: function(xhr) {
-                        alert('Error de conexi├│n al enviar informe.');
-                    }
-                });
-            }
-        });
-        });
-        $('#btnShareAnalysis').click(function() {
-            const sensorId = $('#analyzeSensorId').val();
-            const sensorName = $('#analyzeSensorName').text();
-            if (!sensorId) return;
-
-            const email = prompt('Ingrese el correo electr├│nico para enviar el reporte de ' + sensorName + ':');
-            if (email) {
-                $.ajax({
-                    url: '/api/sensors/' + sensorId + '/share',
-                    type: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                        'Accept': 'application/json'
-                    },
-                    data: { email: email },
-                    success: function (res) {
-                        if(res.success) {
-                            alert('Informe enviado correctamente a ' + email);
-                        } else {
-                            alert('Error: ' + res.message);
-                        }
-                    },
-                    error: function(xhr) {
-                        alert('Error de conexi├│n al enviar informe.');
-                    }
-                });
-            }
         });
 
         // Filtrado en vivo del radar global
@@ -2057,12 +1327,14 @@
 
                 $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
             });
+        });
+    
         $('#btnShareAnalysis').click(function() {
             const sensorId = $('#analyzeSensorId').val();
             const sensorName = $('#analyzeSensorName').text();
             if (!sensorId) return;
 
-            const email = prompt('Ingrese el correo electr├│nico para enviar el reporte de ' + sensorName + ':');
+            const email = prompt('Ingrese el correo electrónico para enviar el reporte de ' + sensorName + ':');
             if (email) {
                 $.ajax({
                     url: '/api/sensors/' + sensorId + '/share',
@@ -2080,36 +1352,7 @@
                         }
                     },
                     error: function(xhr) {
-                        alert('Error de conexi├│n al enviar informe.');
-                    }
-                });
-            }
-        });
-        });
-        $('#btnShareAnalysis').click(function() {
-            const sensorId = $('#analyzeSensorId').val();
-            const sensorName = $('#analyzeSensorName').text();
-            if (!sensorId) return;
-
-            const email = prompt('Ingrese el correo electr├│nico para enviar el reporte de ' + sensorName + ':');
-            if (email) {
-                $.ajax({
-                    url: '/api/sensors/' + sensorId + '/share',
-                    type: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                        'Accept': 'application/json'
-                    },
-                    data: { email: email },
-                    success: function (res) {
-                        if(res.success) {
-                            alert('Informe enviado correctamente a ' + email);
-                        } else {
-                            alert('Error: ' + res.message);
-                        }
-                    },
-                    error: function(xhr) {
-                        alert('Error de conexi├│n al enviar informe.');
+                        alert('Error de conexión al enviar informe.');
                     }
                 });
             }
