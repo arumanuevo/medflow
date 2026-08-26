@@ -321,7 +321,30 @@
     </div>
     
     <!-- Modal para Radar Global de Anomalías -->
-    <div class="modal fade" id="globalRadarModal" tabindex="-1" aria-hidden="true">
+    <!-- Modal para Enviar Informe -->
+    <div class="modal fade" id="shareReportModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white py-2">
+                    <h6 class="modal-title m-0"><i class="bi bi-envelope"></i> Enviar Informe</h6>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted mb-2">Selecciona un campo del grupo o ingresa el correo manualmente:</p>
+                    <div class="mb-3">
+                        <select id="shareEmailSelect" class="form-select form-select-sm mb-2 d-none">
+                            <option value="">-- Ingresar Manualmente --</option>
+                        </select>
+                        <input type="email" id="shareEmailInput" class="form-control form-control-sm" placeholder="ejemplo@correo.com">
+                    </div>
+                </div>
+                <div class="modal-footer p-2">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success btn-sm px-3" id="btnConfirmShare">Enviar <i class="bi bi-send-fill ms-1"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>    <div class="modal fade" id="globalRadarModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-warning text-dark">
@@ -1316,31 +1339,79 @@
     
         $('#btnShareAnalysis').click(function() {
             const sensorId = $('#analyzeSensorId').val();
-            const sensorName = $('#analyzeSensorName').text();
             if (!sensorId) return;
 
-            const email = prompt('Ingrese el correo electrónico para enviar el reporte de ' + sensorName + ':');
-            if (email) {
-                $.ajax({
-                    url: '/api/sensors/' + sensorId + '/share',
-                    type: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                        'Accept': 'application/json'
-                    },
-                    data: { email: email },
-                    success: function (res) {
-                        if(res.success) {
-                            alert('Informe enviado correctamente a ' + email);
-                        } else {
-                            alert('Error: ' + res.message);
-                        }
-                    },
-                    error: function(xhr) {
-                        alert('Error de conexión al enviar informe.');
+            const sensorObj = analyzedSensorsList.find(s => s.id == sensorId);
+            const select = $('#shareEmailSelect');
+            const input = $('#shareEmailInput');
+            
+            select.empty();
+            select.append('<option value="">-- Ingresar Manualmente --</option>');
+            let hasEmails = false;
+
+            if (sensorObj && sensorObj.metadata) {
+                for (const [key, value] of Object.entries(sensorObj.metadata)) {
+                    if (value && typeof value === 'string' && value.includes('@')) {
+                        select.append(`<option value="${value}">${key}: ${value}</option>`);
+                        hasEmails = true;
                     }
-                });
+                }
             }
+
+            if (hasEmails) {
+                select.removeClass('d-none');
+                input.val(select.val());
+            } else {
+                select.addClass('d-none');
+                input.val('');
+            }
+            
+            select.off('change').on('change', function() {
+                if($(this).val()) {
+                    input.val($(this).val());
+                } else {
+                    input.val('');
+                }
+            });
+
+            $('#shareReportModal').modal('show');
+        });
+
+        $('#btnConfirmShare').click(function() {
+            const sensorId = $('#analyzeSensorId').val();
+            const email = $('#shareEmailInput').val();
+            
+            if (!email) {
+                alert('Debe ingresar un correo válido.');
+                return;
+            }
+
+            const btn = $(this);
+            const originalText = btn.html();
+            btn.prop('disabled', true).html('<i class="spinner-border spinner-border-sm"></i> Enviando...');
+
+            $.ajax({
+                url: '/api/sensors/' + sensorId + '/share',
+                type: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                    'Accept': 'application/json'
+                },
+                data: { email: email },
+                success: function (res) {
+                    btn.prop('disabled', false).html(originalText);
+                    if(res.success || res.message) {
+                        alert('Informe enviado correctamente a ' + email);
+                        $('#shareReportModal').modal('hide');
+                    } else {
+                        alert('Error: ' + (res.message || 'Error desconocido'));
+                    }
+                },
+                error: function(xhr) {
+                    btn.prop('disabled', false).html(originalText);
+                    alert('Error de conexión al enviar informe.');
+                }
+            });
         });
     </script>
 @endpush
