@@ -587,6 +587,64 @@ class MeasurementController extends Controller
         ]);
     }
     /**
+     * Actualiza la foto de una medición existente manualmente.
+     */
+    public function updatePhoto(Request $request, Measurement $measurement)
+    {
+        $request->validate([
+            'foto' => 'required|image|mimes:jpeg,png,jpg,webp|max:10240'
+        ]);
+
+        $user = auth()->user();
+        $sensor = $measurement->sensor;
+
+        if (!$this->canUploadPhoto($user, $sensor)) {
+            return response()->json(['success' => false, 'message' => 'No tienes permiso para actualizar esta medición.'], 403);
+        }
+
+        try {
+            $file = $request->file('foto');
+            $extension = $file->getClientOriginalExtension();
+            $timestamp = now()->format('Ymd_His');
+            $filename = 'measurement_' . $measurement->id . '_' . $timestamp . '.' . $extension;
+
+            $path = public_path('measurements');
+            if (!file_exists($path)) {
+                mkdir($path, 0775, true);
+            }
+
+            $currentData = $measurement->data ?? [];
+
+            // Remove old photo if exists
+            if (isset($currentData['foto']) && $currentData['foto']) {
+                $oldPath = public_path(ltrim($currentData['foto'], '/'));
+                if (file_exists($oldPath) && is_file($oldPath)) {
+                    @unlink($oldPath);
+                }
+            }
+
+            $file->move($path, $filename);
+
+            $currentData['foto'] = '/measurements/' . $filename;
+            $measurement->data = $currentData;
+            $measurement->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Foto adjuntada correctamente',
+                'photo_path' => $currentData['foto']
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error actualizando foto de medición: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al subir imagen: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Eliminar una medición.
      */
     public function destroy(Measurement $measurement)

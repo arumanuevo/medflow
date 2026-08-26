@@ -99,6 +99,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/measurements/upload-photo', [MeasurementController::class, 'uploadPhoto'])
         ->name('api.measurements.upload-photo');
 
+    Route::post('/measurements/{measurement}/update-photo', [MeasurementController::class, 'updatePhoto'])
+        ->name('api.measurements.update-photo');
+
     Route::get('/measurements/{measurement}/errors', [MeasurementController::class, 'getMeasurementErrors'])
         ->name('api.measurements.errors');
 

@@ -6,8 +6,8 @@
     <link rel="stylesheet" href="{{ asset('css/measurements-styles.css') }}">
     <style>
         /* ============================================
-                                                                   HEADER MEJORADO
-                                                                   ============================================ */
+                                                                               HEADER MEJORADO
+                                                                               ============================================ */
         .card-header-tools {
             display: flex;
             flex-wrap: wrap;
@@ -44,8 +44,8 @@
         }
 
         /* ============================================
-                                                                   BUSCADOR
-                                                                   ============================================ */
+                                                                               BUSCADOR
+                                                                               ============================================ */
         .search-wrapper {
             display: flex;
             align-items: center;
@@ -93,8 +93,8 @@
         }
 
         /* ============================================
-                                                                   PAGINACION
-                                                                   ============================================ */
+                                                                               PAGINACION
+                                                                               ============================================ */
         .pagination-wrapper {
             display: flex;
             flex-wrap: wrap;
@@ -147,8 +147,8 @@
         }
 
         /* ============================================
-                                                                   EMPTY STATE
-                                                                   ============================================ */
+                                                                               EMPTY STATE
+                                                                               ============================================ */
         .empty-state {
             text-align: center;
             padding: 3rem 1.5rem;
@@ -170,8 +170,8 @@
         }
 
         /* ============================================
-                                                                   ESTILOS PARA FILTROS
-                                                                   ============================================ */
+                                                                               ESTILOS PARA FILTROS
+                                                                               ============================================ */
         .filter-section {
             background: #f8f9fa;
             padding: 1rem;
@@ -202,8 +202,8 @@
         }
 
         /* ============================================
-                                                                   ESTILOS PARA TARJETAS DE ERRORES
-                                                                   ============================================ */
+                                                                               ESTILOS PARA TARJETAS DE ERRORES
+                                                                               ============================================ */
         #errorStatsContainer .row>div {
             margin-bottom: 10px;
         }
@@ -258,8 +258,8 @@
         }
 
         /* ============================================
-                                                                   ESTILO PARA IDENTIFICADOR DEL SENSOR
-                                                                   ============================================ */
+                                                                               ESTILO PARA IDENTIFICADOR DEL SENSOR
+                                                                               ============================================ */
         .sensor-identifier {
             display: block;
             font-size: 0.65rem;
@@ -277,8 +277,8 @@
         }
 
         /* ============================================
-                                                                   RESPONSIVE
-                                                                   ============================================ */
+                                                                               RESPONSIVE
+                                                                               ============================================ */
         @media (max-width: 992px) {
             .card-header-tools {
                 flex-direction: column;
@@ -519,11 +519,22 @@
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="photoModalLabel">Foto de la Medición</h5>
+                    <h5 class="modal-title" id="photoModalLabel">Evidencia Fotográfica</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body text-center">
-                    <img id="modalPhoto" src="" class="img-fluid" style="max-height: 70vh;" alt="Foto de la medición">
+                    <img id="modalPhoto" src="" class="img-fluid mb-3" style="max-height: 50vh;" alt="Foto de la medición">
+
+                    <div id="photoUploadContainer" class="mt-3 p-3 bg-light rounded text-start">
+                        <label class="form-label fw-bold">Adjuntar o Reemplazar Foto (Manual)</label>
+                        <input type="hidden" id="uploadPhotoMeasurementsId" value="">
+                        <div class="input-group">
+                            <input type="file" class="form-control" id="newPhotoInput" accept="image/*">
+                            <button class="btn btn-success" type="button" id="submitNewPhotoBtn"><i
+                                    class="bi bi-cloud-upload"></i> Subir</button>
+                        </div>
+                        <div id="uploadResult" class="mt-2 text-center" style="display:none;"></div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
@@ -618,14 +629,14 @@
                     data: params,
                     beforeSend: function () {
                         $('#measurementsTableBody').html(`
-                                                                                <tr>
-                                                                                    <td colspan="12" class="text-center">
-                                                                                        <div class="spinner-border text-primary" role="status">
-                                                                                            <span class="visually-hidden">Cargando...</span>
-                                                                                        </div> Cargando mediciones...
-                                                                                    </td>
-                                                                                </tr>
-                                                                            `);
+                                                                                            <tr>
+                                                                                                <td colspan="12" class="text-center">
+                                                                                                    <div class="spinner-border text-primary" role="status">
+                                                                                                        <span class="visually-hidden">Cargando...</span>
+                                                                                                    </div> Cargando mediciones...
+                                                                                                </td>
+                                                                                            </tr>
+                                                                                        `);
                     },
                     success: function (response) {
                         if (response.success) {
@@ -648,12 +659,12 @@
                     error: function (xhr) {
                         console.error('Error cargando mediciones:', xhr);
                         $('#measurementsTableBody').html(`
-                                                                                <tr>
-                                                                                    <td colspan="12" class="text-center text-danger">
-                                                                                        <i class="bi bi-exclamation-triangle"></i> Error al cargar las mediciones. Por favor, intente de nuevo.
-                                                                                    </td>
-                                                                                </tr>
-                                                                            `);
+                                                                                            <tr>
+                                                                                                <td colspan="12" class="text-center text-danger">
+                                                                                                    <i class="bi bi-exclamation-triangle"></i> Error al cargar las mediciones. Por favor, intente de nuevo.
+                                                                                                </td>
+                                                                                            </tr>
+                                                                                        `);
                     }
                 });
             }
@@ -661,12 +672,12 @@
             // Función para mostrar errores
             function showError(message) {
                 $('#measurementsTableBody').html(`
-                                                                        <tr>
-                                                                            <td colspan="12" class="text-center text-danger">
-                                                                                <i class="bi bi-exclamation-triangle"></i> ${message}
-                                                                            </td>
-                                                                        </tr>
-                                                                    `);
+                                                                                    <tr>
+                                                                                        <td colspan="12" class="text-center text-danger">
+                                                                                            <i class="bi bi-exclamation-triangle"></i> ${message}
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                `);
             }
 
             // Función para actualizar estadísticas de errores
@@ -694,12 +705,12 @@
             function renderMeasurements(measurements) {
                 if (measurements.length === 0) {
                     $('#measurementsTableBody').html(`
-                                                                            <tr>
-                                                                                <td colspan="11" class="text-center">
-                                                                                    <i class="bi bi-inbox"></i> No se encontraron mediciones
-                                                                                </td>
-                                                                            </tr>
-                                                                        `);
+                                                                                        <tr>
+                                                                                            <td colspan="11" class="text-center">
+                                                                                                <i class="bi bi-inbox"></i> No se encontraron mediciones
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    `);
                     return;
                 }
 
@@ -758,42 +769,45 @@
                     }
 
                     html += `
-                                                                            <tr class="${status === 'valid' ? '' : 'table-warning'}">
-                                                                                <td class="text-center">
-                                                                                    <input class="form-check-input measurement-checkbox" type="checkbox" value="${measurement.id}">
-                                                                                </td>
-                                                                                <td>
-                                                                                    <div class="sensor-info">${sensorDisplay}</div>
-                                                                                </td>
-                                                                                <td><code>${sensorIdentifier || '—'}</code></td>
-                                                                                <td>${groupName}</td>
-                                                                                <td><div class="sensor-info">${templateDisplay}</div></td>
-                                                                                <td>${value} ${unit}</td>
-                                                                                <td>${date}</td>
-                                                                                <td class="${consumptionClass}">${consumption}</td>
-                                                                                <td>${statusBadge}</td>
-                                                                                <td>
-                                                                                    ${photoPath ?
-                            `<button class="btn btn-sm btn-info viewPhotoBtn" data-photo-path="${photoPath}">
-                                                                                            <i class="bi bi-image me-1"></i> Ver
-                                                                                        </button>` : 'Sin Foto'}
-                                                                                </td>
-                                                                                <td>
-                                                                                    <div class="table-actions">
-                                                                                        <a href="{{ url('/mediciones/edit') }}/${measurement.id}" class="btn btn-sm btn-warning" title="Editar">
-                                                                                            <i class="bi bi-pencil"></i>
-                                                                                        </a>
-                                                                                        <button class="btn btn-sm btn-danger deleteMeasurementBtn" title="Eliminar" data-measurement-id="${measurement.id}">
-                                                                                            <i class="bi bi-trash"></i>
-                                                                                        </button>
-                                                                                        ${status !== 'valid' ?
+                                                                                        <tr class="${status === 'valid' ? '' : 'table-warning'}">
+                                                                                            <td class="text-center">
+                                                                                                <input class="form-check-input measurement-checkbox" type="checkbox" value="${measurement.id}">
+                                                                                            </td>
+                                                                                            <td>
+                                                                                                <div class="sensor-info">${sensorDisplay}</div>
+                                                                                            </td>
+                                                                                            <td><code>${sensorIdentifier || '—'}</code></td>
+                                                                                            <td>${groupName}</td>
+                                                                                            <td><div class="sensor-info">${templateDisplay}</div></td>
+                                                                                            <td>${value} ${unit}</td>
+                                                                                            <td>${date}</td>
+                                                                                            <td class="${consumptionClass}">${consumption}</td>
+                                                                                            <td>${statusBadge}</td>
+                                                                                            <td>
+                                                                                                ${photoPath ?
+                            `<button class="btn btn-sm btn-info viewPhotoBtn" data-photo-path="${photoPath}" data-measurement-id="${measurement.id}">
+                                                                                                        <i class="bi bi-image me-1"></i> Ver
+                                                                                                    </button>` :
+                            `<button class="btn btn-sm btn-outline-secondary editPhotoBtn" data-measurement-id="${measurement.id}">
+                                            <i class="bi bi-camera"></i> Subir
+                                        </button>`}
+                                                                                            </td>
+                                                                                            <td>
+                                                                                                <div class="table-actions">
+                                                                                                    <a href="{{ url('/mediciones/edit') }}/${measurement.id}" class="btn btn-sm btn-warning" title="Editar">
+                                                                                                        <i class="bi bi-pencil"></i>
+                                                                                                    </a>
+                                                                                                    <button class="btn btn-sm btn-danger deleteMeasurementBtn" title="Eliminar" data-measurement-id="${measurement.id}">
+                                                                                                        <i class="bi bi-trash"></i>
+                                                                                                    </button>
+                                                                                                    ${status !== 'valid' ?
                             `<button class="btn btn-sm btn-info viewErrorBtn" title="Ver detalles del error" data-measurement-id="${measurement.id}">
-                                                                                                <i class="bi bi-exclamation-triangle"></i>
-                                                                                            </button>` : ''}
-                                                                                    </div>
-                                                                                </td>
-                                                                            </tr>
-                                                                        `;
+                                                                                                            <i class="bi bi-exclamation-triangle"></i>
+                                                                                                        </button>` : ''}
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    `;
                 });
 
                 $('#measurementsTableBody').html(html);
@@ -801,8 +815,24 @@
                 // Asignar eventos
                 $('.viewPhotoBtn').click(function () {
                     const photoPath = $(this).data('photo-path');
-                    $('#modalPhoto').attr('src', photoPath);
-                    $('#downloadPhoto').attr('href', photoPath);
+                    const mId = $(this).data('measurement-id');
+                    $('#modalPhoto').attr('src', photoPath).show();
+                    $('#downloadPhoto').attr('href', photoPath).show();
+                    $('#uploadPhotoMeasurementsId').val(mId);
+                    $('#photoModalLabel').text('Ver/Reemplazar Foto');
+                    $('#photoUploadContainer').show();
+                    $('#uploadResult').hide();
+                    $('#photoModal').modal('show');
+                });
+
+                $('.editPhotoBtn').click(function () {
+                    const mId = $(this).data('measurement-id');
+                    $('#modalPhoto').hide();
+                    $('#downloadPhoto').hide();
+                    $('#uploadPhotoMeasurementsId').val(mId);
+                    $('#photoModalLabel').text('Subir Foto Manual');
+                    $('#photoUploadContainer').show();
+                    $('#uploadResult').hide();
                     $('#photoModal').modal('show');
                 });
 
@@ -890,46 +920,46 @@
                     },
                     beforeSend: function () {
                         $('#errorDetailsModalLabel').html(`
-                                                                                <i class="bi bi-exclamation-triangle-fill"></i> Cargando detalles...
-                                                                            `);
+                                                                                            <i class="bi bi-exclamation-triangle-fill"></i> Cargando detalles...
+                                                                                        `);
                         $('#errorDetailsContent').html(`
-                                                                                <div class="text-center">
-                                                                                    <div class="spinner-border text-primary" role="status">
-                                                                                        <span class="visually-hidden">Cargando...</span>
-                                                                                    </div>
-                                                                                    <p class="mt-2">Cargando detalles del error...</p>
-                                                                                </div>
-                                                                            `);
+                                                                                            <div class="text-center">
+                                                                                                <div class="spinner-border text-primary" role="status">
+                                                                                                    <span class="visually-hidden">Cargando...</span>
+                                                                                                </div>
+                                                                                                <p class="mt-2">Cargando detalles del error...</p>
+                                                                                            </div>
+                                                                                        `);
                         $('#errorDetailsModal').modal('show');
                     },
                     success: function (response) {
                         if (response.success) {
                             const errorTypeName = getErrorTypeName(errorType);
                             $('#errorDetailsModalLabel').html(`
-                                                                                    <i class="bi bi-exclamation-triangle-fill"></i> ${errorTypeName} (${response.count} registros)
-                                                                                `);
+                                                                                                <i class="bi bi-exclamation-triangle-fill"></i> ${errorTypeName} (${response.count} registros)
+                                                                                            `);
                             renderErrorDetails(response.data);
                         } else {
                             $('#errorDetailsModalLabel').html(`
-                                                                                    <i class="bi bi-exclamation-triangle-fill"></i> Error
-                                                                                `);
+                                                                                                <i class="bi bi-exclamation-triangle-fill"></i> Error
+                                                                                            `);
                             $('#errorDetailsContent').html(`
-                                                                                    <div class="alert alert-danger">
-                                                                                        <i class="bi bi-exclamation-triangle"></i> ${response.message || 'Error al cargar detalles'}
-                                                                                    </div>
-                                                                                `);
+                                                                                                <div class="alert alert-danger">
+                                                                                                    <i class="bi bi-exclamation-triangle"></i> ${response.message || 'Error al cargar detalles'}
+                                                                                                </div>
+                                                                                            `);
                         }
                     },
                     error: function (xhr) {
                         const errorMessage = xhr.responseJSON?.message || xhr.statusText;
                         $('#errorDetailsModalLabel').html(`
-                                                                                <i class="bi bi-exclamation-triangle-fill"></i> Error
-                                                                            `);
+                                                                                            <i class="bi bi-exclamation-triangle-fill"></i> Error
+                                                                                        `);
                         $('#errorDetailsContent').html(`
-                                                                                <div class="alert alert-danger">
-                                                                                    <i class="bi bi-exclamation-triangle"></i> Error: ${errorMessage}
-                                                                                </div>
-                                                                            `);
+                                                                                            <div class="alert alert-danger">
+                                                                                                <i class="bi bi-exclamation-triangle"></i> Error: ${errorMessage}
+                                                                                            </div>
+                                                                                        `);
                     }
                 });
             }
@@ -938,10 +968,10 @@
             function renderErrorDetails(errorDetails) {
                 if (errorDetails.length === 0) {
                     $('#errorDetailsContent').html(`
-                                                                            <div class="alert alert-info">
-                                                                                <i class="bi bi-info-circle"></i> No se encontraron registros con este tipo de error.
-                                                                            </div>
-                                                                        `);
+                                                                                        <div class="alert alert-info">
+                                                                                            <i class="bi bi-info-circle"></i> No se encontraron registros con este tipo de error.
+                                                                                        </div>
+                                                                                    `);
                     return;
                 }
 
@@ -963,29 +993,29 @@
                     const groupName = sensorDetail.group_name;
 
                     html += `
-                                                                            <div class="accordion-item">
-                                                                                <h2 class="accordion-header" id="heading-${sensorKey}">
-                                                                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${sensorKey}" aria-expanded="false" aria-controls="collapse-${sensorKey}">
-                                                                                        <strong>${sensorName}</strong> ${sensorIdentifier ? `(#${sensorIdentifier})` : ''} - Grupo: ${groupName}
-                                                                                        <span class="badge bg-warning ms-2">${details.length} registros</span>
-                                                                                    </button>
-                                                                                </h2>
-                                                                                <div id="collapse-${sensorKey}" class="accordion-collapse collapse" aria-labelledby="heading-${sensorKey}" data-bs-parent="#errorDetailsAccordion">
-                                                                                    <div class="accordion-body">
-                                                                                        <div class="table-responsive">
-                                                                                            <table class="table table-bordered table-sm">
-                                                                                                <thead>
-                                                                                                    <tr>
-                                                                                                        <th>#</th>
-                                                                                                        <th>Medición Actual</th>
-                                                                                                        <th>Medición Anterior</th>
-                                                                                                        <th>Diferencia</th>
-                                                                                                        <th>Días</th>
-                                                                                                        <th>Error</th>
-                                                                                                    </tr>
-                                                                                                </thead>
-                                                                                                <tbody>
-                                                                        `;
+                                                                                        <div class="accordion-item">
+                                                                                            <h2 class="accordion-header" id="heading-${sensorKey}">
+                                                                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${sensorKey}" aria-expanded="false" aria-controls="collapse-${sensorKey}">
+                                                                                                    <strong>${sensorName}</strong> ${sensorIdentifier ? `(#${sensorIdentifier})` : ''} - Grupo: ${groupName}
+                                                                                                    <span class="badge bg-warning ms-2">${details.length} registros</span>
+                                                                                                </button>
+                                                                                            </h2>
+                                                                                            <div id="collapse-${sensorKey}" class="accordion-collapse collapse" aria-labelledby="heading-${sensorKey}" data-bs-parent="#errorDetailsAccordion">
+                                                                                                <div class="accordion-body">
+                                                                                                    <div class="table-responsive">
+                                                                                                        <table class="table table-bordered table-sm">
+                                                                                                            <thead>
+                                                                                                                <tr>
+                                                                                                                    <th>#</th>
+                                                                                                                    <th>Medición Actual</th>
+                                                                                                                    <th>Medición Anterior</th>
+                                                                                                                    <th>Diferencia</th>
+                                                                                                                    <th>Días</th>
+                                                                                                                    <th>Error</th>
+                                                                                                                </tr>
+                                                                                                            </thead>
+                                                                                                            <tbody>
+                                                                                    `;
 
                     details.forEach((detail, index) => {
                         const currentDate = new Date(detail.current_measurement.date).toLocaleString('es-ES');
@@ -998,34 +1028,34 @@
                         const daysDifference = detail.difference ? detail.difference.days : 'N/A';
 
                         html += `
-                                                                                <tr>
-                                                                                    <td>${detail.record_number}</td>
-                                                                                    <td>
-                                                                                        <strong>ID:</strong> ${detail.current_measurement.id}<br>
-                                                                                        <strong>Valor:</strong> ${detail.current_measurement.value}<br>
-                                                                                        <strong>Fecha:</strong> ${currentDate}
-                                                                                    </td>
-                                                                                    <td>
-                                                                                        ${detail.previous_measurement ?
+                                                                                            <tr>
+                                                                                                <td>${detail.record_number}</td>
+                                                                                                <td>
+                                                                                                    <strong>ID:</strong> ${detail.current_measurement.id}<br>
+                                                                                                    <strong>Valor:</strong> ${detail.current_measurement.value}<br>
+                                                                                                    <strong>Fecha:</strong> ${currentDate}
+                                                                                                </td>
+                                                                                                <td>
+                                                                                                    ${detail.previous_measurement ?
                                 `<strong>ID:</strong> ${detail.previous_measurement.id}<br>
-                                                                                            <strong>Valor:</strong> ${detail.previous_measurement.value}<br>
-                                                                                            <strong>Fecha:</strong> ${previousDate}` : 'N/A'}
-                                                                                    </td>
-                                                                                    <td class="${consumptionClass}">${difference}</td>
-                                                                                    <td>${daysDifference !== 'N/A' ? daysDifference + ' días' : 'N/A'}</td>
-                                                                                    <td>${detail.error_message}</td>
-                                                                                </tr>
-                                                                            `;
+                                                                                                        <strong>Valor:</strong> ${detail.previous_measurement.value}<br>
+                                                                                                        <strong>Fecha:</strong> ${previousDate}` : 'N/A'}
+                                                                                                </td>
+                                                                                                <td class="${consumptionClass}">${difference}</td>
+                                                                                                <td>${daysDifference !== 'N/A' ? daysDifference + ' días' : 'N/A'}</td>
+                                                                                                <td>${detail.error_message}</td>
+                                                                                            </tr>
+                                                                                        `;
                     });
 
                     html += `
-                                                                                                </tbody>
-                                                                                            </table>
+                                                                                                            </tbody>
+                                                                                                        </table>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
                                                                                         </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        `;
+                                                                                    `;
                 });
 
                 html += '</div>';
@@ -1087,13 +1117,13 @@
                     },
                     beforeSend: function () {
                         $('#errorDetailsContent').html(`
-                                                                                <div class="text-center">
-                                                                                    <div class="spinner-border text-primary" role="status">
-                                                                                        <span class="visually-hidden">Cargando...</span>
-                                                                                    </div>
-                                                                                    <p class="mt-2">Cargando detalles del error...</p>
-                                                                                </div>
-                                                                            `);
+                                                                                            <div class="text-center">
+                                                                                                <div class="spinner-border text-primary" role="status">
+                                                                                                    <span class="visually-hidden">Cargando...</span>
+                                                                                                </div>
+                                                                                                <p class="mt-2">Cargando detalles del error...</p>
+                                                                                            </div>
+                                                                                        `);
                         $('#errorDetailsModal').modal('show');
                     },
                     success: function (response) {
@@ -1109,11 +1139,11 @@
                                     html += '<h5 class="text-danger"><i class="bi bi-x-circle-fill"></i> Errores</h5><ul class="list-group list-group-flush mb-3">';
                                     errors.forEach(error => {
                                         html += `
-                                                                                                <li class="list-group-item">
-                                                                                                    <strong>${error.type}:</strong> ${error.message}
-                                                                                                    ${error.suggestion ? `<br><small class="text-muted">${error.suggestion}</small>` : ''}
-                                                                                                </li>
-                                                                                            `;
+                                                                                                            <li class="list-group-item">
+                                                                                                                <strong>${error.type}:</strong> ${error.message}
+                                                                                                                ${error.suggestion ? `<br><small class="text-muted">${error.suggestion}</small>` : ''}
+                                                                                                            </li>
+                                                                                                        `;
                                     });
                                     html += '</ul>';
                                 }
@@ -1122,11 +1152,11 @@
                                     html += '<h5 class="text-warning"><i class="bi bi-exclamation-triangle-fill"></i> Advertencias</h5><ul class="list-group list-group-flush">';
                                     warnings.forEach(warning => {
                                         html += `
-                                                                                                <li class="list-group-item">
-                                                                                                    <strong>${warning.type}:</strong> ${warning.message}
-                                                                                                    ${warning.suggestion ? `<br><small class="text-muted">${warning.suggestion}</small>` : ''}
-                                                                                                </li>
-                                                                                            `;
+                                                                                                            <li class="list-group-item">
+                                                                                                                <strong>${warning.type}:</strong> ${warning.message}
+                                                                                                                ${warning.suggestion ? `<br><small class="text-muted">${warning.suggestion}</small>` : ''}
+                                                                                                            </li>
+                                                                                                        `;
                                     });
                                     html += '</ul>';
                                 }
@@ -1135,22 +1165,69 @@
                             $('#errorDetailsContent').html(html);
                         } else {
                             $('#errorDetailsContent').html(`
-                                                                                    <div class="alert alert-danger">
-                                                                                        <i class="bi bi-exclamation-triangle"></i> ${response.message || 'Error al cargar detalles'}
-                                                                                    </div>
-                                                                                `);
+                                                                                                <div class="alert alert-danger">
+                                                                                                    <i class="bi bi-exclamation-triangle"></i> ${response.message || 'Error al cargar detalles'}
+                                                                                                </div>
+                                                                                            `);
                         }
                     },
                     error: function (xhr) {
                         const errorMessage = xhr.responseJSON?.message || xhr.statusText;
                         $('#errorDetailsContent').html(`
-                                                                                <div class="alert alert-danger">
-                                                                                    <i class="bi bi-exclamation-triangle"></i> Error: ${errorMessage}
-                                                                                </div>
-                                                                            `);
+                                                                                            <div class="alert alert-danger">
+                                                                                                <i class="bi bi-exclamation-triangle"></i> Error: ${errorMessage}
+                                                                                            </div>
+                                                                                        `);
                     }
                 });
             }
+
+            // Lógica para subir foto manual
+            $('#submitNewPhotoBtn').click(function () {
+                const measurementId = $('#uploadPhotoMeasurementsId').val();
+                const fileInput = $('#newPhotoInput')[0];
+
+                if (!fileInput.files || fileInput.files.length === 0) {
+                    $('#uploadResult').html('<div class="alert alert-warning py-1 mt-2">Por favor, selecciona una foto primero.</div>').show();
+                    return;
+                }
+
+                const file = fileInput.files[0];
+                const formData = new FormData();
+                formData.append('foto', file);
+
+                const btnText = $(this).html();
+                $(this).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Subiendo...').prop('disabled', true);
+
+                $.ajax({
+                    url: `/api/measurements/${measurementId}/update-photo`,
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                        'Accept': 'application/json'
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            $('#uploadResult').html('<div class="alert alert-success py-1 mt-2">✅ Foto actualizada. Recargando...</div>').show();
+                            setTimeout(() => {
+                                $('#photoModal').modal('hide');
+                                loadMeasurements(); // Refrescar la tabla
+                            }, 1000);
+                        } else {
+                            $('#uploadResult').html(`<div class="alert alert-danger py-1 mt-2">❌ Error: ${response.message}</div>`).show();
+                        }
+                    },
+                    error: function (xhr) {
+                        $('#uploadResult').html(`<div class="alert alert-danger py-1 mt-2">❌ Ocurrió un error. Verifica el formato/tamaño.</div>`).show();
+                    },
+                    complete: function () {
+                        $('#submitNewPhotoBtn').html(btnText).prop('disabled', false);
+                    }
+                });
+            });
 
             // Función para eliminar una medición
             function deleteMeasurement(measurementId) {
@@ -1192,18 +1269,18 @@
 
                 if (currentPage > 1) {
                     paginationHtml += `
-                                                                            <li class="page-item">
-                                                                                <a class="page-link" href="#" data-page="${currentPage - 1}" aria-label="Anterior">
-                                                                                    <span aria-hidden="true">&laquo;</span>
-                                                                                </a>
-                                                                            </li>
-                                                                        `;
+                                                                                        <li class="page-item">
+                                                                                            <a class="page-link" href="#" data-page="${currentPage - 1}" aria-label="Anterior">
+                                                                                                <span aria-hidden="true">&laquo;</span>
+                                                                                            </a>
+                                                                                        </li>
+                                                                                    `;
                 } else {
                     paginationHtml += `
-                                                                            <li class="page-item disabled">
-                                                                                <span class="page-link" aria-hidden="true">&laquo;</span>
-                                                                            </li>
-                                                                        `;
+                                                                                        <li class="page-item disabled">
+                                                                                            <span class="page-link" aria-hidden="true">&laquo;</span>
+                                                                                        </li>
+                                                                                    `;
                 }
 
                 const maxPages = 5;
@@ -1217,33 +1294,33 @@
                 for (let i = startPage; i <= endPage; i++) {
                     if (i === currentPage) {
                         paginationHtml += `
-                                                                                <li class="page-item active">
-                                                                                    <span class="page-link">${i}</span>
-                                                                                </li>
-                                                                            `;
+                                                                                            <li class="page-item active">
+                                                                                                <span class="page-link">${i}</span>
+                                                                                            </li>
+                                                                                        `;
                     } else {
                         paginationHtml += `
-                                                                                <li class="page-item">
-                                                                                    <a class="page-link" href="#" data-page="${i}">${i}</a>
-                                                                                </li>
-                                                                            `;
+                                                                                            <li class="page-item">
+                                                                                                <a class="page-link" href="#" data-page="${i}">${i}</a>
+                                                                                            </li>
+                                                                                        `;
                     }
                 }
 
                 if (currentPage < meta.last_page) {
                     paginationHtml += `
-                                                                            <li class="page-item">
-                                                                                <a class="page-link" href="#" data-page="${currentPage + 1}" aria-label="Siguiente">
-                                                                                    <span aria-hidden="true">&raquo;</span>
-                                                                                </a>
-                                                                            </li>
-                                                                        `;
+                                                                                        <li class="page-item">
+                                                                                            <a class="page-link" href="#" data-page="${currentPage + 1}" aria-label="Siguiente">
+                                                                                                <span aria-hidden="true">&raquo;</span>
+                                                                                            </a>
+                                                                                        </li>
+                                                                                    `;
                 } else {
                     paginationHtml += `
-                                                                            <li class="page-item disabled">
-                                                                                <span class="page-link" aria-hidden="true">&raquo;</span>
-                                                                            </li>
-                                                                        `;
+                                                                                        <li class="page-item disabled">
+                                                                                            <span class="page-link" aria-hidden="true">&raquo;</span>
+                                                                                        </li>
+                                                                                    `;
                 }
 
                 $('#pagination').html(paginationHtml);
