@@ -12,6 +12,10 @@ use App\Models\Measurement;
 use App\Services\Subscription\SubscriptionService;
 use Carbon\Carbon;
 
+use App\Mail\IndividualReportMail;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
+
 class SensorController extends Controller
 {
     /**
@@ -583,5 +587,27 @@ class SensorController extends Controller
             'success' => true,
             'message' => count($sensorIds) . ' sensores eliminados correctamente'
         ]);
+    }
+
+    public function shareReport(Request $request, Sensor $sensor)
+    {
+        $request->validate([
+            'email' => 'required|email'
+        ]);
+
+        if (empty($sensor->public_token)) {
+            $sensor->public_token = Str::random(32);
+            $sensor->save();
+        }
+
+        $url = route('public.visor', ['token' => $sensor->public_token]);
+        
+        try {
+            Mail::to($request->email)->send(new IndividualReportMail($sensor, $url));
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            Log::error('Error enviando reporte avanzado: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Fallo al enviar correo: ' . $e->getMessage()], 500);
+        }
     }
 }
