@@ -85,32 +85,6 @@
                                     </td>
                                 </tr>
 
-                                <!-- Modal Estado -->
-                                <div class="modal fade" id="statusModal{{ $inv->id }}" tabindex="-1">
-                                    <div class="modal-dialog modal-sm modal-dialog-centered">
-                                        <form action="{{ route('superadmin.invoices.status', $inv->id) }}" method="POST"
-                                            class="modal-content">
-                                            @csrf
-                                            <div class="modal-header">
-                                                <h5 class="modal-title">Cambiar Estado</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body text-start">
-                                                <select name="status" class="form-select mt-2">
-                                                    <option value="pendiente" {{ $inv->status == 'pendiente' ? 'selected' : '' }}>
-                                                        Pendiente de Pago</option>
-                                                    <option value="pagada" {{ $inv->status == 'pagada' ? 'selected' : '' }}>Pagada
-                                                    </option>
-                                                    <option value="anulada" {{ $inv->status == 'anulada' ? 'selected' : '' }}>
-                                                        Anulada</option>
-                                                </select>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="submit" class="btn btn-primary btn-sm">Actualizar</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
                             @empty
                                 <tr>
                                     <td colspan="7" class="text-center text-muted py-4">No hay facturas manuales registradas en
@@ -123,4 +97,33 @@
             </div>
         </div>
     </div>
+
+    <!-- ZONA DE MODALES -->
+    @foreach($invoices as $inv)
+        <!-- Modal Estado -->
+        <div class="modal fade" id="statusModal{{ $inv->id }}" tabindex="-1">
+            <div class="modal-dialog modal-sm modal-dialog-centered">
+                <form action="{{ route('superadmin.invoices.status', $inv->id) }}" method="POST" class="modal-content">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title">Cambiar Estado</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-start">
+                        <select name="status" class="form-select mt-2">
+                            <option value="pendiente" {{ $inv->status == 'pendiente' ? 'selected' : '' }}>
+                                Pendiente de Pago</option>
+                            <option value="pagada" {{ $inv->status == 'pagada' ? 'selected' : '' }}>Pagada
+                            </option>
+                            <option value="anulada" {{ $inv->status == 'anulada' ? 'selected' : '' }}>
+                                Anulada</option>
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary btn-sm">Actualizar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endforeach
 @endsection

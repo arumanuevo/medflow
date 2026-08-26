@@ -82,123 +82,6 @@
                                                 siempre"><i class="bi bi-trash"></i></button>
                                         </form>
                                     </td>
-                                </tr>
-
-                                <!-- Modal Facturación Manual -->
-                                <div class="modal fade" id="facturaModal{{ $u->id }}" tabindex="-1">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <form action="{{ route('superadmin.users.invoice', $u->id) }}" method="POST"
-                                            enctype="multipart/form-data" class="modal-content">
-                                            @csrf
-                                            <div class="modal-header">
-                                                <h5 class="modal-title">Emitir Factura a {{ $u->name }}</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body text-start">
-                                                <div class="row">
-                                                    <div class="col-md-6 mb-3">
-                                                        <label class="form-label">Monto ($)</label>
-                                                        <input type="number" step="0.01" name="amount" class="form-control"
-                                                            placeholder="15000.00" required>
-                                                    </div>
-                                                    <div class="col-md-6 mb-3">
-                                                        <label class="form-label">Estado Inicial</label>
-                                                        <select name="status" class="form-select">
-                                                            <option value="pendiente">Pendiente de Pago</option>
-                                                            <option value="pagada">Confirmada / Pagada</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label">Concepto / Descripción</label>
-                                                    <input type="text" name="description" class="form-control"
-                                                        placeholder="Servicio MedFlow - Mes Septiembre" required>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label">Adjuntar Factura PDF (Opcional)</label>
-                                                    <input type="file" name="invoice_file" class="form-control"
-                                                        accept="application/pdf">
-                                                </div>
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" name="send_email" value="1"
-                                                        id="sendEmail{{ $u->id }}" checked>
-                                                    <label class="form-check-label" for="sendEmail{{ $u->id }}">
-                                                        Enviar aviso y factura por correo a
-                                                        {{ !empty($u->email_facturacion) ? $u->email_facturacion : $u->email }}
-                                                        ahora mismo.
-                                                    </label>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary btn-sm"
-                                                    data-bs-dismiss="modal">Cancelar</button>
-                                                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-save"></i>
-                                                    Generar Factura</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-
-                                <!-- Modal Plan -->
-                                <div class="modal fade" id="planModal{{ $u->id }}" tabindex="-1">
-                                    <div class="modal-dialog modal-sm modal-dialog-centered">
-                                        <form action="{{ route('superadmin.users.plan', $u->id) }}" method="POST"
-                                            class="modal-content">
-                                            @csrf
-                                            <div class="modal-header">
-                                                <h5 class="modal-title">Cambiar Plan</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body text-start">
-                                                <label>Forzar plan de <b>{{ $u->name }}</b></label>
-                                                <select name="subscription_plan" class="form-select mt-2">
-                                                    <option value="free" {{ $u->subscription_plan == 'free' ? 'selected' : '' }}>
-                                                        Free</option>
-                                                    <option value="basico" {{ $u->subscription_plan == 'basico' ? 'selected' : '' }}>Básico</option>
-                                                    <option value="premium" {{ $u->subscription_plan == 'premium' ? 'selected' : '' }}>Premium</option>
-                                                    <option value="enterprise" {{ $u->subscription_plan == 'enterprise' ? 'selected' : '' }}>Enterprise</option>
-                                                </select>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="submit" class="btn btn-primary btn-sm">Guardar</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-
-                                <!-- Modal Mensaje -->
-                                <div class="modal fade" id="messageModal{{ $u->id }}" tabindex="-1">
-                                    <div class="modal-dialog modal-dialog-centered">
-                                        <form action="{{ route('superadmin.users.message', $u->id) }}" method="POST"
-                                            class="modal-content">
-                                            @csrf
-                                            <div class="modal-header">
-                                                <h5 class="modal-title">Escribir Mensaje Oficial a {{ $u->name }}</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body text-start">
-                                                <div class="mb-3">
-                                                    <label class="form-label">Asunto / Título</label>
-                                                    <input type="text" name="subject" class="form-control"
-                                                        placeholder="Aviso de MedFlow..." required>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label">Cuerpo del Mensaje</label>
-                                                    <textarea name="message" class="form-control" rows="5"
-                                                        placeholder="Estimado cliente..." required></textarea>
-                                                </div>
-                                                <div class="text-muted small">Este mensaje será enviado a {{ $u->email }} bajo
-                                                    la plantilla institucional de MedFlow.</div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary btn-sm"
-                                                    data-bs-dismiss="modal">Cancelar</button>
-                                                <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-send"></i>
-                                                    Enviar Correo</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
                             @endforeach
                         </tbody>
                     </table>
@@ -206,4 +89,118 @@
             </div>
         </div>
     </div>
+
+    <!-- ZONA DE MODALES (FUERA DE LA TABLA PARA EVITAR BUGS HTML) -->
+    @foreach($users as $u)
+        <!-- Modal Facturación Manual -->
+        <div class="modal fade" id="facturaModal{{ $u->id }}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <form action="{{ route('superadmin.users.invoice', $u->id) }}" method="POST" enctype="multipart/form-data"
+                    class="modal-content">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title">Emitir Factura a {{ $u->name }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-start">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Monto ($)</label>
+                                <input type="number" step="0.01" name="amount" class="form-control" placeholder="15000.00"
+                                    required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Estado Inicial</label>
+                                <select name="status" class="form-select">
+                                    <option value="pendiente">Pendiente de Pago</option>
+                                    <option value="pagada">Confirmada / Pagada</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Concepto / Descripción</label>
+                            <input type="text" name="description" class="form-control"
+                                placeholder="Servicio MedFlow - Mes Septiembre" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Adjuntar Factura PDF (Opcional)</label>
+                            <input type="file" name="invoice_file" class="form-control" accept="application/pdf">
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="send_email" value="1"
+                                id="sendEmail{{ $u->id }}" checked>
+                            <label class="form-check-label" for="sendEmail{{ $u->id }}">
+                                Enviar aviso y factura por correo a
+                                {{ !empty($u->email_facturacion) ? $u->email_facturacion : $u->email }}
+                                ahora mismo.
+                            </label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-save"></i>
+                            Generar Factura</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal Plan -->
+        <div class="modal fade" id="planModal{{ $u->id }}" tabindex="-1">
+            <div class="modal-dialog modal-sm modal-dialog-centered">
+                <form action="{{ route('superadmin.users.plan', $u->id) }}" method="POST" class="modal-content">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title">Cambiar Plan</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-start">
+                        <label>Forzar plan de <b>{{ $u->name }}</b></label>
+                        <select name="subscription_plan" class="form-select mt-2">
+                            <option value="free" {{ $u->subscription_plan == 'free' ? 'selected' : '' }}>
+                                Free</option>
+                            <option value="basico" {{ $u->subscription_plan == 'basico' ? 'selected' : '' }}>Básico</option>
+                            <option value="premium" {{ $u->subscription_plan == 'premium' ? 'selected' : '' }}>Premium</option>
+                            <option value="enterprise" {{ $u->subscription_plan == 'enterprise' ? 'selected' : '' }}>Enterprise
+                            </option>
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary btn-sm">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal Mensaje -->
+        <div class="modal fade" id="messageModal{{ $u->id }}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <form action="{{ route('superadmin.users.message', $u->id) }}" method="POST" class="modal-content">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title">Escribir Mensaje Oficial a {{ $u->name }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-start">
+                        <div class="mb-3">
+                            <label class="form-label">Asunto / Título</label>
+                            <input type="text" name="subject" class="form-control" placeholder="Aviso de MedFlow..." required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Cuerpo del Mensaje</label>
+                            <textarea name="message" class="form-control" rows="5" placeholder="Estimado cliente..."
+                                required></textarea>
+                        </div>
+                        <div class="text-muted small">Este mensaje será enviado a {{ $u->email }} bajo
+                            la plantilla institucional de MedFlow.</div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-send"></i>
+                            Enviar Correo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endforeach
 @endsection
