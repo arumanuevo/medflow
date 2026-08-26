@@ -61,8 +61,8 @@
                                         </button>
                                         <!-- Descargar PDF si existe -->
                                         @if($inv->file_path)
-                                            <a href="{{ asset($inv->file_path) }}" target="_blank"
-                                                class="btn btn-sm btn-outline-info" title="Ver Factura PDF">
+                                            <a href="{{ route('superadmin.invoices.download', $inv->id) }}"
+                                                class="btn btn-sm btn-outline-info" title="Descargar Factura PDF">
                                                 <i class="bi bi-file-earmark-pdf"></i>
                                             </a>
                                         @endif
@@ -107,7 +107,8 @@
                     @csrf
                     <div class="modal-header">
                         <h5 class="modal-title">Cambiar Estado</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
                     </div>
                     <div class="modal-body text-start">
                         <select name="status" class="form-select mt-2">

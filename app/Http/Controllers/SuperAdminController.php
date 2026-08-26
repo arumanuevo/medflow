@@ -30,11 +30,13 @@ class SuperAdminController extends Controller
         ]);
 
         $filePath = null;
+        $dbPath = null;
         if ($request->hasFile('invoice_file')) {
             $file = $request->file('invoice_file');
             $filename = 'factura_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
             $path = $file->storeAs('invoices', $filename, 'public');
-            $filePath = 'storage/' . $path;
+            $filePath = $path; // Guardamos el path real en storage (ej: invoices/factura.pdf)
+            $dbPath = 'storage/' . $path; // Para la DB guardamos con storage/ prefijo para la web
         }
 
         $invoice = Invoice::create([
@@ -42,7 +44,7 @@ class SuperAdminController extends Controller
             'amount' => $request->amount,
             'status' => $request->status,
             'description' => $request->description,
-            'file_path' => $filePath
+            'file_path' => $dbPath // Guardamos con prefijo storage
         ]);
 
         if ($request->send_email) {
@@ -53,7 +55,7 @@ class SuperAdminController extends Controller
                 // Generar mock
                 $subscription = new \stdClass();
                 $subscription->id = $invoice->id;
-                $subscription->created_at = Carbon::now();
+                $subscription->created_at = \Carbon\Carbon::now();
                 $subscription->plan = $user->subscription_plan ?: 'premium';
                 $subscription->payment_id = 'MANUAL-INV-' . $invoice->id;
                 $subscription->amount = $invoice->amount;
@@ -66,8 +68,8 @@ class SuperAdminController extends Controller
                 $pdfContent = $pdf->output();
                 $generatedFilename = 'Factura_MedFlow_' . $invoice->id . '.pdf';
             } else {
-                // Leer el archivo subido real
-                $pdfContent = file_get_contents(public_path($filePath));
+                // Leer el archivo subido real saltando el symlink fallido
+                $pdfContent = Storage::disk('public')->get($filePath);
                 $generatedFilename = 'Factura_MedFlow_' . $invoice->id . '.pdf';
             }
 
@@ -93,7 +95,9 @@ class SuperAdminController extends Controller
         $emailTo = !empty($user->email_facturacion) ? $user->email_facturacion : $user->email;
 
         if ($invoice->file_path) {
-            $pdfContent = file_get_contents(public_path($invoice->file_path));
+            // Eliminar el prefijo "storage/" para que get() localice internamente
+            $realPath = str_replace('storage/', '', $invoice->file_path);
+            $pdfContent = Storage::disk('public')->get($realPath);
         } else {
             $subscription = new \stdClass();
             $subscription->id = $invoice->id;
@@ -117,8 +121,21 @@ class SuperAdminController extends Controller
 
     public function deleteInvoice(Invoice $invoice)
     {
+        // $realPath = str_replace('storage/', '', $invoice->file_path);
+        // Storage::disk('public')->delete($realPath);
         $invoice->delete();
         return redirect()->back()->with('success', 'Factura eliminada del historial.');
+    }
+
+    public function downloadInvoice(Invoice $invoice)
+    {
+        if ($invoice->file_path) {
+            $realPath = str_replace('storage/', '', $invoice->file_path);
+            if (Storage::disk('public')->exists($realPath)) {
+                return Storage::disk('public')->download($realPath, 'Factura_MedFlow_' . $invoice->id . '.pdf');
+            }
+        }
+        return redirect()->back()->with('error', 'El archivo no existe físicamente en el servidor.');
     }
 
     public function index()

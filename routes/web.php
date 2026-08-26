@@ -67,6 +67,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/invoices/{invoice}/status', [\App\Http\Controllers\SuperAdminController::class, 'changeInvoiceStatus'])->name('superadmin.invoices.status');
         Route::post('/invoices/{invoice}/resend', [\App\Http\Controllers\SuperAdminController::class, 'resendInvoice'])->name('superadmin.invoices.resend');
         Route::delete('/invoices/{invoice}', [\App\Http\Controllers\SuperAdminController::class, 'deleteInvoice'])->name('superadmin.invoices.delete');
+        Route::get('/invoices/{invoice}/download', [\App\Http\Controllers\SuperAdminController::class, 'downloadInvoice'])->name('superadmin.invoices.download');
 
         Route::post('/users/{user}/send-message', [\App\Http\Controllers\SuperAdminController::class, 'sendCustomMessage'])->name('superadmin.users.message');
         Route::delete('/users/{user}', [\App\Http\Controllers\SuperAdminController::class, 'deleteUser'])->name('superadmin.users.delete');
