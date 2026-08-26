@@ -356,12 +356,12 @@
                                             <th style="width: 40px;">
                                                 <input type="checkbox" id="selectAllCheckbox">
                                             </th>
-                                            <th class="text-left">Nombre</th>
-                                            <th>Identificador</th>
-                                            <th>Grupo</th>
-                                            <th>Última Medición</th>
-                                            <th>Valor</th>
-                                            <th>Estado</th>
+                                            <th class="text-left sortable" style="cursor:pointer" title="Ordenar por Nombre">Nombre <i class="bi bi-arrow-down-up text-muted small ms-1"></i></th>
+                                            <th class="sortable" style="cursor:pointer" title="Ordenar por Identificador">Identificador <i class="bi bi-arrow-down-up text-muted small ms-1"></i></th>
+                                            <th class="sortable" style="cursor:pointer" title="Ordenar por Grupo">Grupo <i class="bi bi-arrow-down-up text-muted small ms-1"></i></th>
+                                            <th class="sortable" style="cursor:pointer" title="Ordenar por Fecha">Última Medición <i class="bi bi-arrow-down-up text-muted small ms-1"></i></th>
+                                            <th class="sortable" style="cursor:pointer" title="Ordenar por Valor">Valor <i class="bi bi-arrow-down-up text-muted small ms-1"></i></th>
+                                            <th class="sortable" style="cursor:pointer" title="Ordenar por Estado">Estado <i class="bi bi-arrow-down-up text-muted small ms-1"></i></th>
                                             <th style="width: 80px;">Acciones</th>
                                         </tr>
                                     </thead>
@@ -560,6 +560,49 @@
             const $useSelectionOrder = $('#useSelectionOrder');
 
             // Array para mantener el orden de selección manual
+                        // Sorting Logic
+            $('th.sortable').click(function(){
+                var table = $(this).parents('table').eq(0);
+                var tbody = table.find('tbody');
+                
+                // Get visible rows only so we don't mess up filtered rows
+                var rows = tbody.find('tr').toArray().sort(comparer($(this).index()));
+                
+                if (this.asc === undefined) { this.asc = true; } else { this.asc = !this.asc; }
+                if (!this.asc) { rows = rows.reverse(); }
+                
+                for (var i = 0; i < rows.length; i++) {
+                    tbody.append(rows[i]);
+                }
+                
+                // Update icons
+                $('th.sortable i').removeClass('bi-sort-up bi-sort-down text-dark').addClass('bi-arrow-down-up text-muted');
+                $(this).find('i').removeClass('bi-arrow-down-up text-muted').addClass(this.asc ? 'bi-sort-up text-dark' : 'bi-sort-down text-dark');
+            });
+            
+            function comparer(index) {
+                return function(a, b) {
+                    var valA = getCellValue(a, index), valB = getCellValue(b, index);
+                    // Date parsing for "Última Medición" (like '04/05/2026')
+                    if (valA.match(/^\d{2}\/\d{2}\/\d{4}/) && valB.match(/^\d{2}\/\d{2}\/\d{4}/)) {
+                        var dA = valA.split('/').reverse().join('');
+                        var dB = valB.split('/').reverse().join('');
+                        return dA.localeCompare(dB);
+                    }
+                    // Number parsing (for "Valor")
+                    var numA = parseFloat(valA.replace(/[^\d.-]/g, ''));
+                    var numB = parseFloat(valB.replace(/[^\d.-]/g, ''));
+                    if(!isNaN(numA) && !isNaN(numB) && valA.match(/^[0-9.,\s]+$/)) {
+                        return numA - numB;
+                    }
+                    return valA.toString().localeCompare(valB);
+                }
+            }
+            
+            function getCellValue(row, index){
+                return $(row).children('td').eq(index).text().trim();
+            }
+
             let selectionOrder = [];
 
             // Inicializar contador
