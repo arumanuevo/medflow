@@ -60,8 +60,15 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('superadmin')->middleware([\App\Http\Middleware\SuperAdminMiddleware::class])->group(function () {
         Route::get('/users', [\App\Http\Controllers\SuperAdminController::class, 'index'])->name('superadmin.users');
         Route::post('/users/{user}/plan', [\App\Http\Controllers\SuperAdminController::class, 'updatePlan'])->name('superadmin.users.plan');
+
+        // Facturación paralela
+        Route::post('/users/{user}/invoice', [\App\Http\Controllers\SuperAdminController::class, 'generateInvoice'])->name('superadmin.users.invoice');
+        Route::get('/invoices', [\App\Http\Controllers\SuperAdminController::class, 'invoicesIndex'])->name('superadmin.invoices');
+        Route::post('/invoices/{invoice}/status', [\App\Http\Controllers\SuperAdminController::class, 'changeInvoiceStatus'])->name('superadmin.invoices.status');
+        Route::post('/invoices/{invoice}/resend', [\App\Http\Controllers\SuperAdminController::class, 'resendInvoice'])->name('superadmin.invoices.resend');
+        Route::delete('/invoices/{invoice}', [\App\Http\Controllers\SuperAdminController::class, 'deleteInvoice'])->name('superadmin.invoices.delete');
+
         Route::post('/users/{user}/send-message', [\App\Http\Controllers\SuperAdminController::class, 'sendCustomMessage'])->name('superadmin.users.message');
-        Route::post('/users/{user}/send-receipt', [\App\Http\Controllers\SuperAdminController::class, 'sendReceipt'])->name('superadmin.users.receipt');
         Route::delete('/users/{user}', [\App\Http\Controllers\SuperAdminController::class, 'deleteUser'])->name('superadmin.users.delete');
     });
 

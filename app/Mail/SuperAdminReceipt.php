@@ -28,7 +28,7 @@ class SuperAdminReceipt extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Tu comprobante de suscripción - MedFlow',
+            subject: 'Aviso de Facturación / Boleta de Pago - MedFlow',
             from: new Address(config('mail.from.address', 'no-reply@wiroos.com'), config('mail.from.name', 'MedFlow Facturación'))
         );
     }

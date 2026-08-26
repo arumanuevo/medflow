@@ -9,9 +9,118 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\SuperAdminMessage;
 use App\Mail\SuperAdminReceipt;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\Invoice;
+use Illuminate\Support\Facades\Storage;
 
 class SuperAdminController extends Controller
 {
+    public function invoicesIndex()
+    {
+        $invoices = Invoice::with('user')->orderBy('created_at', 'desc')->get();
+        return view('superadmin.invoices', compact('invoices'));
+    }
+
+    public function generateInvoice(Request $request, User $user)
+    {
+        $request->validate([
+            'amount' => 'required|numeric|min:0',
+            'status' => 'required|in:pendiente,pagada',
+            'description' => 'required|string|max:255',
+            'invoice_file' => 'nullable|mimes:pdf|max:5120' // max 5MB
+        ]);
+
+        $filePath = null;
+        if ($request->hasFile('invoice_file')) {
+            $file = $request->file('invoice_file');
+            $filename = 'factura_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+            $path = $file->storeAs('invoices', $filename, 'public');
+            $filePath = 'storage/' . $path;
+        }
+
+        $invoice = Invoice::create([
+            'user_id' => $user->id,
+            'amount' => $request->amount,
+            'status' => $request->status,
+            'description' => $request->description,
+            'file_path' => $filePath
+        ]);
+
+        if ($request->send_email) {
+            $emailTo = !empty($user->email_facturacion) ? $user->email_facturacion : $user->email;
+
+            // Si el admin no adjuntó PDF, mandamos el genérico del sistema con el mock
+            if (!$filePath) {
+                // Generar mock
+                $subscription = new \stdClass();
+                $subscription->id = $invoice->id;
+                $subscription->created_at = Carbon::now();
+                $subscription->plan = $user->subscription_plan ?: 'premium';
+                $subscription->payment_id = 'MANUAL-INV-' . $invoice->id;
+                $subscription->amount = $invoice->amount;
+                $subscription->currency = 'ARS';
+
+                $pdf = Pdf::loadView('profile.receipt_pdf', [
+                    'user' => $user,
+                    'subscription' => $subscription
+                ]);
+                $pdfContent = $pdf->output();
+                $generatedFilename = 'Factura_MedFlow_' . $invoice->id . '.pdf';
+            } else {
+                // Leer el archivo subido real
+                $pdfContent = file_get_contents(public_path($filePath));
+                $generatedFilename = 'Factura_MedFlow_' . $invoice->id . '.pdf';
+            }
+
+            Mail::to($emailTo)->send(new SuperAdminReceipt($user->name, $pdfContent, $generatedFilename));
+        }
+
+        return redirect()->back()->with('success', 'Factura manual generada ' . ($request->send_email ? 'y enviada' : 'exitosamente') . '.');
+    }
+
+    public function changeInvoiceStatus(Request $request, Invoice $invoice)
+    {
+        $request->validate(['status' => 'required|in:pendiente,pagada,anulada']);
+        $invoice->update(['status' => $request->status]);
+        return redirect()->back()->with('success', 'Estado de la factura actualizado.');
+    }
+
+    public function resendInvoice(Request $request, Invoice $invoice)
+    {
+        $user = $invoice->user;
+        if (!$user)
+            return redirect()->back()->with('error', 'Usuario eliminado no puede recibir emails.');
+
+        $emailTo = !empty($user->email_facturacion) ? $user->email_facturacion : $user->email;
+
+        if ($invoice->file_path) {
+            $pdfContent = file_get_contents(public_path($invoice->file_path));
+        } else {
+            $subscription = new \stdClass();
+            $subscription->id = $invoice->id;
+            $subscription->created_at = $invoice->created_at;
+            $subscription->plan = $user->subscription_plan ?: 'premium';
+            $subscription->payment_id = 'MANUAL-INV-' . $invoice->id;
+            $subscription->amount = $invoice->amount;
+            $subscription->currency = 'ARS';
+
+            $pdf = Pdf::loadView('profile.receipt_pdf', [
+                'user' => $user,
+                'subscription' => $subscription
+            ]);
+            $pdfContent = $pdf->output();
+        }
+
+        Mail::to($emailTo)->send(new SuperAdminReceipt($user->name, $pdfContent, 'Factura_Reenviada_' . $invoice->id . '.pdf'));
+
+        return redirect()->back()->with('success', 'Factura re-enviada a ' . $emailTo);
+    }
+
+    public function deleteInvoice(Invoice $invoice)
+    {
+        $invoice->delete();
+        return redirect()->back()->with('success', 'Factura eliminada del historial.');
+    }
+
     public function index()
     {
         $users = User::all();

@@ -56,6 +56,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Relación con sus facturas/cobros paralelos
+     */
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    /**
      * Relación con los roles del usuario (usando Spatie Laravel Permission).
      * NOTA: HasRoles ya incluye esta relación, pero la dejamos explícita para claridad.
      */

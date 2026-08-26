@@ -20,7 +20,8 @@
             <p style="font-size: 16px; font-weight: bold; margin-bottom: 20px;">Hola, {{ $name }}</p>
 
             <div style="font-size: 15px; line-height: 1.6; color: #555;">
-                <p>Adjunto a este correo encontrarás el comprobante de tu suscripción en formato PDF.</p>
+                <p>Te enviamos adjunto a este correo tu boleta/factura correspondiente a los servicios de MedFlow.</p>
+                <p>Quedamos a tu entera disposición ante cualquier consulta relacionada al pago o liquidación.</p>
                 <p>Agradecemos tu confianza en MedFlow para el control profesional de mediciones.</p>
             </div>
 

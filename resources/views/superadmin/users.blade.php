@@ -4,6 +4,10 @@
     <div class="container-fluid py-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="fw-bold text-dark"><i class="bi bi-shield-lock text-danger me-2"></i> Panel SuperAdmin</h2>
+            <div>
+                <a href="{{ route('superadmin.invoices') }}" class="btn btn-outline-primary"><i class="bi bi-receipt"></i>
+                    Historial Facturas Manuales</a>
+            </div>
         </div>
 
         @if(session('success'))
@@ -56,16 +60,12 @@
                                             title="Generar Checkout MP para Bás/Prem. Usa Link Wiroos">
                                             <i class="bi bi-cash"></i>
                                         </a>
-                                        <!-- Enviar Factura/Recibo -->
-                                        <form action="{{ route('superadmin.users.receipt', $u->id) }}" method="POST"
-                                            class="d-inline"
-                                            onsubmit="return confirm('¿Enviar comprobante PDF a {{ !empty($u->email_facturacion) ? $u->email_facturacion : $u->email }}?');">
-                                            @csrf
-                                            <button type="submit" class="btn btn-sm btn-outline-info mb-1"
-                                                title="Enviar Comprobante/Factura Adjunta">
-                                                <i class="bi bi-file-earmark-pdf"></i>
-                                            </button>
-                                        </form>
+                                        <!-- Enviar Factura/Recibo (NUEVO MODAL FACTURADOR) -->
+                                        <button type="button" class="btn btn-sm btn-outline-info mb-1" data-bs-toggle="modal"
+                                            data-bs-target="#facturaModal{{ $u->id }}"
+                                            title="Emitir Factura Manual y Adjuntar PDF">
+                                            <i class="bi bi-file-earmark-pdf"></i>
+                                        </button>
                                         <!-- Enviar Mensaje Institucional -->
                                         <button type="button" class="btn btn-sm btn-outline-secondary mb-1"
                                             data-bs-toggle="modal" data-bs-target="#messageModal{{ $u->id }}"
@@ -83,6 +83,61 @@
                                         </form>
                                     </td>
                                 </tr>
+
+                                <!-- Modal Facturación Manual -->
+                                <div class="modal fade" id="facturaModal{{ $u->id }}" tabindex="-1">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <form action="{{ route('superadmin.users.invoice', $u->id) }}" method="POST"
+                                            enctype="multipart/form-data" class="modal-content">
+                                            @csrf
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Emitir Factura a {{ $u->name }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body text-start">
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label">Monto ($)</label>
+                                                        <input type="number" step="0.01" name="amount" class="form-control"
+                                                            placeholder="15000.00" required>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label">Estado Inicial</label>
+                                                        <select name="status" class="form-select">
+                                                            <option value="pendiente">Pendiente de Pago</option>
+                                                            <option value="pagada">Confirmada / Pagada</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Concepto / Descripción</label>
+                                                    <input type="text" name="description" class="form-control"
+                                                        placeholder="Servicio MedFlow - Mes Septiembre" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Adjuntar Factura PDF (Opcional)</label>
+                                                    <input type="file" name="invoice_file" class="form-control"
+                                                        accept="application/pdf">
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" name="send_email" value="1"
+                                                        id="sendEmail{{ $u->id }}" checked>
+                                                    <label class="form-check-label" for="sendEmail{{ $u->id }}">
+                                                        Enviar aviso y factura por correo a
+                                                        {{ !empty($u->email_facturacion) ? $u->email_facturacion : $u->email }}
+                                                        ahora mismo.
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary btn-sm"
+                                                    data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-save"></i>
+                                                    Generar Factura</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
 
                                 <!-- Modal Plan -->
                                 <div class="modal fade" id="planModal{{ $u->id }}" tabindex="-1">
