@@ -60,6 +60,8 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('superadmin')->middleware([\App\Http\Middleware\SuperAdminMiddleware::class])->group(function () {
         Route::get('/users', [\App\Http\Controllers\SuperAdminController::class, 'index'])->name('superadmin.users');
         Route::post('/users/{user}/plan', [\App\Http\Controllers\SuperAdminController::class, 'updatePlan'])->name('superadmin.users.plan');
+        Route::post('/users/{user}/send-message', [\App\Http\Controllers\SuperAdminController::class, 'sendCustomMessage'])->name('superadmin.users.message');
+        Route::post('/users/{user}/send-receipt', [\App\Http\Controllers\SuperAdminController::class, 'sendReceipt'])->name('superadmin.users.receipt');
         Route::delete('/users/{user}', [\App\Http\Controllers\SuperAdminController::class, 'deleteUser'])->name('superadmin.users.delete');
     });
 

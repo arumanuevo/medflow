@@ -40,36 +40,51 @@
                                     <td>
                                         <span
                                             class="badge {{ $u->subscription_plan == 'premium' ? 'bg-warning' : ($u->subscription_plan == 'free' ? 'bg-secondary' : 'bg-primary') }}">
-                                            {{ strtoupper($u->subscription_plan) }}
+                                            {{ strtoupper($u->subscription_plan ?: 'N/A') }}
                                         </span>
                                     </td>
-                                    <td>{{ $u->sensors_count }}</td>
                                     <td>{{ $u->created_at->format('d/m/Y') }}</td>
                                     <td class="text-end">
                                         <!-- Cambiar Plan -->
-                                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
-                                            data-bs-target="#planModal{{ $u->id }}">
-                                            <i class="bi bi-stars"></i> Plan
+                                        <button type="button" class="btn btn-sm btn-outline-primary mb-1" data-bs-toggle="modal"
+                                            data-bs-target="#planModal{{ $u->id }}" title="Cambiar Plan">
+                                            <i class="bi bi-stars"></i>
                                         </button>
                                         <!-- Generar Pago -->
                                         <a href="{{ url('/api/subscription/create-preference?plan=premium&type=mensual&email=' . $u->email) }}"
-                                            target="_blank" class="btn btn-sm btn-outline-success"
+                                            target="_blank" class="btn btn-sm btn-outline-success mb-1"
                                             title="Generar Checkout MP para Bás/Prem. Usa Link Wiroos">
-                                            <i class="bi bi-cash"></i> Pago
+                                            <i class="bi bi-cash"></i>
                                         </a>
+                                        <!-- Enviar Factura/Recibo -->
+                                        <form action="{{ route('superadmin.users.receipt', $u->id) }}" method="POST"
+                                            class="d-inline"
+                                            onsubmit="return confirm('¿Enviar comprobante PDF a {{ !empty($u->email_facturacion) ? $u->email_facturacion : $u->email }}?');">
+                                            @csrf
+                                            <button type="submit" class="btn btn-sm btn-outline-info mb-1"
+                                                title="Enviar Comprobante/Factura Adjunta">
+                                                <i class="bi bi-file-earmark-pdf"></i>
+                                            </button>
+                                        </form>
+                                        <!-- Enviar Mensaje Institucional -->
+                                        <button type="button" class="btn btn-sm btn-outline-secondary mb-1"
+                                            data-bs-toggle="modal" data-bs-target="#messageModal{{ $u->id }}"
+                                            title="Escribir Mensaje Oficial">
+                                            <i class="bi bi-envelope"></i>
+                                        </button>
                                         <!-- Eliminar -->
                                         <form action="{{ route('superadmin.users.delete', $u->id) }}" method="POST"
                                             class="d-inline"
                                             onsubmit="return confirm('¿Seguro de eliminar este usuario para siempre? Todos sus lotes y sensores desapareceran.');">
                                             @csrf @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" {{ $u->email ==
-                                                'scastellanoadmin@gmail.com' ? 'disabled' : '' }}><i
-                                                    class="bi bi-trash"></i></button>
+                                            <button type="submit" class="btn btn-sm btn-outline-danger mb-1" {{ $u->email ==
+                                                'scastellanoadmin@gmail.com' ? 'disabled' : '' }} title="Eliminar para
+                                                siempre"><i class="bi bi-trash"></i></button>
                                         </form>
                                     </td>
                                 </tr>
 
-                                <!-- Modal -->
+                                <!-- Modal Plan -->
                                 <div class="modal fade" id="planModal{{ $u->id }}" tabindex="-1">
                                     <div class="modal-dialog modal-sm modal-dialog-centered">
                                         <form action="{{ route('superadmin.users.plan', $u->id) }}" method="POST"
@@ -90,7 +105,41 @@
                                                 </select>
                                             </div>
                                             <div class="modal-footer">
-                                                <button type="submit" class="btn btn-primary btn-sm">Guardar Cambio</button>
+                                                <button type="submit" class="btn btn-primary btn-sm">Guardar</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <!-- Modal Mensaje -->
+                                <div class="modal fade" id="messageModal{{ $u->id }}" tabindex="-1">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <form action="{{ route('superadmin.users.message', $u->id) }}" method="POST"
+                                            class="modal-content">
+                                            @csrf
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Escribir Mensaje Oficial a {{ $u->name }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body text-start">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Asunto / Título</label>
+                                                    <input type="text" name="subject" class="form-control"
+                                                        placeholder="Aviso de MedFlow..." required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Cuerpo del Mensaje</label>
+                                                    <textarea name="message" class="form-control" rows="5"
+                                                        placeholder="Estimado cliente..." required></textarea>
+                                                </div>
+                                                <div class="text-muted small">Este mensaje será enviado a {{ $u->email }} bajo
+                                                    la plantilla institucional de MedFlow.</div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary btn-sm"
+                                                    data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-send"></i>
+                                                    Enviar Correo</button>
                                             </div>
                                         </form>
                                     </div>
