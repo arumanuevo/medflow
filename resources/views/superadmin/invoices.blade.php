@@ -55,8 +55,8 @@
                                     </td>
                                     <td class="text-end">
                                         <!-- Cambiar Estado -->
-                                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
-                                            data-bs-target="#statusModal{{ $inv->id }}" title="Cambiar Estado">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" data-toggle="modal"
+                                            data-target="#statusModal{{ $inv->id }}" title="Cambiar Estado">
                                             <i class="bi bi-arrow-repeat"></i>
                                         </button>
                                         <!-- Descargar PDF si existe -->
@@ -107,7 +107,7 @@
                     @csrf
                     <div class="modal-header">
                         <h5 class="modal-title">Cambiar Estado</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                     </div>
                     <div class="modal-body text-start">
                         <select name="status" class="form-select mt-2">

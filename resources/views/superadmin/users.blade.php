@@ -50,8 +50,8 @@
                                     <td>{{ $u->created_at->format('d/m/Y') }}</td>
                                     <td class="text-end">
                                         <!-- Cambiar Plan -->
-                                        <button type="button" class="btn btn-sm btn-outline-primary mb-1" data-bs-toggle="modal"
-                                            data-bs-target="#planModal{{ $u->id }}" title="Cambiar Plan">
+                                        <button type="button" class="btn btn-sm btn-outline-primary mb-1" data-toggle="modal"
+                                            data-target="#planModal{{ $u->id }}" title="Cambiar Plan">
                                             <i class="bi bi-stars"></i>
                                         </button>
                                         <!-- Generar Pago -->
@@ -61,14 +61,14 @@
                                             <i class="bi bi-cash"></i>
                                         </a>
                                         <!-- Enviar Factura/Recibo (NUEVO MODAL FACTURADOR) -->
-                                        <button type="button" class="btn btn-sm btn-outline-info mb-1" data-bs-toggle="modal"
-                                            data-bs-target="#facturaModal{{ $u->id }}"
+                                        <button type="button" class="btn btn-sm btn-outline-info mb-1" data-toggle="modal"
+                                            data-target="#facturaModal{{ $u->id }}"
                                             title="Emitir Factura Manual y Adjuntar PDF">
                                             <i class="bi bi-file-earmark-pdf"></i>
                                         </button>
                                         <!-- Enviar Mensaje Institucional -->
                                         <button type="button" class="btn btn-sm btn-outline-secondary mb-1"
-                                            data-bs-toggle="modal" data-bs-target="#messageModal{{ $u->id }}"
+                                            data-toggle="modal" data-target="#messageModal{{ $u->id }}"
                                             title="Escribir Mensaje Oficial">
                                             <i class="bi bi-envelope"></i>
                                         </button>
@@ -100,7 +100,7 @@
                     @csrf
                     <div class="modal-header">
                         <h5 class="modal-title">Emitir Factura a {{ $u->name }}</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                     </div>
                     <div class="modal-body text-start">
                         <div class="row">
@@ -137,7 +137,7 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-save"></i>
                             Generar Factura</button>
                     </div>
@@ -152,7 +152,7 @@
                     @csrf
                     <div class="modal-header">
                         <h5 class="modal-title">Cambiar Plan</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                     </div>
                     <div class="modal-body text-start">
                         <label>Forzar plan de <b>{{ $u->name }}</b></label>
@@ -179,7 +179,7 @@
                     @csrf
                     <div class="modal-header">
                         <h5 class="modal-title">Escribir Mensaje Oficial a {{ $u->name }}</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                     </div>
                     <div class="modal-body text-start">
                         <div class="mb-3">
@@ -195,7 +195,7 @@
                             la plantilla institucional de MedFlow.</div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-send"></i>
                             Enviar Correo</button>
                     </div>
