@@ -138,8 +138,10 @@
             </div>
         </div>
     </div>
+    </div>
+</div>
 
-    <!-- Modal para detalles del consumo -->
+<!-- Modal para detalles del consumo -->
     <div class="modal fade" id="consumptionDetailsModal" tabindex="-1" aria-labelledby="consumptionDetailsModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -332,6 +334,7 @@
             <div class="modal-footer p-2">
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
             </div>
+        </div>
         </div>
     </div>
 
