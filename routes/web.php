@@ -56,6 +56,17 @@ Route::get('/registro-exitoso', function () {
 // =============================================
 Route::middleware(['auth'])->group(function () {
 
+    // Superadmin Panel
+    Route::prefix('superadmin')->middleware(function ($req, $next) {
+        if (auth()->check() && auth()->user()->email === 'scastellanoadmin@gmail.com')
+            return $next($req);
+        abort(403);
+    })->group(function () {
+        Route::get('/users', [\App\Http\Controllers\SuperAdminController::class, 'index'])->name('superadmin.users');
+        Route::post('/users/{user}/plan', [\App\Http\Controllers\SuperAdminController::class, 'updatePlan'])->name('superadmin.users.plan');
+        Route::delete('/users/{user}', [\App\Http\Controllers\SuperAdminController::class, 'deleteUser'])->name('superadmin.users.delete');
+    });
+
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/dashboard/update-settings', [DashboardController::class, 'updateSettings'])

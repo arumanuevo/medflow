@@ -13,25 +13,42 @@ class SidebarService
     public function getMenuItems()
     {
         $user = Auth::user();
+        if (!$user)
+            return [];
         $activeWorkspace = session('active_workspace', $user->id);
         $isOwner = $activeWorkspace == $user->id;
 
+        $menu = [];
+
         // ✅ Si es propietario, mostrar menú completo
         if ($isOwner) {
-            return $this->getOwnerMenu();
+            $menu = $this->getOwnerMenu();
+        } else {
+            // ✅ Si es colaborador, obtener su rol en el espacio activo
+            $collaboration = WorkspaceCollaborator::where('workspace_id', $activeWorkspace)
+                ->where('user_id', $user->id)
+                ->where('status', 'active')
+                ->first();
+
+            if (!$collaboration) {
+                $menu = $this->getDefaultMenu();
+            } else {
+                $menu = $this->getCollaboratorMenu($collaboration->role);
+            }
         }
 
-        // ✅ Si es colaborador, obtener su rol en el espacio activo
-        $collaboration = WorkspaceCollaborator::where('workspace_id', $activeWorkspace)
-            ->where('user_id', $user->id)
-            ->where('status', 'active')
-            ->first();
-
-        if (!$collaboration) {
-            return $this->getDefaultMenu();
+        // ✅ INYECCIÓN DE ROL SUPERADMIN POR EMAIL (Root)
+        if ($user->email === 'scastellanoadmin@gmail.com') {
+            array_unshift($menu, [
+                'icon' => 'bi bi-shield-lock-fill text-danger',
+                'label' => 'Panel SuperAdmin',
+                'url' => '/superadmin/users',
+                'active' => request()->is('superadmin*'),
+                'highlight' => true
+            ]);
         }
 
-        return $this->getCollaboratorMenu($collaboration->role);
+        return $menu;
     }
 
     /**
