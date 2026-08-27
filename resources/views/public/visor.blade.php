@@ -51,7 +51,7 @@
 <body>
 
     <div class="header-bg text-center mb-0">
-        <h4 class="fw-bold mb-1"><i class="bi bi-droplet-half"></i> Medflow</h4>
+        <h4 class="fw-bold mb-1"><i class="bi bi-activity"></i> Medflow</h4>
         <p class="text-white-50 small mb-0">Portal Público de Mediciones</p>
     </div>
 

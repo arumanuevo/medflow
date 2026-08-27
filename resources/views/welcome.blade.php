@@ -211,7 +211,7 @@
     <nav class="navbar navbar-expand-lg pt-4 pb-0">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="/">
-                <i class="bi bi-droplet-fill text-primary me-2"></i> MedFlow
+                <i class="bi bi-activity text-primary me-2"></i> MedFlow
             </a>
             @if (Route::has('login'))
                 <div class="d-flex ms-auto gap-3">

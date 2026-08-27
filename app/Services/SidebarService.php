@@ -54,6 +54,13 @@ class SidebarService
             'url' => '/ayuda',
             'active' => request()->is('ayuda*'),
         ];
+        // AGREGAR CENTRO DE AYUDA AL FINAL
+        $menu[] = [
+            'icon' => 'bi bi-question-circle',
+            'label' => 'Centro de Ayuda',
+            'url' => '/ayuda',
+            'active' => request()->is('ayuda*'),
+        ];
 
         return $menu;
     }

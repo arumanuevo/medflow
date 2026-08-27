@@ -317,7 +317,7 @@
     <div class="public-container">
         <div class="public-header">
             <a href="{{ route('landing') }}" class="logo">
-                <i class="bi bi-droplet"></i>
+                <i class="bi bi-activity"></i>
                 <span>MedFlow</span>
             </a>
         </div>

@@ -462,7 +462,7 @@
         <nav class="navbar-custom animate-fade-in">
             <div class="d-flex justify-content-between align-items-center">
                 <a class="navbar-brand brand-text" href="#">
-                    <i class="bi bi-droplet me-2"></i>MedFlow
+                    <i class="bi bi-activity me-2"></i>MedFlow
                 </a>
                                 <div class="d-flex gap-3 align-items-center">
                     <a href="#contacto" class="text-muted text-decoration-none d-none d-md-block fw-semibold">
@@ -795,7 +795,7 @@
             <div class="row mt-4 text-center">
                 <div class="col-12">
                     <p class="mb-1 text-muted">
-                        <i class="bi bi-droplet text-primary me-1"></i>
+                        <i class="bi bi-activity text-primary me-1"></i>
                         <strong>MedFlow</strong> - Gestión Inteligente de Sensores
                     </p>
                     <p class="small text-muted mb-4">
