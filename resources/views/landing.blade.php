@@ -897,6 +897,19 @@
         });
     </script>
 
+<script>
+    $(document).ready(function() {
+        $('a[href^="#contacto"]').on('click', function(e) {
+            e.preventDefault();
+            var target = $(this.getAttribute('href'));
+            if( target.length ) {
+                $('html, body').stop().animate({
+                    scrollTop: target.offset().top - 80
+                }, 800);
+            }
+        });
+    });
+</script>
 </body>
 
 </html>
