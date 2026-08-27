@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHBhdGggZmlsbD0iIzBkNmVmZCIgZD0iTTE0LjUgM2EuNS41IDAgMCAxIC41LjV2OWEuNS41IDAgMCAxLS41LjVoLTEzYS41LjUgMCAwIDEtLjUtLjV2LTlhLjUuNSAwIDAgMSAuNS0uNWgxM3ptLTEzLTFBMS41IDEuNSAwIDAgMCAwIDMuNXY5QTEuNSAxLjUgMCAwIDAgMS41IDE0aDEzYTEuNSAxLjUgMCAwIDAgMS41LTEuNXYtOUExLjUgMS41IDAgMCAwIDE0LjUgMmgtMTN6Ii8+PHBhdGggZmlsbD0iIzBkNmVmZCIgZD0iTTMgOC41YS41LjUgMCAwIDEgLjUtLjVoMS44OWwxLjI1NC0yLjUwOGEuNS41IDAgMCAxIC45MS0uMDE2bDEuMjk0IDIuOTgzLjg0NC0xLjI2NmEuNS41IDAgMCAxIC44NDMuMDE4bDEuMTA5IDEuNzg5SDEyLjVhLjUuNSAwIDAgMSAwIDFIMTFhLjUuNSAwIDAgMS0uNDI0LS4yMzZsLS42ODktMS4xMS0uODQ5IDEuMjcyYS41LjUgMCAwIDEtLjg0NC0uMDE3bC0xLjMtMy0xLjI0NiAyLjQ5MkEuNS41IDAgMCAxIDUuMiA5SDMuNWEuNS41IDAgMCAxLS41LS41eiIvPjwvc3ZnPg==">
     <title>@yield('title', 'MedFlow')</title>
 
     <!-- AdminLTE CSS -->

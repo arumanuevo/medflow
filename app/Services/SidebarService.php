@@ -47,6 +47,13 @@ class SidebarService
                 'highlight' => true
             ]);
         }
+        // AGREGAR CENTRO DE AYUDA AL FINAL
+        $menu[] = [
+            'icon' => 'bi bi-question-circle',
+            'label' => 'Centro de Ayuda',
+            'url' => '/ayuda',
+            'active' => request()->is('ayuda*'),
+        ];
 
         return $menu;
     }
@@ -128,6 +135,13 @@ class SidebarService
                 'active' => request()->is('profile*'),
             ],
         ]);
+        // AGREGAR CENTRO DE AYUDA AL FINAL
+        $menu[] = [
+            'icon' => 'bi bi-question-circle',
+            'label' => 'Centro de Ayuda',
+            'url' => '/ayuda',
+            'active' => request()->is('ayuda*'),
+        ];
 
         return $menu;
     }
