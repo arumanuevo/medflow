@@ -698,7 +698,7 @@
                             <div class="plan-feature"><i class="bi bi-check"></i> Despliegue Dedicado (SLA 24/7)</div>
                             <div class="plan-feature"><i class="bi bi-check"></i> Delegación completa de inspectores y rutas</div>
                         </div>
-                          <a href="#contacto" class="btn btn-dark w-100 mt-4 rounded-pill fw-bold shadow-sm"><i class="bi bi-headset me-2"></i>Contactar Asesor</a>
+                          
                     </div>
                 </div>
             </div>
@@ -743,18 +743,18 @@
                 <div class="card border-0 shadow-sm rounded-4 overlay-box" style="background: white; z-index:100; border: 1px solid #e1e1e1 !important;">
                     <div class="card-body p-4 p-md-5">
                         <h5 class="fw-bold mb-4">Env&iacute;anos tu consulta</h5>
-                        <form id="contactForm" onsubmit="event.preventDefault(); alert('Gracias por contactarnos. Nuestro equipo se comunicará contigo mediante el correo scastellano10@gmail.com a la brevedad.'); this.reset();">
+                        <form id="contactForm">
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Nombre Completo</label>
-                                <input type="text" class="form-control" placeholder="Ej. Juan P&eacute;rez" required>
+                                <input type="text" class="form-control" name="name" id="contactName" placeholder="Ej. Juan P&eacute;rez" required>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Email Corporativo</label>
-                                <input type="email" class="form-control" placeholder="Ej. juan@empresa.com" required>
+                                <input type="email" class="form-control" name="email" id="contactEmail" placeholder="Ej. juan@empresa.com" required>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Tu Consulta</label>
-                                <textarea class="form-control" rows="4" placeholder="Desarrollo a medida, cotizaci&oacute;n de sensores..." required></textarea>
+                                <textarea class="form-control" rows="4" name="message" id="contactMessage" placeholder="Desarrollo a medida, cotizaci&oacute;n de sensores..." required></textarea>
                             </div>
                             <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-semibold">
                                 <i class="bi bi-send me-2"></i> Enviar Mensaje
@@ -953,8 +953,35 @@
                 }, 5000);
             }
 
+                // Contact Form AJAX
+        $('#contactForm').on('submit', function(e) {
+            e.preventDefault();
+            var btn = $(this).find('button[type="submit"]');
+            var originalText = btn.html();
+            btn.prop('disabled', true).html('<i class="spinner-border spinner-border-sm me-2"></i> Enviando...');
+            
+            $.ajax({
+                url: '/contacto',
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    name: $('#contactName').val(),
+                    email: $('#contactEmail').val(),
+                    message: $('#contactMessage').val()
+                },
+                success: function(res) {
+                    btn.prop('disabled', false).html(originalText);
+                    showAlert('Gracias por contactarnos. Nos comunicaremos a la brevedad.', 'success');
+                    $('#contactForm')[0].reset();
+                },
+                error: function(err) {
+                    btn.prop('disabled', false).html(originalText);
+                    showAlert('Hubo un error al enviar el mensaje. Inténtalo más tarde.', 'danger');
+                }
+            });
         });
-    </script>
+    });
+</script>
 
 <script>
     $(document).ready(function() {

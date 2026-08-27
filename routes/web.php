@@ -31,6 +31,7 @@ Route::get('/visor/{token}', [\App\Http\Controllers\PublicViewerController::clas
 // Landing pública
 Route::get('/', [LandingController::class, 'index'])->name('landing');
 Route::post('/registro', [LandingController::class, 'register'])->name('landing.register');
+Route::post('/contacto', [LandingController::class, 'contact'])->name('landing.contact');
 
 // Google Auth
 Route::get('/auth/google', [ApiGoogleController::class, 'redirectToGoogle'])->name('auth.google');
