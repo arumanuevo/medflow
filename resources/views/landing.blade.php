@@ -971,12 +971,16 @@
                 },
                 success: function(res) {
                     btn.prop('disabled', false).html(originalText);
-                    showAlert('Gracias por contactarnos. Nos comunicaremos a la brevedad.', 'success');
+                    
+                    $('#contactForm').find('.alert').remove(); // Clear previous alerts
+                    $('#contactForm').prepend('<div class="alert alert-success alert-dismissible fade show mb-4" role="alert"><i class="bi bi-check-circle-fill me-2"></i>Gracias por contactarnos. Nos comunicaremos a la brevedad.<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');
                     $('#contactForm')[0].reset();
                 },
                 error: function(err) {
                     btn.prop('disabled', false).html(originalText);
-                    showAlert('Hubo un error al enviar el mensaje. Inténtalo más tarde.', 'danger');
+                    
+                    $('#contactForm').find('.alert').remove(); // Clear previous alerts
+                    $('#contactForm').prepend('<div class="alert alert-danger alert-dismissible fade show mb-4" role="alert"><i class="bi bi-exclamation-triangle-fill me-2"></i>Hubo un error al enviar el mensaje. Inténtalo más tarde.<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');
                 }
             });
         });
