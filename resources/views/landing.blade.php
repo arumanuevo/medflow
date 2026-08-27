@@ -698,6 +698,7 @@
                             <div class="plan-feature"><i class="bi bi-check"></i> Despliegue Dedicado (SLA 24/7)</div>
                             <div class="plan-feature"><i class="bi bi-check"></i> Delegación completa de inspectores y rutas</div>
                         </div>
+                          <a href="#contacto" class="btn btn-dark w-100 mt-4 rounded-pill fw-bold shadow-sm"><i class="bi bi-headset me-2"></i>Contactar Asesor</a>
                     </div>
                 </div>
             </div>
