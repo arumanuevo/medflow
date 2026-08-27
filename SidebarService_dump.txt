@@ -71,21 +71,18 @@ class SidebarService
                 'url' => '/templates',
                 'active' => request()->is('templates*'),
             ],
-                        [
+            [
                 'icon' => 'bi bi-person-circle',
                 'label' => 'Mi Perfil',
                 'url' => '/profile',
                 'active' => request()->is('profile*'),
             ],
-            [
-                'icon' => 'bi bi-question-circle',
-                'label' => 'Centro de Ayuda',
-                'url' => '/ayuda',
-                'active' => request()->is('ayuda*'),
-            ],
         ]);
+        
+        }
 
-        return $menu;
+        // ✅ Si el invitado tiene roles perdidos o remanentes, forzar por defecto interface silenciosa
+        return $this->getDefaultMenu();
     }
 
     /**

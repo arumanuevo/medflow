@@ -56,6 +56,8 @@ Route::get('/registro-exitoso', function () {
 // RUTAS PROTEGIDAS CON MIDDLEWARE 'auth'
 // =============================================
 Route::middleware(['auth'])->group(function () {
+    Route::get('/ayuda', function() { return view('help.index'); })->name('help.index');
+
 
     // Superadmin Panel (Protegido via middleware auth y clase dedicada)
     Route::prefix('superadmin')->middleware([\App\Http\Middleware\SuperAdminMiddleware::class])->group(function () {
