@@ -62,7 +62,8 @@ class BasicoPlan implements PlanInterface
 
     public function getPrice(): float
     {
-        return 10.00;
+        $prices = @json_decode(file_get_contents(storage_path('app/pricing.json')), true) ?: ['basico' => 10000.00, 'premium' => 25000.00];
+        return isset($prices['basico']) ? (float)$prices['basico'] : 10000.00;
     }
 
     public function getDescription(): string

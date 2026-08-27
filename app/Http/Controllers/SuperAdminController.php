@@ -141,7 +141,22 @@ class SuperAdminController extends Controller
     public function index()
     {
         $users = User::all();
-        return view('superadmin.users', compact('users'));
+        $prices = @json_decode(file_get_contents(storage_path('app/pricing.json')), true) ?: ['basico' => 10000.00, 'premium' => 25000.00];
+        return view('superadmin.users', compact('users', 'prices'));
+    }
+
+    public function savePrices(Request $request)
+    {
+        $request->validate([
+            'price_basico' => 'required|numeric|min:0',
+            'price_premium' => 'required|numeric|min:0',
+        ]);
+        $prices = [
+            'basico' => $request->price_basico,
+            'premium' => $request->price_premium
+        ];
+        file_put_contents(storage_path('app/pricing.json'), json_encode($prices));
+        return redirect()->back()->with('success', 'Precios de los planes actualizados correctamente en ARS.');
     }
 
     public function updatePlan(Request $request, User $user)
