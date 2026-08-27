@@ -7,7 +7,7 @@
             <div>
                 <a href="{{ route('superadmin.invoices') }}" class="btn btn-outline-primary"><i class="bi bi-receipt"></i>
                     Historial Facturas Manuales</a>
-                <button type="button" class="btn btn-outline-success ms-2" data-bs-toggle="modal" data-bs-target="#editPricesModal">
+                <button type="button" class="btn btn-outline-success ms-2" data-toggle="modal" data-target="#editPricesModal">
                     <i class="bi bi-currency-dollar"></i> Configurar Precios
                 </button>
             </div>
@@ -215,7 +215,7 @@
                     @csrf
                     <div class="modal-header bg-success text-white">
                         <h5 class="modal-title"><i class="bi bi-tags-fill"></i> Configurar Valores de Planes (ARS)</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                     </div>
                     <div class="modal-body">
                         <div class="alert alert-info py-2 small">
@@ -237,7 +237,7 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-success">Guardar Precios</button>
                     </div>
                 </form>
