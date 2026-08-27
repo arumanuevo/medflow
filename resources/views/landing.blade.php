@@ -463,7 +463,10 @@
                 <a class="navbar-brand brand-text" href="#">
                     <i class="bi bi-droplet me-2"></i>MedFlow
                 </a>
-                <div class="d-flex gap-2">
+                                <div class="d-flex gap-3 align-items-center">
+                    <a href="#contacto" class="text-muted text-decoration-none d-none d-md-block fw-semibold">
+                        <i class="bi bi-headset me-1"></i> Asesoramiento
+                    </a>
                     <a href="{{ route('login') }}" class="btn btn-outline-primary rounded-pill px-4">
                         <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar sesión
                     </a>
