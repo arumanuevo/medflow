@@ -74,21 +74,30 @@ class PublicViewerController extends Controller
 
             $currentDate = Carbon::parse($m->measured_at);
             $isAnomaly = false;
+            $anomalyDesc = null;
 
             if ($previousValue !== null && $previousDate !== null) {
-                $daysDiff = $previousDate->diffInDays($currentDate) ?: 1;
+                // Determine days diff precisely
+                $hoursDiff = $previousDate->diffInHours($currentDate);
+                $daysDiff = $hoursDiff > 0 ? ($hoursDiff / 24) : 1;
                 $deltaRaw = $val - $previousValue;
                 $currentDailyRate = $deltaRaw / $daysDiff;
 
                 // 1. Estancamiento (Stagnation)
                 if ($deltaRaw == 0 && $daysDiff > $stagnationThresh) {
                     $isAnomaly = true;
+                    $anomalyDesc = "Medidor estancado. Sin variaciones de volumen registradas tras " . round($daysDiff) . " días.";
                 }
-                // 2. Aceleración inusual de tasa diaria
+                // 2. Variación inusual de tasa diaria (Salto o Caída brusca)
                 elseif ($previousDailyRate !== null && $previousDailyRate > 0) {
-                    $rateChange = abs(($currentDailyRate - $previousDailyRate) / $previousDailyRate);
-                    if ($rateChange > $thresholdMultiplier) {
+                    $rateChangePercentage = (($currentDailyRate - $previousDailyRate) / $previousDailyRate) * 100;
+                    if (abs($rateChangePercentage) > ($thresholdMultiplier * 100)) {
                         $isAnomaly = true;
+                        if ($rateChangePercentage > 0) {
+                            $anomalyDesc = "Aceleración de consumo. El volumen diario trepó un " . round($rateChangePercentage) . "% respecto al promedio previo.";
+                        } else {
+                            $anomalyDesc = "Caída de tasa abrupta. El volumen diario cayó fuertemente un " . round(abs($rateChangePercentage)) . "% respecto al periodo anterior.";
+                        }
                     }
                 }
 
@@ -111,6 +120,7 @@ class PublicViewerController extends Controller
                 'date' => $currentDate->format('d/m/Y H:i'),
                 'value' => $val,
                 'anomaly' => $isAnomaly,
+                'anomaly_desc' => $anomalyDesc,
                 'photo' => $photoPath
             ];
 

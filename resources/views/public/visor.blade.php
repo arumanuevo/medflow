@@ -137,7 +137,10 @@
                                                     <span class="badge bg-danger anomaly-badge">Anomalía</span>
                                                     <span class="text-muted small">{{ $cd['date'] }}</span>
                                                 </div>
-                                                <h4 class="text-danger fw-bold mb-3">{{ $cd['value'] }} <span class="fs-6 text-muted">{{ $unit }}</span></h4>
+                                                <h4 class="text-danger fw-bold mb-1">{{ $cd['value'] }} <span class="fs-6 text-muted">{{ $unit }}</span></h4>
+                                                @if(isset($cd['anomaly_desc']) && $cd['anomaly_desc'])
+                                                    <p class="small text-danger mb-3">{{ $cd['anomaly_desc'] }}</p>
+                                                @endif
                                                 
                                                 @if($cd['photo'])
                                                     <img src="{{ $cd['photo'] }}" style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px;" alt="Evidencia">
@@ -173,13 +176,17 @@
                                     <span class="fw-bold fs-5 {{ $cd['anomaly'] ? 'text-danger' : 'text-primary' }}">{{ $cd['value'] }} <small class="FS-6 text-muted">{{ $unit }}</small></span>
                                     <span class="text-muted small">{{ $cd['date'] }}</span>
                                 </div>
-                                <div class="d-flex justify-content-between align-items-center">
+                                <div class="mb-2">
                                     @if($cd['anomaly'])
-                                        <span class="badge bg-danger">Anomalía Detectada</span>
+                                        <span class="badge bg-danger mb-1">Anomalía Detectada</span>
+                                        @if(isset($cd['anomaly_desc']) && $cd['anomaly_desc'])
+                                            <div class="small text-danger opacity-75 fst-italic"><i class="bi bi-info-circle"></i> {{ $cd['anomaly_desc'] }}</div>
+                                        @endif
                                     @else
                                         <span class="badge bg-light text-secondary border"><i class="bi bi-check-circle text-success"></i> Lectura Normal</span>
                                     @endif
-                                    
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
                                     @if($cd['photo'])
                                         <a href="{{ $cd['photo'] }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3">
                                             <i class="bi bi-image"></i> Ver Foto
