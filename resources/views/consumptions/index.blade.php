@@ -838,640 +838,642 @@
             let metaHtml = '';
             if (consumption.sensor?.metadata) {
                 Object.keys(consumption.sensor.metadata).forEach(k => {
-                    const val = consumption.sensor.metadata[k];
-                    if (val && val !== '') {
-                        const lbl = k.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                        metaHtml += '           <dt class="col-sm-4 text-muted">' + lbl + ':</dt>' +
-                            '           <dd class="col-sm-8 mb-1">' + val + '</dd>';
+                        const val = consumption.sensor.metadata[k];
+                        if (val && val !== '') {
+                            const lbl = k.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                            metaHtml += '           <dt class="col-sm-4 text-muted">' + lbl + ':</dt>' +
+                                '           <dd class="col-sm-8 mb-1">' + val + '</dd>';
+                        }
+                    });
+                }
+
+                const sensorEditBtn = consumption.sensor ? ` <a href="/sensors/${consumption.sensor.id}/edit" class="btn btn-sm btn-outline-primary py-0 px-2 ms-2" title="Editar Sensor"><i class="bi bi-pencil"></i></a>` : '';
+
+                let html = '<div class="row small">' +
+                    '   <div class="col-md-6 mb-3">' +
+                    '       <h6 class="border-bottom pb-2 text-primary fw-bold"><i class="bi bi-info-circle"></i> Información General</h6>' +
+                    '       <dl class="row mb-0">' +
+                    '           <dt class="col-sm-4 text-muted">ID:</dt>' +
+                    '           <dd class="col-sm-8 mb-1">' + consumption.id + '</dd>' +
+                    '           <dt class="col-sm-4 text-muted">Sensor:</dt>' +
+                    '           <dd class="col-sm-8 mb-1 d-flex align-items-center">' + (consumption.sensor?.name || 'N/A') + ' (<code>' + (consumption.sensor?.identifier || 'N/A') + '</code>)' + sensorEditBtn + '</dd>' +
+                    '           <dt class="col-sm-4 text-muted">Grupo:</dt>' +
+                    '           <dd class="col-sm-8 mb-1">' + (consumption.sensor?.group?.name || 'N/A') + '</dd>' +
+                    '           <dt class="col-sm-4 text-muted">Unidad:</dt>' +
+                    '           <dd class="col-sm-8 mb-1">' + consumption.unit + '</dd>' +
+                    metaHtml +
+                    '       </dl>' +
+                    '   </div>' +
+                    '   <div class="col-md-6 mb-3">' +
+                    '       <h6 class="border-bottom pb-2 text-primary fw-bold"><i class="bi bi-graph-up"></i> Datos del Consumo</h6>' +
+                    '       <dl class="row mb-0">' +
+                    '           <dt class="col-sm-4 text-muted">Valor:</dt>' +
+                    '           <dd class="col-sm-8 mb-1 fw-bold">' + consumption.value + ' ' + consumption.unit + '</dd>' +
+                    '           <dt class="col-sm-4 text-muted">Días:</dt>' +
+                    '           <dd class="col-sm-8 mb-1">' + consumption.days_between + '</dd>' +
+                    '           <dt class="col-sm-4 text-muted">Prom. Diario:</dt>' +
+                    '           <dd class="col-sm-8 mb-1">' + dailyAverage + ' ' + consumption.unit + '/día</dd>' +
+                    (consumption.cost !== null && consumption.cost !== undefined ? '           <dt class="col-sm-4 text-muted">Costo Facturado:</dt>' +
+                        '           <dd class="col-sm-8 mb-1 fw-bold text-success">' + consumption.currency + ' $' + parseFloat(consumption.cost).toLocaleString('es-ES', { minimumFractionDigits: 2 }) + '</dd>' : '') +
+                    '       </dl>' +
+                    '   </div>' +
+                    '</div>' +
+                    '<div class="row small">' +
+                    '   <div class="col-md-12 mb-3">' +
+                    '       <h6 class="border-bottom pb-2 text-primary fw-bold"><i class="bi bi-calendar-range"></i> Período</h6>' +
+                    '       <dl class="row mb-0">' +
+                    '           <dt class="col-sm-2 text-muted">Inicio:</dt>' +
+                    '           <dd class="col-sm-4 mb-1">' + startDate + '</dd>' +
+                    '           <dt class="col-sm-2 text-muted">Fin:</dt>' +
+                    '           <dd class="col-sm-4 mb-1">' + endDate + '</dd>' +
+                    '       </dl>' +
+                    '   </div>' +
+                    '</div>';
+
+                // Función para obtener el valor de una medición (soporta diferentes campos)
+                function getMeasurementValue(measurement) {
+                    if (!measurement || !measurement.data) return 'N/A';
+
+                    // Intentar con campos comunes
+                    const fields = ['valor', 'consumo_m3', 'consumo', 'value', 'medicion'];
+                    for (const field of fields) {
+                        if (measurement.data[field] !== undefined) {
+                            return measurement.data[field];
+                        }
+                    }
+
+                    // Si no se encuentra ningún campo conocido, devolver el primer valor numérico
+                    for (const [key, value] of Object.entries(measurement.data)) {
+                        if (typeof value === 'number') {
+                            return value;
+                        }
+                    }
+
+                    return 'N/A';
+                }
+
+                // Agregar información de las mediciones si están disponibles
+                if (consumption.start_measurement) {
+                    const startValue = getMeasurementValue(consumption.start_measurement) || 'N/A';
+                    const startMeasurementDate = new Date(consumption.start_measurement.measured_at).toLocaleString('es-ES');
+
+                    html += '<div class="row small mt-2">' +
+                        '   <div class="col-md-6 mb-3">' +
+                        '       <h6 class="border-bottom pb-2 text-primary fw-bold"><i class="bi bi-arrow-down-left"></i> Medición Inicial</h6>' +
+                        '       <dl class="row mb-0">' +
+                        '           <dt class="col-sm-4 text-muted">ID:</dt>' +
+                        '           <dd class="col-sm-8 mb-1">' + consumption.start_measurement.id + '</dd>' +
+                        '           <dt class="col-sm-4 text-muted">Valor:</dt>' +
+                        '           <dd class="col-sm-8 mb-1">' + startValue + ' ' + consumption.unit + '</dd>' +
+                        '           <dt class="col-sm-4 text-muted">Fecha:</dt>' +
+                        '           <dd class="col-sm-8 mb-1">' + startMeasurementDate + '</dd>' +
+                        '       </dl>' +
+                        '   </div>';
+
+                    if (consumption.end_measurement) {
+                        const endValue = getMeasurementValue(consumption.end_measurement) || 'N/A';
+                        const endMeasurementDate = new Date(consumption.end_measurement.measured_at).toLocaleString('es-ES');
+
+                        html += '   <div class="col-md-6 mb-3">' +
+                            '       <h6 class="border-bottom pb-2 text-primary fw-bold"><i class="bi bi-arrow-up-right"></i> Medición Final</h6>' +
+                            '       <dl class="row mb-0">' +
+                            '           <dt class="col-sm-4 text-muted">ID:</dt>' +
+                            '           <dd class="col-sm-8 mb-1">' + consumption.end_measurement.id + '</dd>' +
+                            '           <dt class="col-sm-4 text-muted">Valor:</dt>' +
+                            '           <dd class="col-sm-8 mb-1">' + endValue + ' ' + consumption.unit + '</dd>' +
+                            '           <dt class="col-sm-4 text-muted">Fecha:</dt>' +
+                            '           <dd class="col-sm-8 mb-1">' + endMeasurementDate + '</dd>' +
+                            '       </dl>' +
+                            '   </div>';
+                    }
+                    html += '</div>';
+                }
+
+                $('#consumptionDetailsContent').html(html);
+            }
+
+            // Calcular consumos para todos los sensores
+            function calculateAllConsumptions() {
+                if (!confirm('¿Estás seguro de que deseas recalcular todos los consumos? Esto puede tardar unos segundos.')) {
+                    return;
+                }
+
+                $.ajax({
+                    url: '/api/consumptions/calculate-all',
+                    type: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                        'Accept': 'application/json'
+                    },
+                    beforeSend: function () {
+                        $('#calculateConsumption').prop('disabled', true).html(
+                            '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Recalculando...'
+                        );
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            showAlert(response.message || 'Consumos recalculados correctamente', 'success');
+                            loadConsumptions();
+                        } else {
+                            showAlert(response.message || 'Error al recalcular consumos', 'danger');
+                        }
+                    },
+                    error: function (xhr) {
+                        showAlert('Error al recalcular consumos: ' + (xhr.responseJSON?.message || xhr.statusText), 'danger');
+                    },
+                    complete: function () {
+                        $('#calculateConsumption').prop('disabled', false).html(
+                            '<i class="bi bi-calculator btn-icon"></i> Recalcular Consumos'
+                        );
                     }
                 });
             }
 
-            let html = '<div class="row small">' +
-                '   <div class="col-md-6 mb-3">' +
-                '       <h6 class="border-bottom pb-2 text-primary fw-bold"><i class="bi bi-info-circle"></i> Información General</h6>' +
-                '       <dl class="row mb-0">' +
-                '           <dt class="col-sm-4 text-muted">ID:</dt>' +
-                '           <dd class="col-sm-8 mb-1">' + consumption.id + '</dd>' +
-                '           <dt class="col-sm-4 text-muted">Sensor:</dt>' +
-                '           <dd class="col-sm-8 mb-1">' + (consumption.sensor?.name || 'N/A') + ' (<code>' + (consumption.sensor?.identifier || 'N/A') + '</code>)</dd>' +
-                '           <dt class="col-sm-4 text-muted">Grupo:</dt>' +
-                '           <dd class="col-sm-8 mb-1">' + (consumption.sensor?.group?.name || 'N/A') + '</dd>' +
-                '           <dt class="col-sm-4 text-muted">Unidad:</dt>' +
-                '           <dd class="col-sm-8 mb-1">' + consumption.unit + '</dd>' +
-                metaHtml +
-                '       </dl>' +
-                '   </div>' +
-                '   <div class="col-md-6 mb-3">' +
-                '       <h6 class="border-bottom pb-2 text-primary fw-bold"><i class="bi bi-graph-up"></i> Datos del Consumo</h6>' +
-                '       <dl class="row mb-0">' +
-                '           <dt class="col-sm-4 text-muted">Valor:</dt>' +
-                '           <dd class="col-sm-8 mb-1 fw-bold">' + consumption.value + ' ' + consumption.unit + '</dd>' +
-                '           <dt class="col-sm-4 text-muted">Días:</dt>' +
-                '           <dd class="col-sm-8 mb-1">' + consumption.days_between + '</dd>' +
-                '           <dt class="col-sm-4 text-muted">Prom. Diario:</dt>' +
-                '           <dd class="col-sm-8 mb-1">' + dailyAverage + ' ' + consumption.unit + '/día</dd>' +
-                (consumption.cost !== null && consumption.cost !== undefined ? '           <dt class="col-sm-4 text-muted">Costo Facturado:</dt>' +
-                    '           <dd class="col-sm-8 mb-1 fw-bold text-success">' + consumption.currency + ' $' + parseFloat(consumption.cost).toLocaleString('es-ES', { minimumFractionDigits: 2 }) + '</dd>' : '') +
-                '       </dl>' +
-                '   </div>' +
-                '</div>' +
-                '<div class="row small">' +
-                '   <div class="col-md-12 mb-3">' +
-                '       <h6 class="border-bottom pb-2 text-primary fw-bold"><i class="bi bi-calendar-range"></i> Período</h6>' +
-                '       <dl class="row mb-0">' +
-                '           <dt class="col-sm-2 text-muted">Inicio:</dt>' +
-                '           <dd class="col-sm-4 mb-1">' + startDate + '</dd>' +
-                '           <dt class="col-sm-2 text-muted">Fin:</dt>' +
-                '           <dd class="col-sm-4 mb-1">' + endDate + '</dd>' +
-                '       </dl>' +
-                '   </div>' +
-                '</div>';
+            // Exportar consumos a Excel
+            function exportConsumptions() {
+                const sensorId = $('#sensorFilter').val();
+                const startDate = $('#startDate').val();
+                const endDate = $('#endDate').val();
 
-            // Función para obtener el valor de una medición (soporta diferentes campos)
-            function getMeasurementValue(measurement) {
-                if (!measurement || !measurement.data) return 'N/A';
+                const params = {};
+                if (sensorId) params.sensor_id = sensorId;
+                if (startDate) params.start_date = startDate;
+                if (endDate) params.end_date = endDate;
 
-                // Intentar con campos comunes
-                const fields = ['valor', 'consumo_m3', 'consumo', 'value', 'medicion'];
-                for (const field of fields) {
-                    if (measurement.data[field] !== undefined) {
-                        return measurement.data[field];
-                    }
-                }
-
-                // Si no se encuentra ningún campo conocido, devolver el primer valor numérico
-                for (const [key, value] of Object.entries(measurement.data)) {
-                    if (typeof value === 'number') {
-                        return value;
-                    }
-                }
-
-                return 'N/A';
+                const url = '/api/consumptions/export?' + new URLSearchParams(params).toString();
+                window.open(url, '_blank');
             }
 
-            // Agregar información de las mediciones si están disponibles
-            if (consumption.start_measurement) {
-                const startValue = getMeasurementValue(consumption.start_measurement) || 'N/A';
-                const startMeasurementDate = new Date(consumption.start_measurement.measured_at).toLocaleString('es-ES');
-
-                html += '<div class="row small mt-2">' +
-                    '   <div class="col-md-6 mb-3">' +
-                    '       <h6 class="border-bottom pb-2 text-primary fw-bold"><i class="bi bi-arrow-down-left"></i> Medición Inicial</h6>' +
-                    '       <dl class="row mb-0">' +
-                    '           <dt class="col-sm-4 text-muted">ID:</dt>' +
-                    '           <dd class="col-sm-8 mb-1">' + consumption.start_measurement.id + '</dd>' +
-                    '           <dt class="col-sm-4 text-muted">Valor:</dt>' +
-                    '           <dd class="col-sm-8 mb-1">' + startValue + ' ' + consumption.unit + '</dd>' +
-                    '           <dt class="col-sm-4 text-muted">Fecha:</dt>' +
-                    '           <dd class="col-sm-8 mb-1">' + startMeasurementDate + '</dd>' +
-                    '       </dl>' +
-                    '   </div>';
-
-                if (consumption.end_measurement) {
-                    const endValue = getMeasurementValue(consumption.end_measurement) || 'N/A';
-                    const endMeasurementDate = new Date(consumption.end_measurement.measured_at).toLocaleString('es-ES');
-
-                    html += '   <div class="col-md-6 mb-3">' +
-                        '       <h6 class="border-bottom pb-2 text-primary fw-bold"><i class="bi bi-arrow-up-right"></i> Medición Final</h6>' +
-                        '       <dl class="row mb-0">' +
-                        '           <dt class="col-sm-4 text-muted">ID:</dt>' +
-                        '           <dd class="col-sm-8 mb-1">' + consumption.end_measurement.id + '</dd>' +
-                        '           <dt class="col-sm-4 text-muted">Valor:</dt>' +
-                        '           <dd class="col-sm-8 mb-1">' + endValue + ' ' + consumption.unit + '</dd>' +
-                        '           <dt class="col-sm-4 text-muted">Fecha:</dt>' +
-                        '           <dd class="col-sm-8 mb-1">' + endMeasurementDate + '</dd>' +
-                        '       </dl>' +
-                        '   </div>';
-                }
-                html += '</div>';
-            }
-
-            $('#consumptionDetailsContent').html(html);
-        }
-
-        // Calcular consumos para todos los sensores
-        function calculateAllConsumptions() {
-            if (!confirm('¿Estás seguro de que deseas recalcular todos los consumos? Esto puede tardar unos segundos.')) {
-                return;
-            }
-
-            $.ajax({
-                url: '/api/consumptions/calculate-all',
-                type: 'POST',
-                headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                    'Accept': 'application/json'
-                },
-                beforeSend: function () {
-                    $('#calculateConsumption').prop('disabled', true).html(
-                        '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Recalculando...'
-                    );
-                },
-                success: function (response) {
-                    if (response.success) {
-                        showAlert(response.message || 'Consumos recalculados correctamente', 'success');
-                        loadConsumptions();
-                    } else {
-                        showAlert(response.message || 'Error al recalcular consumos', 'danger');
-                    }
-                },
-                error: function (xhr) {
-                    showAlert('Error al recalcular consumos: ' + (xhr.responseJSON?.message || xhr.statusText), 'danger');
-                },
-                complete: function () {
-                    $('#calculateConsumption').prop('disabled', false).html(
-                        '<i class="bi bi-calculator btn-icon"></i> Recalcular Consumos'
-                    );
-                }
-            });
-        }
-
-        // Exportar consumos a Excel
-        function exportConsumptions() {
-            const sensorId = $('#sensorFilter').val();
-            const startDate = $('#startDate').val();
-            const endDate = $('#endDate').val();
-
-            const params = {};
-            if (sensorId) params.sensor_id = sensorId;
-            if (startDate) params.start_date = startDate;
-            if (endDate) params.end_date = endDate;
-
-            const url = '/api/consumptions/export?' + new URLSearchParams(params).toString();
-            window.open(url, '_blank');
-        }
-
-        // Limpiar filtros
-        function resetFilters() {
-            $('#sensorFilter').val('');
-            $('#identifierFilter').val('');
-            $('#startDate').val('');
-            $('#endDate').val('');
-            currentPage = 1;
-            loadConsumptions();
-        }
-
-        // Renderizar paginación
-        function renderPagination(meta) {
-            if (!meta || !meta.last_page) {
-                $('#pagination').html('');
-                $('#paginationInfo').html('');
-                return;
-            }
-
-            const from = meta.from || 0;
-            const to = meta.to || 0;
-            const total = meta.total || 0;
-            $('#paginationInfo').html(`Mostrando ${from} a ${to} de ${total} consumos`);
-
-            let paginationHtml = '';
-
-            // Función global para que sea accesible desde html inline si lo hay
-            window.changePage = function (page) {
-                // Obtenemos la referencia a través de scope o usamos la variable principal si existe
-                if (typeof currentPage !== 'undefined') {
-                    currentPage = page;
-                } else {
-                    // Intentar inyectar en el query param o recargar script local
-                    window.currentPage = page;
-                }
+            // Limpiar filtros
+            function resetFilters() {
+                $('#sensorFilter').val('');
+                $('#identifierFilter').val('');
+                $('#startDate').val('');
+                $('#endDate').val('');
+                currentPage = 1;
                 loadConsumptions();
-            };
-
-            if (meta.current_page > 1) {
-                paginationHtml += `
-                                                                                                                                                <li class="page-item">
-                                                                                                                                                    <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${meta.current_page - 1})" aria-label="Anterior">
-                                                                                                                                                        <span aria-hidden="true">&laquo;</span>
-                                                                                                                                                    </a>
-                                                                                                                                                </li>`;
-            } else {
-                paginationHtml += `
-                                                                                                                                                <li class="page-item disabled">
-                                                                                                                                                    <span class="page-link" aria-hidden="true">&laquo;</span>
-                                                                                                                                                </li>`;
             }
 
-            const maxPages = 5;
-            let startPage = Math.max(1, meta.current_page - Math.floor(maxPages / 2));
-            let endPage = Math.min(meta.last_page, startPage + maxPages - 1);
+            // Renderizar paginación
+            function renderPagination(meta) {
+                if (!meta || !meta.last_page) {
+                    $('#pagination').html('');
+                    $('#paginationInfo').html('');
+                    return;
+                }
 
-            if (endPage - startPage + 1 < maxPages) {
-                startPage = Math.max(1, endPage - maxPages + 1);
-            }
+                const from = meta.from || 0;
+                const to = meta.to || 0;
+                const total = meta.total || 0;
+                $('#paginationInfo').html(`Mostrando ${from} a ${to} de ${total} consumos`);
 
-            for (let i = startPage; i <= endPage; i++) {
-                if (i === meta.current_page) {
-                    paginationHtml += `
-                                                                                                                                                    <li class="page-item active">
-                                                                                                                                                        <span class="page-link">${i}</span>
-                                                                                                                                                    </li>`;
-                } else {
+                let paginationHtml = '';
+
+                // Función global para que sea accesible desde html inline si lo hay
+                window.changePage = function (page) {
+                    // Obtenemos la referencia a través de scope o usamos la variable principal si existe
+                    if (typeof currentPage !== 'undefined') {
+                        currentPage = page;
+                    } else {
+                        // Intentar inyectar en el query param o recargar script local
+                        window.currentPage = page;
+                    }
+                    loadConsumptions();
+                };
+
+                if (meta.current_page > 1) {
                     paginationHtml += `
                                                                                                                                                     <li class="page-item">
-                                                                                                                                                        <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${i})">${i}</a>
+                                                                                                                                                        <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${meta.current_page - 1})" aria-label="Anterior">
+                                                                                                                                                            <span aria-hidden="true">&laquo;</span>
+                                                                                                                                                        </a>
+                                                                                                                                                    </li>`;
+                } else {
+                    paginationHtml += `
+                                                                                                                                                    <li class="page-item disabled">
+                                                                                                                                                        <span class="page-link" aria-hidden="true">&laquo;</span>
                                                                                                                                                     </li>`;
                 }
-            }
 
-            if (meta.current_page < meta.last_page) {
-                paginationHtml += `
-                                                                                                                                                <li class="page-item">
-                                                                                                                                                    <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${meta.current_page + 1})" aria-label="Siguiente">
-                                                                                                                                                        <span aria-hidden="true">&raquo;</span>
-                                                                                                                                                    </a>
-                                                                                                                                                </li>`;
-            } else {
-                paginationHtml += `
-                                                                                                                                                <li class="page-item disabled">
-                                                                                                                                                    <span class="page-link" aria-hidden="true">&raquo;</span>
-                                                                                                                                                </li>`;
-            }
+                const maxPages = 5;
+                let startPage = Math.max(1, meta.current_page - Math.floor(maxPages / 2));
+                let endPage = Math.min(meta.last_page, startPage + maxPages - 1);
 
-            $('#pagination').html(paginationHtml);
-        }
-
-        // Mostrar alerta
-        function showAlert(message, type) {
-            const alertHtml = '<div class="alert alert-' + type + ' alert-dismissible fade show" role="alert">' +
-                message +
-                '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
-                '</div>';
-            $('.card-body').prepend(alertHtml);
-        }
-
-        $('#btnCalculateRange').click(function () {
-            const sensorId = $('#analyzeSensorId').val();
-            const start = $('#analyzeStartDate').val();
-            const end = $('#analyzeEndDate').val();
-            const threshold = $('#analyzeThreshold').val() || 50;
-            const stagnation = $('#analyzeStagnation').val() || 15;
-
-            if (!start || !end) {
-                alert('Por favor selecciona ambas fechas.');
-                return;
-            }
-
-            $('#analyzeResults').addClass('d-none');
-            $('#analyzeLoading').removeClass('d-none');
-
-            $.ajax({
-                url: '/api/consumptions/calculate-range',
-                type: 'POST',
-                headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                    'Accept': 'application/json'
-                },
-                data: {
-                    sensor_id: sensorId,
-                    start_date: start,
-                    end_date: end,
-                    anomaly_threshold: threshold,
-                    stagnation_days: stagnation
-                },
-                success: function (res) {
-                    $('#analyzeLoading').addClass('d-none');
-                    if (res.success && res.data) {
-                        const d = res.data;
-
-                        $('#resTotalDelta').text(d.total_consumption + ' ' + d.unit);
-                        $('#resCommunityContribution').text('+' + (d.community_contribution || 0).toFixed(2) + ' ' + d.unit);
-                        if (d.financial_cost !== null && d.financial_cost !== undefined) {
-                            $('#resFinalBilledTotal').text(d.currency + ' $' + d.financial_cost.toLocaleString('es-ES', { minimumFractionDigits: 2 }));
-                            $('#resFinalBilledTotal').removeClass('text-dark').addClass('text-success');
-                        } else {
-                            $('#resFinalBilledTotal').text((d.final_billed_total || d.total_consumption).toFixed(2) + ' ' + d.unit);
-                            $('#resFinalBilledTotal').removeClass('text-success').addClass('text-dark');
-                        }
-                        $('#resDailyAvg').text(d.daily_average + ' ' + d.unit);
-                        $('#resDaysBetween').text(parseFloat(d.days_between).toFixed(0));
-                        $('#resMeasurementsCount').text(d.measurements_count);
-                        $('#resTotalPeriod').text('entre ' + new Date(d.period_start).toLocaleDateString() + ' y ' + new Date(d.period_end).toLocaleDateString());
-
-                        $('#resStartLog').text(new Date(d.period_start).toLocaleString('es-ES'));
-                        $('#resEndLog').text(new Date(d.period_end).toLocaleString('es-ES'));
-                        $('#resStartVal').text(d.start_value + ' ' + d.unit);
-                        $('#resEndVal').text(d.end_value + ' ' + d.unit);
-                        $('#infoThreshold').text(threshold);
-                        $('#infoStagnation').text(stagnation);
-
-                        renderEvolutionChart(d.chart_data, d.unit);
-
-                        // Poblar la Auditoría Visual si hay anomalías
-                        const grid = $('#anomaliesInspectionGrid');
-                        grid.empty();
-
-                        const anomalies = d.chart_data.filter(c => c.anomaly);
-                        if (anomalies.length > 0) {
-                            anomalies.forEach((anom, idx) => {
-                                let imgPath = anom.photo && anom.photo !== 'Sin Foto'
-                                    ? (anom.photo.startsWith('http') ? anom.photo : '/' + anom.photo)
-                                    : null;
-
-                                let imgHtml = imgPath
-                                    ? '<a href="' + imgPath + '" target="_blank"><img src="' + imgPath + '" class="img-fluid rounded border mt-2" style="max-height:120px; object-fit:cover; width:100%" alt="Foto medición"></a>'
-                                    : '<div class="text-muted small mt-2 p-3 bg-white border rounded text-center"><i class="bi bi-camera-video-off"></i> Sin registro fotográfico</div>';
-
-                                grid.append(
-                                    '<div class="col-md-4">' +
-                                    '   <div class="card h-100 border-danger shadow-sm">' +
-                                    '       <div class="card-header bg-danger text-white py-1 small">' +
-                                    '           <i class="bi bi-exclamation-triangle-fill"></i> Punto Atípico #' + (idx + 1) +
-                                    '       </div>' +
-                                    '       <div class="card-body p-2">' +
-                                    '           <div class="fw-bold">' + anom.date + '</div>' +
-                                    '           <div class="text-danger">Sensado: <strong>' + anom.value + '</strong> ' + d.unit + '</div>' +
-                                    '           <div class="mt-2 text-center">' + imgHtml + '</div>' +
-                                    '       </div>' +
-                                    '   </div>' +
-                                    '</div>'
-                                );
-                            });
-                            $('#anomaliesInspectionContainer').removeClass('d-none');
-                        } else {
-                            $('#anomaliesInspectionContainer').addClass('d-none');
-                        }
-
-                        $('#analyzeResults').removeClass('d-none');
-                    } else {
-                        alert(res.message || 'Error en cálculo.');
-                    }
-                },
-                error: function (xhr) {
-                    $('#analyzeLoading').addClass('d-none');
-                    alert(xhr.responseJSON?.message || 'Hubo un problema. No hay mediciones válidas para tu solicitud.');
+                if (endPage - startPage + 1 < maxPages) {
+                    startPage = Math.max(1, endPage - maxPages + 1);
                 }
-            });
-        });
 
-        function renderEvolutionChart(chartData, unit) {
-            const ctx = document.getElementById('evolutionChart').getContext('2d');
+                for (let i = startPage; i <= endPage; i++) {
+                    if (i === meta.current_page) {
+                        paginationHtml += `
+                                                                                                                                                        <li class="page-item active">
+                                                                                                                                                            <span class="page-link">${i}</span>
+                                                                                                                                                        </li>`;
+                    } else {
+                        paginationHtml += `
+                                                                                                                                                        <li class="page-item">
+                                                                                                                                                            <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${i})">${i}</a>
+                                                                                                                                                        </li>`;
+                    }
+                }
 
-            if (evolutionChartInstance) {
-                evolutionChartInstance.destroy();
+                if (meta.current_page < meta.last_page) {
+                    paginationHtml += `
+                                                                                                                                                    <li class="page-item">
+                                                                                                                                                        <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${meta.current_page + 1})" aria-label="Siguiente">
+                                                                                                                                                            <span aria-hidden="true">&raquo;</span>
+                                                                                                                                                        </a>
+                                                                                                                                                    </li>`;
+                } else {
+                    paginationHtml += `
+                                                                                                                                                    <li class="page-item disabled">
+                                                                                                                                                        <span class="page-link" aria-hidden="true">&raquo;</span>
+                                                                                                                                                    </li>`;
+                }
+
+                $('#pagination').html(paginationHtml);
             }
 
-            if (!chartData || chartData.length === 0) return;
+            // Mostrar alerta
+            function showAlert(message, type) {
+                const alertHtml = '<div class="alert alert-' + type + ' alert-dismissible fade show" role="alert">' +
+                    message +
+                    '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+                    '</div>';
+                $('.card-body').prepend(alertHtml);
+            }
 
-            const labels = chartData.map(c => c.date);
-            const dataValues = chartData.map(c => c.value);
+            $('#btnCalculateRange').click(function () {
+                const sensorId = $('#analyzeSensorId').val();
+                const start = $('#analyzeStartDate').val();
+                const end = $('#analyzeEndDate').val();
+                const threshold = $('#analyzeThreshold').val() || 50;
+                const stagnation = $('#analyzeStagnation').val() || 15;
 
-            // Map colors: red if anomaly, otherwise standard blue 
-            // Also increase radius for anomalies
-            const pointColors = chartData.map(c => c.anomaly ? 'rgba(220, 53, 69, 1)' : 'rgba(13, 110, 253, 1)');
-            const pointRadius = chartData.map(c => c.anomaly ? 6 : 3);
+                if (!start || !end) {
+                    alert('Por favor selecciona ambas fechas.');
+                    return;
+                }
 
-            evolutionChartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Consumo registrado',
-                        data: dataValues,
-                        borderColor: 'rgba(13, 110, 253, 0.4)',
-                        backgroundColor: 'rgba(13, 110, 253, 0.05)',
-                        borderWidth: 2,
-                        pointBackgroundColor: pointColors,
-                        pointBorderColor: pointColors,
-                        pointRadius: pointRadius,
-                        pointHoverRadius: 8,
-                        fill: true,
-                        tension: 0.1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: function (context) {
-                                    const raw = context.raw;
-                                    const pointData = chartData[context.dataIndex];
-                                    let label = raw + ' ' + unit;
-                                    if (pointData.anomaly) {
-                                        label += ' (⚠️ Salto atípico)';
-                                    }
-                                    return label;
-                                }
+                $('#analyzeResults').addClass('d-none');
+                $('#analyzeLoading').removeClass('d-none');
+
+                $.ajax({
+                    url: '/api/consumptions/calculate-range',
+                    type: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                        'Accept': 'application/json'
+                    },
+                    data: {
+                        sensor_id: sensorId,
+                        start_date: start,
+                        end_date: end,
+                        anomaly_threshold: threshold,
+                        stagnation_days: stagnation
+                    },
+                    success: function (res) {
+                        $('#analyzeLoading').addClass('d-none');
+                        if (res.success && res.data) {
+                            const d = res.data;
+
+                            $('#resTotalDelta').text(d.total_consumption + ' ' + d.unit);
+                            $('#resCommunityContribution').text('+' + (d.community_contribution || 0).toFixed(2) + ' ' + d.unit);
+                            if (d.financial_cost !== null && d.financial_cost !== undefined) {
+                                $('#resFinalBilledTotal').text(d.currency + ' $' + d.financial_cost.toLocaleString('es-ES', { minimumFractionDigits: 2 }));
+                                $('#resFinalBilledTotal').removeClass('text-dark').addClass('text-success');
+                            } else {
+                                $('#resFinalBilledTotal').text((d.final_billed_total || d.total_consumption).toFixed(2) + ' ' + d.unit);
+                                $('#resFinalBilledTotal').removeClass('text-success').addClass('text-dark');
                             }
+                            $('#resDailyAvg').text(d.daily_average + ' ' + d.unit);
+                            $('#resDaysBetween').text(parseFloat(d.days_between).toFixed(0));
+                            $('#resMeasurementsCount').text(d.measurements_count);
+                            $('#resTotalPeriod').text('entre ' + new Date(d.period_start).toLocaleDateString() + ' y ' + new Date(d.period_end).toLocaleDateString());
+
+                            $('#resStartLog').text(new Date(d.period_start).toLocaleString('es-ES'));
+                            $('#resEndLog').text(new Date(d.period_end).toLocaleString('es-ES'));
+                            $('#resStartVal').text(d.start_value + ' ' + d.unit);
+                            $('#resEndVal').text(d.end_value + ' ' + d.unit);
+                            $('#infoThreshold').text(threshold);
+                            $('#infoStagnation').text(stagnation);
+
+                            renderEvolutionChart(d.chart_data, d.unit);
+
+                            // Poblar la Auditoría Visual si hay anomalías
+                            const grid = $('#anomaliesInspectionGrid');
+                            grid.empty();
+
+                            const anomalies = d.chart_data.filter(c => c.anomaly);
+                            if (anomalies.length > 0) {
+                                anomalies.forEach((anom, idx) => {
+                                    let imgPath = anom.photo && anom.photo !== 'Sin Foto'
+                                        ? (anom.photo.startsWith('http') ? anom.photo : '/' + anom.photo)
+                                        : null;
+
+                                    let imgHtml = imgPath
+                                        ? '<a href="' + imgPath + '" target="_blank"><img src="' + imgPath + '" class="img-fluid rounded border mt-2" style="max-height:120px; object-fit:cover; width:100%" alt="Foto medición"></a>'
+                                        : '<div class="text-muted small mt-2 p-3 bg-white border rounded text-center"><i class="bi bi-camera-video-off"></i> Sin registro fotográfico</div>';
+
+                                    grid.append(
+                                        '<div class="col-md-4">' +
+                                        '   <div class="card h-100 border-danger shadow-sm">' +
+                                        '       <div class="card-header bg-danger text-white py-1 small">' +
+                                        '           <i class="bi bi-exclamation-triangle-fill"></i> Punto Atípico #' + (idx + 1) +
+                                        '       </div>' +
+                                        '       <div class="card-body p-2">' +
+                                        '           <div class="fw-bold">' + anom.date + '</div>' +
+                                        '           <div class="text-danger">Sensado: <strong>' + anom.value + '</strong> ' + d.unit + '</div>' +
+                                        '           <div class="mt-2 text-center">' + imgHtml + '</div>' +
+                                        '       </div>' +
+                                        '   </div>' +
+                                        '</div>'
+                                    );
+                                });
+                                $('#anomaliesInspectionContainer').removeClass('d-none');
+                            } else {
+                                $('#anomaliesInspectionContainer').addClass('d-none');
+                            }
+
+                            $('#analyzeResults').removeClass('d-none');
+                        } else {
+                            alert(res.message || 'Error en cálculo.');
                         }
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: false,
-                            title: {
-                                display: true,
-                                text: unit,
-                                font: { size: 10 }
-                            },
-                            ticks: { font: { size: 10 } }
+                    error: function (xhr) {
+                        $('#analyzeLoading').addClass('d-none');
+                        alert(xhr.responseJSON?.message || 'Hubo un problema. No hay mediciones válidas para tu solicitud.');
+                    }
+                });
+            });
+
+            function renderEvolutionChart(chartData, unit) {
+                const ctx = document.getElementById('evolutionChart').getContext('2d');
+
+                if (evolutionChartInstance) {
+                    evolutionChartInstance.destroy();
+                }
+
+                if (!chartData || chartData.length === 0) return;
+
+                const labels = chartData.map(c => c.date);
+                const dataValues = chartData.map(c => c.value);
+
+                // Map colors: red if anomaly, otherwise standard blue 
+                // Also increase radius for anomalies
+                const pointColors = chartData.map(c => c.anomaly ? 'rgba(220, 53, 69, 1)' : 'rgba(13, 110, 253, 1)');
+                const pointRadius = chartData.map(c => c.anomaly ? 6 : 3);
+
+                evolutionChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Consumo registrado',
+                            data: dataValues,
+                            borderColor: 'rgba(13, 110, 253, 0.4)',
+                            backgroundColor: 'rgba(13, 110, 253, 0.05)',
+                            borderWidth: 2,
+                            pointBackgroundColor: pointColors,
+                            pointBorderColor: pointColors,
+                            pointRadius: pointRadius,
+                            pointHoverRadius: 8,
+                            fill: true,
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (context) {
+                                        const raw = context.raw;
+                                        const pointData = chartData[context.dataIndex];
+                                        let label = raw + ' ' + unit;
+                                        if (pointData.anomaly) {
+                                            label += ' (⚠️ Salto atípico)';
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
                         },
-                        x: {
-                            ticks: {
-                                font: { size: 9 },
-                                maxRotation: 45,
-                                minRotation: 45
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                title: {
+                                    display: true,
+                                    text: unit,
+                                    font: { size: 10 }
+                                },
+                                ticks: { font: { size: 10 } }
+                            },
+                            x: {
+                                ticks: {
+                                    font: { size: 9 },
+                                    maxRotation: 45,
+                                    minRotation: 45
+                                }
                             }
                         }
                     }
+                });
+            }
+
+            function openGlobalRadarModal() {
+                // Cargar de localstorage
+                const storedThreshold = localStorage.getItem('medflow_analyze_threshold');
+                if (storedThreshold) {
+                    $('#radarThreshold').val(storedThreshold);
                 }
-            });
-        }
 
-        function openGlobalRadarModal() {
-            // Cargar de localstorage
-            const storedThreshold = localStorage.getItem('medflow_analyze_threshold');
-            if (storedThreshold) {
-                $('#radarThreshold').val(storedThreshold);
+                const storedStagnation = localStorage.getItem('medflow_analyze_stagnation');
+                if (storedStagnation) {
+                    $('#radarStagnation').val(storedStagnation);
+                }
+
+                if (!$('#radarStartDate').val()) {
+                    const now = new Date();
+                    const startStr = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().substring(0, 10);
+                    $('#radarStartDate').val(startStr);
+                }
+                if (!$('#radarEndDate').val()) {
+                    const now = new Date();
+                    const endStr = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().substring(0, 10);
+                    $('#radarEndDate').val(endStr);
+                }
+
+                $('#radarResults').addClass('d-none');
+                $('#radarLoading').addClass('d-none');
+                $('#globalRadarModal').modal('show');
             }
 
-            const storedStagnation = localStorage.getItem('medflow_analyze_stagnation');
-            if (storedStagnation) {
-                $('#radarStagnation').val(storedStagnation);
-            }
+            $('#btnScanGlobal').click(function () {
+                const start = $('#radarStartDate').val();
+                const end = $('#radarEndDate').val();
+                const threshold = $('#radarThreshold').val() || 50;
+                const stagnation = $('#radarStagnation').val() || 15;
 
-            if (!$('#radarStartDate').val()) {
-                const now = new Date();
-                const startStr = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().substring(0, 10);
-                $('#radarStartDate').val(startStr);
-            }
-            if (!$('#radarEndDate').val()) {
-                const now = new Date();
-                const endStr = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().substring(0, 10);
-                $('#radarEndDate').val(endStr);
-            }
+                // Save preferences
+                localStorage.setItem('medflow_analyze_threshold', threshold);
+                localStorage.setItem('medflow_analyze_stagnation', stagnation);
 
-            $('#radarResults').addClass('d-none');
-            $('#radarLoading').addClass('d-none');
-            $('#globalRadarModal').modal('show');
-        }
+                if (!start || !end) {
+                    alert('Selecciona inicio y fin.');
+                    return;
+                }
 
-        $('#btnScanGlobal').click(function () {
-            const start = $('#radarStartDate').val();
-            const end = $('#radarEndDate').val();
-            const threshold = $('#radarThreshold').val() || 50;
-            const stagnation = $('#radarStagnation').val() || 15;
+                $('#radarResults').addClass('d-none');
+                $('#radarLoading').removeClass('d-none');
 
-            // Save preferences
-            localStorage.setItem('medflow_analyze_threshold', threshold);
-            localStorage.setItem('medflow_analyze_stagnation', stagnation);
+                $.ajax({
+                    url: '/api/consumptions/global-anomalies',
+                    type: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                        'Accept': 'application/json'
+                    },
+                    data: {
+                        start_date: start,
+                        end_date: end,
+                        anomaly_threshold: threshold,
+                        stagnation_days: stagnation
+                    },
+                    success: function (res) {
+                        $('#radarLoading').addClass('d-none');
+                        if (res.success && res.data) {
+                            $('#radarCount').text(res.data.length);
+                            const tbody = $('#radarTableBody');
+                            tbody.empty();
 
-            if (!start || !end) {
-                alert('Selecciona inicio y fin.');
-                return;
-            }
+                            if (res.data.length === 0) {
+                                tbody.append('<tr><td colspan="3" class="text-center text-success"><i class="bi bi-check-circle-fill"></i> Todos los sistemas bajo límites nominales. Cero anomalías temporales encontradas.</td></tr>');
+                            } else {
+                                res.data.forEach(function (item) {
+                                    let tagsHtml = '';
+                                    if (item.acceleration_count > 0) {
+                                        tagsHtml += '<span class="badge bg-danger shadow-sm me-1 mt-1" title="Saltos Acelerados"><i class="bi bi-graph-up-arrow"></i> ' + item.acceleration_count + ' picos</span>';
+                                    }
+                                    if (item.stagnation_count > 0) {
+                                        tagsHtml += '<span class="badge bg-secondary shadow-sm me-1 mt-1" title="Días 0"><i class="bi bi-hourglass-bottom"></i> ' + item.stagnation_count + ' estancados</span>';
+                                    }
 
-            $('#radarResults').addClass('d-none');
-            $('#radarLoading').removeClass('d-none');
-
-            $.ajax({
-                url: '/api/consumptions/global-anomalies',
-                type: 'POST',
-                headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                    'Accept': 'application/json'
-                },
-                data: {
-                    start_date: start,
-                    end_date: end,
-                    anomaly_threshold: threshold,
-                    stagnation_days: stagnation
-                },
-                success: function (res) {
-                    $('#radarLoading').addClass('d-none');
-                    if (res.success && res.data) {
-                        $('#radarCount').text(res.data.length);
-                        const tbody = $('#radarTableBody');
-                        tbody.empty();
-
-                        if (res.data.length === 0) {
-                            tbody.append('<tr><td colspan="3" class="text-center text-success"><i class="bi bi-check-circle-fill"></i> Todos los sistemas bajo límites nominales. Cero anomalías temporales encontradas.</td></tr>');
+                                    tbody.append(
+                                        '<tr>' +
+                                        '   <td><strong>' + item.sensor_name + '</strong> <br><code class="small">' + item.sensor_identifier + '</code></td>' +
+                                        '   <td>' + tagsHtml + '</td>' +
+                                        '   <td>' +
+                                        '       <button class="btn btn-sm btn-primary mt-1" onclick="$(\'#globalRadarModal\').modal(\'hide\'); setTimeout(()=> { openAnalyticsModal(' + item.sensor_id + ', \'' + item.sensor_name + '\', true, \'' + start + '\', \'' + end + '\'); }, 400);"><i class="bi bi-bar-chart-fill"></i> Zoom</button>' +
+                                        '   </td>' +
+                                        '</tr>'
+                                    );
+                                });
+                            }
+                            $('#radarResults').removeClass('d-none');
+                            // Reset search field
+                            $('#radarSearch').val('');
                         } else {
-                            res.data.forEach(function (item) {
-                                let tagsHtml = '';
-                                if (item.acceleration_count > 0) {
-                                    tagsHtml += '<span class="badge bg-danger shadow-sm me-1 mt-1" title="Saltos Acelerados"><i class="bi bi-graph-up-arrow"></i> ' + item.acceleration_count + ' picos</span>';
-                                }
-                                if (item.stagnation_count > 0) {
-                                    tagsHtml += '<span class="badge bg-secondary shadow-sm me-1 mt-1" title="Días 0"><i class="bi bi-hourglass-bottom"></i> ' + item.stagnation_count + ' estancados</span>';
-                                }
-
-                                tbody.append(
-                                    '<tr>' +
-                                    '   <td><strong>' + item.sensor_name + '</strong> <br><code class="small">' + item.sensor_identifier + '</code></td>' +
-                                    '   <td>' + tagsHtml + '</td>' +
-                                    '   <td>' +
-                                    '       <button class="btn btn-sm btn-primary mt-1" onclick="$(\'#globalRadarModal\').modal(\'hide\'); setTimeout(()=> { openAnalyticsModal(' + item.sensor_id + ', \'' + item.sensor_name + '\', true, \'' + start + '\', \'' + end + '\'); }, 400);"><i class="bi bi-bar-chart-fill"></i> Zoom</button>' +
-                                    '   </td>' +
-                                    '</tr>'
-                                );
-                            });
+                            alert(res.message);
                         }
-                        $('#radarResults').removeClass('d-none');
-                        // Reset search field
-                        $('#radarSearch').val('');
-                    } else {
-                        alert(res.message);
+                    },
+                    error: function (xhr) {
+                        $('#radarLoading').addClass('d-none');
+                        alert(xhr.responseJSON?.message || 'Error escaneando anomalías masivas.');
                     }
-                },
-                error: function (xhr) {
-                    $('#radarLoading').addClass('d-none');
-                    alert(xhr.responseJSON?.message || 'Error escaneando anomalías masivas.');
-                }
+                });
             });
-        });
 
-        // Filtrado en vivo del radar global
-        $('#radarSearch').on('keyup', function () {
-            const value = $(this).val().toLowerCase();
-            $('#radarTableBody tr').filter(function () {
-                // If it's the "no errors" row, ignore it
-                if ($(this).find('.bi-check-circle-fill').length > 0) return;
+            // Filtrado en vivo del radar global
+            $('#radarSearch').on('keyup', function () {
+                const value = $(this).val().toLowerCase();
+                $('#radarTableBody tr').filter(function () {
+                    // If it's the "no errors" row, ignore it
+                    if ($(this).find('.bi-check-circle-fill').length > 0) return;
 
-                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+                });
             });
-        });
 
-        $('#btnShareAnalysis').click(function () {
-            const sensorId = $('#analyzeSensorId').val();
-            if (!sensorId) return;
+            $('#btnShareAnalysis').click(function () {
+                const sensorId = $('#analyzeSensorId').val();
+                if (!sensorId) return;
 
-            const sensorObj = analyzedSensorsList.find(s => s.id == sensorId);
-            const select = $('#shareEmailSelect');
-            const input = $('#shareEmailInput');
+                const sensorObj = analyzedSensorsList.find(s => s.id == sensorId);
+                const select = $('#shareEmailSelect');
+                const input = $('#shareEmailInput');
 
-            select.empty();
-            select.append('<option value="">-- Ingresar Manualmente --</option>');
-            let hasEmails = false;
+                select.empty();
+                select.append('<option value="">-- Ingresar Manualmente --</option>');
+                let hasEmails = false;
 
-            if (sensorObj && sensorObj.metadata) {
-                for (const [key, value] of Object.entries(sensorObj.metadata)) {
-                    if (value && typeof value === 'string' && value.includes('@')) {
-                        select.append(`<option value="${value}">${key}: ${value}</option>`);
-                        hasEmails = true;
+                if (sensorObj && sensorObj.metadata) {
+                    for (const [key, value] of Object.entries(sensorObj.metadata)) {
+                        if (value && typeof value === 'string' && value.includes('@')) {
+                            select.append(`<option value="${value}">${key}: ${value}</option>`);
+                            hasEmails = true;
+                        }
                     }
                 }
-            }
 
-            if (hasEmails) {
-                select.removeClass('d-none');
-                input.val(select.val());
-            } else {
-                select.addClass('d-none');
-                input.val('');
-            }
-
-            select.off('change').on('change', function () {
-                if ($(this).val()) {
-                    input.val($(this).val());
+                if (hasEmails) {
+                    select.removeClass('d-none');
+                    input.val(select.val());
                 } else {
+                    select.addClass('d-none');
                     input.val('');
                 }
-            });
 
-            $('#shareReportModal').modal('show');
-        });
-
-        $('#btnConfirmShare').click(function () {
-            const sensorId = $('#analyzeSensorId').val();
-            const email = $('#shareEmailInput').val();
-            const includeMoney = $('#shareIncludeMoney').is(':checked') ? 1 : 0;
-            const financialText = $('#resFinalBilledTotal').text();
-
-            if (!email) {
-                alert('Debe ingresar un correo válido.');
-                return;
-            }
-
-            const btn = $(this);
-            const originalText = btn.html();
-            btn.prop('disabled', true).html('<i class="spinner-border spinner-border-sm"></i> Enviando...');
-
-            $.ajax({
-                url: '/api/sensors/' + sensorId + '/share',
-                type: 'POST',
-                headers: {
-                    'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                    'Accept': 'application/json'
-                },
-                data: { email: email, include_money: includeMoney, financial_text: financialText },
-                success: function (res) {
-                    btn.prop('disabled', false).html(originalText);
-                    if (res.success || res.message) {
-                        alert('Informe enviado correctamente a ' + email);
-                        $('#shareReportModal').modal('hide');
+                select.off('change').on('change', function () {
+                    if ($(this).val()) {
+                        input.val($(this).val());
                     } else {
-                        alert('Error: ' + (res.message || 'Error desconocido'));
+                        input.val('');
                     }
-                },
-                error: function (xhr) {
-                    btn.prop('disabled', false).html(originalText);
-                    alert('Error de conexión al enviar informe.');
-                }
+                });
+
+                $('#shareReportModal').modal('show');
             });
-        });
-    </script>
+
+            $('#btnConfirmShare').click(function () {
+                const sensorId = $('#analyzeSensorId').val();
+                const email = $('#shareEmailInput').val();
+                const includeMoney = $('#shareIncludeMoney').is(':checked') ? 1 : 0;
+                const financialText = $('#resFinalBilledTotal').text();
+
+                if (!email) {
+                    alert('Debe ingresar un correo válido.');
+                    return;
+                }
+
+                const btn = $(this);
+                const originalText = btn.html();
+                btn.prop('disabled', true).html('<i class="spinner-border spinner-border-sm"></i> Enviando...');
+
+                $.ajax({
+                    url: '/api/sensors/' + sensorId + '/share',
+                    type: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                        'Accept': 'application/json'
+                    },
+                    data: { email: email, include_money: includeMoney, financial_text: financialText },
+                    success: function (res) {
+                        btn.prop('disabled', false).html(originalText);
+                        if (res.success || res.message) {
+                            alert('Informe enviado correctamente a ' + email);
+                            $('#shareReportModal').modal('hide');
+                        } else {
+                            alert('Error: ' + (res.message || 'Error desconocido'));
+                        }
+                    },
+                    error: function (xhr) {
+                        btn.prop('disabled', false).html(originalText);
+                        alert('Error de conexión al enviar informe.');
+                    }
+                });
+            });
+        </script>
 @endpush
