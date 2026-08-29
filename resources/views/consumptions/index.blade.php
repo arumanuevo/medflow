@@ -88,13 +88,15 @@
                             <div class="col-md-4">
                                 <label class="form-label">&nbsp;</label>
                                 <div class="d-flex gap-2 w-100">
-                                    <button type="button" class="btn btn-outline-success" id="btnFilterCommunity" class="btn-sm" style="white-space: nowrap;">
+                                    <button type="button" class="btn btn-outline-success" id="btnFilterCommunity"
+                                        class="btn-sm" style="white-space: nowrap;">
                                         <i class="bi bi-tree-fill"></i> Áreas Comunes
                                     </button>
                                     <button type="button" class="btn btn-primary" id="applyFiltersBtn" class="btn-sm">
                                         <i class="bi bi-funnel"></i> Filtrar
                                     </button>
-                                    <button type="button" class="btn btn-outline-secondary" id="clearFiltersBtn" class="btn-sm">
+                                    <button type="button" class="btn btn-outline-secondary" id="clearFiltersBtn"
+                                        class="btn-sm">
                                         <i class="bi bi-x-lg"></i> Limpiar
                                     </button>
                                 </div>
@@ -112,6 +114,7 @@
                                         <th>Grupo</th>
                                         <th>Consumo Total</th>
                                         <th>Unidad</th>
+                                        <th>Costo ($)</th>
                                         <th>Período</th>
                                         <th>Días transcurridos</th>
                                         <th>Promedio Diario</th>
@@ -138,12 +141,12 @@
             </div>
         </div>
     </div>
-</div>
-</div>
-</div>
-</div>
+    </div>
+    </div>
+    </div>
+    </div>
 
-<!-- Modal para detalles del consumo -->
+    <!-- Modal para detalles del consumo -->
     <div class="modal fade" id="consumptionDetailsModal" tabindex="-1" aria-labelledby="consumptionDetailsModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -163,19 +166,24 @@
     </div>
 
     <!-- Modal para Análisis Avanzado de Rango -->
-    <div class="modal fade" id="analyzeSensorModal" tabindex="-1" aria-labelledby="analyzeSensorModalLabel" aria-hidden="true">
+    <div class="modal fade" id="analyzeSensorModal" tabindex="-1" aria-labelledby="analyzeSensorModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered compact-modal">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="analyzeSensorModalLabel"><i class="bi bi-bar-chart-fill"></i> Análisis Avanzado: <span id="analyzeSensorName"></span></h5>
+                    <h5 class="modal-title" id="analyzeSensorModalLabel"><i class="bi bi-bar-chart-fill"></i> Análisis
+                        Avanzado: <span id="analyzeSensorName"></span></h5>
                     <div class="d-flex align-items-center ms-auto">
-                        <button type="button" class="btn btn-sm btn-outline-light me-1" id="btnPrevAnalyzeSensor" title="Sensor Anterior">
+                        <button type="button" class="btn btn-sm btn-outline-light me-1" id="btnPrevAnalyzeSensor"
+                            title="Sensor Anterior">
                             <i class="bi bi-chevron-left"></i>
                         </button>
-                        <button type="button" class="btn btn-sm btn-outline-light me-3" id="btnNextAnalyzeSensor" title="Sensor Siguiente">
+                        <button type="button" class="btn btn-sm btn-outline-light me-3" id="btnNextAnalyzeSensor"
+                            title="Sensor Siguiente">
                             <i class="bi bi-chevron-right"></i>
                         </button>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
                     </div>
                 </div>
                 <div class="modal-body">
@@ -186,7 +194,8 @@
                     </div>
 
                     <div id="metaAvailableDates" class="alert alert-info py-1 px-3 mb-3 d-none">
-                        <strong>Fechas disponibles:</strong> entre <span id="metaFirstDate"></span> y <span id="metaLastDate"></span>
+                        <strong>Fechas disponibles:</strong> entre <span id="metaFirstDate"></span> y <span
+                            id="metaLastDate"></span>
                     </div>
 
                     <!-- Configuración del rango -->
@@ -200,16 +209,21 @@
                             <input type="date" class="form-control form-control-sm" id="analyzeEndDate">
                         </div>
                         <div class="col-md-2">
-                            <label for="analyzeThreshold" class="form-label mb-1 text-danger small" title="Salto en la tasa diaria"><i class="bi bi-exclamation-triangle"></i> Anomalía</label>
+                            <label for="analyzeThreshold" class="form-label mb-1 text-danger small"
+                                title="Salto en la tasa diaria"><i class="bi bi-exclamation-triangle"></i> Anomalía</label>
                             <div class="input-group input-group-sm">
-                                <input type="number" class="form-control text-danger fw-bold" id="analyzeThreshold" value="50" min="1" step="5">
+                                <input type="number" class="form-control text-danger fw-bold" id="analyzeThreshold"
+                                    value="50" min="1" step="5">
                                 <span class="input-group-text">%</span>
                             </div>
                         </div>
                         <div class="col-md-3">
-                            <label for="analyzeStagnation" class="form-label mb-1 text-secondary small" title="Alerta si delta es 0 luego de X días"><i class="bi bi-hourglass-top"></i> Estancamiento</label>
+                            <label for="analyzeStagnation" class="form-label mb-1 text-secondary small"
+                                title="Alerta si delta es 0 luego de X días"><i class="bi bi-hourglass-top"></i>
+                                Estancamiento</label>
                             <div class="input-group input-group-sm">
-                                <input type="number" class="form-control text-secondary fw-bold" id="analyzeStagnation" value="15" min="1" step="1">
+                                <input type="number" class="form-control text-secondary fw-bold" id="analyzeStagnation"
+                                    value="15" min="1" step="1">
                                 <span class="input-group-text">Días</span>
                             </div>
                         </div>
@@ -222,12 +236,17 @@
 
                     <!-- Explicación Sensibilidad Inteligente -->
                     <div class="alert alert-secondary py-2 px-3 mb-3 pointer-events-none">
-                        <strong class="text-danger small"><i class="bi bi-shield-exclamation"></i> ¿Qué es la sensibilidad inteligente?</strong><br>
+                        <strong class="text-danger small"><i class="bi bi-shield-exclamation"></i> ¿Qué es la sensibilidad
+                            inteligente?</strong><br>
                         <small class="text-muted" style="font-size: 0.8rem;">
                             El sistema analiza matemáticamente la <b>tasa diaria de consumo</b> en lugar del salto
-                            bruto. Si detecta que la aceleración de consumo entre mediciones supera el <strong class="text-danger"><span id="infoThreshold">50</span>%</strong>, o si detecta estancamiento por
-                            más de <strong class="text-secondary"><span id="infoStagnation">15</span> días</strong>, dibujará
-                            ese punto con una alerta ⚠️ roja. Esto previene distorsiones causadas por tiempos de inspección irregulares.
+                            bruto. Si detecta que la aceleración de consumo entre mediciones supera el <strong
+                                class="text-danger"><span id="infoThreshold">50</span>%</strong>, o si detecta estancamiento
+                            por
+                            más de <strong class="text-secondary"><span id="infoStagnation">15</span> días</strong>,
+                            dibujará
+                            ese punto con una alerta ⚠️ roja. Esto previene distorsiones causadas por tiempos de inspección
+                            irregulares.
                         </small>
                     </div>
 
@@ -239,7 +258,8 @@
                             <div class="col-md-12 mb-1">
                                 <div class="card border-dark shadow-sm" style="background-color: #f8f9fa;">
                                     <div class="card-body text-center py-2">
-                                        <h6 class="text-muted mb-0"><i class="bi bi-cash-coin"></i> Facturación Total Estimada</h6>
+                                        <h6 class="text-muted mb-0"><i class="bi bi-cash-coin"></i> Facturación Total
+                                            Estimada</h6>
                                         <h3 class="text-dark my-1 fw-bold" id="resFinalBilledTotal">0</h3>
                                     </div>
                                 </div>
@@ -247,16 +267,19 @@
                             <div class="col-md-4">
                                 <div class="card h-100 border-info shadow-sm">
                                     <div class="card-body text-center p-2">
-                                        <h6 class="text-muted mb-1" style="font-size: 0.8rem;"><i class="bi bi-speedometer2"></i> Consumo Lote</h6>
+                                        <h6 class="text-muted mb-1" style="font-size: 0.8rem;"><i
+                                                class="bi bi-speedometer2"></i> Consumo Lote</h6>
                                         <h4 class="text-info my-1 fw-bold" id="resTotalDelta">0</h4>
-                                        <p class="mb-0 text-muted" style="font-size: 0.65rem;"><span id="resMeasurementsCount" class="fw-bold"></span> lect.</p>
+                                        <p class="mb-0 text-muted" style="font-size: 0.65rem;"><span
+                                                id="resMeasurementsCount" class="fw-bold"></span> lect.</p>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="card h-100 border-success shadow-sm" style="background-color: #f0fdf4;">
                                     <div class="card-body text-center p-2">
-                                        <h6 class="text-success mb-1" style="font-size: 0.8rem;"><i class="bi bi-tree-fill"></i> Cargos Comunes</h6>
+                                        <h6 class="text-success mb-1" style="font-size: 0.8rem;"><i
+                                                class="bi bi-tree-fill"></i> Cargos Comunes</h6>
                                         <h4 class="text-success my-1 fw-bold" id="resCommunityContribution">0</h4>
                                         <p class="mb-0 text-muted" style="font-size: 0.65rem;">+ Prorrateado</p>
                                     </div>
@@ -265,9 +288,11 @@
                             <div class="col-md-4">
                                 <div class="card h-100 border-secondary shadow-sm">
                                     <div class="card-body text-center p-2">
-                                        <h6 class="text-muted mb-1" style="font-size: 0.8rem;"><i class="bi bi-calendar3"></i> Prom. Diario</h6>
+                                        <h6 class="text-muted mb-1" style="font-size: 0.8rem;"><i
+                                                class="bi bi-calendar3"></i> Prom. Diario</h6>
                                         <h4 class="text-secondary my-1 fw-bold" id="resDailyAvg">0</h4>
-                                        <p class="mb-0 text-muted" style="font-size: 0.65rem;"><span id="resDaysBetween"></span> días</p>
+                                        <p class="mb-0 text-muted" style="font-size: 0.65rem;"><span
+                                                id="resDaysBetween"></span> días</p>
                                     </div>
                                 </div>
                             </div>
@@ -293,7 +318,8 @@
                             <i class="bi bi-camera-fill"></i> Auditoría Visual de Anomalías
                         </h6>
                         <p class="small text-muted mb-3">
-                            Se requiere verificación manual visual sobre los siguientes puntos atípicos generados. Compara si el registro se corresponde con la foto de prueba adjunta:
+                            Se requiere verificación manual visual sobre los siguientes puntos atípicos generados. Compara
+                            si el registro se corresponde con la foto de prueba adjunta:
                         </p>
                         <div class="row g-3" id="anomaliesInspectionGrid">
                             <!-- Cards dinámicas inyectadas por JS -->
@@ -302,7 +328,8 @@
 
                     <div class="alert alert-secondary mb-0 pointer-events-none">
                         <strong><i class="bi bi-info-circle"></i> Resumen del período:</strong>
-                        El cálculo abarca desde la lectura inicial <strong id="resStartLog"></strong> (<span id="resStartVal"></span>)
+                        El cálculo abarca desde la lectura inicial <strong id="resStartLog"></strong> (<span
+                            id="resStartVal"></span>)
                         hasta el corte de <strong id="resEndLog"></strong> (<span id="resEndVal"></span>).
                     </div>
                 </div>
@@ -312,14 +339,14 @@
                     <div class="spinner-border text-primary" role="status"></div>
                     <p class="mt-2 text-muted mb-0">Calculando analíticas y dibujando trazados...</p>
                 </div>
-                
+
                 <div class="modal-footer p-2">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <!-- Modal para Radar Global de Anomalías -->
     <!-- Modal para Enviar Informe -->
     <div class="modal fade" id="shareReportModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
@@ -335,16 +362,19 @@
                         <select id="shareEmailSelect" class="form-select form-select-sm mb-2 d-none">
                             <option value="">-- Ingresar Manualmente --</option>
                         </select>
-                        <input type="email" id="shareEmailInput" class="form-control form-control-sm" placeholder="ejemplo@correo.com">
+                        <input type="email" id="shareEmailInput" class="form-control form-control-sm"
+                            placeholder="ejemplo@correo.com">
                     </div>
                 </div>
                 <div class="modal-footer p-2">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-success btn-sm px-3" id="btnConfirmShare">Enviar <i class="bi bi-send-fill ms-1"></i></button>
+                    <button type="button" class="btn btn-success btn-sm px-3" id="btnConfirmShare">Enviar <i
+                            class="bi bi-send-fill ms-1"></i></button>
                 </div>
             </div>
         </div>
-    </div>    <div class="modal fade" id="globalRadarModal" tabindex="-1" aria-hidden="true">
+    </div>
+    <div class="modal fade" id="globalRadarModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-warning text-dark">
@@ -642,6 +672,7 @@
                     '   <td>' + groupName + '</td>' +
                     '   <td>' + consumption.value + '</td>' +
                     '   <td>' + (consumption.unit || 'N/A') + '</td>' +
+                    '   <td class="fw-bold text-success">' + (consumption.cost ? consumption.currency + ' $' + parseFloat(consumption.cost).toLocaleString('es-ES', { minimumFractionDigits: 2 }) : 'N/A') + '</td>' +
                     '   <td>' + period + '</td>' +
                     '   <td>' + daysBetween + '</td>' +
                     '   <td>' + dailyAverage + '</td>' +
@@ -989,16 +1020,16 @@
 
             if (meta.current_page > 1) {
                 paginationHtml += `
-                                                                                                                        <li class="page-item">
-                                                                                                                            <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${meta.current_page - 1})" aria-label="Anterior">
-                                                                                                                                <span aria-hidden="true">&laquo;</span>
-                                                                                                                            </a>
-                                                                                                                        </li>`;
+                                                                                                                                <li class="page-item">
+                                                                                                                                    <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${meta.current_page - 1})" aria-label="Anterior">
+                                                                                                                                        <span aria-hidden="true">&laquo;</span>
+                                                                                                                                    </a>
+                                                                                                                                </li>`;
             } else {
                 paginationHtml += `
-                                                                                                                        <li class="page-item disabled">
-                                                                                                                            <span class="page-link" aria-hidden="true">&laquo;</span>
-                                                                                                                        </li>`;
+                                                                                                                                <li class="page-item disabled">
+                                                                                                                                    <span class="page-link" aria-hidden="true">&laquo;</span>
+                                                                                                                                </li>`;
             }
 
             const maxPages = 5;
@@ -1012,29 +1043,29 @@
             for (let i = startPage; i <= endPage; i++) {
                 if (i === meta.current_page) {
                     paginationHtml += `
-                                                                                                                            <li class="page-item active">
-                                                                                                                                <span class="page-link">${i}</span>
-                                                                                                                            </li>`;
+                                                                                                                                    <li class="page-item active">
+                                                                                                                                        <span class="page-link">${i}</span>
+                                                                                                                                    </li>`;
                 } else {
                     paginationHtml += `
-                                                                                                                            <li class="page-item">
-                                                                                                                                <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${i})">${i}</a>
-                                                                                                                            </li>`;
+                                                                                                                                    <li class="page-item">
+                                                                                                                                        <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${i})">${i}</a>
+                                                                                                                                    </li>`;
                 }
             }
 
             if (meta.current_page < meta.last_page) {
                 paginationHtml += `
-                                                                                                                        <li class="page-item">
-                                                                                                                            <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${meta.current_page + 1})" aria-label="Siguiente">
-                                                                                                                                <span aria-hidden="true">&raquo;</span>
-                                                                                                                            </a>
-                                                                                                                        </li>`;
+                                                                                                                                <li class="page-item">
+                                                                                                                                    <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${meta.current_page + 1})" aria-label="Siguiente">
+                                                                                                                                        <span aria-hidden="true">&raquo;</span>
+                                                                                                                                    </a>
+                                                                                                                                </li>`;
             } else {
                 paginationHtml += `
-                                                                                                                        <li class="page-item disabled">
-                                                                                                                            <span class="page-link" aria-hidden="true">&raquo;</span>
-                                                                                                                        </li>`;
+                                                                                                                                <li class="page-item disabled">
+                                                                                                                                    <span class="page-link" aria-hidden="true">&raquo;</span>
+                                                                                                                                </li>`;
             }
 
             $('#pagination').html(paginationHtml);
@@ -1336,15 +1367,15 @@
                 $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
             });
         });
-    
-        $('#btnShareAnalysis').click(function() {
+
+        $('#btnShareAnalysis').click(function () {
             const sensorId = $('#analyzeSensorId').val();
             if (!sensorId) return;
 
             const sensorObj = analyzedSensorsList.find(s => s.id == sensorId);
             const select = $('#shareEmailSelect');
             const input = $('#shareEmailInput');
-            
+
             select.empty();
             select.append('<option value="">-- Ingresar Manualmente --</option>');
             let hasEmails = false;
@@ -1365,9 +1396,9 @@
                 select.addClass('d-none');
                 input.val('');
             }
-            
-            select.off('change').on('change', function() {
-                if($(this).val()) {
+
+            select.off('change').on('change', function () {
+                if ($(this).val()) {
                     input.val($(this).val());
                 } else {
                     input.val('');
@@ -1377,10 +1408,10 @@
             $('#shareReportModal').modal('show');
         });
 
-        $('#btnConfirmShare').click(function() {
+        $('#btnConfirmShare').click(function () {
             const sensorId = $('#analyzeSensorId').val();
             const email = $('#shareEmailInput').val();
-            
+
             if (!email) {
                 alert('Debe ingresar un correo válido.');
                 return;
@@ -1400,14 +1431,14 @@
                 data: { email: email },
                 success: function (res) {
                     btn.prop('disabled', false).html(originalText);
-                    if(res.success || res.message) {
+                    if (res.success || res.message) {
                         alert('Informe enviado correctamente a ' + email);
                         $('#shareReportModal').modal('hide');
                     } else {
                         alert('Error: ' + (res.message || 'Error desconocido'));
                     }
                 },
-                error: function(xhr) {
+                error: function (xhr) {
                     btn.prop('disabled', false).html(originalText);
                     alert('Error de conexión al enviar informe.');
                 }

@@ -112,6 +112,56 @@
                 </div>
             </div>
 
+            <!-- Módulo 4: Finanzas y Áreas Comunes -->
+            <div class="col help-card">
+                <div class="card h-100 border-0 shadow-sm rounded-4">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-warning-subtle text-warning rounded-circle d-flex align-items-center justify-content-center me-3"
+                                style="width: 45px; height: 45px;">
+                                <i class="bi bi-wallet2 fs-5"></i>
+                            </div>
+                            <h5 class="fw-bold mb-0">Finanzas y Áreas Comunes</h5>
+                        </div>
+                        <ul class="list-unstyled text-muted mb-0">
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal"
+                                    data-title="La Configuración Contable"
+                                    data-content="Al editar un Grupo de Sensores, puedes habilitar la 'Configuración Contable'. Esto te permite asignar una moneda, un cargo fijo y un multiplicador de precio por unidad (Ej: $1500 por cada m3 de agua). Se reflejará como costo en tus tablas de consumo y en enlaces públicos si así lo habilitas.">
+                                    <i class="bi bi-play-circle me-1 text-warning"></i> ¿Cómo funciona la Monetización?</a>
+                            </li>
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal" data-title="Sensores de Área Común"
+                                    data-content="Si administras un barrio privado o condominio, puedes marcar sensores como 'Áreas Comunes' (ej: Riego del parque). El consumo de estos sensores especiales se prorratea y se suma matemáticamente a la despensa o consumo de los lotes privados del mismo Grupo, impactando en su cálculo financiero final de forma equitativa.">
+                                    <i class="bi bi-play-circle me-1 text-warning"></i> Prorrateo de gastos comunes</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Módulo 5: Secuencia de Operación -->
+            <div class="col help-card">
+                <div class="card h-100 border-0 shadow-sm rounded-4">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-danger-subtle text-danger rounded-circle d-flex align-items-center justify-content-center me-3"
+                                style="width: 45px; height: 45px;">
+                                <i class="bi bi-compass fs-5"></i>
+                            </div>
+                            <h5 class="fw-bold mb-0">Secuencia de Operación</h5>
+                        </div>
+                        <ul class="list-unstyled text-muted mb-0">
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal"
+                                    data-title="El flujo de trabajo (Paso a Paso)"
+                                    data-content="<strong>1. Crear Plantilla:</strong> Decide qué vas a medir (ej: Agua, Luz).<br><br><strong>2. Crear Grupo de Sensores:</strong> Agrupa todos los lotes de tu barrio o planta bajo la plantilla creada.<br><br><strong>3. Dar de Alta Sensores:</strong> Agrega cada Lote (con su nombre y correo en la metadata).<br><br><strong>4. Medir y Repetir:</strong> Los inspectores enviarán lecturas mensuales desde la calle vía foto o texto con su celular.<br><br><strong>5. Campaña Pública:</strong> Terminado el mes, emites una campaña que envía Links por E-mail automáticamente a cada propietario con las estadísticas monetizadas.">
+                                    <i class="bi bi-pin-map me-1 text-danger"></i> Entender el circuito lógico del
+                                    sistema</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <!-- Contenedor Visual de Contenido (Modal Genérico) -->
