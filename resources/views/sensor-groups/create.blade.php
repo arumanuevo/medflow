@@ -112,6 +112,11 @@
                                                     value="0">
                                             </div>
                                         </div>
+                                        <div class="form-check form-switch mt-3">
+                                            <input class="form-check-input" type="checkbox" id="billingShowPublic" checked>
+                                            <label class="form-check-label" for="billingShowPublic">Mostrar valores
+                                                monetarios en el Visor Público / Links Compartidos</label>
+                                        </div>
                                         <small class="text-muted">Si habilitas esto, el sistema calculará un costo estimado
                                             en la vista pública de cada sensor de este grupo.</small>
                                     </div>
@@ -156,9 +161,9 @@
 
                     selectedTemplate.schema.campos.forEach(campo => {
                         let fieldInfo = `
-                        <li>
-                            <strong>${campo.nombre}</strong> (${campo.tipo})
-                    `;
+                                <li>
+                                    <strong>${campo.nombre}</strong> (${campo.tipo})
+                            `;
                         if (campo.unidad) {
                             fieldInfo += ` - Unidad: ${campo.unidad}`;
                         }
@@ -172,8 +177,8 @@
             });
 
             // Toggle configuración contable
-            $('#billingEnabled').change(function() {
-                if($(this).is(':checked')) {
+            $('#billingEnabled').change(function () {
+                if ($(this).is(':checked')) {
                     $('#billingFields').slideDown();
                 } else {
                     $('#billingFields').slideUp();
@@ -181,18 +186,19 @@
             });
 
             // Guardar el grupo
-            $('#saveSensorGroup').click(async function() {
+            $('#saveSensorGroup').click(async function () {
                 const name = $('#groupName').val();
                 const description = $('#groupDescription').val();
                 const templateId = $('#templateId').val();
 
                 let billing_settings = null;
-                if($('#billingEnabled').is(':checked')) {
+                if ($('#billingEnabled').is(':checked')) {
                     billing_settings = {
                         is_enabled: true,
                         currency: $('#billingCurrency').val(),
                         fixed_charge: parseFloat($('#billingFixed').val()) || 0,
-                        price_per_unit: parseFloat($('#billingPrice').val()) || 0
+                        price_per_unit: parseFloat($('#billingPrice').val()) || 0,
+                        show_in_public_viewer: $('#billingShowPublic').is(':checked')
                     };
                 } else {
                     billing_settings = { is_enabled: false };
@@ -239,11 +245,11 @@
         // Función para mostrar alertas
         function showAlert(message, type) {
             const alertHtml = `
-            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        `;
+                    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                        ${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
             $('.card-body').prepend(alertHtml);
         }
     </script>

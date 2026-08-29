@@ -109,8 +109,11 @@
                                                     value="{{ $billing['price_per_unit'] ?? '0' }}">
                                             </div>
                                         </div>
-                                        <small class="text-muted">Si habilitas esto, el sistema calculará un costo estimado
-                                            en la vista pública de cada sensor de este grupo.</small>
+                                        <div class="form-check form-switch mt-3">
+                                            <input class="form-check-input" type="checkbox" id="billingShowPublic" {{ (isset($billing['show_in_public_viewer']) && $billing['show_in_public_viewer']) || !isset($billing['show_in_public_viewer']) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="billingShowPublic">Mostrar valores monetarios en el Visor Público / Links Compartidos</label>
+                                        </div>
+                                        <small class="text-muted">Si habilitas esto, el sistema calculará un costo estimado en la vista pública de cada sensor de este grupo.</small>
                                     </div>
                                 </div>
                             </div>
@@ -191,7 +194,8 @@
                         is_enabled: true,
                         currency: $('#billingCurrency').val(),
                         fixed_charge: parseFloat($('#billingFixed').val()) || 0,
-                        price_per_unit: parseFloat($('#billingPrice').val()) || 0
+                        price_per_unit: parseFloat($('#billingPrice').val()) || 0,
+                        show_in_public_viewer: $('#billingShowPublic').is(':checked')
                     };
                 } else {
                     billing_settings = { is_enabled: false };
