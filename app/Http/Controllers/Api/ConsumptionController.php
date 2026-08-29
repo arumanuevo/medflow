@@ -197,6 +197,17 @@ class ConsumptionController extends Controller
                 $daysBetween = abs($daysBetween);
             }
 
+            // Calcular costo según billing_settings
+            $cost = null;
+            $currency = null;
+            if ($sensor->group && !empty($sensor->group->billing_settings) && ($sensor->group->billing_settings['is_enabled'] ?? false)) {
+                $billing = $sensor->group->billing_settings;
+                $fixedCharge = (float) ($billing['fixed_charge'] ?? 0);
+                $pricePerUnit = (float) ($billing['price_per_unit'] ?? 0);
+                $cost = round($fixedCharge + ($consumptionValue * $pricePerUnit), 2);
+                $currency = $billing['currency'] ?? 'ARS';
+            }
+
             $consumption = Consumption::updateOrCreate(
                 [
                     'start_measurement_id' => $start->id,
@@ -205,6 +216,8 @@ class ConsumptionController extends Controller
                 [
                     'sensor_id' => $sensor->id,
                     'value' => $consumptionValue,
+                    'cost' => $cost,
+                    'currency' => $currency,
                     'unit' => $unit,
                     'period_start' => $start->measured_at,
                     'period_end' => $end->measured_at,
@@ -320,6 +333,17 @@ class ConsumptionController extends Controller
             $unit = $firstField['unidad'] ?? 'unidades';
         }
 
+        // Calcular costo según billing_settings
+        $cost = null;
+        $currency = null;
+        if ($sensor->group && !empty($sensor->group->billing_settings) && ($sensor->group->billing_settings['is_enabled'] ?? false)) {
+            $billing = $sensor->group->billing_settings;
+            $fixedCharge = (float) ($billing['fixed_charge'] ?? 0);
+            $pricePerUnit = (float) ($billing['price_per_unit'] ?? 0);
+            $cost = round($fixedCharge + ($consumptionValue * $pricePerUnit), 2);
+            $currency = $billing['currency'] ?? 'ARS';
+        }
+
         // Crear o actualizar el consumo
         $consumption = Consumption::updateOrCreate(
             [
@@ -329,6 +353,8 @@ class ConsumptionController extends Controller
             [
                 'sensor_id' => $sensor->id,
                 'value' => $consumptionValue,
+                'cost' => $cost,
+                'currency' => $currency,
                 'unit' => $unit,
                 'period_start' => $startMeasurement->measured_at,
                 'period_end' => $endMeasurement->measured_at,

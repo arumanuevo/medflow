@@ -99,12 +99,12 @@
                                                 </select>
                                             </div>
                                             <div class="col-md-4 mb-3">
-                                                <label class="form-label">Cargo Fijo</label>
+                                                <label class="form-label" data-bs-toggle="tooltip" title="Si aplicas un pago de expensas fijo sin importar el consumo, colócalo aquí.">Cargo Fijo <i class="bi bi-info-circle text-muted"></i></label>
                                                 <input type="number" step="0.01" class="form-control" id="billingFixed"
                                                     value="{{ $billing['fixed_charge'] ?? '0' }}">
                                             </div>
                                             <div class="col-md-4 mb-3">
-                                                <label class="form-label">Costo x Unidad</label>
+                                                <label class="form-label" data-bs-toggle="tooltip" title="Ingresa el costo por cada unidad consumida. Se multiplicará por el consumo del periodo.">Costo x Unidad <i class="bi bi-info-circle text-muted"></i></label>
                                                 <input type="number" step="0.01" class="form-control" id="billingPrice"
                                                     value="{{ $billing['price_per_unit'] ?? '0' }}">
                                             </div>

@@ -102,12 +102,16 @@
                                                 </select>
                                             </div>
                                             <div class="col-md-4 mb-3">
-                                                <label class="form-label">Cargo Fijo</label>
+                                                <label class="form-label" data-bs-toggle="tooltip"
+                                                    title="Si aplicas un pago de expensas fijo sin importar el consumo, colócalo aquí.">Cargo
+                                                    Fijo <i class="bi bi-info-circle text-muted"></i></label>
                                                 <input type="number" step="0.01" class="form-control" id="billingFixed"
                                                     value="0">
                                             </div>
                                             <div class="col-md-4 mb-3">
-                                                <label class="form-label">Costo x Unidad</label>
+                                                <label class="form-label" data-bs-toggle="tooltip"
+                                                    title="Ingresa el costo por cada unidad consumida. Se multiplicará por el consumo del periodo.">Costo
+                                                    x Unidad <i class="bi bi-info-circle text-muted"></i></label>
                                                 <input type="number" step="0.01" class="form-control" id="billingPrice"
                                                     value="0">
                                             </div>
@@ -161,9 +165,9 @@
 
                     selectedTemplate.schema.campos.forEach(campo => {
                         let fieldInfo = `
-                                <li>
-                                    <strong>${campo.nombre}</strong> (${campo.tipo})
-                            `;
+                                    <li>
+                                        <strong>${campo.nombre}</strong> (${campo.tipo})
+                                `;
                         if (campo.unidad) {
                             fieldInfo += ` - Unidad: ${campo.unidad}`;
                         }
@@ -245,11 +249,11 @@
         // Función para mostrar alertas
         function showAlert(message, type) {
             const alertHtml = `
-                    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                        ${message}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                `;
+                        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                            ${message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    `;
             $('.card-body').prepend(alertHtml);
         }
     </script>
