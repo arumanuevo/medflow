@@ -5,13 +5,25 @@
 @push('styles')
     <style>
         @keyframes pulse {
-            0% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(1.02); }
-            100% { opacity: 1; transform: scale(1); }
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.6;
+                transform: scale(1.02);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
+
         /* ============================================
-                                                                               ESTILOS PRINCIPALES
-                                                                               ============================================ */
+                                                                                   ESTILOS PRINCIPALES
+                                                                                   ============================================ */
         .sensor-table-wrapper {
             overflow-x: auto;
         }
@@ -62,8 +74,8 @@
         }
 
         /* ============================================
-                                                                               ORDENAMIENTO
-                                                                               ============================================ */
+                                                                                   ORDENAMIENTO
+                                                                                   ============================================ */
         .table th .sort-icon {
             display: inline-block;
             margin-left: 3px;
@@ -101,8 +113,8 @@
         }
 
         /* ============================================
-                                                                               BADGES Y ETIQUETAS
-                                                                               ============================================ */
+                                                                                   BADGES Y ETIQUETAS
+                                                                                   ============================================ */
         .badge-extra-field {
             display: inline-block;
             font-size: 0.7rem;
@@ -141,8 +153,8 @@
         }
 
         /* ============================================
-                                                                               ACCIONES
-                                                                               ============================================ */
+                                                                                   ACCIONES
+                                                                                   ============================================ */
         .table-actions {
             display: flex;
             gap: 3px;
@@ -159,8 +171,8 @@
         }
 
         /* ============================================
-                                                                               HEADER MEJORADO
-                                                                               ============================================ */
+                                                                                   HEADER MEJORADO
+                                                                                   ============================================ */
         .card-header-tools {
             display: flex;
             flex-wrap: wrap;
@@ -197,8 +209,8 @@
         }
 
         /* ============================================
-                                                                               SUSCRIPCIÓN - ESTILOS ADICIONALES
-                                                                               ============================================ */
+                                                                                   SUSCRIPCIÓN - ESTILOS ADICIONALES
+                                                                                   ============================================ */
         .subscription-info-bar {
             background: #f8f9fa;
             border-bottom: 2px solid #e9ecef;
@@ -282,8 +294,8 @@
         }
 
         /* ============================================
-                                                                               BUSCADOR
-                                                                               ============================================ */
+                                                                                   BUSCADOR
+                                                                                   ============================================ */
         .search-wrapper {
             display: flex;
             align-items: center;
@@ -331,8 +343,8 @@
         }
 
         /* ============================================
-                                                                               PAGINACIÓN
-                                                                               ============================================ */
+                                                                                   PAGINACIÓN
+                                                                                   ============================================ */
         .pagination-wrapper {
             display: flex;
             flex-wrap: wrap;
@@ -385,8 +397,8 @@
         }
 
         /* ============================================
-                                                                               EMPTY STATE
-                                                                               ============================================ */
+                                                                                   EMPTY STATE
+                                                                                   ============================================ */
         .empty-state {
             text-align: center;
             padding: 3rem 1.5rem;
@@ -408,8 +420,8 @@
         }
 
         /* ============================================
-                                                                               SELECTOR DE GRUPOS
-                                                                               ============================================ */
+                                                                                   SELECTOR DE GRUPOS
+                                                                                   ============================================ */
         .group-selector-wrapper {
             display: flex;
             align-items: center;
@@ -464,8 +476,8 @@
         }
 
         /* ============================================
-                                                                               RESPONSIVE
-                                                                               ============================================ */
+                                                                                   RESPONSIVE
+                                                                                   ============================================ */
         @media (max-width: 992px) {
             .card-header-tools {
                 flex-direction: column;
@@ -534,8 +546,8 @@
     <div class="container mt-4">
         <div class="card">
             <!-- ============================================
-                                                                                HEADER MEJORADO
-                                                                                ============================================ -->
+                                                                                    HEADER MEJORADO
+                                                                                    ============================================ -->
             <div class="card-header bg-primary text-white">
                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
                     <h4 class="mb-0 d-flex align-items-center gap-2">
@@ -635,8 +647,8 @@
             </div>
 
             <!-- ============================================
-                                                                                BARRA DE INFORMACIÓN DE SUSCRIPCIÓN
-                                                                                ============================================ -->
+                                                                                    BARRA DE INFORMACIÓN DE SUSCRIPCIÓN
+                                                                                    ============================================ -->
             <div class="subscription-info-bar" id="subscriptionInfoBar">
                 <div class="d-flex flex-wrap align-items-center gap-2">
                     <span class="limit-item">
@@ -665,8 +677,8 @@
             </div>
 
             <!-- ============================================
-                                                                                FILTROS AVANZADOS / HORIZONTAL TOOLBAR
-                                                                                ============================================ -->
+                                                                                    FILTROS AVANZADOS / HORIZONTAL TOOLBAR
+                                                                                    ============================================ -->
             <div class="filter-control-panel border-bottom bg-white shadow-sm px-3 py-2">
                 <div class="d-flex align-items-center gap-2 flex-wrap">
 
@@ -723,8 +735,8 @@
             </div>
 
             <!-- ============================================
-                                                                                CUERPO - TABLA
-                                                                                ============================================ -->
+                                                                                    CUERPO - TABLA
+                                                                                    ============================================ -->
             <div class="card-body p-0">
                 <div class="sensor-table-wrapper p-2">
                     <table class="table table-bordered table-striped table-hover mb-0" id="sensorsTable">
@@ -743,8 +755,8 @@
                 </div>
 
                 <!-- ============================================
-                                                                                    PAGINACIÓN
-                                                                                    ============================================ -->
+                                                                                        PAGINACIÓN
+                                                                                        ============================================ -->
                 <div class="pagination-wrapper px-3 pb-3">
                     <div class="pagination-info" id="paginationInfo">
                         Mostrando <strong id="pageStart">0</strong> - <strong id="pageEnd">0</strong> de <strong
@@ -805,14 +817,14 @@
 
             if (!token) {
                 $('#sensorsTableBody').html(`
-                                                                                    <tr>
-                                                                                        <td colspan="9" class="text-center text-danger py-4">
-                                                                                            <i class="fas fa-exclamation-triangle"></i> No se encontró token. 
-                                                                                            <a href="{{ route('login') }}">Iniciar sesión</a>
-                                                                                        </td>
-                                                                                    </tr>
+                                                                                        <tr>
+                                                                                            <td colspan="9" class="text-center text-danger py-4">
+                                                                                                <i class="fas fa-exclamation-triangle"></i> No se encontró token. 
+                                                                                                <a href="{{ route('login') }}">Iniciar sesión</a>
+                                                                                            </td>
+                                                                                        </tr>
 
-                                                                    `);
+                                                                        `);
                 return;
             }
 
@@ -877,14 +889,14 @@
                         // ✅ Contar sensores reales del grupo desde los datos cargados
                         const count = allSensorsData.filter(s => (s.group_id || (s.group ? s.group.id : null)) == groupId).length;
                         infoDisplay.html(`
-                                                                                            <span class="badge bg-primary">
-                                                                                                <i class="bi bi-folder me-1"></i> ${group.name}
-                                                                                                <span class="badge bg-light text-dark ms-1">${count}</span>
-                                                                                            </span>
-                                                                                            <span class="text-muted small ms-2">
-                                                                                                <i class="bi bi-info-circle"></i> Mostrando sensores de este grupo
-                                                                                            </span>
-                                                                                        `);
+                                                                                                <span class="badge bg-primary">
+                                                                                                    <i class="bi bi-folder me-1"></i> ${group.name}
+                                                                                                    <span class="badge bg-light text-dark ms-1">${count}</span>
+                                                                                                </span>
+                                                                                                <span class="text-muted small ms-2">
+                                                                                                    <i class="bi bi-info-circle"></i> Mostrando sensores de este grupo
+                                                                                                </span>
+                                                                                            `);
                         return;
                     }
                 }
@@ -892,10 +904,10 @@
                 const totalSensors = allSensorsData.length;
                 const totalGroups = allGroups.length;
                 infoDisplay.html(`
-                                                                                    <span class="text-muted small">
-                                                                                        <i class="bi bi-database"></i> Total: ${totalSensors} sensores en ${totalGroups} grupos
-                                                                                    </span>
-                                                                                `);
+                                                                                        <span class="text-muted small">
+                                                                                            <i class="bi bi-database"></i> Total: ${totalSensors} sensores en ${totalGroups} grupos
+                                                                                        </span>
+                                                                                    `);
             }
 
             // ============================================
@@ -969,15 +981,15 @@
 
                         // Inyectar Pastilla Parpadeante y Botón CTA
                         const warningHtml = `
-                                <div id="sensorLimitReachedWarning" class="d-flex align-items-center gap-2 ms-auto" style="animation: pulse 2s infinite;">
-                                    <span class="badge bg-danger px-3 py-2 shadow-sm rounded-pill border border-light">
-                                        <i class="bi bi-exclamation-triangle-fill me-1"></i> Límite de Sensores Alcanzado
-                                    </span>
-                                    <a href="/profile" class="btn btn-sm btn-warning fw-bold shadow-sm rounded-pill">
-                                        <i class="bi bi-cart-plus-fill"></i> Expandir Capacidad
-                                    </a>
-                                </div>
-                            `;
+                                    <div id="sensorLimitReachedWarning" class="d-flex align-items-center gap-2 ms-auto" style="animation: pulse 2s infinite;">
+                                        <span class="badge bg-danger px-3 py-2 shadow-sm rounded-pill border border-light">
+                                            <i class="bi bi-exclamation-triangle-fill me-1"></i> Límite de Sensores Alcanzado
+                                        </span>
+                                        <a href="/profile" class="btn btn-sm btn-warning fw-bold shadow-sm rounded-pill">
+                                            <i class="bi bi-cart-plus-fill"></i> Expandir Capacidad
+                                        </a>
+                                    </div>
+                                `;
                         $('#subscriptionInfoBar .d-flex').append(warningHtml);
 
                     } else if (remaining <= 1) {
@@ -1230,7 +1242,7 @@
                 return [
                     { key: 'checkbox', label: '<input type="checkbox" id="selectAllCheckbox">', sortable: false, noSort: true },
                     { key: 'name', label: 'Nombre', sortable: true },
-                    { key: 'identifier', label: 'Identificador', sortable: true },
+                    { key: 'identifier', label: 'Identificador <span class="badge bg-light text-secondary border fw-normal py-0 px-1 ms-1" style="font-size:0.6rem;" title="Valor Key Único">KEY</span>', sortable: true },
                     { key: 'group', label: 'Grupo', sortable: true },
                     { key: 'actions', label: 'Acciones', sortable: false, noSort: true }
                 ];
@@ -1263,23 +1275,23 @@
                         const directionClass = isActive ? (currentSort.direction === 'asc' ? 'asc' : 'desc') : '';
                         const activeClass = isActive ? 'active' : '';
                         sortIcon = `<span class="sort-icon ${activeClass} ${directionClass}">
-                                                                                            <i class="bi bi-arrow-up"></i>
-                                                                                        </span>`;
+                                                                                                <i class="bi bi-arrow-up"></i>
+                                                                                            </span>`;
                     }
 
                     const sortableClass = header.sortable ? 'sortable-header' : 'sortable-header no-sort';
 
                     html += `
-                                                                                        <th style="width: ${width}; min-width: ${minWidth}" 
-                                                                                            class="${extraClass} ${sortableClass} ${noSortClass}"
-                                                                                            data-sort="${header.key}"
-                                                                                            data-sortable="${header.sortable}">
-                                                                                            <span class="th-content">
-                                                                                                ${header.label}${extraIcon}
-                                                                                                ${sortIcon}
-                                                                                            </span>
-                                                                                        </th>
-                                                                                    `;
+                                                                                            <th style="width: ${width}; min-width: ${minWidth}" 
+                                                                                                class="${extraClass} ${sortableClass} ${noSortClass}"
+                                                                                                data-sort="${header.key}"
+                                                                                                data-sortable="${header.sortable}">
+                                                                                                <span class="th-content">
+                                                                                                    ${header.label}${extraIcon}
+                                                                                                    ${sortIcon}
+                                                                                                </span>
+                                                                                            </th>
+                                                                                        `;
                 });
                 html += '</tr>';
                 $('#sensorsTableHead').html(html);
@@ -1342,32 +1354,32 @@
                     const canImport = window.canImportSensors || false;
 
                     tbody.html(`
-                                                                                        <tr>
-                                                                                            <td colspan="${emptyColspan}" class="text-center py-4">
-                                                                                                <div class="empty-state">
-                                                                                                    <i class="fas fa-search"></i>
-                                                                                                    <h4>No se encontraron sensores</h4>
-                                                                                                    <p>${searchTerm ? 'Intenta con otro término de búsqueda.' : 'Crea tu primer sensor o importa uno desde Excel.'}</p>
-                                                                                                    ${!searchTerm ? `
-                                                                                                    <div class="d-flex gap-2 justify-content-center flex-wrap">
-                                                                                                        <a href="{{ route('sensors.create') }}" class="btn btn-primary" id="emptyCreateSensor">
-                                                                                                            <i class="bi bi-plus"></i> Crear Sensor
-                                                                                                        </a>
-                                                                                                        ${canImport ? `
-                                                                                                            <a href="{{ route('sensor-groups.bulk-import') }}" class="btn btn-info" id="emptyImportSensors">
-                                                                                                                <i class="bi bi-file-earmark-excel"></i> Importar Sensores
+                                                                                            <tr>
+                                                                                                <td colspan="${emptyColspan}" class="text-center py-4">
+                                                                                                    <div class="empty-state">
+                                                                                                        <i class="fas fa-search"></i>
+                                                                                                        <h4>No se encontraron sensores</h4>
+                                                                                                        <p>${searchTerm ? 'Intenta con otro término de búsqueda.' : 'Crea tu primer sensor o importa uno desde Excel.'}</p>
+                                                                                                        ${!searchTerm ? `
+                                                                                                        <div class="d-flex gap-2 justify-content-center flex-wrap">
+                                                                                                            <a href="{{ route('sensors.create') }}" class="btn btn-primary" id="emptyCreateSensor">
+                                                                                                                <i class="bi bi-plus"></i> Crear Sensor
                                                                                                             </a>
-                                                                                                        ` : `
-                                                                                                            <button class="btn btn-info gate-blocked" id="emptyImportSensors" 
-                                                                                                                    onclick="showGateBlockedNotification(); return false;">
-                                                                                                                <i class="bi bi-file-earmark-excel"></i> Importar Sensores
-                                                                                                            </button>
-                                                                                                        `}
-                                                                                                    </div>` : ''}
-                                                                                                </div>
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                    `);
+                                                                                                            ${canImport ? `
+                                                                                                                <a href="{{ route('sensor-groups.bulk-import') }}" class="btn btn-info" id="emptyImportSensors">
+                                                                                                                    <i class="bi bi-file-earmark-excel"></i> Importar Sensores
+                                                                                                                </a>
+                                                                                                            ` : `
+                                                                                                                <button class="btn btn-info gate-blocked" id="emptyImportSensors" 
+                                                                                                                        onclick="showGateBlockedNotification(); return false;">
+                                                                                                                    <i class="bi bi-file-earmark-excel"></i> Importar Sensores
+                                                                                                                </button>
+                                                                                                            `}
+                                                                                                        </div>` : ''}
+                                                                                                    </div>
+                                                                                                </td>
+                                                                                            </tr>
+                                                                                        `);
 
                     const createBtn = $('#emptyCreateSensor');
                     if (createBtn.length) {
@@ -1410,39 +1422,39 @@
                     });
 
                     rowHtml += `
-                                                                                        <td>
-                                                                                            <div class="table-actions">`;
+                                                                                            <td>
+                                                                                                <div class="table-actions">`;
 
                     if (sensor.is_measurable === false) {
                         rowHtml += `
-                                                                                                <button class="btn btn-sm btn-secondary opacity-50" title="Sube de plan para medir este sensor" onclick="alert('Límite de sensores de tu plan alcanzado. Cambia a plan superior.'); return false;">
-                                                                                                    <i class="bi bi-lock-fill"></i>
-                                                                                                </button>
-                                                        `;
+                                                                                                    <button class="btn btn-sm btn-secondary opacity-50" title="Sube de plan para medir este sensor" onclick="alert('Límite de sensores de tu plan alcanzado. Cambia a plan superior.'); return false;">
+                                                                                                        <i class="bi bi-lock-fill"></i>
+                                                                                                    </button>
+                                                            `;
                     } else {
                         rowHtml += `
-                                                                                                <a href="/mediciones/create/${sensor.id}" class="btn btn-sm btn-success" title="Tomar Medición">
-                                                                                                    <i class="bi bi-rulers"></i>
-                                                                                                </a>
-                                                        `;
+                                                                                                    <a href="/mediciones/create/${sensor.id}" class="btn btn-sm btn-success" title="Tomar Medición">
+                                                                                                        <i class="bi bi-rulers"></i>
+                                                                                                    </a>
+                                                            `;
                     }
 
                     rowHtml += `
-                                                                                                <a href="/sensors/${sensor.id}" class="btn btn-sm btn-info" title="Ver Sensor">
-                                                                                                    <i class="bi bi-eye"></i>
-                                                                                                </a>
-                                                                                                <a href="/sensors/${sensor.id}/edit" class="btn btn-sm btn-warning" title="Editar Sensor">
-                                                                                                    <i class="bi bi-pencil"></i>
-                                                                                                </a>
-                                                                                                <button class="btn btn-sm btn-danger delete-sensor-btn"
-                                                                                                        data-sensor-id="${sensor.id}"
-                                                                                                        data-sensor-name="${sensor.name}"
-                                                                                                        title="Eliminar Sensor">
-                                                                                                    <i class="bi bi-trash"></i>
-                                                                                                </button>
-                                                                                            </div>
-                                                                                        </td>
-                                                                                    `;
+                                                                                                    <a href="/sensors/${sensor.id}" class="btn btn-sm btn-info" title="Ver Sensor">
+                                                                                                        <i class="bi bi-eye"></i>
+                                                                                                    </a>
+                                                                                                    <a href="/sensors/${sensor.id}/edit" class="btn btn-sm btn-warning" title="Editar Sensor">
+                                                                                                        <i class="bi bi-pencil"></i>
+                                                                                                    </a>
+                                                                                                    <button class="btn btn-sm btn-danger delete-sensor-btn"
+                                                                                                            data-sensor-id="${sensor.id}"
+                                                                                                            data-sensor-name="${sensor.name}"
+                                                                                                            title="Eliminar Sensor">
+                                                                                                        <i class="bi bi-trash"></i>
+                                                                                                    </button>
+                                                                                                </div>
+                                                                                            </td>
+                                                                                        `;
 
                     rowHtml += '</tr>';
                     tbody.append(rowHtml);
@@ -1459,31 +1471,31 @@
                 const canImport = window.canImportSensors || false;
 
                 $('#sensorsTableBody').html(`
-                                                                                    <tr>
-                                                                                        <td colspan="${emptyColspan}" class="text-center py-4">
-                                                                                            <div class="empty-state">
-                                                                                                <i class="bi bi-info-circle"></i>
-                                                                                                <h4>No tienes sensores</h4>
-                                                                                                <p>Crea tu primer sensor o importa uno desde Excel.</p>
-                                                                                                <div class="d-flex gap-2 justify-content-center flex-wrap">
-                                                                                                    <a href="{{ route('sensors.create') }}" class="btn btn-primary" id="emptyCreateSensor">
-                                                                                                        <i class="bi bi-plus"></i> Crear Sensor
-                                                                                                    </a>
-                                                                                                    ${canImport ? `
-                                                                                                        <a href="{{ route('sensor-groups.bulk-import') }}" class="btn btn-info" id="emptyImportSensors">
-                                                                                                            <i class="bi bi-file-earmark-excel"></i> Importar Sensores
+                                                                                        <tr>
+                                                                                            <td colspan="${emptyColspan}" class="text-center py-4">
+                                                                                                <div class="empty-state">
+                                                                                                    <i class="bi bi-info-circle"></i>
+                                                                                                    <h4>No tienes sensores</h4>
+                                                                                                    <p>Crea tu primer sensor o importa uno desde Excel.</p>
+                                                                                                    <div class="d-flex gap-2 justify-content-center flex-wrap">
+                                                                                                        <a href="{{ route('sensors.create') }}" class="btn btn-primary" id="emptyCreateSensor">
+                                                                                                            <i class="bi bi-plus"></i> Crear Sensor
                                                                                                         </a>
-                                                                                                    ` : `
-                                                                                                        <button class="btn btn-info gate-blocked" id="emptyImportSensors" 
-                                                                                                                onclick="showGateBlockedNotification(); return false;">
-                                                                                                            <i class="bi bi-file-earmark-excel"></i> Importar Sensores
-                                                                                                        </button>
-                                                                                                    `}
+                                                                                                        ${canImport ? `
+                                                                                                            <a href="{{ route('sensor-groups.bulk-import') }}" class="btn btn-info" id="emptyImportSensors">
+                                                                                                                <i class="bi bi-file-earmark-excel"></i> Importar Sensores
+                                                                                                            </a>
+                                                                                                        ` : `
+                                                                                                            <button class="btn btn-info gate-blocked" id="emptyImportSensors" 
+                                                                                                                    onclick="showGateBlockedNotification(); return false;">
+                                                                                                                <i class="bi bi-file-earmark-excel"></i> Importar Sensores
+                                                                                                            </button>
+                                                                                                        `}
+                                                                                                    </div>
                                                                                                 </div>
-                                                                                            </div>
-                                                                                        </td>
-                                                                                    </tr>
-                                                                                `);
+                                                                                            </td>
+                                                                                        </tr>
+                                                                                    `);
                 $('#totalRecords').text('0');
                 $('#totalCountBadge').text('0');
                 $('#pageStart').text('0');
@@ -1671,8 +1683,8 @@
                 const count = selectedSensors.size;
                 $('#deleteSelectedBtn').prop('disabled', count === 0);
                 $('#deleteSelectedBtn').html(`
-                                                                                    <i class="bi bi-trash"></i> Eliminar Seleccionados (${count})
-                                                                                `);
+                                                                                        <i class="bi bi-trash"></i> Eliminar Seleccionados (${count})
+                                                                                    `);
 
                 const $selectedCountBadge = $('#selectedCountBadge');
                 if (count > 0) {
@@ -1775,11 +1787,11 @@
                             'fa-info-circle';
 
                 const alertHtml = `
-                                                                                    <div class="alert ${alertClass} alert-dismissible fade show" role="alert" style="font-size: 0.9rem;">
-                                                                                        <i class="fas ${icon}"></i> ${message}
-                                                                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                                                                    </div>
-                                                                                `;
+                                                                                        <div class="alert ${alertClass} alert-dismissible fade show" role="alert" style="font-size: 0.9rem;">
+                                                                                            <i class="fas ${icon}"></i> ${message}
+                                                                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                                                                        </div>
+                                                                                    `;
                 $('#notificationContainer').append(alertHtml);
 
                 setTimeout(function () {

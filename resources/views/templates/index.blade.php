@@ -146,7 +146,7 @@
                     </div>
                     <div class="card-body">
                         {{-- ✅ INFO DEL CAMPO PRINCIPAL --}}
-                        <div class="main-field-info">
+                        <div class="main-field-info mb-2">
                             <i class="bi bi-info-circle me-2"></i>
                             <strong>Campo principal:</strong>
                             <span class="badge bg-primary">valor</span>
@@ -155,6 +155,23 @@
                                 sensor.
                                 Este campo es obligatorio y de tipo número.
                             </small>
+                        </div>
+
+                        {{-- ✅ INFO SOBRE LA KEY DEL SENSOR --}}
+                        <div
+                            class="alert alert-light border border-secondary border-opacity-25 shadow-sm text-dark d-flex align-items-center p-2 mb-4">
+                            <div class="me-3 fs-3 text-warning"><i class="bi bi-key"></i></div>
+                            <div>
+                                <h6 class="mb-1 fw-bold">El concepto de KEY (Identificador Único)</h6>
+                                <p class="mb-0 small text-muted">
+                                    En Medflow, cada sensor o medidor se registra vinculándolo fuertemente con una
+                                    <strong>Key Única</strong> (Identificador principal como el N° de serie). Los campos
+                                    personalizados que dibujes en tus plantillas (ej: <code>Propietario</code> o
+                                    <code>Manzana</code>) luego se acoplarán directamente sobre la <strong>Key</strong>
+                                    individual de cada medidor para darles contexto en todos los reportes y vistas,
+                                    expandiendo dinámicamente sus atributos.
+                                </p>
+                            </div>
                         </div>
 
                         <div id="templatesContent">
@@ -268,52 +285,52 @@
 
             if (defaultTemplates.length > 0) {
                 html += `
-                    <h5 class="mt-3">Plantillas por Defecto</h5>
-                    <div class="row">
-                `;
+                        <h5 class="mt-3">Plantillas por Defecto</h5>
+                        <div class="row">
+                    `;
 
                 defaultTemplates.forEach(template => {
                     html += createTemplateCard(template, true);
                 });
 
                 html += `
-                    </div>
-                `;
+                        </div>
+                    `;
             }
 
             if (customTemplates.length > 0) {
                 html += `
-                    <h5 class="mt-4">Mis Plantillas Personalizadas</h5>
-                    <div class="row">
-                `;
+                        <h5 class="mt-4">Mis Plantillas Personalizadas</h5>
+                        <div class="row">
+                    `;
 
                 customTemplates.forEach(template => {
                     html += createTemplateCard(template, false);
                 });
 
                 html += `
-                    </div>
-                `;
+                        </div>
+                    `;
             }
 
             if (defaultTemplates.length === 0 && customTemplates.length === 0) {
                 html += `
-                    <div class="empty-state">
-                        <i class="bi bi-file-earmark-text"></i>
-                        <h4>No hay plantillas disponibles</h4>
-                        <p>Crea tu primera plantilla personalizada para adaptar MedFlow a tus necesidades.</p>
-                        @if(isset($permissions['create_template']) && $permissions['create_template'])
-                            <a href="{{ route('templates.create') }}" class="btn btn-primary">
-                                <i class="bi bi-plus-circle"></i> Crear Plantilla Personalizada
-                            </a>
-                        @else
-                            <button class="btn btn-secondary" disabled>
-                                <i class="bi bi-plus-circle"></i> Crear Plantilla Personalizada
-                                <span class="badge bg-warning text-dark ms-1">Premium</span>
-                            </button>
-                        @endif
-                    </div>
-                `;
+                        <div class="empty-state">
+                            <i class="bi bi-file-earmark-text"></i>
+                            <h4>No hay plantillas disponibles</h4>
+                            <p>Crea tu primera plantilla personalizada para adaptar MedFlow a tus necesidades.</p>
+                            @if(isset($permissions['create_template']) && $permissions['create_template'])
+                                <a href="{{ route('templates.create') }}" class="btn btn-primary">
+                                    <i class="bi bi-plus-circle"></i> Crear Plantilla Personalizada
+                                </a>
+                            @else
+                                <button class="btn btn-secondary" disabled>
+                                    <i class="bi bi-plus-circle"></i> Crear Plantilla Personalizada
+                                    <span class="badge bg-warning text-dark ms-1">Premium</span>
+                                </button>
+                            @endif
+                        </div>
+                    `;
             }
 
             content.html(html);
@@ -346,15 +363,15 @@
             // ✅ Verificar que template existe
             if (!template || !template.schema) {
                 return `
-                    <div class="col-md-6 mb-3">
-                        <div class="card template-card border-danger">
-                            <div class="card-body text-danger">
-                                <i class="bi bi-exclamation-triangle"></i> 
-                                Error: Plantilla inválida o datos incompletos
+                        <div class="col-md-6 mb-3">
+                            <div class="card template-card border-danger">
+                                <div class="card-body text-danger">
+                                    <i class="bi bi-exclamation-triangle"></i> 
+                                    Error: Plantilla inválida o datos incompletos
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `;
+                    `;
             }
 
             // ✅ Determinar tipo de badge
@@ -374,113 +391,113 @@
                 const mainClass = campo.nombre === 'valor' ? 'main-field' : '';
                 const isMain = campo.nombre === 'valor' ? '⭐' : '';
                 fieldTags += `
-                    <span class="field-tag ${requiredClass} ${mainClass}">
-                        ${campo.nombre}
-                        ${isMain}
-                        <span class="badge bg-secondary">${campo.tipo}</span>
-                        ${campo.requerido ? '<span class="badge bg-danger ms-1">*</span>' : ''}
-                    </span>
-                `;
+                        <span class="field-tag ${requiredClass} ${mainClass}">
+                            ${campo.nombre}
+                            ${isMain}
+                            <span class="badge bg-secondary">${campo.tipo}</span>
+                            ${campo.requerido ? '<span class="badge bg-danger ms-1">*</span>' : ''}
+                        </span>
+                    `;
             });
 
             // ✅ Si hay más de 5 campos, mostrar indicador
             if (campos.length > 5) {
                 fieldTags += `
-                    <span class="field-tag">
-                        +${campos.length - 5} más
-                    </span>
-                `;
+                        <span class="field-tag">
+                            +${campos.length - 5} más
+                        </span>
+                    `;
             }
 
             // ✅ Botones de acción (solo para plantillas personalizadas)
             const actions = isDefault ? '' : (template.in_use ? `
-                <div class="d-flex flex-wrap justify-content-end align-items-center gap-1 mt-md-0 mt-2">
-                    <span class="text-danger small me-2" title="Esta plantilla está asignada a uno o más Grupos de Sensores y no puede editarse"><i class="bi bi-lock-fill"></i> En Uso</span>
-                    <button class="btn btn-sm btn-secondary" title="No puedes editar una plantilla en uso" disabled>
-                        <i class="bi bi-pencil"></i>
-                    </button>
-                    <button class="btn btn-sm btn-secondary" title="No puedes eliminar una plantilla en uso" disabled>
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </div>
-                ` : `
-                <div class="d-flex flex-wrap justify-content-end align-items-center gap-1 mt-md-0 mt-2">
-                    <a href="/templates/${template.id}/edit" class="btn btn-sm btn-warning edit-template-btn"
-                       data-template-id="${template.id}"
-                       title="Editar plantilla">
-                        <i class="bi bi-pencil"></i>
-                    </a>
-                    <button class="btn btn-sm btn-danger delete-template-btn"
-                            data-template-id="${template.id}"
-                            title="Eliminar plantilla">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </div>
-            `);
+                    <div class="d-flex flex-wrap justify-content-end align-items-center gap-1 mt-md-0 mt-2">
+                        <span class="text-danger small me-2" title="Esta plantilla está asignada a uno o más Grupos de Sensores y no puede editarse"><i class="bi bi-lock-fill"></i> En Uso</span>
+                        <button class="btn btn-sm btn-secondary" title="No puedes editar una plantilla en uso" disabled>
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-secondary" title="No puedes eliminar una plantilla en uso" disabled>
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                    ` : `
+                    <div class="d-flex flex-wrap justify-content-end align-items-center gap-1 mt-md-0 mt-2">
+                        <a href="/templates/${template.id}/edit" class="btn btn-sm btn-warning edit-template-btn"
+                           data-template-id="${template.id}"
+                           title="Editar plantilla">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <button class="btn btn-sm btn-danger delete-template-btn"
+                                data-template-id="${template.id}"
+                                title="Eliminar plantilla">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                `);
 
             // ✅ Determinar si el campo "valor" existe
             const hasMainField = campos.some(c => c.nombre === 'valor');
 
             return `
-                <div class="col-md-6 col-xl-4 mb-3">
-                    <div class="card template-card h-100">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div class="flex-grow-1">
-                                    <h5 class="card-title mb-0 d-flex align-items-center gap-2 flex-wrap">
-                                        ${template.name}
-                                        ${typeBadge}
-                                    </h5>
-                                    <small class="text-muted">Tipo: ${template.type}</small>
+                    <div class="col-md-6 col-xl-4 mb-3">
+                        <div class="card template-card h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div class="flex-grow-1">
+                                        <h5 class="card-title mb-0 d-flex align-items-center gap-2 flex-wrap">
+                                            ${template.name}
+                                            ${typeBadge}
+                                        </h5>
+                                        <small class="text-muted">Tipo: ${template.type}</small>
+                                    </div>
+                                    <span class="badge bg-secondary ms-2">${campos.length} campos</span>
                                 </div>
-                                <span class="badge bg-secondary ms-2">${campos.length} campos</span>
-                            </div>
 
-                            <p class="card-text text-muted small">${template.description || 'Sin descripción'}</p>
+                                <p class="card-text text-muted small">${template.description || 'Sin descripción'}</p>
 
-                            ${hasMainField ? `
-                                <div class="mb-2 p-2 bg-light rounded">
-                                    <small>
-                                        <strong>Campo principal:</strong> 
-                                        <span class="badge bg-primary">valor</span>
-                                        ${mainUnit ? `<span class="text-muted ms-1">(Unidad: ${mainUnit})</span>` : ''}
-                                    </small>
-                                </div>
-                            ` : `
-                                <div class="mb-2 p-2 bg-warning bg-opacity-10 rounded border border-warning">
-                                    <small class="text-warning">
-                                        <i class="bi bi-exclamation-triangle"></i>
-                                        <strong>Advertencia:</strong> No se encontró el campo principal "valor"
-                                    </small>
-                                </div>
-                            `}
+                                ${hasMainField ? `
+                                    <div class="mb-2 p-2 bg-light rounded">
+                                        <small>
+                                            <strong>Campo principal:</strong> 
+                                            <span class="badge bg-primary">valor</span>
+                                            ${mainUnit ? `<span class="text-muted ms-1">(Unidad: ${mainUnit})</span>` : ''}
+                                        </small>
+                                    </div>
+                                ` : `
+                                    <div class="mb-2 p-2 bg-warning bg-opacity-10 rounded border border-warning">
+                                        <small class="text-warning">
+                                            <i class="bi bi-exclamation-triangle"></i>
+                                            <strong>Advertencia:</strong> No se encontró el campo principal "valor"
+                                        </small>
+                                    </div>
+                                `}
 
-                            <div class="mb-2">
-                                <strong>Campos:</strong>
-                                <div class="mt-1 d-flex flex-wrap gap-1">
-                                    ${fieldTags}
-                                    <a href="#" class="view-fields-btn ms-1" data-template-id="${template.id}">
-                                        <i class="bi bi-eye"></i> Ver todos
-                                    </a>
+                                <div class="mb-2">
+                                    <strong>Campos:</strong>
+                                    <div class="mt-1 d-flex flex-wrap gap-1">
+                                        ${fieldTags}
+                                        <a href="#" class="view-fields-btn ms-1" data-template-id="${template.id}">
+                                            <i class="bi bi-eye"></i> Ver todos
+                                        </a>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="row mt-3 pt-2 border-top align-items-center">
-                                <div class="col-8">
-                                    <small class="text-muted">
-                                        <i class="bi bi-calendar3 me-1"></i>
-                                        ${new Date(template.created_at).toLocaleDateString()}
-                                        ${template.creator ? ` | <i class="bi bi-person me-1"></i>${template.creator.name}` : ''}
-                                    </small>
-                                </div>
-                                <div class="col-4 text-end">
-                                    ${actions}
+                                <div class="row mt-3 pt-2 border-top align-items-center">
+                                    <div class="col-8">
+                                        <small class="text-muted">
+                                            <i class="bi bi-calendar3 me-1"></i>
+                                            ${new Date(template.created_at).toLocaleDateString()}
+                                            ${template.creator ? ` | <i class="bi bi-person me-1"></i>${template.creator.name}` : ''}
+                                        </small>
+                                    </div>
+                                    <div class="col-4 text-end">
+                                        ${actions}
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            `;
+                `;
         }
 
         function showTemplateFields(template) {
@@ -492,25 +509,25 @@
             const campos = template.schema.campos || [];
 
             let html = `
-                <div class="mb-3">
-                    <p><strong>Tipo:</strong> ${template.type}</p>
-                    <p><strong>Descripción:</strong> ${template.description || 'Sin descripción'}</p>
-                    <p><strong>Total de campos:</strong> ${campos.length}</p>
-                </div>
-                <hr>
+                    <div class="mb-3">
+                        <p><strong>Tipo:</strong> ${template.type}</p>
+                        <p><strong>Descripción:</strong> ${template.description || 'Sin descripción'}</p>
+                        <p><strong>Total de campos:</strong> ${campos.length}</p>
+                    </div>
+                    <hr>
 
-                <div class="alert alert-info">
-                    <i class="bi bi-info-circle me-2"></i>
-                    <strong>Campo principal:</strong> 
-                    <span class="badge bg-primary">valor</span>
-                    <small class="text-muted ms-2">
-                        Este es el campo que almacena la medición del sensor.
-                    </small>
-                </div>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Campo principal:</strong> 
+                        <span class="badge bg-primary">valor</span>
+                        <small class="text-muted ms-2">
+                            Este es el campo que almacena la medición del sensor.
+                        </small>
+                    </div>
 
-                <h6>Campos:</h6>
-                <ul class="list-group">
-            `;
+                    <h6>Campos:</h6>
+                    <ul class="list-group">
+                `;
 
             campos.forEach(campo => {
                 const requiredBadge = campo.requerido ?
@@ -524,29 +541,29 @@
                 const mainBadge = isMainField ? '<span class="badge bg-primary ms-1">Principal</span>' : '';
 
                 html += `
-                    <li class="list-group-item d-flex justify-content-between align-items-center ${isMainField ? 'list-group-item-primary' : ''}">
-                        <div>
-                            <strong>${campo.nombre}</strong>
-                            <span class="badge bg-info ms-2">${campo.tipo}</span>
-                            ${requiredBadge}
-                            ${campo.unidad ? `<span class="badge bg-secondary ms-1">${campo.unidad}</span>` : ''}
-                            ${mainBadge}
-                            ${defaultVal}
-                        </div>
-                        ${isMainField ? '<i class="bi bi-check-circle-fill text-primary"></i>' : ''}
-                    </li>
-                `;
+                        <li class="list-group-item d-flex justify-content-between align-items-center ${isMainField ? 'list-group-item-primary' : ''}">
+                            <div>
+                                <strong>${campo.nombre}</strong>
+                                <span class="badge bg-info ms-2">${campo.tipo}</span>
+                                ${requiredBadge}
+                                ${campo.unidad ? `<span class="badge bg-secondary ms-1">${campo.unidad}</span>` : ''}
+                                ${mainBadge}
+                                ${defaultVal}
+                            </div>
+                            ${isMainField ? '<i class="bi bi-check-circle-fill text-primary"></i>' : ''}
+                        </li>
+                    `;
             });
 
             html += `
-                </ul>
-                <div class="mt-3">
-                    <small class="text-muted">
-                        <i class="bi bi-info-circle"></i> 
-                        El campo <strong>"valor"</strong> es el campo principal y almacena la medición del sensor.
-                    </small>
-                </div>
-            `;
+                    </ul>
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle"></i> 
+                            El campo <strong>"valor"</strong> es el campo principal y almacena la medición del sensor.
+                        </small>
+                    </div>
+                `;
 
             modalBody.html(html);
             viewModal.show();
@@ -581,11 +598,11 @@
 
         function showAlert(message, type) {
             const alertHtml = `
-                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                    ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            `;
+                    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                        ${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
             $('.card-body').prepend(alertHtml);
         }
     </script>

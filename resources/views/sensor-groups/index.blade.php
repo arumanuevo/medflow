@@ -195,11 +195,11 @@
 
             if (!token) {
                 $('#groupsContent').html(`
-                        <div class="alert alert-danger">
-                            <i class="bi bi-exclamation-triangle"></i> 
-                            No se encontró token de autenticación. Por favor, <a href="{{ route('login') }}">inicia sesión</a>.
-                        </div>
-                    `);
+                            <div class="alert alert-danger">
+                                <i class="bi bi-exclamation-triangle"></i> 
+                                No se encontró token de autenticación. Por favor, <a href="{{ route('login') }}">inicia sesión</a>.
+                            </div>
+                        `);
                 return;
             }
 
@@ -224,11 +224,11 @@
                 console.error('Error:', error);
                 showAlert('Error al cargar los grupos: ' + (error.responseJSON?.message || error.message), 'danger');
                 $('#groupsContent').html(`
-                        <div class="alert alert-danger">
-                            <i class="bi bi-exclamation-triangle"></i> 
-                            Error al cargar los grupos. Intenta nuevamente.
-                        </div>
-                    `);
+                            <div class="alert alert-danger">
+                                <i class="bi bi-exclamation-triangle"></i> 
+                                Error al cargar los grupos. Intenta nuevamente.
+                            </div>
+                        `);
             }
         }
 
@@ -238,21 +238,21 @@
 
             if (!Array.isArray(groups) || groups.length === 0) {
                 html = `
-                        <div class="empty-state">
-                            <i class="bi bi-folder"></i>
-                            <h4>No tienes grupos de sensores</h4>
-                            <p>Crea tu primer grupo para organizar tus sensores.</p>
-                            @if(isset($canCreateGroup) && !$canCreateGroup)
-                                <button class="btn btn-secondary opacity-50" title="Límite de grupos alcanzado" onclick="alert('Límite de grupos alcanzado. Elimina uno o sube de plan.'); return false;">
-                                    <i class="bi bi-lock-fill"></i> Crear Primer Grupo
-                                </button>
-                            @else
-                                <a href="{{ route('sensor-groups.create') }}" class="btn btn-primary">
-                                    <i class="bi bi-plus-circle"></i> Crear Primer Grupo
-                                </a>
-                            @endif
-                        </div>
-                    `;
+                            <div class="empty-state">
+                                <i class="bi bi-folder"></i>
+                                <h4>No tienes grupos de sensores</h4>
+                                <p>Crea tu primer grupo para organizar tus sensores.</p>
+                                @if(isset($canCreateGroup) && !$canCreateGroup)
+                                    <button class="btn btn-secondary opacity-50" title="Límite de grupos alcanzado" onclick="alert('Límite de grupos alcanzado. Elimina uno o sube de plan.'); return false;">
+                                        <i class="bi bi-lock-fill"></i> Crear Primer Grupo
+                                    </button>
+                                @else
+                                    <a href="{{ route('sensor-groups.create') }}" class="btn btn-primary">
+                                        <i class="bi bi-plus-circle"></i> Crear Primer Grupo
+                                    </a>
+                                @endif
+                            </div>
+                        `;
             } else {
                 html = `<div class="row">`;
 
@@ -260,48 +260,48 @@
                     let templateBadge = '';
                     if (group.template) {
                         const typeClass = `template-type-${group.template.type}`;
-                        templateBadge = `<span class="template-badge ${typeClass}">${group.template.name}</span>`;
+                        templateBadge = `<span class="template-badge ${typeClass}" title="Plantilla base asignada al grupo"><i class="bi bi-layout-text-window-reverse"></i> Plantilla: ${group.template.name}</span>`;
                     }
 
                     html += `
-                            <div class="col-md-6 col-xl-4 mb-3">
-                                <div class="card group-card">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between align-items-start mb-2">
-                                            <h5 class="card-title mb-0">${group.name}</h5>
-                                            ${templateBadge}
-                                        </div>
-                                        <p class="card-text text-muted small">${group.description || 'Sin descripción'}</p>
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>
-                                                <span class="sensor-count">
-                                                    <i class="bi bi-sensors"></i> ${group.sensors_count || group.sensors?.length || 0} sensores
-                                                </span>
+                                <div class="col-md-6 col-xl-4 mb-3">
+                                    <div class="card group-card">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <h5 class="card-title mb-0">${group.name}</h5>
+                                                ${templateBadge}
                                             </div>
-                                            <div class="btn-group" role="group">
-                                                <a href="/sensor-groups/${group.id}" class="btn btn-sm btn-info btn-custom text-white" title="Ver grupo">
-                                                    <i class="bi bi-eye"></i>
-                                                </a>
-                                                <a href="{{ route('sensors.create') }}?group_id=${group.id}" class="btn btn-sm btn-primary btn-custom" title="Agregar sensor">
-                                                    <i class="bi bi-plus-circle"></i>
-                                                </a>
-                                                <a href="/sensor-groups/${group.id}/edit" class="btn btn-sm btn-warning btn-custom" title="Editar grupo">
-                                                    <i class="bi bi-pencil"></i>
-                                                </a>
-                                                <a href="/sensor-groups/${group.id}/share" class="btn btn-sm btn-info btn-custom" title="Compartir grupo">
-                                                    <i class="bi bi-people"></i>
-                                                </a>
-                                                <button class="btn btn-sm btn-danger btn-custom deleteGroupBtn"
-                                                        data-group-id="${group.id}"
-                                                        title="Eliminar grupo">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
+                                            <p class="card-text text-muted small">${group.description || 'Sin descripción'}</p>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <span class="sensor-count">
+                                                        <i class="bi bi-sensors"></i> ${group.sensors_count || group.sensors?.length || 0} sensores
+                                                    </span>
+                                                </div>
+                                                <div class="btn-group" role="group">
+                                                    <a href="/sensor-groups/${group.id}" class="btn btn-sm btn-info btn-custom text-white" title="Ver grupo">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                    <a href="{{ route('sensors.create') }}?group_id=${group.id}" class="btn btn-sm btn-primary btn-custom" title="Agregar sensor">
+                                                        <i class="bi bi-plus-circle"></i>
+                                                    </a>
+                                                    <a href="/sensor-groups/${group.id}/edit" class="btn btn-sm btn-warning btn-custom" title="Editar grupo">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </a>
+                                                    <a href="/sensor-groups/${group.id}/share" class="btn btn-sm btn-info btn-custom" title="Compartir grupo">
+                                                        <i class="bi bi-people"></i>
+                                                    </a>
+                                                    <button class="btn btn-sm btn-danger btn-custom deleteGroupBtn"
+                                                            data-group-id="${group.id}"
+                                                            title="Eliminar grupo">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        `;
+                            `;
                 });
 
                 html += `</div>`;
@@ -367,11 +367,11 @@
         // Función para mostrar alertas
         function showAlert(message, type) {
             const alertHtml = `
-                    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                        ${message}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                `;
+                        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                            ${message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    `;
             // Remover alertas anteriores
             $('.alert').remove();
             // Agregar nueva alerta al inicio del card-body

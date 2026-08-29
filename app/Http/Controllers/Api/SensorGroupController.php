@@ -26,7 +26,7 @@ class SensorGroupController extends Controller
                 ->orWhereHas('sharedAccess', function ($q) use ($user) {
                     $q->where('shared_with', $user->id);
                 });
-        })->with(['user', 'template'])->get();
+        })->with(['user', 'template'])->withCount('sensors')->get();
 
         return response()->json([
             'success' => true,
