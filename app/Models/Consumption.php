@@ -19,12 +19,15 @@ class Consumption extends Model
         'period_start',
         'period_end',
         'days_between',
-        'created_by'
+        'created_by',
+        'cost',
+        'currency'
     ];
 
     protected $casts = [
         'period_start' => 'datetime',
         'period_end' => 'datetime',
+        'cost' => 'decimal:2'
     ];
 
     public function sensor(): BelongsTo

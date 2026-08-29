@@ -13,7 +13,8 @@ class SensorGroup extends Model
         'user_id',
         'template_id',
         'periodo_medicion',
-        'dias_vencimiento'
+        'dias_vencimiento',
+        'billing_settings'
     ];
 
     /**
@@ -21,7 +22,8 @@ class SensorGroup extends Model
      */
     protected $casts = [
         'periodo_medicion' => 'integer',
-        'dias_vencimiento' => 'integer'
+        'dias_vencimiento' => 'integer',
+        'billing_settings' => 'array'
     ];
 
     /**

@@ -21,11 +21,11 @@ class SensorGroupController extends Controller
     {
         $user = $request->user();
 
-        $groups = SensorGroup::where(function($query) use ($user) {
+        $groups = SensorGroup::where(function ($query) use ($user) {
             $query->where('user_id', $user->id)
-                  ->orWhereHas('sharedAccess', function($q) use ($user) {
-                      $q->where('shared_with', $user->id);
-                  });
+                ->orWhereHas('sharedAccess', function ($q) use ($user) {
+                    $q->where('shared_with', $user->id);
+                });
         })->with(['user', 'template'])->get();
 
         return response()->json([
@@ -47,7 +47,8 @@ class SensorGroupController extends Controller
             'description' => 'nullable|string',
             'template_id' => 'nullable|exists:templates,id',
             'periodo_medicion' => 'nullable|integer|min:1',
-            'dias_vencimiento' => 'nullable|integer|min:1'
+            'dias_vencimiento' => 'nullable|integer|min:1',
+            'billing_settings' => 'nullable|array'
         ]);
 
         if ($validator->fails()) {
@@ -60,15 +61,15 @@ class SensorGroupController extends Controller
 
         // ✅ VERIFICAR LÍMITE DE SUSCRIPCIÓN PARA GRUPOS
         $subscriptionService = new SubscriptionService($user);
-        
+
         if (!$subscriptionService->canCreateGroup()) {
             $status = $subscriptionService->getLimitStatus()['groups'];
             $planName = $subscriptionService->getPlan()->getPlanName();
-            
+
             return response()->json([
                 'success' => false,
                 'message' => "Has alcanzado el límite de {$status['max']} grupos para tu plan {$planName}. " .
-                             "Elimina algunos grupos o actualiza tu plan para crear más.",
+                    "Elimina algunos grupos o actualiza tu plan para crear más.",
                 'code' => 'group_limit_exceeded',
                 'data' => [
                     'limit_status' => $status,
@@ -110,19 +111,19 @@ class SensorGroupController extends Controller
     public function show($id)
     {
         $user = request()->user();
-    
+
         $group = SensorGroup::with(['template', 'sensors', 'user'])
             ->find($id);
-    
+
         if (!$group) {
             return response()->json([
                 'success' => false,
                 'message' => 'Grupo no encontrado',
             ], 404);
         }
-    
+
         $group->sensors_count = $group->sensors()->count();
-    
+
         return response()->json([
             'success' => true,
             'message' => 'Grupo obtenido correctamente',
@@ -151,7 +152,8 @@ class SensorGroupController extends Controller
             'name' => 'sometimes|string|max:255',
             'description' => 'nullable|string',
             'periodo_medicion' => 'nullable|integer|min:1',
-            'dias_vencimiento' => 'nullable|integer|min:1'
+            'dias_vencimiento' => 'nullable|integer|min:1',
+            'billing_settings' => 'nullable|array'
         ]);
 
         if ($validator->fails()) {

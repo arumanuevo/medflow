@@ -15,11 +15,14 @@ class ConsumptionCalculation extends Model
         'unit',
         'period_start',
         'period_end',
+        'cost',
+        'currency'
     ];
 
     protected $casts = [
         'period_start' => 'datetime',
         'period_end' => 'datetime',
+        'cost' => 'decimal:2'
     ];
 
     public function sensor(): BelongsTo
