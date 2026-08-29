@@ -125,8 +125,11 @@ class PublicViewerController extends Controller
 
         $firstDate = Carbon::createFromFormat('d/m/Y H:i', $chartData[0]['date']);
         $lastDate = Carbon::createFromFormat('d/m/Y H:i', $chartData[count($chartData) - 1]['date']);
-        $daysBetween = max(1, $firstDate->diffInDays($lastDate));
-        $dailyAverage = round($totalDelta / $daysBetween, 2);
+        // Remove trailing decimals for days
+        $daysBetween = (float) max(1, $firstDate->diffInHours($lastDate) / 24);
+        $daysBetween = round($daysBetween);
+
+        $dailyAverage = round($totalDelta / max(1, $daysBetween), 2);
 
         $anomaliesCount = collect($chartData)->where('anomaly', true)->count();
 
@@ -161,16 +164,33 @@ class PublicViewerController extends Controller
 
         $finalBilledTotal = $totalDelta + $communityContribution;
 
+        $financialCost = null;
+        $currency = null;
+        if ($sensor->group && !empty($sensor->group->billing_settings) && ($sensor->group->billing_settings['is_enabled'] ?? false)) {
+            $billing = $sensor->group->billing_settings;
+            // Only calc if allowed in public viewer
+            if (($billing['show_in_public_viewer'] ?? 1) == 1 || ($billing['show_in_public_viewer'] ?? '1') == 'true') {
+                $fixedCharge = (float) ($billing['fixed_charge'] ?? 0);
+                $pricePerUnit = (float) ($billing['price_per_unit'] ?? 0);
+                $financialCost = round($fixedCharge + ($finalBilledTotal * $pricePerUnit), 2);
+                $currency = $billing['currency'] ?? 'ARS';
+            }
+        }
+
         return view('public.visor', compact(
             'sensor',
             'chartData',
             'totalDelta',
             'dailyAverage',
             'daysBetween',
+            'firstDate',
+            'lastDate',
             'unit',
             'anomaliesCount',
             'communityContribution',
-            'finalBilledTotal'
+            'finalBilledTotal',
+            'financialCost',
+            'currency'
         ));
     }
 }

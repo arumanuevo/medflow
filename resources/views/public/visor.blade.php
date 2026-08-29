@@ -68,10 +68,19 @@
                     </div>
                 @else
                     <div class="row g-2 mt-4 text-start">
+                        @if ($financialCost !== null)
+                        <div class="col-12 mb-2">
+                            <div class="stat-card p-3 border text-center shadow-sm" style="background-color: #e8f5e9; border-color: #c3e6cb !important;">
+                                <h6 class="text-success small mb-1 fw-bold"><i class="bi bi-cash-coin me-1"></i>Liquidación Proyectada</h6>
+                                <h1 class="fw-bold text-success mb-0">{{ $currency }} ${{ number_format($financialCost, 2, ',', '.') }}</h1>
+                            </div>
+                        </div>
+                        @endif
+                        
                         <div class="col-12 mb-2">
                             <div class="stat-card p-3 border text-center" style="background-color: #f8f9fa;">
-                                <h6 class="text-muted small mb-1">Monto a Facturar (Total)</h6>
-                                <h1 class="fw-bold text-dark mb-0">{{ number_format($finalBilledTotal, 2) }} <span class="fs-5 text-muted">{{ $unit }}</span></h1>
+                                <h6 class="text-muted small mb-1">Volumen Total Consumido</h6>
+                                <h2 class="fw-bold text-dark mb-0">{{ number_format($finalBilledTotal, 2) }} <span class="fs-5 text-muted">{{ $unit }}</span></h2>
                             </div>
                         </div>
                         <div class="col-6">
@@ -88,8 +97,10 @@
                         </div>
                     </div>
                     
-                    <div class="p-2 small text-muted text-center mt-2">
-                        Período auditado: últimos {{ $daysBetween }} días ({{ count($chartData) }} lecturas)
+                    <div class="p-3 small text-muted text-center mt-3 border rounded-3 bg-light">
+                        <div class="fw-bold mb-1 text-dark"><i class="bi bi-calendar-range"></i> Período Auditado</div>
+                        <span>Desde el <strong>{{ $firstDate->format('d/m/Y') }}</strong> hasta el <strong>{{ $lastDate->format('d/m/Y') }}</strong></span><br>
+                        <span class="opacity-75">({{ $daysBetween }} días de ciclo / {{ count($chartData) }} lecturas)</span>
                     </div>
                 @endif
             </div>
