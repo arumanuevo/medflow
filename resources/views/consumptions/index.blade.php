@@ -362,8 +362,14 @@
                         <select id="shareEmailSelect" class="form-select form-select-sm mb-2 d-none">
                             <option value="">-- Ingresar Manualmente --</option>
                         </select>
-                        <input type="email" id="shareEmailInput" class="form-control form-control-sm"
+                        <input type="email" id="shareEmailInput" class="form-control form-control-sm mb-2"
                             placeholder="ejemplo@correo.com">
+
+                        <div class="form-check form-switch" style="cursor: pointer;">
+                            <input class="form-check-input" type="checkbox" id="shareIncludeMoney" checked>
+                            <label class="form-check-label small" for="shareIncludeMoney">Adjuntar liquidación en dinero (Si
+                                el grupo tiene config. contable)</label>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer p-2">
@@ -1020,16 +1026,16 @@
 
             if (meta.current_page > 1) {
                 paginationHtml += `
-                                                                                                                                <li class="page-item">
-                                                                                                                                    <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${meta.current_page - 1})" aria-label="Anterior">
-                                                                                                                                        <span aria-hidden="true">&laquo;</span>
-                                                                                                                                    </a>
-                                                                                                                                </li>`;
+                                                                                                                                        <li class="page-item">
+                                                                                                                                            <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${meta.current_page - 1})" aria-label="Anterior">
+                                                                                                                                                <span aria-hidden="true">&laquo;</span>
+                                                                                                                                            </a>
+                                                                                                                                        </li>`;
             } else {
                 paginationHtml += `
-                                                                                                                                <li class="page-item disabled">
-                                                                                                                                    <span class="page-link" aria-hidden="true">&laquo;</span>
-                                                                                                                                </li>`;
+                                                                                                                                        <li class="page-item disabled">
+                                                                                                                                            <span class="page-link" aria-hidden="true">&laquo;</span>
+                                                                                                                                        </li>`;
             }
 
             const maxPages = 5;
@@ -1043,29 +1049,29 @@
             for (let i = startPage; i <= endPage; i++) {
                 if (i === meta.current_page) {
                     paginationHtml += `
-                                                                                                                                    <li class="page-item active">
-                                                                                                                                        <span class="page-link">${i}</span>
-                                                                                                                                    </li>`;
+                                                                                                                                            <li class="page-item active">
+                                                                                                                                                <span class="page-link">${i}</span>
+                                                                                                                                            </li>`;
                 } else {
                     paginationHtml += `
-                                                                                                                                    <li class="page-item">
-                                                                                                                                        <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${i})">${i}</a>
-                                                                                                                                    </li>`;
+                                                                                                                                            <li class="page-item">
+                                                                                                                                                <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${i})">${i}</a>
+                                                                                                                                            </li>`;
                 }
             }
 
             if (meta.current_page < meta.last_page) {
                 paginationHtml += `
-                                                                                                                                <li class="page-item">
-                                                                                                                                    <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${meta.current_page + 1})" aria-label="Siguiente">
-                                                                                                                                        <span aria-hidden="true">&raquo;</span>
-                                                                                                                                    </a>
-                                                                                                                                </li>`;
+                                                                                                                                        <li class="page-item">
+                                                                                                                                            <a class="page-link" href="#" onclick="event.preventDefault(); window.changePage(${meta.current_page + 1})" aria-label="Siguiente">
+                                                                                                                                                <span aria-hidden="true">&raquo;</span>
+                                                                                                                                            </a>
+                                                                                                                                        </li>`;
             } else {
                 paginationHtml += `
-                                                                                                                                <li class="page-item disabled">
-                                                                                                                                    <span class="page-link" aria-hidden="true">&raquo;</span>
-                                                                                                                                </li>`;
+                                                                                                                                        <li class="page-item disabled">
+                                                                                                                                            <span class="page-link" aria-hidden="true">&raquo;</span>
+                                                                                                                                        </li>`;
             }
 
             $('#pagination').html(paginationHtml);
@@ -1116,7 +1122,13 @@
 
                         $('#resTotalDelta').text(d.total_consumption + ' ' + d.unit);
                         $('#resCommunityContribution').text('+' + (d.community_contribution || 0).toFixed(2) + ' ' + d.unit);
-                        $('#resFinalBilledTotal').text((d.final_billed_total || d.total_consumption).toFixed(2) + ' ' + d.unit);
+                        if (d.financial_cost !== null && d.financial_cost !== undefined) {
+                            $('#resFinalBilledTotal').text(d.currency + ' $' + d.financial_cost.toLocaleString('es-ES', { minimumFractionDigits: 2 }));
+                            $('#resFinalBilledTotal').removeClass('text-dark').addClass('text-success');
+                        } else {
+                            $('#resFinalBilledTotal').text((d.final_billed_total || d.total_consumption).toFixed(2) + ' ' + d.unit);
+                            $('#resFinalBilledTotal').removeClass('text-success').addClass('text-dark');
+                        }
                         $('#resDailyAvg').text(d.daily_average + ' ' + d.unit);
                         $('#resDaysBetween').text(parseFloat(d.days_between).toFixed(0));
                         $('#resMeasurementsCount').text(d.measurements_count);
@@ -1411,6 +1423,8 @@
         $('#btnConfirmShare').click(function () {
             const sensorId = $('#analyzeSensorId').val();
             const email = $('#shareEmailInput').val();
+            const includeMoney = $('#shareIncludeMoney').is(':checked') ? 1 : 0;
+            const financialText = $('#resFinalBilledTotal').text();
 
             if (!email) {
                 alert('Debe ingresar un correo válido.');
@@ -1428,7 +1442,7 @@
                     'Authorization': 'Bearer ' + localStorage.getItem('token'),
                     'Accept': 'application/json'
                 },
-                data: { email: email },
+                data: { email: email, include_money: includeMoney, financial_text: financialText },
                 success: function (res) {
                     btn.prop('disabled', false).html(originalText);
                     if (res.success || res.message) {

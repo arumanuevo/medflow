@@ -16,14 +16,16 @@ class IndividualReportMail extends Mailable
 
     public $sensor;
     public $url;
+    public $financialText;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($sensor, $url)
+    public function __construct($sensor, $url, $financialText = null)
     {
         $this->sensor = $sensor;
         $this->url = $url;
+        $this->financialText = $financialText;
     }
 
     /**

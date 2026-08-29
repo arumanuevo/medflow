@@ -831,6 +831,18 @@ class ConsumptionController extends Controller
             }
         }
 
+        $finalConsumptionUnit = round($delta + $communityContribution, 2);
+
+        $financialCost = null;
+        $currency = null;
+        if ($sensor->group && !empty($sensor->group->billing_settings) && ($sensor->group->billing_settings['is_enabled'] ?? false)) {
+            $billing = $sensor->group->billing_settings;
+            $fixedCharge = (float) ($billing['fixed_charge'] ?? 0);
+            $pricePerUnit = (float) ($billing['price_per_unit'] ?? 0);
+            $financialCost = round($fixedCharge + ($finalConsumptionUnit * $pricePerUnit), 2);
+            $currency = $billing['currency'] ?? 'ARS';
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Rango calculado con éxito',
@@ -844,7 +856,9 @@ class ConsumptionController extends Controller
                 'end_value' => $endValue,
                 'total_consumption' => $delta,
                 'community_contribution' => $communityContribution,
-                'final_billed_total' => round($delta + $communityContribution, 2),
+                'final_billed_total' => $finalConsumptionUnit,
+                'financial_cost' => $financialCost,
+                'currency' => $currency,
                 'days_between' => $daysBetween,
                 'daily_average' => $dailyAverage,
                 'measurements_count' => $measurementsCount,

@@ -603,7 +603,7 @@ class SensorController extends Controller
         $url = route('public.visor', ['token' => $sensor->public_token]);
         
         try {
-            Mail::to($request->email)->send(new IndividualReportMail($sensor, $url));
+            Mail::to($request->email)->send(new IndividualReportMail($sensor, $url, $request->input('include_money') == 1 ? $request->input('financial_text') : null));
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
             Log::error('Error enviando reporte avanzado: ' . $e->getMessage());

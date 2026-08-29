@@ -21,7 +21,17 @@
 
             <div style="font-size: 15px; line-height: 1.6; color: #555;">
                 <p>La administración ha emitido un informe de consumo detallado con respecto al punto de medición:
-                    <strong>{{ $sensor->name }}</strong> (ID: {{ $sensor->identifier }}).</p>
+                    <strong>{{ $sensor->name }}</strong> (ID: {{ $sensor->identifier }}).
+                </p>
+
+                @if(isset($financialText) && $financialText)
+                    <div style="background-color: #e8f5e9; border-left: 4px solid #28a745; padding: 15px; margin: 20px 0;">
+                        <p style="margin: 0; font-size: 16px; color: #155724;">
+                            <strong>Liquidación Proyectada:</strong> {{ $financialText }}
+                        </p>
+                    </div>
+                @endif
+
                 <p>Puedes acceder a la auditoría analítica interactiva y visualizar tu nivel de varianza tocando el
                     siguiente botón seguro:</p>
             </div>
