@@ -41,7 +41,7 @@
                                     <i class="bi bi-play-circle me-1 text-primary"></i> ¿Cómo navego el dashboard?</a></li>
                             <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
                                     data-bs-toggle="modal" data-bs-target="#helpModal" data-title="Configuración inicial"
-                                    data-content="Recomendamos empezar creando una 'Plantilla'. Una Plantilla dicta los campos estáticos o límites de termostato que van a compartir muchos Sensores a la vez. Luego de crear tu plantilla, puedes crear tus 'Grupos de Sensores'."
+                                    data-content="Recomendamos empezar creando una 'Plantilla'. ¿Por qué? Porque la plantilla dicta reglas universales (ej: el costo fijo, multiplicador de moneda o límites). Así evitas configurar mecánicamente la misma regla cientos de veces para cada sensor de un barrio o planta."
                                     data-steps="Navega a &lt;strong&gt;Plantillas&lt;/strong&gt; desde el menú lateral, crea una y luego ve a &lt;strong&gt;Grupos&lt;/strong&gt;.">
                                     <i class="bi bi-play-circle me-1 text-primary"></i> Configuración inicial
                                     recomendada</a></li>
@@ -70,7 +70,7 @@
                         <ul class="list-unstyled text-muted mb-0">
                             <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
                                     data-bs-toggle="modal" data-bs-target="#helpModal" data-title="Crear un Sensor"
-                                    data-content="Para crear sensores, dirígete al menú de Sensores. Cada dispositivo requiere obligatoriamente pertenecer a un Grupo, ya que heredará las configuraciones base de dicho bloque."
+                                    data-content="Dirígete al menú de Sensores. Cada dispositivo requiere obligatoriamente pertenecer a un Grupo. Es de suma importancia que la Nomenclatura del sensor (el nombre o código de serie) sea legible y preciso en los campos de metadatos, ya que esta información convive en la base de datos y será la única forma de identificar físicamente el medidor correcto en el campo."
                                     data-steps="Ve a &lt;strong&gt;Sensores > Nuevo Sensor&lt;/strong&gt; y selecciona a qué grupo pertenece en el formulario.">
                                     <i class="bi bi-hdd-network me-1 text-success"></i> ¿Cómo cargo un nuevo sensor?</a>
                             </li>
@@ -84,6 +84,13 @@
                                     data-content="Mediante el apartado 'Consumos' podrás visualizar líneas y gráficos radiales que reflejan la temperatura de tus máquinas o espacios durante los últimos meses. Además, podrás exportar todo en un enlace público o PDF vía Email."
                                     data-steps="Dirígete a &lt;strong&gt;Dashboard&lt;/strong&gt; o a la vista de detalle de cualquier &lt;strong&gt;Sensor&lt;/strong&gt; particular para observar sus gráficas.">
                                     <i class="bi bi-hdd-network me-1 text-success"></i> Entender los gráficos de Consumo</a>
+                            </li>
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal"
+                                    data-title="Tomar Mediciones Manuales"
+                                    data-content="Al registrar lecturas individuales desde 'Tomar Mediciones', podrás subir valores. ¿Por qué es vital exigir o adjuntar la foto del medidor? La fotografía funciona como 'seguro anti-reclamos' y como auditoría de calidad. Si un inspector ingresa un número defectuoso equivocado (ej: 1000 en vez de 100), el administrador siempre tendrá la chance de corregir consultando la imagen fuente resguardada en el registro."
+                                    data-steps="Ingresa a &lt;strong&gt;Tomar Mediciones (Menú Izquierdo)&lt;/strong&gt; y elige el sensor o lote a registrar.">
+                                    <i class="bi bi-hdd-network me-1 text-success"></i> ¿Cómo tomar mediciones?</a>
                             </li>
                         </ul>
                     </div>
@@ -111,7 +118,7 @@
                             <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
                                     data-bs-toggle="modal" data-bs-target="#helpModal"
                                     data-title="¿Qué es el aislamiento espacial?"
-                                    data-content="El Workspace (Espacio de Trabajo) aísla visualmente toda la información. Cuando un usuario acepta tu invitación, al loguearse verá un switch arriba a la derecha para pasar de su Workspace Personal al Workspace de tu Empresa."
+                                    data-content="El Workspace aísla la información totalmente. ¿Por qué se implementó esta segregación tan estricta? Para la privacidad integral de los datos. Un inspector puede trabajar recolectando lecturas para 10 empresas distintas con la misma cuenta; este diseño fuerza a que cada base de sensores y cobros quede blindada, asegurando que un usuario nunca cruce accidentalmente clientes."
                                     data-steps="El colaborador invitado deberá hacer clic en el nombre de su entorno en la esquina superior derecha para &lt;strong&gt;cambiar la vista de datos&lt;/strong&gt;.">
                                     <i class="bi bi-person-fill-add me-1 text-info"></i> Compartir accesos con Clientes</a>
                             </li>
@@ -141,7 +148,7 @@
                             </li>
                             <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
                                     data-bs-toggle="modal" data-bs-target="#helpModal" data-title="Sensores de Área Común"
-                                    data-content="Si administras un barrio privado o condominio, puedes marcar sensores como 'Áreas Comunes' (ej: Riego del parque). El consumo de estos sensores especiales se prorratea y se suma matemáticamente a la despensa o consumo de los lotes privados del mismo Grupo, impactando en su cálculo financiero final de forma equitativa."
+                                    data-content="Si administras un consorcio puedes marcar sensores como 'Áreas Comunes'. ¿Por qué se ofrece esta funcionalidad? Porque automatiza las finanzas evitando excel paralelos. El gasto en recursos públicos (ej: riego del parque) se abstrae y prorratea, dividiendo el costo total equitativamente e inyectándolo a cada boleto de los medidores privados del mismo grupo vecinal de manera transparente."
                                     data-steps="Al Crear o Editar un Sensor, activa la opción &lt;strong&gt;Es Área Común / Aplica a Prorrateo&lt;/strong&gt;.">
                                     <i class="bi bi-play-circle me-1 text-warning"></i> Prorrateo de gastos comunes</a></li>
                         </ul>
@@ -210,6 +217,37 @@
                 </div>
             </div>
 
+            <!-- Módulo 7: App Móvil e Inspectores -->
+            <div class="col help-card">
+                <div class="card h-100 border-0 shadow-sm rounded-4">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-dark text-white rounded-circle d-flex align-items-center justify-content-center me-3"
+                                style="width: 45px; height: 45px;">
+                                <i class="bi bi-phone-fill fs-5"></i>
+                            </div>
+                            <h5 class="fw-bold mb-0">App Móvil e Inspectores</h5>
+                        </div>
+                        <ul class="list-unstyled text-muted mb-0">
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal"
+                                    data-title="Instalar MedFlow en el Celular (PWA)"
+                                    data-content="MedFlow puede usarse como una app nativa. Para instalarla, abre la web en Safari (iOS) o Chrome (Android) desde tu celular. Luego, en las herramientas del navegador, selecciona <strong>'Añadir a la pantalla de inicio'</strong> (o 'App Install'). Aparecerá un ícono directo junto a tus otras aplicaciones para operar sin distracciones."
+                                    data-steps="Abre el menú de tu navegador móvil y ubica la opción &lt;strong&gt;Añadir a inicio&lt;/strong&gt; o &lt;strong&gt;Instalar App&lt;/strong&gt;.">
+                                    <i class="bi bi-phone me-1 text-dark"></i> ¿Cómo instalar la App en un celular?</a>
+                            </li>
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal"
+                                    data-title="Operar la App como Inspector"
+                                    data-content="Los colaboradores con el rol de 'Inspector' visualizan una interfaz simplificada al entrar. El celular solo les mostrará la vista de 'Tomar Mediciones' para asegurar un enfoque exclusivo en el trabajo de campo. No pueden alterar sensores ni ver información contable."
+                                    data-steps="El inspector invitado iniciará sesión y verá su menú delimitado automáticamente a &lt;strong&gt;Tomar Mediciones&lt;/strong&gt;.">
+                                    <i class="bi bi-phone me-1 text-dark"></i> Interfaz y operación de campo</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <!-- Contenedor Visual de Contenido (Modal Genérico) -->
@@ -222,10 +260,13 @@
                     </div>
                     <div class="modal-body p-4 text-dark" style="font-size: 1.05rem; line-height: 1.6;">
                         <div id="helpModalContent">El contenido cargará aquí...</div>
-                        
-                        <div id="helpModalStepsContainer" class="mt-4 pt-3 border-top text-muted small" style="display: none;">
-                            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-signpost-split text-primary me-1"></i> Dónde encontrarlo:</h6>
-                            <div id="helpModalSteps" class="p-3 bg-light rounded-3 d-inline-block w-100" style="border: 1px dashed #dee2e6;"></div>
+
+                        <div id="helpModalStepsContainer" class="mt-4 pt-3 border-top text-muted small"
+                            style="display: none;">
+                            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-signpost-split text-primary me-1"></i> Dónde
+                                encontrarlo:</h6>
+                            <div id="helpModalSteps" class="p-3 bg-light rounded-3 d-inline-block w-100"
+                                style="border: 1px dashed #dee2e6;"></div>
                         </div>
                     </div>
                     <div class="modal-footer bg-light border-top-0">
@@ -250,7 +291,7 @@
                 item.addEventListener('click', function () {
                     modalTitle.textContent = this.getAttribute('data-title');
                     modalContent.innerHTML = this.getAttribute('data-content');
-                    
+
                     const steps = this.getAttribute('data-steps');
                     if (steps) {
                         modalSteps.innerHTML = steps;
