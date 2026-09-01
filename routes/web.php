@@ -306,3 +306,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/backups', [\App\Http\Controllers\BackupController::class, 'index'])->name('backups.index');
     Route::post('/api/backups/fetch', [\App\Http\Controllers\BackupController::class, 'fetchPhotoUrls'])->name('api.backups.fetch');
 });
+
+// =============================================
+// RUTA PROMOCIONAL (FLYER)
+// =============================================
+Route::get('/promocion', function () {
+    return view('flyer');
+})->name('promocion');
+
