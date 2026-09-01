@@ -112,7 +112,15 @@
                                     data-title="Matemáticas del Cambio de Medidor (Consumos)"
                                     data-content="¿Tienes dudas de cómo el sistema elude un consumo negativo? &lt;strong&gt;¡No te preocupes!&lt;/strong&gt; El servidor NUNCA intentará restar la lectura nueva del inspector contra la vieja que se rompió (ej: 15 vs 8500). Gracias a que tú (Administrador) has precargado un registro de 'Reseteo' en el sistema, éste actuará como un &lt;strong&gt;Muro Cortafuegos&lt;/strong&gt;. El algoritmo dividirá la línea de tiempo en dos: Un periodo que cierra la etapa vieja cobrando el valor exacto adeudado de los 8500, y otro periodo fresco donde el nuevo medidor arranca limpiamente cruzando su novedad contra tu Cero (Restando 15 - 0 = 15). Esto resguarda todo tu historial intacto."
                                     data-steps="Este proceso es automatizado por nuestro Backend matemático. Tu única responsabilidad es asegurarte de ingresar correctamente las reglas de 'Reseteo' en la Web.">
-                                    <i class="bi bi-calculator me-1 text-info"></i> ¿Cómo calcula el consumo al cambiarlo?</a>
+                                    <i class="bi bi-calculator me-1 text-info"></i> ¿Cómo calcula el consumo al
+                                    cambiarlo?</a>
+                            </li>
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal"
+                                    data-title="Vencimiento de Fotos y Respaldos"
+                                    data-content="Por políticas de velocidad y optimización del servidor, &lt;strong&gt;las evidencias fotográficas caducan automáticamente a los 365 días (1 año)&lt;/strong&gt; de haber sido subidas. El sistema te informará por email una semana antes. Ten la tranquilidad de que &lt;strong&gt;NUNCA se borrarán los consumos ni las estadísticas (metros cúbicos, gráficas, etc)&lt;/strong&gt;, únicamente se borrará la imagen física para liberar espacio de disco. Puedes entrar al menú de 'Backups/Respaldos' para descargar un ZIP con todas tus fotos con máxima velocidad gracias a nuestro motor 'Anti-Colapso' procesado desde tu navegador local."
+                                    data-steps="Pasos: &lt;br&gt;1. Dirigete a la sección de Backups de Evidencias.&lt;br&gt;2. Selecciona un grupo.&lt;br&gt;3. El navegador empaquetará todo sin sobrecargar la red y arrojará un archivo .zip a tu computadora.">
+                                    <i class="bi bi-archive me-1 text-warning"></i> Política de Retención y Backups ZIP</a>
                             </li>
                         </ul>
                     </div>

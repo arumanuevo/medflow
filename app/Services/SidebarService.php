@@ -47,9 +47,9 @@ class SidebarService
                 'highlight' => true
             ]);
         }
-        
 
-        
+
+
         // Centro de Ayuda
         $menu[] = [
             'icon' => 'bi bi-question-circle',
@@ -132,13 +132,19 @@ class SidebarService
                 'active' => request()->is('templates*'),
             ],
             [
+                'icon' => 'bi bi-hdd-network',
+                'label' => 'Backups y Retención',
+                'url' => '/backups',
+                'active' => request()->is('backups*'),
+            ],
+            [
                 'icon' => 'bi bi-person-circle',
                 'label' => 'Mi Perfil',
                 'url' => '/profile',
                 'active' => request()->is('profile*'),
             ],
         ]);
-        
+
 
         return $menu;
     }

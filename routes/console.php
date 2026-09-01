@@ -14,3 +14,9 @@ Schedule::command('queue:work --stop-when-empty')
     ->everyMinute()
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/queue-work.log'));
+
+// Tarea diaria de eliminación de fotos históricas (Día 365) y Alertas (Día 358)
+Schedule::command('app:clean-expired-photos')
+    ->dailyAt('02:00')
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/clean-photos.log'));

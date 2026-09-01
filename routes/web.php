@@ -302,3 +302,7 @@ Route::post('/establecer-contraseña', [SetPasswordController::class, 'setPasswo
 //Route::get('/mediciones', [MeasurementViewController::class, 'index'])->name('measurements.index');
 // Ruta temporal para prueba (FUERA del grupo auth) - PUEDES ELIMINARLA AHORA
 // Route::get('/test-sensors', fn() => view('sensors.index'))->name('test.sensors');
+Route::middleware('auth')->group(function () {
+    Route::get('/backups', [\App\Http\Controllers\BackupController::class, 'index'])->name('backups.index');
+    Route::post('/api/backups/fetch', [\App\Http\Controllers\BackupController::class, 'fetchPhotoUrls'])->name('api.backups.fetch');
+});
