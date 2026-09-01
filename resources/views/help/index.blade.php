@@ -97,7 +97,22 @@
                                     data-title="Reemplazo de un Medidor Roto"
                                     data-content="Al registrar una nueva medición desde 'Tomar Mediciones', si el equipo físico fue reemplazado, activa el botón '¿Se reemplazó este medidor físico por uno nuevo?'. Aparecerán dos opciones para eludir el error de 'Consumo Negativo'. Opción 1 (Reseteo Simple): Ignora el consumo de ese periodo y en su lugar inicia una tarifa cero a partir del nuevo aparato. Opción 2 (Cierre Exacto): Te pedirá la última lectura antes de desconectar el equipo viejo y el arranque del nuevo equipo, sumando los gastos para que factures con precisión absoluta el cruce sin alterar los gráficos históricos ni regalar el consumo mensual."
                                     data-steps="Disponible al tomar una nueva lectura manual desde &lt;strong&gt;Tomar Mediciones (Paso a Paso)&lt;/strong&gt; marcando la casilla desplegable.">
-                                    <i class="bi bi-hdd-network me-1 text-success"></i> ¿Qué hago si debo cambiar un medidor?</a>
+                                    <i class="bi bi-hdd-network me-1 text-success"></i> ¿Qué hago si debo cambiar un
+                                    medidor?</a>
+                            </li>
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal"
+                                    data-title="Reemplazo y la App Móvil (Flutter)"
+                                    data-content="Debido a que la App Móvil para inspectores tiene validaciones estrictas y bloquea el guardado si el operario ingresa un número MENOR a la &lt;strong&gt;última medición&lt;/strong&gt; conocida, es vital que EL ADMINISTRADOR ingrese de forma anticipada una &lt;strong&gt;medición con reseteo (Web)&lt;/strong&gt; el día del reemplazo de hardware. Al hacer esto (ej: dejando la cuenta en cero), cuando el inspector presione &lt;strong&gt;Sincronizar&lt;/strong&gt; en su teléfono, bajará ese 'cero' como la última marca registrada. Así, cuando llegue al sitio y el medidor nuevo marque '15', la app validará que 15 es mayor a 0 y lo dejará trabajar sin errores."
+                                    data-steps="Pasos (Admin): &lt;br&gt;1. Sabiendo que el aparato del lote se cambió, ve a la Web y marca un Registro Manual en '0' usando la opción &lt;strong&gt;Reseteo de Medidor&lt;/strong&gt;.&lt;br&gt;2. Envía la ruta al Inspector al día siguiente (La App descargará el nuevo cero como 'última lectura').&lt;br&gt;3. El inspector mide en campo de manera normal y el celular le aprueba el dato.">
+                                    <i class="bi bi-phone me-1 text-primary"></i> Cambios de Sensor desde la App Móvil</a>
+                            </li>
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal"
+                                    data-title="Matemáticas del Cambio de Medidor (Consumos)"
+                                    data-content="¿Tienes dudas de cómo el sistema elude un consumo negativo? &lt;strong&gt;¡No te preocupes!&lt;/strong&gt; El servidor NUNCA intentará restar la lectura nueva del inspector contra la vieja que se rompió (ej: 15 vs 8500). Gracias a que tú (Administrador) has precargado un registro de 'Reseteo' en el sistema, éste actuará como un &lt;strong&gt;Muro Cortafuegos&lt;/strong&gt;. El algoritmo dividirá la línea de tiempo en dos: Un periodo que cierra la etapa vieja cobrando el valor exacto adeudado de los 8500, y otro periodo fresco donde el nuevo medidor arranca limpiamente cruzando su novedad contra tu Cero (Restando 15 - 0 = 15). Esto resguarda todo tu historial intacto."
+                                    data-steps="Este proceso es automatizado por nuestro Backend matemático. Tu única responsabilidad es asegurarte de ingresar correctamente las reglas de 'Reseteo' en la Web.">
+                                    <i class="bi bi-calculator me-1 text-info"></i> ¿Cómo calcula el consumo al cambiarlo?</a>
                             </li>
                         </ul>
                     </div>
