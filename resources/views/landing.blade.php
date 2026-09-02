@@ -650,7 +650,7 @@
                     <div class="card-body">
                         <h5 class="card-title fw-bold">🚀 Basic</h5>
                         <p class="card-text text-muted small">Pequeños administradores independientes.</p>
-                        <div class="price" style="font-size: 1.8rem;">$10<small>/mes</small></div>
+                        <div class="price" style="font-size: 1.8rem;">${{ number_format(config('mercadopago.plans.basico.price', 10000) / 100, 0) }}<small>/{{ config('mercadopago.plans.basico.currency', 'ARS') }} mes</small></div>
                         <hr>
                         <div class="text-start" style="font-size: 0.85rem;">
                             <div class="plan-feature"><i class="bi bi-check text-success"></i> 2 Grupos Máximo</div>
@@ -669,7 +669,7 @@
                     <div class="card-body">
                         <h5 class="card-title fw-bold">🏢 Premium</h5>
                         <p class="card-text text-muted small">Para PyMEs o Consorcios grandes. Autocancelable.</p>
-                        <div class="price" style="font-size: 1.8rem;">$25<small>/usd mes</small></div>
+                        <div class="price" style="font-size: 1.8rem;">${{ number_format(config('mercadopago.plans.premium.price', 25000) / 100, 0) }}<small>/{{ config('mercadopago.plans.premium.currency', 'ARS') }} mes</small></div>
                         
                         <hr>
                         <div class="text-start" style="font-size: 0.85rem;">
