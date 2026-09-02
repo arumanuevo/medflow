@@ -395,7 +395,7 @@
                                                 </li>
                                                 <li class="d-flex align-items-center mb-1">
                                                     <i class="bi bi-check-circle-fill text-success me-2"></i>
-                                                    <small>2 sensores máximo</small>
+                                                    <small>10 sensores máximo</small>
                                                 </li>
                                                 <li class="d-flex align-items-center mb-1">
                                                     <i class="bi bi-check-circle-fill text-success me-2"></i>
@@ -427,7 +427,7 @@
                                                 </li>
                                                 <li class="d-flex align-items-center mb-1">
                                                     <i class="bi bi-check-circle-fill text-success me-2"></i>
-                                                    <small>Sensores ilimitados</small>
+                                                    <small>Base de 20 Sensores (+Packs)</small>
                                                 </li>
                                                 <li class="d-flex align-items-center mb-1">
                                                     <i class="bi bi-check-circle-fill text-success me-2"></i>
