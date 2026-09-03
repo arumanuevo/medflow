@@ -132,7 +132,10 @@ class SuperAdminController extends Controller
         if ($invoice->file_path) {
             $realPath = str_replace('storage/', '', $invoice->file_path);
             if (Storage::disk('public')->exists($realPath)) {
-                return Storage::disk('public')->download($realPath, 'Factura_MedFlow_' . $invoice->id . '.pdf');
+                return response()->download(
+                    Storage::disk('public')->path($realPath),
+                    'Factura_MedFlow_' . $invoice->id . '.pdf'
+                );
             }
         }
         return redirect()->back()->with('error', 'El archivo no existe físicamente en el servidor.');
