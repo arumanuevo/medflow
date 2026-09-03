@@ -884,7 +884,7 @@ $(document).ready(function() {
             if (response.success) {
                 showAlert('✅ Medición actualizada correctamente', 'success');
                 setTimeout(() => {
-                    window.location.href = '/measurements';
+                    window.location.href = '/mediciones';
                 }, 1000);
             } else {
                 showAlert('❌ ' + (response.message || 'Error al guardar'), 'danger');
