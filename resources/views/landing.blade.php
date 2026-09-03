@@ -468,7 +468,7 @@
                     <a href="#contacto" class="text-muted text-decoration-none d-none d-md-block fw-semibold">
                         <i class="bi bi-headset me-1"></i> Asesoramiento
                     </a>
-                    <a href="{{ route('login') }}" class="btn btn-outline-primary rounded-pill px-4">
+                    <a href="{{ route('login') }}" class="btn btn-outline-primary rounded-pill px-3 px-md-4 py-1 py-md-2" style="font-size: clamp(0.85rem, 3vw, 1rem);">
                         <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar sesión
                     </a>
                 </div>
@@ -481,7 +481,7 @@
         <div class="row align-items-center hero-section">
 
             <!-- Columna Izquierda: Información -->
-            <div class="col-lg-6 animate-fade-in animate-delay-1">
+            <div class="col-lg-6 animate-fade-in animate-delay-1 mb-5 mb-lg-0">
                 <h1 class="hero-title">
                     Gestión de Sensores<br>
                     <span class="highlight">Inteligente y Simple</span>
