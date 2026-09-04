@@ -170,10 +170,23 @@ class SuperAdminController extends Controller
 
         $user->subscription_plan = $request->subscription_plan;
 
+        // 1. Marcar como expiradas las suscripciones anteriores
+        \App\Models\Subscription::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->update(['status' => 'expired']);
+
+        // 2. Crear un nuevo certificado manual de suscripción si no es Free
         if ($request->subscription_plan !== 'free') {
-            $user->subscription_expires_at = Carbon::now()->addDays(30);
-        } else {
-            $user->subscription_expires_at = null;
+            \App\Models\Subscription::create([
+                'user_id' => $user->id,
+                'plan' => $request->subscription_plan,
+                'status' => 'active',
+                'amount' => 0,
+                'currency' => 'ARS',
+                'payment_id' => 'SUPERADMIN-GIFT-' . uniqid(),
+                'paid_at' => Carbon::now(),
+                'expires_at' => Carbon::now()->addDays(30)
+            ]);
         }
 
         $user->save();
