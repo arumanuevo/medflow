@@ -1509,10 +1509,7 @@
                 success: function (response) {
                     if (response.success) {
                         //  Si hay un plan anterior en localStorage, pasarlo a los datos
-                        // const previousPlan = null;
-                        if (previousPlan) {
-                            response.// data override removed
-                        }
+                        
 
                         renderSubscriptionStatus(response.data);
                         updateAccountInfo();

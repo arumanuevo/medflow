@@ -338,10 +338,7 @@
                     updateUIElements(data);
 
                     // 4. ✅ INCLUIR PLAN ANTERIOR EN LOS DATOS
-                    // const previousPlan = null || null;
-                    if (previousPlan) {
-                        // data override removed
-                    }
+                    
 
                     // 5. ✅ DISPARAR EVENTO CON JAVASCRIPT PURO
                     document.dispatchEvent(new CustomEvent('subscriptionUpdated', {
