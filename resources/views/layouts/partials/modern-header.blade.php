@@ -18,14 +18,14 @@
             $subscriptionService = app(\App\Services\Subscription\SubscriptionService::class, ['user' => $user]);
             $subscriptionInfo = $subscriptionService->getFullStatus();
 
-            // ✅ OBTENER PLAN ANTERIOR DESDE LA SESIÓN
-            $previousPlanValue = session('previous_plan', null);
+            // ✅ OBTENER PLAN ANTERIOR ESTRICTO DESDE EL BACKEND
+            $previousPlanValue = $subscriptionInfo['previous_plan'] ?? null;
 
             // ✅ VERIFICAR DOWNGRADE
             $hasActive = $subscriptionInfo['has_active_subscription'];
             $sub = $subscriptionInfo['subscription'];
 
-            // Si no tiene suscripción activa pero hay un plan anterior en sesión
+            // Si no tiene suscripción activa pero tiene una expirada en su base de datos
             if (!$hasActive && $previousPlanValue && in_array($previousPlanValue, ['basico', 'premium'])) {
                 $showDowngradeAlert = true;
                 $previousPlan = $previousPlanValue === 'premium' ? 'Premium' : 'Básico';
@@ -225,12 +225,12 @@
         const existingDowngrade = document.querySelector('.subscription-badge.downgrade-alert');
         const headerRight = document.querySelector('.modern-header-right');
 
-        // ✅ Obtener plan anterior desde localStorage o desde los datos
-        let previousPlan = localStorage.getItem('previous_plan') || data.previous_plan || null;
+        // ✅ Obtener plan anterior estricto de los datos del backend (No localStorage que se ensucia entre cuentas)
+        let previousPlan = data.previous_plan || null;
 
-        // ✅ Verificar downgrade
+        // ✅ Verificar downgrade (Solo si realmente tiene historial expired)
         const isExpired = sub && sub.status === 'expired';
-        const isDowngraded = !hasActive || isExpired;
+        const isDowngraded = (!hasActive || isExpired) && previousPlan;
         const wasPaidPlan = previousPlan === 'basico' || previousPlan === 'premium';
 
         if (isDowngraded && wasPaidPlan) {

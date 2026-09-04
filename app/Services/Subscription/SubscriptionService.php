@@ -214,6 +214,10 @@ class SubscriptionService
         $plan = $this->getPlan($personalOnly);
         $limitStatus = $this->getLimitStatus($personalOnly);
         $activeSubscription = $this->user->getActiveSubscription();
+        $expiredSub = Subscription::where('user_id', $this->user->id)
+            ->where('status', 'expired')
+            ->orderBy('updated_at', 'desc')
+            ->first();
 
         return [
             'plan' => [
@@ -239,6 +243,7 @@ class SubscriptionService
                 'paid_at' => $activeSubscription->paid_at,
             ] : null,
             'has_active_subscription' => $activeSubscription !== null || $plan->getPlanKey() !== 'free',
+            'previous_plan' => $expiredSub ? $expiredSub->plan : null,
         ];
     }
 
