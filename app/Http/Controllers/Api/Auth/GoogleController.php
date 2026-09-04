@@ -18,7 +18,7 @@ class GoogleController extends Controller
      */
     public function redirectToGoogle()
     {
-        return Socialite::driver('google')->redirect();
+        return Socialite::driver('google')->with(['prompt' => 'select_account'])->redirect();
     }
 
     /**
@@ -31,17 +31,17 @@ class GoogleController extends Controller
         } catch (\Exception $e) {
             return redirect('/')->with('error', 'Error al autenticar con Google.');
         }
-    
+
         // Buscar o crear usuario
         $user = $this->findOrCreateUser($googleUser);
-    
+
         // ✅ Autenticar al usuario
         Auth::login($user);
-    
+
         // ✅ Crear token de Sanctum y guardarlo en sesión
         $token = $user->createToken('auth_token')->plainTextToken;
         session(['sanctum_token' => $token]);
-    
+
         // ✅ Redirigir al dashboard con el token en la sesión
         return redirect()->route('dashboard')->with([
             'success' => '¡Bienvenido ' . $user->name . '! Has iniciado sesión con Google.',
