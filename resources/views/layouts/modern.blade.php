@@ -338,9 +338,9 @@
                     updateUIElements(data);
 
                     // 4. ✅ INCLUIR PLAN ANTERIOR EN LOS DATOS
-                    const previousPlan = localStorage.getItem('previous_plan') || null;
+                    // const previousPlan = null || null;
                     if (previousPlan) {
-                        data.previous_plan = previousPlan;
+                        // data override removed
                     }
 
                     // 5. ✅ DISPARAR EVENTO CON JAVASCRIPT PURO

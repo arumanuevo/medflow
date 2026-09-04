@@ -790,9 +790,9 @@
 
                             //  Si se activa Free, limpiar el plan anterior
                             if (plan === 'free') {
-                                localStorage.removeItem('previous_plan');
+                                // localStorage mock removed
                             } else {
-                                localStorage.setItem('previous_plan', plan);
+                                // localStorage mock removed
                             }
 
                             //  REFRESCAR TODO
@@ -1495,7 +1495,7 @@
             //  Obtener plan anterior del input oculto
             const previousPlanInput = document.getElementById('previousPlanValue');
             if (previousPlanInput && previousPlanInput.value) {
-                localStorage.setItem('previous_plan', previousPlanInput.value);
+                // localStorage mock removed
             }
 
             $.ajax({
@@ -1509,9 +1509,9 @@
                 success: function (response) {
                     if (response.success) {
                         //  Si hay un plan anterior en localStorage, pasarlo a los datos
-                        const previousPlan = localStorage.getItem('previous_plan');
+                        // const previousPlan = null;
                         if (previousPlan) {
-                            response.data.previous_plan = previousPlan;
+                            response.// data override removed
                         }
 
                         renderSubscriptionStatus(response.data);
