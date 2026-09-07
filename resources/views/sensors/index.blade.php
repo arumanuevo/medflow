@@ -1409,7 +1409,7 @@
                     let rowHtml = `<tr data-sensor-id="${sensor.id}">`;
                     const isChecked = selectedSensors.has(sensor.id) ? 'checked' : '';
                     let communityBadge = sensor.is_community ? ' <span class="badge bg-success bg-opacity-10 text-success border border-success ms-1" style="font-size: 0.65rem;" title="Medidor de Consumo Comunitario. Su valor tarifario será prorrateado al total de miembros privados del grupo"><i class="bi bi-tree-fill"></i> Común</span>' : '';
-                    let lockedBadge = sensor.is_measurable === false ? ' <span class="badge bg-danger bg-opacity-10 text-danger border border-danger ms-1" style="font-size: 0.65rem;" title="Límite de Sensores superado en el Plan Actual"><i class="bi bi-lock-fill"></i> Bloqueado</span>' : '';
+                    let lockedBadge = sensor.is_measurable === false ? ' <span class="badge bg-danger bg-opacity-10 text-danger border border-danger ms-1" style="font-size: 0.65rem;" title="Has alcanzado el límite máximo de licencias de sensores de tu plan (Premium base: 20). Para habilitar este y más sensores físicos, ingresa a tu Perfil > Facturación y Licencias."><i class="bi bi-lock-fill"></i> Bloqueado</span>' : '';
 
                     rowHtml += `<td class="text-center"><input type="checkbox" class="sensor-checkbox" data-sensor-id="${sensor.id}" ${isChecked}></td>`;
                     rowHtml += `<td class="text-left"><strong>${sensor.name}</strong>${communityBadge}${lockedBadge}</td>`;
