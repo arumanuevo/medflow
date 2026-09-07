@@ -665,22 +665,46 @@
 
             <div class="masonry-grid">
                 <div class="masonry-item">
-                    <img src="{{ asset('flyer/grilla_qr.PNG') }}" alt="Exportación Códigos QR">
+                    <img src="{{ asset('flyer/grilla_qr.PNG') }}" alt="Tokens QR">
+                    <div class="masonry-caption">
+                        <h4><i class="bi bi-qr-code-scan text-primary me-2"></i> Tokens de Visor (QR)</h4>
+                        <p>Brinda a cada usuario un Token o Código QR único para que puedan escanearlo y consultar la evolución de sus propios consumos desde su celular en todo momento, sin contraseñas.</p>
+                    </div>
                 </div>
                 <div class="masonry-item">
-                    <img src="{{ asset('flyer/plantillas.PNG') }}" alt="Plantillas Inteligentes JSon">
+                    <img src="{{ asset('flyer/plantillas.PNG') }}" alt="Plantillas">
+                    <div class="masonry-caption">
+                        <h4><i class="bi bi-braces text-primary me-2"></i> Plantillas Dinámicas</h4>
+                        <p>Crea esquemas variables de toma (Agua, Energía, Presión) y obliga a tus inspectores a relevar exactly los campos que necesites.</p>
+                    </div>
                 </div>
                 <div class="masonry-item">
-                    <img src="{{ asset('flyer/backups.PNG') }}" alt="Snapshots Base de datos">
+                    <img src="{{ asset('flyer/backups.PNG') }}" alt="Seguridad">
+                    <div class="masonry-caption">
+                        <h4><i class="bi bi-shield-check text-primary me-2"></i> Backups Cifrados</h4>
+                        <p>Descarga e importa copias de seguridad estáticas de toda la información de tus medidores con un flujo protegido.</p>
+                    </div>
                 </div>
                 <div class="masonry-item">
-                    <img src="{{ asset('flyer/sensores.PNG') }}" alt="Listado Global Sensores">
+                    <img src="{{ asset('flyer/sensores.PNG') }}" alt="Inventario">
+                    <div class="masonry-caption">
+                        <h4><i class="bi bi-router text-primary me-2"></i> Inventario Táctico</h4>
+                        <p>Tu flota en terreno unificada. Busca, filtra y monitoriza qué inspectores están atendiendo qué líneas.</p>
+                    </div>
                 </div>
                 <div class="masonry-item">
-                    <img src="{{ asset('flyer/detalle_consumo.PNG') }}" alt="Detalle Liquidador">
+                    <img src="{{ asset('flyer/detalle_consumo.PNG') }}" alt="Liquidador">
+                    <div class="masonry-caption">
+                        <h4><i class="bi bi-receipt-cutoff text-primary me-2"></i> Detalles de Liquidación</h4>
+                        <p>Transparencia fotográfica por cada medidor para respaldar los cálculos financieros ante reclamos.</p>
+                    </div>
                 </div>
                 <div class="masonry-item">
                     <img src="{{ asset('flyer/centro_ayuda.PNG') }}" alt="Base de Conocimiento">
+                    <div class="masonry-caption">
+                        <h4><i class="bi bi-info-square text-primary me-2"></i> Centro de Ayuda</h4>
+                        <p>Manuales y vías de contacto de soporte listas para asistir a cualquier nivel gerencial u operario.</p>
+                    </div>
                 </div>
             </div>
         </div>
