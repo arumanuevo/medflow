@@ -261,31 +261,35 @@
                         <ul class="list-unstyled text-muted mb-0">
                             <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
                                     data-bs-toggle="modal" data-bs-target="#helpModal"
-                                    data-title="La Filososfía de Empate (Migrando a MedFlow)"
+                                    data-title="La Filosofía de Empate (Migrando a MedFlow)"
                                     data-content="Al transicionar desde sistemas arcaicos o archivos Excel aislados de tu empresa, el paso más delicado es la <strong>normalización</strong>. MedFlow no exige que 'destruyas' tu orden de columnas viejas; su sistema de importación inteligente te permitirá cargar tu <code>.xlsx</code> o <code>.csv</code> y solicitará que <strong>empatrues o enlaces (mapees)</strong> tus columnas antiguas con los campos requeridos por MedFlow (Ej: 'Nro de Medidor' se unirá a 'Identificador Físico')."
                                     data-steps="Disponible dentro del menú <strong>Sensores > Importar Sensores</strong>.">
-                                    <i class="bi bi-diagram-3-fill me-1" style="color: #6f42c1;"></i> ¿Cómo empato mi sistema viejo?</a>
+                                    <i class="bi bi-diagram-3-fill me-1" style="color: #6f42c1;"></i> ¿Cómo empato mi
+                                    sistema viejo?</a>
                             </li>
                             <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
                                     data-bs-toggle="modal" data-bs-target="#helpModal"
                                     data-title="Migración de Sensores Físicos (Base)"
                                     data-content="Al subir tu archivo Excel de Sensores, asegúrate de contar al menos con dos columnas madre: <strong>Un Identificador Único Universal (ID Físico/Serial del aparato)</strong> y <strong>El Nombre o Dirección</strong> del lote. Si tu excel antiguo tenía columnas adicionales como 'Nombre de Inquilino', 'Deuda Previa' o 'Piso', ¡no las descartes! MedFlow las convertirá automáticamente en <strong>Metadatos (Campos Extra)</strong> que quedarán inyectados permanentemente en el ecosistema, dándole contexto al inspector en campo."
                                     data-steps="1. Limpia tu Excel de celdas vacías en la cabecera.<br>2. Súbelo a <strong>Importar Sensores</strong>.<br>3. Mapea la columna serial y decide qué columnas extra guardar como Metadata.">
-                                    <i class="bi bi-hdd-network-fill me-1" style="color: #6f42c1;"></i> Construyendo la base de aparatos</a>
+                                    <i class="bi bi-hdd-network-fill me-1" style="color: #6f42c1;"></i> Construyendo la base
+                                    de aparatos</a>
                             </li>
                             <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
                                     data-bs-toggle="modal" data-bs-target="#helpModal"
                                     data-title="Migración del Histórico de Consumos"
                                     data-content="Si deseas que los gráficos de MedFlow reaccionen al instante mostrando toda tu historia de consumos del último año, necesitas inyectar un histórico. Para que el motor asocie cada lectura pasada a su respectivo sensor, nuestro importador buscará <strong>únicamente el Identificador Físico</strong>. Tu Excel de Historial debe tener tres columnas excluyentes: <code>1) Identificador del Medidor</code>, <code>2) Fecha de la Medición (ideal en formato Año-Mes-Día YYYY-MM-DD)</code> y <code>3) El Valor numérico capturado</code>."
                                     data-steps="Deberás realizar esto <strong>DESPUÉS</strong> de haber importado los sensores primero. MedFlow rastreará todos los Identificadores coincidiendo y anidará tus historias fotográficas o datos numéricos sin colapsar.">
-                                    <i class="bi bi-clock-history me-1" style="color: #6f42c1;"></i> Inyectar mediciones del pasado</a>
+                                    <i class="bi bi-clock-history me-1" style="color: #6f42c1;"></i> Inyectar mediciones del
+                                    pasado</a>
                             </li>
                             <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
                                     data-bs-toggle="modal" data-bs-target="#helpModal"
                                     data-title="Resolución de Conflictos de Fechas (Excel)"
                                     data-content="El error de migración más grave sucede cuando Excel transforma ocultamente tus fechas en 'números de serie'. <strong>Antes de exportar y subir tu Excel</strong>: Selecciona la columna de fechas de tus mediciones históricas, presiona click derecho -> Formato de Celdas, y asegúrate que esté seteada explícitamente en formato de Texto (AÑO-MES-DIA) para evitar que hojas de cálculo antiguas rompan la línea de tiempo temporal (Time-series) del Analizador de Tasa Diaria del servidor."
                                     data-steps="Aplica esta revisión en tu Excel nativo previo a entrar en <strong>Importar Mediciones Masivas</strong>.">
-                                    <i class="bi bi-exclamation-triangle-fill me-1" style="color: #6f42c1;"></i> Regla vital contra fallos de tiempos</a>
+                                    <i class="bi bi-exclamation-triangle-fill me-1" style="color: #6f42c1;"></i> Regla vital
+                                    contra fallos de tiempos</a>
                             </li>
                         </ul>
                     </div>
@@ -387,7 +391,8 @@
 
                 helpCards.forEach(card => {
                     const cardText = normalize(card.textContent);
-                    const headerText = normalize(card.querySelector('h5') ? card.querySelector('h5').textContent : '');
+                    const headerText = normalize(card.querySelector('h5') ? card.querySelector('h5')
+                        .textContent : '');
 
                     // Mostramos u ocultamos las tarjetas según match
                     if (cardText.includes(query)) {
@@ -397,7 +402,7 @@
                         // Si no, filtramos individualmente los items para dejar solo los que coinciden.
                         const headerMatch = headerText.includes(query);
                         const lis = card.querySelectorAll('li');
-                        
+
                         let hasVisibleLi = false;
                         lis.forEach(li => {
                             const liText = normalize(li.textContent);
@@ -415,14 +420,12 @@
                         if (!headerMatch && !hasVisibleLi && query !== '') {
                             card.style.display = 'none';
                         }
-                        
+
                     } else {
                         card.style.display = 'none';
                     }
                 });
             });
-
-        });
 
         });
     </script>
