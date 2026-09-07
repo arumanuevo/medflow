@@ -362,26 +362,12 @@
     @media (max-width: 991px) { .masonry-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 768px) { .masonry-grid { grid-template-columns: 1fr; } }
 
-        .masonry-item {
-            background: white;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            transition: 0.3s;
-        }
-
-        .masonry-item:hover {
-            transform: scale(1.02);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-            z-index: 2;
-        }
-
-        .masonry-item img {
-            width: 100%;
-            height: auto;
-            display: block;
-            border-bottom: 3px solid var(--accent);
-        }
+        .masonry-item { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 15px -3px rgba(0,0,0,0.05); border: 2px solid #cbd5e1; transition: 0.3s; }
+        .masonry-item:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 25px 30px -5px rgba(0,0,0,0.15); border-color: var(--accent); z-index: 2;}
+        .masonry-item img { width: 100%; height: auto; display: block; border-bottom: 1px solid #e2e8f0; } /* Esta línea eliminó la raya azul 3px */
+        .masonry-caption { padding: 30px 25px 25px 25px; } /* Añade el espaciado pedido */
+        .masonry-caption h4 { font-size: 1.15rem; font-weight: 700; color: var(--primary); margin-bottom: 5px; }
+        .masonry-caption p { font-size: 0.9rem; color: var(--text-body); margin-bottom: 0; line-height: 1.4; }
 
         /* CTA Action */
         .cta-section {
