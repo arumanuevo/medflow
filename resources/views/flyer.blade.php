@@ -329,20 +329,9 @@
             overflow: hidden;
         }
 
-        .carousel-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            border-radius: 30px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            overflow: hidden;
-        }
+        .carousel-container { max-width: 850px; margin: 0 auto; border: 4px solid #f8fafc; border-radius: 16px; box-shadow: 0 15px 40px rgba(0,0,0,0.15); overflow: hidden; background: #0f172a; }
 
-        .carousel-item img {
-            height: 75vh;
-            object-fit: cover;
-            object-position: center top;
-            width: 100%;
-        }
+        .carousel-item img { height: 450px !important; max-height: 450px; object-fit: contain; object-position: center; width: 100%; padding: 15px; background: #0f172a; }
 
         .carousel-caption-custom {
             position: absolute;
@@ -369,11 +358,9 @@
         }
 
         /* Grid Masonry */
-        .masonry-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-        }
+        .masonry-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; max-width: 1200px; margin: 0 auto; } 
+    @media (max-width: 991px) { .masonry-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 768px) { .masonry-grid { grid-template-columns: 1fr; } }
 
         .masonry-item {
             background: white;
@@ -440,9 +427,7 @@
                 margin-top: -60px;
             }
 
-            .carousel-item img {
-                height: 50vh;
-            }
+            .carousel-item img { height: 400px !important; }
         }
 
         @media (max-width: 768px) {
@@ -462,9 +447,7 @@
                 font-size: 2.8rem;
             }
 
-            .carousel-item img {
-                height: 40vh;
-            }
+            .carousel-item img { height: 350px !important; }
         }
     </style>
 </head>
