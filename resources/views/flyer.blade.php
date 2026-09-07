@@ -4,32 +4,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MedFlow | Ecosistema Único de Medición y Facturación</title>
+    <title>MedFlow | Ecosistema Total de Medición y Facturación</title>
 
     <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-    <!-- Google Fonts (Outfit & Inter) -->
+    <!-- Google Fonts -->
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@300;400;600;700;800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
         rel="stylesheet">
 
     <style>
         :root {
-            --primary: #0f172a;
-            --accent: #2563eb;
-            --accent-glow: rgba(37, 99, 235, 0.4);
+            --primary: #020617;
+            --secondary: #0f172a;
+            --accent: #3b82f6;
+            --accent-glow: rgba(59, 130, 246, 0.5);
+            --gradient: linear-gradient(135deg, #2563eb, #0ea5e9, #38bdf8);
             --surface: #ffffff;
-            --background: #f8fafc;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
+            --bg-light: #f8fafc;
+            --text-heading: #0f172a;
+            --text-body: #475569;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--background);
-            color: var(--text-main);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-body);
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
         }
@@ -41,315 +43,427 @@
         h5,
         h6 {
             font-family: 'Outfit', sans-serif;
+            color: var(--text-heading);
+            letter-spacing: -0.03em;
         }
 
+        /* Navbar */
         .navbar {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
             border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 1rem 0;
+            transition: all 0.3s ease;
         }
 
         .navbar-brand {
+            font-family: 'Outfit', sans-serif;
             font-weight: 800;
+            font-size: 1.8rem;
             color: var(--primary);
-            font-size: 1.5rem;
         }
 
         .navbar-brand i {
             color: var(--accent);
         }
 
-        /* Hero Section */
+        .nav-link {
+            font-weight: 600;
+            color: var(--text-body);
+            margin: 0 10px;
+        }
+
+        .nav-link:hover {
+            color: var(--accent);
+        }
+
+        .btn-modern {
+            padding: 12px 28px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            border-radius: 50px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+        }
+
+        .btn-primary-modern {
+            background: var(--gradient);
+            color: white;
+            box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-primary-modern:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(37, 99, 235, 0.4);
+            color: white;
+        }
+
+        /* Hero */
         .hero {
+            padding: 140px 0 180px;
             position: relative;
-            padding: 80px 0 160px;
-            background: linear-gradient(180deg, #e0e7ff 0%, #f8fafc 100%);
+            background: #ffffff;
             overflow: hidden;
         }
 
-        .hero::before {
-            content: '';
+        .hero-bg-shapes {
             position: absolute;
-            top: -50%;
-            left: -10%;
-            width: 120%;
+            top: 0;
+            left: 0;
+            width: 100%;
             height: 100%;
-            background: radial-gradient(circle at center, rgba(37, 99, 235, 0.08) 0%, transparent 70%);
+            overflow: hidden;
             z-index: 0;
+        }
+
+        .shape-1 {
+            position: absolute;
+            top: -20%;
+            right: -10%;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, transparent 70%);
+        }
+
+        .shape-2 {
+            position: absolute;
+            bottom: -10%;
+            left: -10%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.1) 0%, transparent 70%);
         }
 
         .hero-content {
             position: relative;
             z-index: 2;
-            text-align: center;
-            max-width: 850px;
-            margin: 0 auto;
         }
 
-        .tag-badge {
+        .badge-software {
             display: inline-block;
             padding: 8px 16px;
+            margin-bottom: 24px;
             background: rgba(37, 99, 235, 0.1);
             color: var(--accent);
             border-radius: 50px;
-            font-weight: 600;
-            font-size: 0.85rem;
+            font-weight: 700;
+            font-size: 0.9rem;
             letter-spacing: 1px;
-            text-transform: uppercase;
-            margin-bottom: 24px;
+            border: 1px solid rgba(37, 99, 235, 0.2);
         }
 
         .hero h1 {
-            font-size: 4.8rem;
-            font-weight: 800;
-            line-height: 1.1;
-            letter-spacing: -1.5px;
-            color: var(--primary);
+            font-size: 5.5rem;
+            font-weight: 900;
+            line-height: 1.05;
             margin-bottom: 24px;
+            text-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
         }
 
         .hero h1 span {
-            background: linear-gradient(135deg, #2563eb, #3b82f6, #0ea5e9);
+            background: var(--gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
         .hero p {
-            font-size: 1.25rem;
-            color: var(--text-muted);
-            line-height: 1.7;
+            font-size: 1.35rem;
+            color: var(--text-body);
+            line-height: 1.6;
             margin-bottom: 40px;
-            padding: 0 40px;
+            max-width: 90%;
         }
 
-        .btn-modern {
-            padding: 14px 32px;
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .btn-primary-modern {
-            background: var(--accent);
-            color: white;
-            box-shadow: 0 10px 25px var(--accent-glow);
-        }
-
-        .btn-primary-modern:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 35px var(--accent-glow);
-            color: white;
-        }
-
-        /* Mockup Placeholder Central */
-        .mockup-container {
-            margin-top: -100px;
+        /* Floating Dashboard Mockup */
+        .hero-mockup-wrapper {
             position: relative;
             z-index: 10;
+            margin-top: -120px;
+            perspective: 1000px;
+            padding: 0 20px;
         }
 
-        .mockup-image-box {
+        .hero-mockup {
+            border-radius: 20px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.05);
+            transform: rotateX(5deg) scale(0.98);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
             background: white;
-            border-radius: 24px;
-            padding: 10px;
-            box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            transform: perspective(1200px) rotateX(4deg);
-            transition: transform 0.5s ease;
-            position: relative;
             overflow: hidden;
-            background-color: #f1f5f9;
-            height: 600px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .hero-mockup:hover {
+            transform: rotateX(0deg) scale(1) translateY(-10px);
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05);
+        }
+
+        .hero-mockup img {
+            width: 100%;
+            display: block;
+            border-radius: 12px;
+        }
+
+        .mockup-header {
+            height: 30px;
+            background: #f1f5f9;
             display: flex;
             align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            color: var(--text-muted);
+            padding: 0 15px;
+            gap: 8px;
+            border-bottom: 1px solid #e2e8f0;
         }
 
-        .mockup-image-box:hover {
-            transform: perspective(1200px) rotateX(0deg) translateY(-10px);
+        .mockup-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
         }
 
-        .mockup-image-box img {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 12px;
-            z-index: 5;
-            opacity: 0;
-            /* Desaparece el gris si la foto real no existe */
-            transition: opacity 0.3s ease;
+        .dot-r {
+            background: #ef4444;
         }
 
-        /* Features Section */
-        .features {
+        .dot-y {
+            background: #eab308;
+        }
+
+        .dot-g {
+            background: #22c55e;
+        }
+
+        /* Core Features Grid */
+        .features-section {
             padding: 120px 0;
-            background: white;
+            background: var(--bg-light);
         }
 
-        .section-title {
+        .section-header {
             text-align: center;
             margin-bottom: 80px;
-            max-width: 700px;
+            max-width: 800px;
             margin-left: auto;
             margin-right: auto;
         }
 
-        .section-title h2 {
-            font-size: 3rem;
+        .section-header h2 {
+            font-size: 3.5rem;
             font-weight: 800;
-            color: var(--primary);
-            letter-spacing: -1px;
             margin-bottom: 20px;
         }
 
-        .section-title p {
-            color: var(--text-muted);
-            font-size: 1.1rem;
+        .section-header p {
+            font-size: 1.25rem;
+            color: var(--text-body);
         }
 
-        .feature-card {
-            border: none;
-            background: #f8fafc;
+        .bento-card {
+            background: white;
             border-radius: 24px;
-            padding: 40px;
+            padding: 2px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+            transition: all 0.4s ease;
             height: 100%;
-            transition: all 0.3s ease;
-            position: relative;
             overflow: hidden;
             border: 1px solid rgba(0, 0, 0, 0.03);
-        }
-
-        .feature-card:hover {
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04);
-            transform: translateY(-5px);
-            background: white;
-        }
-
-        .feature-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 16px;
-            background: rgba(37, 99, 235, 0.1);
-            color: var(--accent);
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
-            margin-bottom: 24px;
+            flex-direction: column;
         }
 
-        .feature-card h3 {
+        .bento-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        .bento-img-container {
+            width: 100%;
+            height: 280px;
+            overflow: hidden;
+            border-radius: 22px 22px 0 0;
+            background: #f8fafc;
+            display: flex;
+            align-items: top;
+            justify-content: center;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .bento-img-container img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+            object-position: top;
+            transition: transform 0.5s ease;
+        }
+
+        .bento-card:hover .bento-img-container img {
+            transform: scale(1.05);
+        }
+
+        .bento-content {
+            padding: 30px;
+            flex-grow: 1;
+        }
+
+        .bento-content h3 {
             font-size: 1.5rem;
             font-weight: 700;
-            margin-bottom: 16px;
-            color: var(--primary);
+            margin-bottom: 12px;
         }
 
-        .feature-card p {
-            color: var(--text-muted);
-            line-height: -6;
+        .bento-content p {
+            color: var(--text-body);
+            margin-bottom: 0;
+            line-height: 1.6;
         }
 
-        /* Placeholder for mini-features */
-        .mini-photo-placeholder {
-            width: 100%;
-            height: 220px;
-            background: #e2e8f0;
-            border-radius: 16px;
-            margin-bottom: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            color: #64748b;
-            font-size: 0.9rem;
-            padding: 20px;
-            position: relative;
-            box-shadow: inset 0 4px 6px rgba(0, 0, 0, 0.05);
+        /* Carousel Section */
+        .carousel-section {
+            padding: 120px 0;
+            background: var(--surface);
+            overflow: hidden;
         }
 
-        .mini-photo-placeholder img {
-            position: absolute;
-            width: 100%;
-            height: 100%;
+        .carousel-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            border-radius: 30px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+        }
+
+        .carousel-item img {
+            height: 75vh;
             object-fit: cover;
-            opacity: 0;
+            object-position: center top;
+            width: 100%;
+        }
+
+        .carousel-caption-custom {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+            padding: 100px 40px 40px;
+            color: white;
+            text-align: left;
+        }
+
+        .carousel-caption-custom h3 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .carousel-caption-custom p {
+            font-size: 1.2rem;
+            margin-bottom: 0;
+            opacity: 0.9;
+        }
+
+        /* Grid Masonry */
+        .masonry-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .masonry-item {
+            background: white;
             border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: 0.3s;
+        }
+
+        .masonry-item:hover {
+            transform: scale(1.02);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
             z-index: 2;
         }
 
-        /* Banner Final */
-        .cta-banner {
+        .masonry-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-bottom: 3px solid var(--accent);
+        }
+
+        /* CTA Action */
+        .cta-section {
+            padding: 120px 0;
             background: var(--primary);
-            padding: 100px 0;
             text-align: center;
             color: white;
             position: relative;
-            overflow: hidden;
         }
 
-        .cta-banner::before {
+        .cta-section::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 80% 20%, rgba(37, 99, 235, 0.4) 0%, transparent 60%);
+            inset: 0;
+            opacity: 0.15;
+            background-image: radial-gradient(white 1px, transparent 1px);
+            background-size: 30px 30px;
         }
 
-        .cta-banner h2 {
-            font-size: 3.5rem;
-            font-weight: 800;
-            margin-bottom: 24px;
+        .cta-section h2 {
+            color: white;
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 30px;
             position: relative;
             z-index: 2;
         }
 
-        .cta-banner p {
-            font-size: 1.2rem;
-            color: #94a3b8;
-            margin-bottom: 40px;
+        .cta-section p {
+            font-size: 1.4rem;
+            color: #cbd5e1;
+            margin-bottom: 50px;
             position: relative;
             z-index: 2;
         }
 
         @media (max-width: 991px) {
             .hero h1 {
-                font-size: 3.5rem;
+                font-size: 4rem;
             }
 
-            .mockup-image-box {
-                height: 400px;
+            .hero-mockup-wrapper {
+                margin-top: -60px;
+            }
+
+            .carousel-item img {
+                height: 50vh;
             }
         }
 
         @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2.8rem;
-            }
-
-            .mockup-image-box {
-                height: 250px;
-            }
-
             .hero {
-                padding: 60px 0 100px;
+                padding: 100px 0 120px;
+            }
+
+            .hero h1 {
+                font-size: 3.2rem;
             }
 
             .hero p {
-                padding: 0 10px;
+                font-size: 1.2rem;
+            }
+
+            .section-header h2 {
+                font-size: 2.8rem;
+            }
+
+            .carousel-item img {
+                height: 40vh;
             }
         }
     </style>
@@ -357,121 +471,258 @@
 
 <body>
 
-    <!-- NAVBAR PARA EL FLYER -->
-    <nav class="navbar navbar-expand-lg py-3 sticky-top">
-        <div class="container d-flex justify-content-between">
-            <a class="navbar-brand" href="#">
-                <i class="bi bi-activity"></i> MedFlow
-            </a>
-            <a href="/register" class="btn-modern btn-primary-modern"
-                style="padding: 10px 24px; font-size: 1rem;">Acceso al Sistema</a>
+    <!-- NAVBAR -->
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="bi bi-droplet-half"></i> MedFlow</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-toggle="collapse"
+                data-bs-target="#navMenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse text-end" id="navMenu">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
+                    <li class="nav-item"><a class="nav-link" href="#modulos">Módulos</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#analiticas">Analíticas</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#plataforma">La Plataforma</a></li>
+                    <li class="nav-item ms-lg-3">
+                        <a href="/login" class="btn-modern btn-primary-modern">
+                            Ir al Sistema <i class="bi bi-box-arrow-in-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
     </nav>
 
-    <!-- HERO SECTION PROMOCIONAL -->
+    <!-- HERO -->
     <section class="hero">
-        <div class="container">
-            <div class="hero-content">
-                <span class="tag-badge"><i class="bi bi-broadcast me-1"></i> Software As A Service Industrial</span>
-                <h1>Auditoría y control de <span>Mediciones</span> en tiempo real.</h1>
-                <p>MedFlow revoluciona cómo recolectas datos físicos. Una sola plataforma en la nube para registrar,
-                    auditar y prorratear consumo de Agua, Luz, Gas o parámetros industriales, usando tu smartphone como
-                    colector inteligente.</p>
+        <div class="hero-bg-shapes">
+            <div class="shape-1"></div>
+            <div class="shape-2"></div>
+        </div>
+        <div class="container hero-content">
+            <div class="row align-items-center mb-5">
+                <div class="col-lg-8 mx-auto text-center">
+                    <div class="badge-software"><i class="bi bi-lightning-charge-fill me-1"></i> Plataforma SaaS
+                        Industrial</div>
+                    <h1>Mide, Audita y Factura con <span>Precisión Absoluta</span></h1>
+                    <p>MedFlow es el ecosistema definitivo para consorcios, plantas y redes de distribución. Gestiona
+                        tus sensores en campo, captura mediciones auditadas mediante fotografía y dispara facturaciones
+                        automáticas con inteligencia de tasa diaria.</p>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- BIG IMAGE PLACEHOLDER: DASHBOARD -->
-    <section class="container mockup-container">
-        <!-- 💡 INSTRUCCIÓN PARA TI: Sube una foto bella llamada 'flyer_hero.png' en public/img/ -->
-        <div class="mockup-image-box">
-            <i class="bi bi-image" style="font-size: 3rem; color: #94a3b8; margin-bottom: 10px;"></i>
-            <h5 class="m-0" style="color: #64748b;">[ Inserta: flyer_hero.png ]</h5>
-            <small style="color: #94a3b8;">Sugerencia: Foto extendida del Panel Principal / Dashboard</small>
-            <img src="{{ asset('img/flyer_hero.png') }}" onload="this.style.opacity='1'"
-                onerror="this.style.opacity='0'" alt="Dashboard Principal">
+    <!-- MAIN MOCKUP -->
+    <div class="hero-mockup-wrapper">
+        <div class="hero-mockup">
+            <div class="mockup-header">
+                <div class="mockup-dot dot-r"></div>
+                <div class="mockup-dot dot-y"></div>
+                <div class="mockup-dot dot-g"></div>
+            </div>
+            <!-- IMAGEN PRINCIPAL GLOBAL -->
+            <img src="{{ asset('flyer/dashboard.PNG') }}" alt="Dashboard MedFlow" loading="lazy">
         </div>
-    </section>
+    </div>
 
-    <!-- CARACTERÍSTICAS CORE (MÓDULOS) -->
-    <section class="features">
+    <!-- MAIN MODULES (BENTO GRID) -->
+    <section class="features-section" id="modulos">
         <div class="container">
-            <div class="section-title">
-                <h2>Diseñado para la precisión</h2>
-                <p>Nuestra arquitectura entrelaza a los directivos con los operarios de calle en un flujo de información
-                    perfectamente auditado y protegido financieramente.</p>
+            <div class="section-header">
+                <h2>El Motor Operativo</h2>
+                <p>Una arquitectura diseñada para eliminar el fraude operativo y acelerar tu ciclo de cobro de
+                    suministros, totalmente parametrizable a tus necesidades.</p>
             </div>
 
             <div class="row g-4">
-                <!-- Tarjeta 1: La App Móvil -->
                 <div class="col-lg-4 col-md-6">
-                    <div class="feature-card">
-                        <!-- 💡 FOTO A INSERTAR 1 -->
-                        <div class="mini-photo-placeholder">
-                            <div><i class="bi bi-phone mb-2 fs-3"></i><br><b>flyer_app.png</b><br><small>Sugerencia:
-                                    Captura de la App tomando foto a un contador</small></div>
-                            <img src="{{ asset('img/flyer_app.png') }}" onload="this.style.opacity='1'"
-                                onerror="this.style.opacity='0'" alt="App Campo">
+                    <div class="bento-card">
+                        <div class="bento-img-container">
+                            <img src="{{ asset('flyer/grupos_sensores.PNG') }}" alt="Organización de Sensores">
                         </div>
-                        <div class="feature-icon"><i class="bi bi-phone"></i></div>
-                        <h3>Recolección Segura</h3>
-                        <p style="color: #64748b;">Evidencia anti-fraude obligatoria. Al medir en terreno, la App exige
-                            una fotografía real del medidor y calcula en vivo si los números tipearos tienen sentido.
-                        </p>
+                        <div class="bento-content">
+                            <h3><i class="bi bi-diagram-3-fill text-primary me-2"></i> Logística de Estructuras</h3>
+                            <p>Segmenta edificios, barrios o alas industriales en Grupos Logísticos. Importa redes
+                                enteras con nuestro gestor Excel y aplica plantillas técnicas según tu tipo de fluido
+                                (Agua, Energía, Presión).</p>
+                        </div>
                     </div>
                 </div>
-
-                <!-- Tarjeta 2: Cálculo Matemático -->
                 <div class="col-lg-4 col-md-6">
-                    <div class="feature-card">
-                        <!-- 💡 FOTO A INSERTAR 2 -->
-                        <div class="mini-photo-placeholder">
-                            <div><i class="bi bi-calculator mb-2 fs-3"></i><br><b>flyer_calculo.png</b><br><small>Sugerencia:
-                                    Captura de la tabla de consumo con montos</small></div>
-                            <img src="{{ asset('img/flyer_calculo.png') }}" onload="this.style.opacity='1'"
-                                onerror="this.style.opacity='0'" alt="Calculo">
+                    <div class="bento-card">
+                        <div class="bento-img-container">
+                            <img src="{{ asset('flyer/tomar_mediciones.PNG') }}" alt="Captura de Medición">
                         </div>
-                        <div class="feature-icon"><i class="bi bi-calculator"></i></div>
-                        <h3>Motor de Prorrateo</h3>
-                        <p style="color: #64748b;">Detectamos consumos negativos, alertamos de fugas estructurales, y
-                            prorrateamos automáticamente los cortes contables sin perder meses por recambios de
-                            medidores.</p>
+                        <div class="bento-content">
+                            <h3><i class="bi bi-camera-fill text-primary me-2"></i> Recolección de Campo Auditada</h3>
+                            <p>El inspector utiliza su móvil como terminal de ingreso, reportando anomalías
+                                geolocalizadas con fotografías obligatorias del contador como respaldo incuestionable de
+                                su métrica.</p>
+                        </div>
                     </div>
                 </div>
-
-                <!-- Tarjeta 3: Transparencia y Correos -->
-                <div class="col-lg-4 col-md-6">
-                    <div class="feature-card">
-                        <!-- 💡 FOTO A INSERTAR 3 -->
-                        <div class="mini-photo-placeholder">
-                            <div><i class="bi bi-envelope-paper mb-2 fs-3"></i><br><b>flyer_email.png</b><br><small>Sugerencia:
-                                    Captura de un Visor Público o PDF recibido en el celular</small></div>
-                            <img src="{{ asset('img/flyer_email.png') }}" onload="this.style.opacity='1'"
-                                onerror="this.style.opacity='0'" alt="Transparencia">
+                <div class="col-lg-4 col-md-12">
+                    <div class="bento-card">
+                        <div class="bento-img-container">
+                            <img src="{{ asset('flyer/consumos.PNG') }}" alt="Liquidación Financiera">
                         </div>
-                        <div class="feature-icon"><i class="bi bi-broadcast"></i></div>
-                        <h3>Distribución Masiva</h3>
-                        <p style="color: #64748b;">Despacha campañas de correo automáticas (Cron Jobs) con los visores
-                            públicos (PDF) para que tus clientes paguen visualizando la foto del contador de su puerta.
-                        </p>
+                        <div class="bento-content">
+                            <h3><i class="bi bi-cash-coin text-primary me-2"></i> Facturación y Prorrateo</h3>
+                            <p>Algoritmos de cálculo automático que procesan las lecturas transformándolas en metros
+                                cúbicos y liquidaciones a cobrar, detectando estancamientos, prorrateando áreas comunes
+                                y alertando desfases.</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- BANNER INFERIOR -->
-    <section class="cta-banner">
+    <!-- SHOWCASE CAROUSEL -->
+    <section class="carousel-section" id="analiticas">
         <div class="container">
-            <h2>Comienza a medir con inteligencia.</h2>
-            <p>Implementa tecnología que tus equipos y tus clientes adorarán.</p>
-            <a href="/register" class="btn-modern"
-                style="background: white; color: var(--primary); padding: 18px 45px; font-size: 1.25rem;">
-                Integrar mi Empresa Hoy <i class="bi bi-arrow-right ms-2"></i>
+            <div class="section-header mb-5">
+                <h2>Auditorías Avanzadas al Máximo</h2>
+                <p>Una suite de herramientas potentes que cuidan tu rentabilidad sin esfuerzo manual.</p>
+            </div>
+
+            <div class="carousel-container">
+                <div id="medflowCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel">
+                    <div class="carousel-indicators">
+                        <button type="button" data-bs-target="#medflowCarousel" data-bs-slide-to="0"
+                            class="active"></button>
+                        <button type="button" data-bs-target="#medflowCarousel" data-bs-slide-to="1"></button>
+                        <button type="button" data-bs-target="#medflowCarousel" data-bs-slide-to="2"></button>
+                        <button type="button" data-bs-target="#medflowCarousel" data-bs-slide-to="3"></button>
+                    </div>
+                    <div class="carousel-inner">
+                        <div class="carousel-item active" data-bs-interval="4000">
+                            <img src="{{ asset('flyer/analisis_avanzado_mediciones.PNG') }}" class="d-block w-100"
+                                alt="Análisis Avanzado">
+                            <div class="carousel-caption-custom">
+                                <h3>Radar de Tasa Diaria</h3>
+                                <p>Algoritmos predictivos que detectan aceleraciones anómalas en el consumo de lote de
+                                    tus clientes y dibujan saltos visuales antes de que se transformen en pérdida.</p>
+                            </div>
+                        </div>
+                        <div class="carousel-item" data-bs-interval="4000">
+                            <img src="{{ asset('flyer/mediciones_negativas.PNG') }}" class="d-block w-100"
+                                alt="Mediciones Negativas">
+                            <div class="carousel-caption-custom">
+                                <h3>Control de Anomalías Estructurales</h3>
+                                <p>Captura bloqueos de contadores o recambios no autorizados automáticamente
+                                    identificando retrocesos negativos (Rollbacks) en la física del volumen inyectado.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="carousel-item" data-bs-interval="4000">
+                            <img src="{{ asset('flyer/campanas_publicas.PNG') }}" class="d-block w-100"
+                                alt="Campañas Públicas">
+                            <div class="carousel-caption-custom">
+                                <h3>Transparencia Pública</h3>
+                                <p>Dispara campañas de email automáticas hacia tus inquilinos con el visor PDF adjunto
+                                    de sus consumos inter-fechas, probando con fotos de lectura el 100% de la
+                                    facturación.</p>
+                            </div>
+                        </div>
+                        <div class="carousel-item" data-bs-interval="4000">
+                            <img src="{{ asset('flyer/invitar_inspector.PNG') }}" class="d-block w-100"
+                                alt="Gestión RH">
+                            <div class="carousel-caption-custom">
+                                <h3>Gestión Descentralizada de RRHH</h3>
+                                <p>Invita Inspectores al terreno restringiendo su visión únicamente a un bloque de
+                                    edificios o áreas, auditando cada movimiento en su recorrido de toma.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#medflowCarousel"
+                        data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"
+                            style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#medflowCarousel"
+                        data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"
+                            style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- GALERIA MASONRY -->
+    <section class="py-5 bg-white" id="plataforma">
+        <div class="container py-5">
+            <div class="section-header">
+                <h2>Explora el Entorno</h2>
+                <p>Navega a través de un Panel limpio, documentado, con Códigos QR y herramientas Backups para tu máxima
+                    tranquilidad.</p>
+            </div>
+
+            <div class="masonry-grid">
+                <div class="masonry-item">
+                    <img src="{{ asset('flyer/grilla_qr.PNG') }}" alt="Exportación Códigos QR">
+                </div>
+                <div class="masonry-item">
+                    <img src="{{ asset('flyer/plantillas.PNG') }}" alt="Plantillas Inteligentes JSon">
+                </div>
+                <div class="masonry-item">
+                    <img src="{{ asset('flyer/backups.PNG') }}" alt="Snapshots Base de datos">
+                </div>
+                <div class="masonry-item">
+                    <img src="{{ asset('flyer/sensores.PNG') }}" alt="Listado Global Sensores">
+                </div>
+                <div class="masonry-item">
+                    <img src="{{ asset('flyer/detalle_consumo.PNG') }}" alt="Detalle Liquidador">
+                </div>
+                <div class="masonry-item">
+                    <img src="{{ asset('flyer/centro_ayuda.PNG') }}" alt="Base de Conocimiento">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CALL TO ACTION FINAL -->
+    <section class="cta-section">
+        <div class="container">
+            <h2>Listo para la revolución métrica.</h2>
+            <p>Empieza a operar. Agrega tus sensores, configura a tus clientes y observa los datos fluir con
+                rentabilidad segura.</p>
+            <a href="/login" class="btn-modern text-primary bg-white shadow-lg fw-bold"
+                style="padding: 16px 40px; font-size: 1.25rem;">
+                Ingresar al Panel de Control <i class="bi bi-rocket-takeoff ms-2"></i>
             </a>
         </div>
     </section>
 
+    <!-- Footer Simple -->
+    <footer
+        style="background: var(--primary); padding: 40px 0; border-top: 1px solid rgba(255,255,255,0.1); color: #94a3b8; text-align: center;">
+        <div class="container">
+            <h4 class="text-white mb-3" style="font-family: 'Outfit'; font-weight: 700;"><i
+                    class="bi bi-droplet-half text-primary"></i> MedFlow Systems</h4>
+            <p class="mb-0">© {{ date('Y') }} ArumaSoft Solutions. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', function () {
+            var nav = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                nav.style.background = 'rgba(255, 255, 255, 0.95)';
+                nav.style.boxShadow = '0 5px 20px rgba(0,0,0,0.05)';
+            } else {
+                nav.style.background = 'rgba(255, 255, 255, 0.85)';
+                nav.style.boxShadow = 'none';
+            }
+        });
+    </script>
 </body>
 
 </html>
