@@ -262,7 +262,7 @@
                             <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
                                     data-bs-toggle="modal" data-bs-target="#helpModal"
                                     data-title="La Filosofía de Empate (Migrando a MedFlow)"
-                                    data-content="Al transicionar desde sistemas arcaicos o archivos Excel aislados de tu empresa, el paso más delicado es la <strong>normalización</strong>. MedFlow no exige que 'destruyas' tu orden de columnas viejas; su sistema de importación inteligente te permitirá cargar tu <code>.xlsx</code> o <code>.csv</code> y solicitará que <strong>empatrues o enlaces (mapees)</strong> tus columnas antiguas con los campos requeridos por MedFlow (Ej: 'Nro de Medidor' se unirá a 'Identificador Físico')."
+                                    data-content="Al transicionar desde sistemas arcaicos o archivos Excel aislados de tu empresa, el paso más delicado es la <strong>normalización</strong>. MedFlow no exige que 'destruyas' tu orden de columnas viejas; su sistema de importación inteligente te permitirá cargar tu <code>.xlsx</code> o <code>.csv</code> y solicitará que <strong>empates o enlaces (mapees)</strong> tus columnas antiguas con los campos requeridos por MedFlow (Ej: 'Nro de Medidor' se unirá a 'Identificador Físico')."
                                     data-steps="Disponible dentro del menú <strong>Sensores > Importar Sensores</strong>.">
                                     <i class="bi bi-diagram-3-fill me-1" style="color: #6f42c1;"></i> ¿Cómo empato mi
                                     sistema viejo?</a>
