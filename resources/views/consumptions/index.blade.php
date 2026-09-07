@@ -108,18 +108,18 @@
                             <table class="table table-bordered table-striped table-hover">
                                 <thead>
                                     <tr>
-                                        <th>Sensor</th>
-                                        <th>Identificador</th>
-                                        <th>Tipo</th>
-                                        <th>Grupo</th>
-                                        <th>Consumo Total</th>
-                                        <th>Unidad</th>
-                                        <th>Costo ($)</th>
-                                        <th>Período</th>
-                                        <th>Días transcurridos</th>
-                                        <th>Promedio Diario</th>
-                                        <th style="width: 100px;">Acciones</th>
-                                    </tr>
+<th class="sortable" style="cursor:pointer;" data-sort="sensor">Sensor <i class="bi bi-arrow-down-up text-muted ms-1"></i></th>
+<th class="sortable" style="cursor:pointer;" data-sort="identifier">Identificador <i class="bi bi-arrow-down-up text-muted ms-1"></i></th>
+<th>Tipo</th>
+<th class="sortable" style="cursor:pointer;" data-sort="group">Grupo <i class="bi bi-arrow-down-up text-muted ms-1"></i></th>
+<th class="sortable" style="cursor:pointer;" data-sort="value">Consumo Total <i class="bi bi-arrow-down-up text-muted ms-1"></i></th>
+<th>Unidad</th>
+<th class="sortable" style="cursor:pointer;" data-sort="cost">Costo ($) <i class="bi bi-arrow-down-up text-muted ms-1"></i></th>
+<th class="sortable" style="cursor:pointer;" data-sort="period_end">Período <i class="bi bi-arrow-down-up text-muted ms-1"></i></th>
+<th class="sortable" style="cursor:pointer;" data-sort="days_between">Días <i class="bi bi-arrow-down-up text-muted ms-1"></i></th>
+<th class="sortable" style="cursor:pointer;" data-sort="daily_average">Prom. Diario <i class="bi bi-arrow-down-up text-muted ms-1"></i></th>
+<th style="width: 100px;">Acciones</th>
+</tr>
                                 </thead>
                                 <tbody id="consumptionsTable">
                                     <!-- Los consumos se cargarán aquí por JS -->
@@ -478,6 +478,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         let currentPage = 1;
+        let currentSortBy = 'period_end';
+        let currentSortDir = 'desc';
         let evolutionChartInstance = null;
         let analyzedSensorsList = [];
         let currentAnalyzedIndex = -1;
@@ -511,6 +513,25 @@
 
             // Eventos
             $('#calculateConsumption').click(calculateAllConsumptions);
+            
+            // Lógica de ordenamiento
+            $('.sortable').click(function() {
+                const sortBy = $(this).data('sort');
+                if (currentSortBy === sortBy) {
+                    currentSortDir = currentSortDir === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentSortBy = sortBy;
+                    currentSortDir = 'asc';
+                }
+                
+                // Actualizar iconos
+                $('.sortable i').removeClass('bi-sort-up bi-sort-down text-primary').addClass('bi-arrow-down-up text-muted');
+                $(this).find('i').removeClass('bi-arrow-down-up text-muted')
+                       .addClass(currentSortDir === 'asc' ? 'bi-sort-up' : 'bi-sort-down')
+                       .addClass('text-primary');
+                       
+                loadConsumptions();
+            });
             $('#exportConsumptions').click(exportConsumptions);
             $('#btnOpenGlobalRadar').click(openGlobalRadarModal);
 
@@ -572,7 +593,9 @@
 
             const params = {
                 page: currentPage,
-                per_page: 15
+                per_page: 15,
+                sort_by: currentSortBy,
+                sort_dir: currentSortDir
             };
             if (sensorId) params.sensor_id = sensorId;
             if (identifier) params.identifier = identifier;
