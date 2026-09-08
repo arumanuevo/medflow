@@ -329,9 +329,25 @@
             overflow: hidden;
         }
 
-        .carousel-container { max-width: 850px; margin: 0 auto; border: 4px solid #f8fafc; border-radius: 16px; box-shadow: 0 15px 40px rgba(0,0,0,0.15); overflow: hidden; background: #0f172a; }
+        .carousel-container {
+            max-width: 850px;
+            margin: 0 auto;
+            border: 4px solid #f8fafc;
+            border-radius: 16px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            background: #0f172a;
+        }
 
-        .carousel-item img { height: 450px !important; max-height: 450px; object-fit: contain; object-position: center; width: 100%; padding: 15px; background: #0f172a; }
+        .carousel-item img {
+            height: 450px !important;
+            max-height: 450px;
+            object-fit: contain;
+            object-position: center;
+            width: 100%;
+            padding: 15px;
+            background: #0f172a;
+        }
 
         .carousel-caption-custom {
             position: absolute;
@@ -358,16 +374,68 @@
         }
 
         /* Grid Masonry */
-        .masonry-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; max-width: 1200px; margin: 0 auto; } 
-    @media (max-width: 991px) { .masonry-grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 768px) { .masonry-grid { grid-template-columns: 1fr; } }
+        .masonry-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
 
-        .masonry-item { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 15px -3px rgba(0,0,0,0.05); border: 2px solid #cbd5e1; transition: 0.3s; }
-        .masonry-item:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 25px 30px -5px rgba(0,0,0,0.15); border-color: var(--accent); z-index: 2;}
-        .masonry-item img { width: 100%; height: auto; display: block; border-bottom: 1px solid #e2e8f0; } /* Esta línea eliminó la raya azul 3px */
-        .masonry-caption { padding: 30px 25px 25px 25px; } /* Añade el espaciado pedido */
-        .masonry-caption h4 { font-size: 1.15rem; font-weight: 700; color: var(--primary); margin-bottom: 5px; }
-        .masonry-caption p { font-size: 0.9rem; color: var(--text-body); margin-bottom: 0; line-height: 1.4; }
+        @media (max-width: 991px) {
+            .masonry-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .masonry-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .masonry-item {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.05);
+            border: 2px solid #cbd5e1;
+            transition: 0.3s;
+        }
+
+        .masonry-item:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 25px 30px -5px rgba(0, 0, 0, 0.15);
+            border-color: var(--accent);
+            z-index: 2;
+        }
+
+        .masonry-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        /* Esta línea eliminó la raya azul 3px */
+        .masonry-caption {
+            padding: 30px 25px 25px 25px;
+        }
+
+        /* Añade el espaciado pedido */
+        .masonry-caption h4 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .masonry-caption p {
+            font-size: 0.9rem;
+            color: var(--text-body);
+            margin-bottom: 0;
+            line-height: 1.4;
+        }
 
         /* CTA Action */
         .cta-section {
@@ -413,7 +481,9 @@
                 margin-top: -60px;
             }
 
-            .carousel-item img { height: 400px !important; }
+            .carousel-item img {
+                height: 400px !important;
+            }
         }
 
         @media (max-width: 768px) {
@@ -433,7 +503,9 @@
                 font-size: 2.8rem;
             }
 
-            .carousel-item img { height: 350px !important; }
+            .carousel-item img {
+                height: 350px !important;
+            }
         }
     </style>
 </head>
@@ -514,8 +586,8 @@
                         <div class="bento-content">
                             <h3><i class="bi bi-diagram-3-fill text-primary me-2"></i> Logística de Estructuras</h3>
                             <p>Segmenta edificios, barrios o alas industriales en Grupos Logísticos. Importa redes
-                                enteras con nuestro gestor Excel y aplica plantillas técnicas según tu tipo de fluido
-                                (Agua, Energía, Presión).</p>
+                                enteras con nuestro gestor Excel y aplica plantillas técnicas según tu tipo de sensor
+                                (Agua, Electricidad, Gas).</p>
                         </div>
                     </div>
                 </div>
@@ -539,8 +611,8 @@
                         </div>
                         <div class="bento-content">
                             <h3><i class="bi bi-cash-coin text-primary me-2"></i> Facturación y Prorrateo</h3>
-                            <p>Algoritmos de cálculo automático que procesan las lecturas transformándolas en metros
-                                cúbicos y liquidaciones a cobrar, detectando estancamientos, prorrateando áreas comunes
+                            <p>Algoritmos de cálculo automático que procesan las lecturas transformándolas en consumos y
+                                liquidaciones a cobrar, detectando estancamientos, prorrateando áreas comunes
                                 y alertando desfases.</p>
                         </div>
                     </div>
@@ -637,42 +709,48 @@
                     <img src="{{ asset('flyer/grilla_qr.PNG') }}" alt="Tokens QR">
                     <div class="masonry-caption">
                         <h4><i class="bi bi-qr-code-scan text-primary me-2"></i> Tokens de Visor (QR)</h4>
-                        <p>Brinda a cada usuario un Token o Código QR único para que puedan escanearlo y consultar la evolución de sus propios consumos desde su celular en todo momento, sin contraseñas.</p>
+                        <p>Brinda a cada usuario un Token o Código QR único para que puedan escanearlo y consultar la
+                            evolución de sus propios consumos desde su celular en todo momento, sin contraseñas.</p>
                     </div>
                 </div>
                 <div class="masonry-item">
                     <img src="{{ asset('flyer/plantillas.PNG') }}" alt="Plantillas">
                     <div class="masonry-caption">
                         <h4><i class="bi bi-braces text-primary me-2"></i> Plantillas Dinámicas</h4>
-                        <p>Crea esquemas variables de toma (Agua, Energía, Presión) y obliga a tus inspectores a relevar exactly los campos que necesites.</p>
+                        <p>Crea esquemas variables de toma (Agua, Electricidad, Gas) y obliga a tus inspectores a
+                            relevar exactamente los campos que necesites.</p>
                     </div>
                 </div>
                 <div class="masonry-item">
                     <img src="{{ asset('flyer/backups.PNG') }}" alt="Seguridad">
                     <div class="masonry-caption">
                         <h4><i class="bi bi-shield-check text-primary me-2"></i> Backups Cifrados</h4>
-                        <p>Descarga e importa copias de seguridad estáticas de toda la información de tus medidores con un flujo protegido.</p>
+                        <p>Descarga e importa copias de seguridad estáticas de toda la información de tus medidores con
+                            un flujo protegido.</p>
                     </div>
                 </div>
                 <div class="masonry-item">
                     <img src="{{ asset('flyer/sensores.PNG') }}" alt="Inventario">
                     <div class="masonry-caption">
                         <h4><i class="bi bi-router text-primary me-2"></i> Inventario Táctico</h4>
-                        <p>Tu flota en terreno unificada. Busca, filtra y monitoriza qué inspectores están atendiendo qué líneas.</p>
+                        <p>Tu flota en terreno unificada. Busca, filtra y monitoriza qué inspectores están atendiendo
+                            qué líneas.</p>
                     </div>
                 </div>
                 <div class="masonry-item">
                     <img src="{{ asset('flyer/detalle_consumo.PNG') }}" alt="Liquidador">
                     <div class="masonry-caption">
                         <h4><i class="bi bi-receipt-cutoff text-primary me-2"></i> Detalles de Liquidación</h4>
-                        <p>Transparencia fotográfica por cada medidor para respaldar los cálculos financieros ante reclamos.</p>
+                        <p>Transparencia fotográfica por cada medidor para respaldar los cálculos financieros ante
+                            reclamos.</p>
                     </div>
                 </div>
                 <div class="masonry-item">
                     <img src="{{ asset('flyer/centro_ayuda.PNG') }}" alt="Base de Conocimiento">
                     <div class="masonry-caption">
                         <h4><i class="bi bi-info-square text-primary me-2"></i> Centro de Ayuda</h4>
-                        <p>Manuales y vías de contacto de soporte listas para asistir a cualquier nivel gerencial u operario.</p>
+                        <p>Manuales y vías de contacto de soporte listas para asistir a cualquier nivel gerencial u
+                            operario.</p>
                     </div>
                 </div>
             </div>
