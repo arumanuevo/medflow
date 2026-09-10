@@ -107,12 +107,12 @@
                     </div>
                     <div class="modal-body text-start">
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
                                 <label class="form-label">Monto ($)</label>
                                 <input type="number" step="0.01" name="amount" class="form-control" placeholder="15000.00"
                                     required>
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
                                 <label class="form-label">Estado Inicial</label>
                                 <select name="status" class="form-select">
                                     <option value="pendiente">Pendiente de Pago</option>
@@ -235,6 +235,13 @@
                                 <input type="number" name="price_premium" class="form-control" step="0.01" value="{{ $prices['premium'] ?? 25000.00 }}" required>
                             </div>
                         </div>
+    <div class="col-md-4">
+        <label class="form-label text-muted small fw-bold text-uppercase"><i class="bi bi-box-seam text-success me-1"></i> Pack 10 Extras (ARS)</label>
+        <div class="input-group">
+            <span class="input-group-text bg-light border-end-0 text-muted"><strong>$</strong></span>
+            <input type="number" name="price_pack" class="form-control" step="0.01" value="{{ $prices['pack'] ?? 10000.00 }}" required>
+        </div>
+    </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>

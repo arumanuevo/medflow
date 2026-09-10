@@ -655,7 +655,17 @@
 @endsection
 
 @push('scripts')
+    
+    @php
+        $sysPrices = @json_decode(file_get_contents(storage_path('app/pricing.json')), true) ?: ['basico' => 10000, 'premium' => 25000, 'pack' => 10000];
+        $priceBasico = $sysPrices['basico'] ?? 10000;
+        $pricePremium = $sysPrices['premium'] ?? 25000;
+        $pricePack = $sysPrices['pack'] ?? 10000;
+    @endphp
     <script>
+        const PRICE_BASICO = {{ $priceBasico }};
+        const PRICE_PREMIUM = {{ $pricePremium }};
+        const PRICE_PACK = {{ $pricePack }};
 
 
         /**
@@ -1100,7 +1110,7 @@
                                                                                                                                                 <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm">
                                                                                                                                                     <div class="d-flex flex-column">
                                                                                                                                                         <span class="text-muted small">Costo del Ciclo Base</span>
-                                                                                                                                                        <strong class="fs-6 text-dark">${planName === 'Premium' ? '$25.000 ARS' : (planName === 'Básico' ? '$10.000 ARS' : 'Sin Costo')}</strong>
+                                                                                                                                                        <strong class="fs-6 text-dark">${planName === 'Premium' ? '$' + PRICE_PREMIUM.toLocaleString('es-AR') + ' ARS' : (planName === 'Básico' ? '$' + PRICE_BASICO.toLocaleString('es-AR') + ' ARS' : 'Sin Costo')}</strong>
                                                                                                                                                     </div>
                                                                                                                                                     <i class="bi bi-credit-card-2-front text-${statusClass} fs-3 opacity-50"></i>
                                                                                                                                                 </div>
@@ -1109,7 +1119,7 @@
                                                                                                                                                     <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm border-start border-4 border-success">
                                                                                                                                                         <div class="d-flex flex-column">
                                                                                                                                                             <span class="text-muted small">Packs Extras x${(data.limits.sensors.max - 20) / 10}</span>
-                                                                                                                                                            <strong class="fs-6 text-success">+$${((data.limits.sensors.max - 20) / 10) * 10000} ARS</strong>
+                                                                                                                                                            <strong class="fs-6 text-success">+$${(((data.limits.sensors.max - 20) / 10) * PRICE_PACK).toLocaleString('es-AR')} ARS</strong>
                                                                                                                                                         </div>
                                                                                                                                                         <i class="bi bi-cart-plus text-success fs-3 opacity-50"></i>
                                                                                                                                                     </div>
@@ -1193,11 +1203,11 @@
                                                                                                                                                 <span class="input-group-text bg-light border-end-0" style="padding-right: 8px;"><i class="bi bi-box-seam text-success"></i></span>
                                                                                                                                                 <select class="form-select border-start-0 ps-0 text-secondary" id="extraPacksSelect" style="font-size: 0.85rem; cursor: pointer;">
                                                                                                                                                     <option value="">Añadir Paquetes de Sensores Extra...</option>
-                                                                                                                                                    <option value="1">+10 Pack (+$10,000 ARS)</option>
-                                                                                                                                                    <option value="2">+20 Pack (+$20,000 ARS)</option>
-                                                                                                                                                    <option value="3">+30 Pack (+$30,000 ARS)</option>
-                                                                                                                                                    <option value="4">+40 Pack (+$40,000 ARS)</option>
-                                                                                                                                                    <option value="5">+50 Pack (+$50,000 ARS)</option>
+                                                                                                                                                    <option value="1">+10 Pack (+$${(PRICE_PACK * 1).toLocaleString('es-AR')} ARS)</option>
+                                                                                                                                                    <option value="2">+20 Pack (+$${(PRICE_PACK * 2).toLocaleString('es-AR')} ARS)</option>
+                                                                                                                                                    <option value="3">+30 Pack (+$${(PRICE_PACK * 3).toLocaleString('es-AR')} ARS)</option>
+                                                                                                                                                    <option value="4">+40 Pack (+$${(PRICE_PACK * 4).toLocaleString('es-AR')} ARS)</option>
+                                                                                                                                                    <option value="5">+50 Pack (+$${(PRICE_PACK * 5).toLocaleString('es-AR')} ARS)</option>
                                                                                                                                                 </select>
                                                                                                                                                 <button class="btn btn-success fw-bold px-3 d-flex align-items-center gap-1" onclick="buyExtraPacks()">
                                                                                                                                                     <i class="bi bi-cart"></i> Comprar

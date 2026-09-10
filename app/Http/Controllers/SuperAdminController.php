@@ -144,7 +144,7 @@ class SuperAdminController extends Controller
     public function index()
     {
         $users = User::all();
-        $prices = @json_decode(file_get_contents(storage_path('app/pricing.json')), true) ?: ['basico' => 10000.00, 'premium' => 25000.00];
+        $prices = @json_decode(file_get_contents(storage_path('app/pricing.json')), true) ?: ['basico' => 10000.00, 'premium' => 25000.00, 'pack' => 10000.00];
         return view('superadmin.users', compact('users', 'prices'));
     }
 

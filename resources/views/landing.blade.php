@@ -650,7 +650,7 @@
                     <div class="card-body">
                         <h5 class="card-title fw-bold">🚀 Basic</h5>
                         <p class="card-text text-muted small">Pequeños administradores independientes.</p>
-                        <div class="price" style="font-size: 1.8rem;">@php $sysPrices = @json_decode(file_get_contents(storage_path("app/pricing.json")), true) ?: ["basico" => 10, "premium" => 25]; @endphp ${{ number_format($sysPrices["basico"], 0) }}<small>/ARS mes</small></div>
+                        <div class="price" style="font-size: 1.8rem;">@php $sysPrices = @json_decode(file_get_contents(storage_path("app/pricing.json")), true) ?: ["basico" => 10000, "premium" => 25000]; @endphp ${{ number_format($sysPrices["basico"], 0) }}<small>/ARS mes</small></div>
                         <hr>
                         <div class="text-start" style="font-size: 0.85rem;">
                             <div class="plan-feature"><i class="bi bi-check text-success"></i> 2 Grupos Máximo</div>
@@ -675,7 +675,7 @@
                         <div class="text-start" style="font-size: 0.85rem;">
                             <div class="plan-feature"><i class="bi bi-check text-primary"></i> <b class="text-dark">Colaboración Multi-Rol</b></div>
                             <div class="plan-feature"><i class="bi bi-check text-primary"></i> Delegar rutas in-app a Huéspedes</div>
-                            <div class="plan-feature"><i class="bi bi-check text-primary"></i> Base de 20 Sensores (Packs Extra)</div>
+                            <div class="plan-feature"><i class="bi bi-check text-primary"></i> Base de 20 Sensores (<b class="text-primary">+ Packs Extra</b>)</div>
                             <div class="plan-feature"><i class="bi bi-check text-primary"></i> Importación Masiva e Histórica</div>
                             <div class="plan-feature"><i class="bi bi-check text-primary"></i> Contraste de Fotos Analítico</div>
                             <div class="plan-feature"><i class="bi bi-check text-primary"></i> Detección de Anormalidades y Fugas</div>
