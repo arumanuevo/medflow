@@ -1104,7 +1104,8 @@
 
                                                                                                                                         <!-- Left Column: Current Status & Money -->
                                                                                                                                         <div class="col-lg-5 col-md-6 border-end-md">
-                                                                                                                                            <h6 class="text-uppercase text-muted fw-bold mb-3" style="font-size: 0.75rem; letter-spacing: 1px;">Resumen Financiero</h6>
+                                                                                                                                            <h6 class="text-uppercase text-muted fw-bold mb-1" style="font-size: 0.75rem; letter-spacing: 1px;">Resumen Financiero</h6>
+                        <p class="text-muted mb-3" style="font-size: 0.8rem;"><i class="bi bi-info-circle me-1"></i> Costo proyectado para su próxima factura a vencer.</p>
 
                                                                                                                                             <div class="d-flex flex-column gap-3">
                                                                                                                                                 <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded shadow-sm">

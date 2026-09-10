@@ -153,10 +153,12 @@ class SuperAdminController extends Controller
         $request->validate([
             'price_basico' => 'required|numeric|min:0',
             'price_premium' => 'required|numeric|min:0',
+            'price_pack' => 'required|numeric|min:0'
         ]);
         $prices = [
             'basico' => $request->price_basico,
-            'premium' => $request->price_premium
+            'premium' => $request->price_premium,
+            'pack' => $request->price_pack
         ];
         file_put_contents(storage_path('app/pricing.json'), json_encode($prices));
         return redirect()->back()->with('success', 'Precios de los planes actualizados correctamente en ARS.');
