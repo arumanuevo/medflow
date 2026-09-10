@@ -290,7 +290,7 @@
                             <div class="row g-3">
                                 <div class="col-sm-6 col-md-3">
                                     <div class="p-3 bg-white border rounded shadow-sm h-100">
-                                        <small class="text-muted d-block mb-1">Identificador nico</small>
+                                        <small class="text-muted d-block mb-1">Identificador Único</small>
                                         <div class="d-flex align-items-center gap-2">
                                             <i class="bi bi-hash text-primary"></i>
                                             <strong class="fs-6" id="userId">-</strong>
@@ -317,7 +317,7 @@
                                 </div>
                                 <div class="col-sm-6 col-md-3">
                                     <div class="p-3 bg-white border rounded shadow-sm h-100">
-                                        <small class="text-muted d-block mb-1">Última Edición/small>
+                                        <small class="text-muted d-block mb-1">Última Edición</small>
                                             <div class="d-flex align-items-center gap-2">
                                                 <i class="bi bi-clock-history text-warning"></i>
                                                 <strong style="font-size: 0.85rem;" id="userUpdatedAt">-</strong>
