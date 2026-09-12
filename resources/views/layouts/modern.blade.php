@@ -538,9 +538,9 @@
     box-shadow: 0 10px 20px rgba(13, 110, 253, 0.2) !important;
 }
 </style>
-<button class="btn rounded-circle shadow-lg d-flex align-items-center justify-content-center p-0" 
+<button class="btn rounded-circle d-flex align-items-center justify-content-center p-0" 
         id="btnFlowyAI" 
-        style="position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; z-index: 1050; border-radius: 50% !important; overflow: hidden; border: 1.5px solid rgba(13, 110, 253, 0.5); background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transition: all 0.3s ease;">
+        style="position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; z-index: 1050; border-radius: 50% !important; overflow: hidden; border: 1px solid rgba(13, 110, 253, 0.4); background: rgba(255, 255, 255, 0.35); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.25) !important; backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); transition: all 0.3s ease;">
     <img src="{{ asset('img/flowy-ai.svg') }}" style="width: 85%; height: 85%; object-fit: contain;" alt="Flowy AI">
 </button>
 
