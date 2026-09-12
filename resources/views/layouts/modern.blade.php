@@ -530,9 +530,17 @@
 
     @stack('scripts')
 <!-- Botón Flotante Flowy AI -->
-<button class="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center p-0" 
+
+<style>
+#btnFlowyAI:hover {
+    background: rgba(255, 255, 255, 0.95) !important;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(13, 110, 253, 0.2) !important;
+}
+</style>
+<button class="btn rounded-circle shadow-lg d-flex align-items-center justify-content-center p-0" 
         id="btnFlowyAI" 
-        style="position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; z-index: 1050; border-radius: 50% !important; overflow: hidden; border: 2px solid white;">
+        style="position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; z-index: 1050; border-radius: 50% !important; overflow: hidden; border: 1.5px solid rgba(13, 110, 253, 0.5); background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transition: all 0.3s ease;">
     <img src="{{ asset('img/flowy-ai.svg') }}" style="width: 85%; height: 85%; object-fit: contain;" alt="Flowy AI">
 </button>
 
