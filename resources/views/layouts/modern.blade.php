@@ -529,6 +529,112 @@
     @endauth
 
     @stack('scripts')
+<!-- Botón Flotante Flowy AI -->
+<button class="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center" 
+        id="btnFlowyAI" 
+        style="position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; z-index: 1050; border-radius: 50% !important;">
+    <i class="bi bi-robot fs-3 text-white"></i>
+</button>
+
+<!-- Caja de Chat Oculta -->
+<div class="card shadow-lg d-none" id="chatFlowyContainer" 
+     style="position: fixed; bottom: 100px; right: 30px; width: 350px; z-index: 1050; border-radius: 15px; border: 1px solid #e0e0e0; overflow: hidden;">
+    
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center p-3">
+        <h6 class="mb-0 fw-bold"><i class="bi bi-robot me-2"></i> Flowy (Beta IA)</h6>
+        <button type="button" class="btn-close btn-close-white" id="closeFlowyChat" style="font-size: 0.8rem;"></button>
+    </div>
+
+    <div class="card-body bg-light" id="flowyChatBox" style="height: 350px; overflow-y: auto; font-size: 0.9rem;">
+        <div class="mb-3 text-start">
+            <span class="badge bg-white text-dark shadow-sm px-3 py-2 text-wrap" style="border-radius: 15px 15px 15px 0;">
+                ¡Hola! Soy tu asistente inteligente MedFlow. ¿En qué flujo u operación tienes dudas hoy?
+            </span>
+        </div>
+    </div>
+
+    <div class="card-footer bg-white border-top-0 p-2">
+        <div class="input-group">
+            <input type="text" id="flowyUserInput" class="form-control rounded-pill border-1 bg-light ps-3 me-2" placeholder="Escribe tu consulta..." aria-label="Escribe tu consulta...">
+            <button class="btn btn-primary rounded-circle d-flex align-items-center px-3" id="btnSendFlowy" style="height: 40px; width: 40px !important;">
+                <i class="bi bi-send-fill" style="margin-left: -2px;"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btnOpen = document.getElementById('btnFlowyAI');
+    const btnClose = document.getElementById('closeFlowyChat');
+    const chatContainer = document.getElementById('chatFlowyContainer');
+    const chatBox = document.getElementById('flowyChatBox');
+    const userInput = document.getElementById('flowyUserInput');
+    const btnSend = document.getElementById('btnSendFlowy');
+
+    if(btnOpen) btnOpen.addEventListener('click', () => chatContainer.classList.toggle('d-none'));
+    if(btnClose) btnClose.addEventListener('click', () => chatContainer.classList.add('d-none'));
+
+    function askQuestion() {
+        const text = userInput.value.trim();
+        if (!text) return;
+
+        chatBox.innerHTML += `
+            <div class="mb-3 text-end">
+                <span class="badge bg-primary text-white shadow-sm px-3 py-2 text-wrap" style="border-radius: 15px 15px 0 15px; text-align: left !important; font-weight: normal;">
+                    ${text}
+                </span>
+            </div>
+        `;
+        userInput.value = '';
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        const spinnerId = 'spinner-' + Date.now();
+        chatBox.innerHTML += `
+            <div class="mb-3 text-start" id="${spinnerId}">
+                <span class="badge bg-white text-primary shadow-sm px-3 py-2 text-wrap" style="border-radius: 15px 15px 15px 0; font-weight: normal;">
+                    <i class="bi bi-chat-dots-fill heartbeat-anim"></i> Pensando...
+                </span>
+            </div>
+        `;
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        $.ajax({
+            url: "/api/soporte/ask",
+            type: "POST",
+            data: {
+                _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                message: text
+            },
+            success: function(response) {
+                document.getElementById(spinnerId).remove();
+                let formattedHtml = response.answer.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                chatBox.innerHTML += `
+                    <div class="mb-3 text-start">
+                        <span class="badge bg-white text-dark shadow-sm px-3 py-2 text-wrap" style="border-radius: 15px 15px 15px 0; max-width: 90%; text-align: left !important; white-space: pre-wrap; font-weight: normal; line-height: 1.4;">${formattedHtml}</span>
+                    </div>
+                `;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            },
+            error: function() {
+                document.getElementById(spinnerId).remove();
+                chatBox.innerHTML += `
+                    <div class="mb-3 text-start">
+                        <span class="badge bg-danger text-white shadow-sm px-3 py-2 text-wrap" style="border-radius: 15px 15px 15px 0; font-weight: normal;">Error de conexión. Intente en unos minutos.</span>
+                    </div>
+                `;
+            }
+        });
+    }
+
+    if(btnSend) btnSend.addEventListener('click', askQuestion);
+    if(userInput) userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') askQuestion(); });
+
+    const style = document.createElement('style');
+    style.innerHTML = `@keyframes heartbeat { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } } .heartbeat-anim { display: inline-block; animation: heartbeat 1.5s infinite; }`;
+    document.head.appendChild(style);
+});
+</script>
 </body>
 
 </html>

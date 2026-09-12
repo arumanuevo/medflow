@@ -314,3 +314,7 @@ Route::get('/promocion', function () {
     return view('flyer');
 })->name('promocion');
 
+
+
+// AI Assistant Route
+Route::post('/api/soporte/ask', [\App\Http\Controllers\AIChatController::class, 'ask'])->middleware('auth')->name('ai.ask');
