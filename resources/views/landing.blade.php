@@ -673,7 +673,8 @@
                         
                         <hr>
                         <div class="text-start" style="font-size: 0.85rem;">
-                            <div class="plan-feature"><i class="bi bi-check text-primary"></i> <b class="text-dark">Colaboración Multi-Rol</b></div>
+                            <div class="plan-feature"><i class="bi bi-robot text-primary"></i> <b class="text-primary">Chat IA 24/7 (Flowy)</b></div>
+                              <div class="plan-feature"><i class="bi bi-check text-primary"></i> <b class="text-dark">Colaboración Multi-Rol</b></div>
                             <div class="plan-feature"><i class="bi bi-check text-primary"></i> Delegar rutas in-app a Huéspedes</div>
                             <div class="plan-feature"><i class="bi bi-check text-primary"></i> Base de 20 Sensores (<b class="text-primary">+ Packs Extra</b>)</div>
                             <div class="plan-feature"><i class="bi bi-check text-primary"></i> Importación Masiva e Histórica</div>

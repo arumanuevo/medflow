@@ -748,9 +748,8 @@
                 <div class="masonry-item">
                     <img src="{{ asset('flyer/centro_ayuda.PNG') }}" alt="Base de Conocimiento">
                     <div class="masonry-caption">
-                        <h4><i class="bi bi-info-square text-primary me-2"></i> Centro de Ayuda</h4>
-                        <p>Manuales y vías de contacto de soporte listas para asistir a cualquier nivel gerencial u
-                            operario.</p>
+                        <h4><i class="bi bi-robot text-primary me-2"></i> Soporte C-Level (IA)</h4>
+                          <p>Los suscriptores Premium desbloquean a <b>Flowy</b>, un agente de Inteligencia Artificial integrado 24/7 para consultas operativas al instante sin tickets de espera.</p>
                     </div>
                 </div>
             </div>
