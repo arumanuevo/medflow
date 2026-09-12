@@ -608,21 +608,31 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             success: function(response) {
                 document.getElementById(spinnerId).remove();
-                let formattedHtml = response.answer.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                if(response.success === false) {
+                   chatBox.innerHTML += `
+                        <div class="mb-3 text-start">
+                            <span class="badge bg-warning text-dark shadow-sm px-3 py-2 text-wrap" style="border-radius: 15px 15px 15px 0; max-width: 90%; text-align: left !important; white-space: pre-wrap; font-weight: normal; line-height: 1.4;">${response.answer}</span>
+                        </div>
+                    `;
+                } else {
+                    let formattedHtml = response.answer.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    chatBox.innerHTML += `
+                        <div class="mb-3 text-start">
+                            <span class="badge bg-white text-dark shadow-sm px-3 py-2 text-wrap" style="border-radius: 15px 15px 15px 0; max-width: 90%; text-align: left !important; white-space: pre-wrap; font-weight: normal; line-height: 1.4;">${formattedHtml}</span>
+                        </div>
+                    `;
+                }
+                chatBox.scrollTop = chatBox.scrollHeight;
+            },
+            error: function(xhr) {
+                document.getElementById(spinnerId).remove();
+                let serverError = xhr.responseJSON && xhr.responseJSON.answer ? xhr.responseJSON.answer : 'Error de respuesta del servidor.';
                 chatBox.innerHTML += `
                     <div class="mb-3 text-start">
-                        <span class="badge bg-white text-dark shadow-sm px-3 py-2 text-wrap" style="border-radius: 15px 15px 15px 0; max-width: 90%; text-align: left !important; white-space: pre-wrap; font-weight: normal; line-height: 1.4;">${formattedHtml}</span>
+                        <span class="badge bg-danger text-white shadow-sm px-3 py-2 text-wrap" style="border-radius: 15px 15px 15px 0; max-width: 90%; white-space: pre-wrap; font-weight: normal; line-height: 1.4;">Error 500: ${serverError}</span>
                     </div>
                 `;
                 chatBox.scrollTop = chatBox.scrollHeight;
-            },
-            error: function() {
-                document.getElementById(spinnerId).remove();
-                chatBox.innerHTML += `
-                    <div class="mb-3 text-start">
-                        <span class="badge bg-danger text-white shadow-sm px-3 py-2 text-wrap" style="border-radius: 15px 15px 15px 0; font-weight: normal;">Error de conexión. Intente en unos minutos.</span>
-                    </div>
-                `;
             }
         });
     }

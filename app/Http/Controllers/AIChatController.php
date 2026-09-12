@@ -14,14 +14,28 @@ class AIChatController extends Controller
 
         try {
             $brainPath = storage_path('app/ai/medflow_brain.md');
-            $systemContent = file_exists($brainPath) 
-                             ? file_get_contents($brainPath) 
-                             : 'Eres Flowy, asistente automatizado. Debes responder brevemente.';
+            $systemContent = file_exists($brainPath)
+                ? file_get_contents($brainPath)
+                : 'Eres Flowy, asistente automatizado. Debes responder brevemente.';
 
-            $response = Http::withToken(env('DEEPSEEK_API_KEY'))
+            // SOLUCION CACHE: Si env() devuelve null por culpa del cache de Laravel, saltamos a leer el archivo .env directo
+            $apiKey = env('DEEPSEEK_API_KEY');
+            if (empty($apiKey)) {
+                $envVars = parse_ini_file(base_path('.env'));
+                $apiKey = $envVars['DEEPSEEK_API_KEY'] ?? null;
+            }
+
+            if (empty($apiKey)) {
+                // Devolvemos status 200 para que Javascript lo procese suavemente
+                return response()->json(['success' => false, 'answer' => 'Error 01: No se pudo leer la API Key. Por favor limpia la caché de Laravel o verifica tu .env']);
+            }
+
+            // Para evitar problemas de SSL en Wiroos, usamos verify => false temporalmente
+            $response = Http::withOptions(['verify' => false])
+                ->withToken($apiKey)
                 ->timeout(30)
                 ->post('https://api.deepseek.com/chat/completions', [
-                    'model' => 'deepseek-flash', // El modelo rapido y economico
+                    'model' => 'deepseek-flash',
                     'messages' => [
                         ['role' => 'system', 'content' => $systemContent],
                         ['role' => 'user', 'content' => $userMessage]
@@ -36,11 +50,12 @@ class AIChatController extends Controller
                 ]);
             }
 
-            return response()->json(['success' => false, 'answer' => 'Error de conexión con la IA de DeepSeek.'], 500);
+            // Si hay error en DeepSeek (ej: saldo agotado, token mal), mostramos que paso:
+            return response()->json(['success' => false, 'answer' => 'Error de proveedor IA: ' . $response->body()]);
 
         } catch (\Exception $e) {
             Log::error('DeepSeek Error: ' . $e->getMessage());
-            return response()->json(['success' => false, 'answer' => 'El agente está inactivo en este momento. Intenta más tarde.'], 500);
+            return response()->json(['success' => false, 'answer' => 'Excepción del Servidor: ' . $e->getMessage()]);
         }
     }
 }
