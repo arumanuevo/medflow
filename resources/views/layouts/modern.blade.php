@@ -533,7 +533,7 @@
 <button class="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center p-0" 
         id="btnFlowyAI" 
         style="position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; z-index: 1050; border-radius: 50% !important; overflow: hidden; border: 2px solid white;">
-    <img src="{{ asset('img/flowy-ai.png') }}" style="width: 100%; height: 100%; object-fit: cover;" alt="Flowy AI">
+    <img src="{{ asset('img/flowy-ai.svg') }}" style="width: 100%; height: 100%; object-fit: cover;" alt="Flowy AI">
 </button>
 
 <!-- Caja de Chat Oculta -->
