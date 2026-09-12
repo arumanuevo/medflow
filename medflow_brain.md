@@ -27,7 +27,7 @@ La arquitectura es estrictamente jerárquica de arriba hacia abajo:
 
 ### Nivel 1 — Plantilla (`Template`)
 - Define **QUÉ** se mide y las **reglas universales** de medición.
-- Modelo: `app/Models/Template.php`. Campo clave: `schema` (cast `array`) → JSON Schema con `campos[]`.
+ Campo clave: `schema` (cast `array`) → JSON Schema con `campos[]`.
 - Cada campo tiene: `nombre`, `tipo` (ej: `numero`), `unidad`, `requerido`, `valor_por_defecto`.
 - **Campo principal siempre se normaliza a `valor`** (`getMainField()` retorna `'valor'`; `normalizeFields()` renombra el primer campo numérico requerido a `valor`). El `mainField` real de un sensor puede ser distinto (ej: `consumo_m3`), pero el fallback lógico siempre intenta `valor` → `consumo_m3`.
 - Tipos soportados y mapeos estáticos (`Template::$typeLabels`, `$defaultUnits`, `$typeIcons`):
@@ -268,7 +268,7 @@ Implementado en `app/Services/Subscription/Plans/` (estrategia `PlanInterface` +
 | Básico       | `basico`   | 10                           | 2      | 0             | ❌                 | ❌      | ❌         | 10.000        |
 | Premium      | `premium`  | 20 + (packs × 10)            | ∞      | ∞             | ✅                 | ✅      | ✅         | 25.000        |
 
-\*Precios leídos de `storage/app/pricing.json` (editable por SuperAdmin). Fallback: `basico=10000`, `premium=25000`, `pack=10000`.
+\*Precios leídos de `storage/app/pricing.json` . Fallback: `basico=10000`, `premium=25000`, `pack=10000`.
 
 ### 4.2 Resolución del plan (`PlanFactory::makeFromUser`)
 1. Si tiene **suscripción activa** (`Subscription` con `status='active'` y `expires_at` futuro/null) → usa el plan de esa suscripción.
@@ -317,15 +317,14 @@ Respuesta `quota_exceeded` (403) con `upsell_data`: `missing_sensors`, `needed_p
 - **Pausa todos los colaboradores activos** del workspace (`is_paused = true`) porque Free no permite colaboradores.
 - El usuario queda marcado como "downgraded" (`hasBeenDowngraded()`) para mostrar pantalla de re-suscripción.
 
-### 4.6 Administración SuperAdmin (`SuperAdminController`, `SuperAdminMiddleware`)
-- Acceso restringido por middleware; el SuperAdmin está protegido por email (no se puede eliminar `scastellanoadmin@gmail.com`).
-- **Gestión de tarifas (`savePrices`):** edita `pricing.json` (`basico`, `premium`, `pack`) en ARS.
-- **Asignación manual de plan (`updatePlan`):** expira suscripciones previas y crea un certificado manual (`payment_id = 'SUPERADMIN-GIFT-...'`, `expires_at = +30 días`, `amount = 0`).
-- **Facturas manuales (`generateInvoice`):** monto, estado (`pendiente`/`pagada`), PDF adjunto opcional (max 5MB), envío por email a `email_facturacion` o `email`. Reenvío, cambio de estado, descarga y anulación.
-- **Recibos (`sendReceipt`):** genera PDF mock vía `profile.receipt_pdf` y envía por correo.
-- **Mensajes institucionales (`sendCustomMessage`)** a cualquier usuario.
+### 4.6 Escalabilidad de Planes (Cliente)
+- Si el usuario administrador (cliente) de MedFlow necesita ampliar su límite operativo (Por ejemplo, pasarse al plan Premium o añadir más Módulos de Sensores), debe ir a su **Perfil** haciendo click en la esquina superior derecha.
+- Dentro del panel **Mis Datos y Perfil**, encontrará la sección **Resumen Financiero** y el botón para **"Añadir Paquetes de Sensores Extra..."** y **Comprar**.
+- Los packs se suman en bloques de a 10 sensores de manera automática.
+- **PROHIBIDO:** Nunca le digas al cliente interno que se meta a editar tarifas. Las tarifas o "pricing" general de la plataforma son estáticas para él.
 
 ---
+
 
 ## 5. REFERENCIA RÁPIDA DE RUTAS Y MIDDLEWARES
 
@@ -352,7 +351,7 @@ Respuesta `quota_exceeded` (403) con `upsell_data`: `missing_sensors`, `needed_p
 - `CheckTokenAccess` — valida `AccessToken` (token en ruta/input).
 - `CheckWorkspaceAccess` — valida acceso al workspace + rol requerido.
 - `InjectSanctumToken` — inyecta token Sanctum en rutas API.
-- `SuperAdminMiddleware` — protege rutas de SuperAdmin.
+
 - `Authenticate`, `RedirectIfAuthenticated`, `VerifyCsrfToken`.
 
 ### Migraciones relevantes (`database/migrations/`)
@@ -374,5 +373,5 @@ Respuesta `quota_exceeded` (403) con `upsell_data`: `missing_sensors`, `needed_p
 - Ante cálculos: mostrar la **fórmula exacta** documentada (costo, prorrateo, packs, tasa diaria).
 - Ante límites: indicar el plan requerido (Free/Básico/Premium) y el middleware que lo valida.
 - Ante "¿existe la función Y?": solo confirmar si está en este documento; si no, declarar no documentada.
-- Nunca inventar endpoints, campos, ni tarifas. Las tarifas provienen de `pricing.json` (editables por SuperAdmin).
+- Nunca inventar endpoints, campos, ni tarifas. Las tarifas provienen de `pricing.json` .
 - Recordar siempre el blindaje del Workspace, la idempotencia por `mobile_uuid` y el reseteo admin-previo para cambios de hardware.
