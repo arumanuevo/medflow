@@ -553,7 +553,7 @@
         <button type="button" class="btn-close btn-close-white" id="closeFlowyChat" style="font-size: 0.8rem;"></button>
     </div>
 
-    <div class="card-body bg-light" id="flowyChatBox" style="height: 350px; overflow-y: auto; font-size: 0.9rem;">
+    <div class="card-body bg-light" id="flowyChatBox" style="height: 350px; overflow-y: auto; font-size: 0.8rem;">
         <div class="mb-3 text-start">
             <span class="badge bg-white text-dark shadow-sm px-3 py-2 text-wrap" style="border-radius: 15px 15px 15px 0;">
                 ¡Hola! Soy tu asistente inteligente MedFlow. ¿En qué flujo u operación tienes dudas hoy?
@@ -620,9 +620,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Advanced Lightweight Markdown Parser
                 function parseMD(md) {
                     let html = md;
-                    html = html.replace(/^### (.*$)/gim, '<h6 class="mt-3 mb-1 fw-bold text-primary border-bottom pb-1">$1</h6>');
-                    html = html.replace(/^## (.*$)/gim, '<h6 class="mt-3 mb-1 fw-bold text-primary border-bottom pb-1">$1</h6>');
-                    html = html.replace(/^# (.*$)/gim, '<h6 class="mt-3 mb-1 fw-bold text-primary border-bottom pb-1">$1</h6>');
+                    html = html.replace(/^### (.*$)/gim, '<h6 class="mt-3 mb-1 fw-bold text-primary border-bottom pb-1" style="font-size: 0.85rem;">$1</h6>');
+                    html = html.replace(/^## (.*$)/gim, '<h6 class="mt-3 mb-1 fw-bold text-primary border-bottom pb-1" style="font-size: 0.85rem;">$1</h6>');
+                    html = html.replace(/^# (.*$)/gim, '<h6 class="mt-3 mb-1 fw-bold text-primary border-bottom pb-1" style="font-size: 0.85rem;">$1</h6>');
                     html = html.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');
                     html = html.replace(/`(.*?)`/gim, '<code class="bg-light px-1 text-danger rounded" style="font-size: 0.85rem;">$1</code>');
                     html = html.replace(/^\s*-\s(.*$)/gim, '<li class="ms-3 mb-1">$1</li>');
@@ -634,14 +634,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 if(response.success === false) {
                    chatBox.innerHTML += `
                         <div class="mb-3 text-start">
-                            <div class="bg-warning text-dark shadow-sm px-3 py-2" style="border-radius: 15px 15px 15px 0; max-width: 90%; text-align: left !important; font-weight: normal; line-height: 1.5; font-size: 0.9rem; display: inline-block;">${response.answer}</div>
+                            <div class="bg-warning text-dark shadow-sm px-3 py-2" style="border-radius: 15px 15px 15px 0; max-width: 90%; text-align: left !important; font-weight: normal; line-height: 1.5; font-size: 0.8rem; display: inline-block;">${response.answer}</div>
                         </div>
                     `;
                 } else {
                     let formattedHtml = parseMD(response.answer);
                     chatBox.innerHTML += `
                         <div class="mb-3 text-start">
-                            <div class="bg-white text-dark shadow-sm px-3 py-3" style="border-radius: 15px 15px 15px 0; max-width: 95%; text-align: left !important; font-weight: normal; line-height: 1.5; font-size: 0.9rem; display: inline-block;">${formattedHtml}</div>
+                            <div class="bg-white text-dark shadow-sm px-3 py-3" style="border-radius: 15px 15px 15px 0; max-width: 95%; text-align: left !important; font-weight: normal; line-height: 1.5; font-size: 0.8rem; display: inline-block;">${formattedHtml}</div>
                         </div>
                     `;
                 }
