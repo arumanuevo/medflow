@@ -170,19 +170,23 @@
                     </a>
                 </div>
 
-                <p style="color:#e2e8f0; font-weight: 600; margin-bottom: 10px;">Paso 2: Conectar la Cuenta</p>
+                <p style="color:#e2e8f0; font-weight: 600; margin-bottom: 10px;">Paso 2: Sincronizar (Token de Acceso)</p>
                 <p>
-                    Una vez que tengas la App instalada, pulsa el siguiente botón desde tu teléfono para vincular automáticamente tu perfil y empezar a trabajar (incluso sin internet).
+                    Abre la aplicación que acabas de instalar. En la pantalla principal, se te solicitará un código para ingresar. <strong>Copia el siguiente Token y pégalo allí</strong> para habilitar tu usuario y descargar las rutas asignadas.
                 </p>
 
-                <div class="cta-wrapper" style="margin-top: 15px;">
-                    <a href="{{ $deepLink }}" class="cta-btn">
-                        📱 Vincular mi Dispositivo
-                    </a>
+                @php
+                    $queryStr = parse_url($deepLink, PHP_URL_QUERY) ?? '';
+                    parse_str($queryStr, $params);
+                    $syncToken = $params['token'] ?? 'TOKEN INVALIDO';
+                @endphp
+
+                <div style="background:#0f1117; border:2px dashed #0ea5e9; border-radius:10px; padding:18px 20px; font-family: 'Courier New', monospace; font-size:15px; color:#38bdf8; word-break:break-all; text-align: center; font-weight: bold; margin: 25px 0;">
+                    {{ $syncToken }}
                 </div>
 
                 <div class="warning">
-                    <p>⚠️ Este enlace es personal e intransferible. El acceso puede ser revocado por el administrador en cualquier momento.</p>
+                    <p>⚠️ Este enlace y token son personales e intransferibles. El acceso puede ser revocado por el administrador en cualquier momento.</p>
                 </div>
             </div>
 
