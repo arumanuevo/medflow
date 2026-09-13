@@ -647,7 +647,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     let formattedHtml = parseMD(response.answer);
                     chatBox.innerHTML += `
                         <div class="mb-3 text-start">
-                            <div class="bg-white text-dark shadow-sm px-3 py-3" style="border-radius: 15px 15px 15px 0; max-width: 95%; text-align: left !important; font-weight: normal; line-height: 1.5; font-size: 0.8rem; display: inline-block;">${formattedHtml}</div>
+                            <div class="bg-white text-dark shadow-sm px-3 py-3" style="border-radius: 15px 15px 15px 0; max-width: 95%; text-align: left !important; font-weight: normal; line-height: 1.5; font-size: 0.8rem; display: inline-block; line-height: 1.35;">${formattedHtml}</div>
                         </div>
                     `;
                     // Almacenamos este exito en la memoria temporal
