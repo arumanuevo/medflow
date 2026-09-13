@@ -573,6 +573,8 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Memoria a corto plazo del chat (Max 6 interacciones)
+    let flowyMemory = [];
     const btnOpen = document.getElementById('btnFlowyAI');
     const btnClose = document.getElementById('closeFlowyChat');
     const chatContainer = document.getElementById('chatFlowyContainer');
@@ -607,12 +609,16 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
         chatBox.scrollTop = chatBox.scrollHeight;
 
+        // Antes de enviar, push history local
+        let historyJSON = JSON.stringify(flowyMemory);
+
         $.ajax({
             url: "/api/soporte/ask",
             type: "POST",
             data: {
                 _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                message: text
+                message: text,
+                chat_history: historyJSON
             },
             success: function(response) {
                 document.getElementById(spinnerId).remove();
@@ -644,6 +650,12 @@ document.addEventListener('DOMContentLoaded', function() {
                             <div class="bg-white text-dark shadow-sm px-3 py-3" style="border-radius: 15px 15px 15px 0; max-width: 95%; text-align: left !important; font-weight: normal; line-height: 1.5; font-size: 0.8rem; display: inline-block;">${formattedHtml}</div>
                         </div>
                     `;
+                    // Almacenamos este exito en la memoria temporal
+                    flowyMemory.push({role: 'user', content: text});
+                    flowyMemory.push({role: 'bot', content: response.answer});
+                    if(flowyMemory.length > 6) {
+                        flowyMemory.splice(0, 2); // Borrar el par mas antiguo si superan 3 idas y vueltas
+                    }
                 }
                 chatBox.scrollTop = chatBox.scrollHeight;
             },
