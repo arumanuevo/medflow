@@ -1,0 +1,1 @@
+Poner tu archivo "medflow_inspector_latest.apk" en esta carpeta.

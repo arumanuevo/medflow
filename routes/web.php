@@ -318,3 +318,9 @@ Route::get('/promocion', function () {
 
 // AI Assistant Route
 Route::post('/api/soporte/ask', [\App\Http\Controllers\AIChatController::class, 'ask'])->middleware('auth')->name('ai.ask');
+
+
+// Portal Privado de Descarga del APK
+Route::get('/inspector/descargar-app', function () {
+    return view('app_download');
+})->name('inspector.descarga');
