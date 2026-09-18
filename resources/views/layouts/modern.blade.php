@@ -529,6 +529,15 @@
     @endauth
 
     @stack('scripts')
+@php
+$flowyIsPremium = false;
+if(auth()->check()){
+    $flowyService = app(\App\Services\Subscription\SubscriptionService::class, ['user' => auth()->user()]);
+    $flowyIsPremium = ($flowyService->getPlan()->getPlanKey() === 'premium');
+}
+@endphp
+
+@if($flowyIsPremium)
 <!-- Botón Flotante Flowy AI -->
 
 <style>
