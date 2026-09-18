@@ -10,9 +10,8 @@ class AIChatController extends Controller
     public function ask(Request $request)
     {
         // Proteccion Backend contra abuso (Solo Premium)
-        $service = new \App\Services\Subscription\SubscriptionService(auth()->user());
-        if ($service->getPlan()->getPlanKey() !== 'premium') {
-            return response()->json(['success' => false, 'answer' => 'Función Premium. Debes subir de plan en tu perfil para usar la Inteligencia Artificial.']);
+        if (auth()->user()->subscription_plan !== 'premium' && !auth()->user()->hasRole('admin') && !auth()->user()->hasRole('superadmin')) {
+             return response()->json(['success' => false, 'answer' => 'Función Premium. Debes subir de plan en tu perfil para usar la Inteligencia Artificial.']);
         }
 
         $request->validate(['message' => 'required|string']);

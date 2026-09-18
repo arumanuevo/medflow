@@ -531,13 +531,9 @@
     @stack('scripts')
 @php
 $flowyIsPremium = false;
-try {
-    if(auth()->check()){
-        $flowyService = new \App\Services\Subscription\SubscriptionService(auth()->user());
-        $flowyIsPremium = ($flowyService->getPlan()->getPlanKey() === 'premium');
-    }
-} catch(\Exception $e) {
-    $flowyIsPremium = false;
+if(auth()->check()){
+    // Check directly using the User model attribute for maximum safety and zero dependencies
+    $flowyIsPremium = (auth()->user()->subscription_plan === 'premium' || auth()->user()->hasRole('admin') || auth()->user()->hasRole('superadmin'));
 }
 @endphp
 
