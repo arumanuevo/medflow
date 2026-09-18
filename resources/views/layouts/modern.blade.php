@@ -531,9 +531,24 @@
     @stack('scripts')
 @php
 $flowyIsPremium = false;
-if(auth()->check()){
-    // Check directly using the User model attribute for maximum safety and zero dependencies
-    $flowyIsPremium = (auth()->user()->subscription_plan === 'premium' || auth()->user()->hasRole('admin') || auth()->user()->hasRole('superadmin'));
+try {
+    if(auth()->check()){
+        // Fallback for getting plan name safe
+        $plan = auth()->user()->subscription_plan ?? 'free';
+        
+        // Safer role check: don't call hasRole strictly if not available, or wrap it
+        $isAdmin = false;
+        if(method_exists(auth()->user(), 'hasRole')){
+            $isAdmin = auth()->user()->hasRole('admin');
+        }
+        
+        if($plan === 'premium' || $isAdmin){
+             $flowyIsPremium = true;
+        }
+    }
+} catch(\Throwable $e) {
+    \Illuminate\Support\Facades\Log::error("Flowy Layout Crash: " . $e->getMessage());
+    $flowyIsPremium = false;
 }
 @endphp
 
