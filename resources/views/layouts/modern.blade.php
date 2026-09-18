@@ -531,9 +531,13 @@
     @stack('scripts')
 @php
 $flowyIsPremium = false;
-if(auth()->check()){
-    $flowyService = app(\App\Services\Subscription\SubscriptionService::class, ['user' => auth()->user()]);
-    $flowyIsPremium = ($flowyService->getPlan()->getPlanKey() === 'premium');
+try {
+    if(auth()->check()){
+        $flowyService = new \App\Services\Subscription\SubscriptionService(auth()->user());
+        $flowyIsPremium = ($flowyService->getPlan()->getPlanKey() === 'premium');
+    }
+} catch(\Exception $e) {
+    $flowyIsPremium = false;
 }
 @endphp
 
