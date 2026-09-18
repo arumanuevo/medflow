@@ -533,22 +533,27 @@
 $flowyIsPremium = false;
 try {
     if(auth()->check()){
-        // Fallback for getting plan name safe
-        $plan = auth()->user()->subscription_plan ?? 'free';
+        // 1. Evaluar subscripcion real activa en Base de Datos
+        $service = new \App\Services\Subscription\SubscriptionService(auth()->user());
+        $userPlan = $service->getPlan()->getPlanKey(); // Devuelve 'free', 'basico' o 'premium'
         
-        // Safer role check: don't call hasRole strictly if not available, or wrap it
+        // 2. Revisar si tiene beneficios ejecutivos
         $isAdmin = false;
         if(method_exists(auth()->user(), 'hasRole')){
-            $isAdmin = auth()->user()->hasRole('admin');
+            $isAdmin = auth()->user()->hasRole('admin') || auth()->user()->hasRole('superadmin');
         }
         
-        if($plan === 'premium' || $isAdmin){
+        // 3. Activar Flowy
+        if(strtolower($userPlan) === 'premium' || strtolower(auth()->user()->subscription_plan ?? '') === 'premium' || $isAdmin){
              $flowyIsPremium = true;
         }
     }
 } catch(\Throwable $e) {
     \Illuminate\Support\Facades\Log::error("Flowy Layout Crash: " . $e->getMessage());
-    $flowyIsPremium = false;
+    // Sistema anticolapso de emergencia
+    if (strtolower(auth()->user()->subscription_plan ?? '') === 'premium') {
+        $flowyIsPremium = true;
+    }
 }
 @endphp
 
