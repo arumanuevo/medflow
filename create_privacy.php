@@ -1,0 +1,25 @@
+<?php
+$html = '<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Política de Privacidad - MedFlow Inspector</title>
+    <style>body { font-family: Arial, sans-serif; margin: 40px auto; max-width: 800px; line-height: 1.6; color: #333; padding: 20px; }</style>
+</head>
+<body>
+    <h1>Política de Privacidad - MedFlow Inspector</h1>
+    <p>Última actualización: Septiembre de 2026</p>
+    <h2>1. Uso de la Aplicación</h2>
+    <p>MedFlow Inspector es una herramienta de uso interno empresarial B2B. El uso de esta aplicación está restringido al personal autorizado (inspectores y operarios).</p>
+    <h2>2. Recopilación de Datos</h2>
+    <p><strong>Ubicación:</strong> Recopilamos información de ubicación precisa únicamente cuando el usuario interactúa activamente con el sistema de trazabilidad de medidores en campo.</p>
+    <p><strong>Imágenes:</strong> La aplicación requiere acceso a la cámara para documentar fotográficamente los medidores y anomalías. Las imágenes jamás se comparten con terceros.</p>
+    <h2>3. Compartición y Retención</h2>
+    <p>Todos los datos recolectados se transmiten de forma cifrada (HTTPS/SSL) y se envían de forma exclusiva a los servidores propios de ArumaSoft. Bajo ninguna circunstancia los datos son comercializados, licenciados o transferidos a entidades externas ajenas a la operatoria corporativa de la red.</p>
+    <h2>4. Contacto</h2>
+    <p>Si requiere ejercer sus derechos de revisión de cuenta o tiene dudas administrativas, comuníquese con el Administrador principal de su panel en MedFlow Server.</p>
+</body>
+</html>';
+
+file_put_contents('k:\desarrollo\medflow\public\privacidad.html', $html);
+echo "Privacy Policy created!\n";
