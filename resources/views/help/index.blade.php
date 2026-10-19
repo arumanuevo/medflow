@@ -14,7 +14,7 @@
                 <div class="input-group mt-4 shadow-sm" style="max-width: 600px; margin: 0 auto;">
                     <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
                     <input type="text" id="helpSearch" class="form-control border-start-0 py-3"
-                        placeholder="Buscar por palabra clave (ej: Plantillas, Colaboradores)...">
+                        placeholder="Buscar por palabra clave (ej: Calendario, Tolerancias, Plantillas, Colaboradores)...">
                 </div>
             </div>
         </div>
@@ -36,7 +36,7 @@
                         <ul class="list-unstyled text-muted mb-0">
                             <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
                                     data-bs-toggle="modal" data-bs-target="#helpModal" data-title="¿Cómo navego el tablero?"
-                                    data-content="El tablero principal te permite visualizar el estado global de tu organización. Desde el menú lateral izquierdo puedes acceder a todas tus propiedades, crear plantillas métricas, invitar colaboradores y extraer un resumen estadístico de las temperaturas registradas."
+                                    data-content="El tablero principal te permite visualizar el estado global de tu organización. Desde el menú lateral izquierdo puedes acceder a todas tus propiedades, crear plantillas métricas, programar tu Calendario de Tomas y Tolerancias, invitar colaboradores y extraer un resumen estadístico de las lecturas registradas."
                                     data-steps="Ve al menú lateral izquierdo y haz clic en &lt;strong&gt;Dashboard&lt;/strong&gt;.">
                                     <i class="bi bi-play-circle me-1 text-primary"></i> ¿Cómo navego el dashboard?</a></li>
                             <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
@@ -201,8 +201,8 @@
                             <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
                                     data-bs-toggle="modal" data-bs-target="#helpModal"
                                     data-title="El flujo de trabajo (Paso a Paso)"
-                                    data-content="<strong>1. Crear Plantilla:</strong> Decide qué vas a medir (ej: Agua, Luz).<br><br><strong>2. Crear Grupo de Sensores:</strong> Agrupa todos los lotes de tu barrio o planta bajo la plantilla creada.<br><br><strong>3. Dar de Alta Sensores:</strong> Agrega cada Lote (con su nombre y correo en la metadata).<br><br><strong>4. Medir y Repetir:</strong> Los inspectores enviarán lecturas mensuales desde la calle vía foto o texto con su celular.<br><br><strong>5. Campaña Pública:</strong> Terminado el mes, emites una campaña que envía Links por E-mail automáticamente a cada propietario con las estadísticas monetizadas."
-                                    data-steps="Sigue el flujo de botones principales: &lt;br&gt;&lt;strong&gt;1. Plantillas > 2. Grupos > 3. Sensores > 4. Mediciones.&lt;/strong&gt;">
+                                    data-content="<strong>1. Crear Plantilla:</strong> Decide qué vas a medir (ej: Agua, Luz).<br><br><strong>2. Crear Grupo de Sensores:</strong> Agrupa todos los lotes de tu barrio o planta bajo la plantilla creada.<br><br><strong>3. Dar de Alta Sensores:</strong> Agrega cada Lote (con su nombre y correo en los datos adicionales).<br><br><strong>4. Programar en Calendario de Tomas:</strong> Define qué día del mes (ej: el día 15) o con qué frecuencia debes medir cada grupo o sensor, y configura sus días de pre-aviso y tolerancia.<br><br><strong>5. Medir y Repetir:</strong> Los inspectores enviarán lecturas desde la calle vía foto o texto con su celular o desde el Calendario.<br><br><strong>6. Campaña Pública:</strong> Terminado el ciclo, emites una campaña que envía Links por E-mail automáticamente a cada propietario con las estadísticas monetizadas."
+                                    data-steps="Sigue el flujo de botones principales: &lt;br&gt;&lt;strong&gt;1. Plantillas > 2. Grupos > 3. Sensores > 4. Calendario de Tomas > 5. Mediciones.&lt;/strong&gt;">
                                     <i class="bi bi-pin-map me-1 text-danger"></i> Entender el circuito lógico del
                                     sistema</a></li>
                         </ul>
@@ -317,9 +317,64 @@
                             <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
                                     data-bs-toggle="modal" data-bs-target="#helpModal"
                                     data-title="Operar la App como Inspector"
-                                    data-content="Los colaboradores con el rol de 'Inspector' visualizan una interfaz simplificada al entrar. El celular solo les mostrará la vista de 'Tomar Mediciones' para asegurar un enfoque exclusivo en el trabajo de campo. No pueden alterar sensores ni ver información contable."
-                                    data-steps="El inspector invitado iniciará sesión y verá su menú delimitado automáticamente a &lt;strong&gt;Tomar Mediciones&lt;/strong&gt;.">
+                                    data-content="Los colaboradores con el rol de 'Inspector' visualizan una interfaz simplificada al entrar. El celular solo les mostrará la vista de 'Tomar Mediciones' y el 'Calendario de Tomas' para asegurar un enfoque exclusivo en el trabajo de campo. No pueden alterar sensores ni ver información contable."
+                                    data-steps="El inspector invitado iniciará sesión y verá su menú delimitado automáticamente a &lt;strong&gt;Tomar Mediciones&lt;/strong&gt; y &lt;strong&gt;Calendario de Tomas&lt;/strong&gt;.">
                                     <i class="bi bi-phone me-1 text-dark"></i> Interfaz y operación de campo</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Módulo 9: Calendario de Tomas y Tolerancias -->
+            <div class="col help-card">
+                <div class="card h-100 border-0 shadow-sm rounded-4" style="border-left: 4px solid #0d6efd !important;">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center me-3"
+                                style="width: 45px; height: 45px;">
+                                <i class="bi bi-calendar2-check-fill fs-5"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-0">Calendario de Tomas y Tolerancias</h5>
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle mt-1" style="font-size: 0.68rem;">Nuevo</span>
+                            </div>
+                        </div>
+                        <ul class="list-unstyled text-muted mb-0">
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal"
+                                    data-title="¿Cómo programar fechas de medición en el Calendario?"
+                                    data-content="El <strong>Calendario de Tomas</strong> te permite agendar qué día se deben tomar las mediciones de un grupo o de sensores particulares. Puedes elegir entre tres modalidades:<br><br><strong>1. Día fijo de cada mes:</strong> Ideal si siempre mides el mismo día (por ejemplo, todos los <strong>días 15</strong> de cada mes).<br><strong>2. Fecha específica única:</strong> Si quieres agendar una inspección puntual en una fecha exacta del calendario.<br><strong>3. Intervalo continuo en días:</strong> Si prefieres medir cada cierta cantidad de días corridos (ej: cada 30 días desde la última lectura)."
+                                    data-steps="Ve al menú lateral izquierdo y haz clic en &lt;strong&gt;Calendario de Tomas&lt;/strong&gt;, luego pulsa el botón &lt;strong&gt;Programar Toma / Tolerancias&lt;/strong&gt; (o haz clic sobre cualquier día del calendario).">
+                                    <i class="bi bi-calendar-plus me-1 text-primary"></i> ¿Cómo programar tomas (ej: día 15)?</a>
+                            </li>
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal"
+                                    data-title="Días de Pre-aviso y Días de Tolerancia"
+                                    data-content="Para que nunca se te pase una fecha de lectura, cada programación te permite definir dos márgenes en días:<br><br><strong>• Días de Pre-aviso (Ventana previa):</strong> Cantidad de días <em>antes</em> de la fecha programada en que el sistema abre la ventana de medición y comienza a avisarte (por ejemplo, 3 días antes del día 15, es decir, desde el día 12).<br><br><strong>• Días de Tolerancia (Plazo de gracia posterior):</strong> Cantidad de días <em>después</em> de la fecha programada en que aún estás a tiempo de registrar la lectura sin que se marque como vencida (por ejemplo, 3 días de tolerancia después del día 15, hasta el día 18 inclusive)."
+                                    data-steps="Configúralos dentro de &lt;strong&gt;Calendario de Tomas > Programar Toma / Tolerancias&lt;/strong&gt; o al editar un &lt;strong&gt;Grupo de Sensores&lt;/strong&gt;.">
+                                    <i class="bi bi-sliders me-1 text-primary"></i> ¿Qué son el Pre-aviso y la Tolerancia?</a>
+                            </li>
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal"
+                                    data-title="Programación por Grupo vs. Excepción por Sensor"
+                                    data-content="No necesitas configurar mil medidores uno por uno:<br><br><strong>• Regla por Grupo (Herencia):</strong> Al programar un <strong>Grupo de Sensores</strong>, todos sus medidores heredan automáticamente la fecha de toma y las tolerancias.<br><br><strong>• Excepción por Sensor Particular:</strong> Si dentro de un grupo tienes uno o varios sensores especiales que deben medirse un día distinto o con otra tolerancia, puedes crearles una regla individual sin afectar al resto del grupo. En cualquier momento puedes quitar la excepción para que vuelvan a heredar la regla del grupo."
+                                    data-steps="En el modal &lt;strong&gt;Programar Toma / Tolerancias&lt;/strong&gt; elige la pestaña &lt;strong&gt;Por Grupo Completo&lt;/strong&gt; o &lt;strong&gt;Por Sensor(es) Particular(es)&lt;/strong&gt;. También puedes hacerlo desde &lt;strong&gt;Sensores > Editar Sensor&lt;/strong&gt;.">
+                                    <i class="bi bi-diagram-2 me-1 text-primary"></i> Programar por Grupo o por Sensor individual</a>
+                            </li>
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal"
+                                    data-title="Semáforo de Tolerancias y Avisos Automáticos"
+                                    data-content="El sistema evalúa automáticamente si cada sensor ya recibió su lectura dentro de la ventana actual y te muestra un semáforo de 5 colores:<br><br>🟢 <strong>Completado:</strong> Ya se tomó la medición de este ciclo.<br>🔵 <strong>Programado:</strong> Aún falta para que inicie la ventana de pre-aviso.<br>🟡 <strong>En Ventana / Hoy Toca:</strong> Ya estás en los días de pre-aviso o en el día exacto de toma.<br>🟠 <strong>En Tolerancia:</strong> Pasó la fecha meta, pero estás dentro de los días de tolerancia permitidos.<br>🔴 <strong>Fuera de Tolerancia (Vencido):</strong> Se superaron los días de tolerancia sin haber registrado la lectura.<br><br>Verás estos avisos en la <strong>Campana de la barra superior</strong>, en el panel del <strong>Dashboard</strong> y en el <strong>Calendario de Tomas</strong>."
+                                    data-steps="Revisa el ícono de &lt;strong&gt;Calendario / Campana&lt;/strong&gt; arriba a la derecha desde cualquier pantalla o entra al &lt;strong&gt;Dashboard&lt;/strong&gt;.">
+                                    <i class="bi bi-traffic-light me-1 text-primary"></i> Entender el Semáforo y las Alertas</a>
+                            </li>
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal"
+                                    data-title="Iniciar Toma de Pendientes desde el Calendario"
+                                    data-content="Cuando llega el día de medición (o estás en ventana/tolerancia), al hacer clic sobre el evento en el <strong>Calendario de Tomas</strong> verás qué sensores ya fueron medidos y cuáles siguen pendientes. Con un solo clic en el botón <strong>Iniciar Toma de Pendientes</strong>, el sistema abrirá directamente la ruta de carga masiva para ese grupo."
+                                    data-steps="Entra a &lt;strong&gt;Calendario de Tomas&lt;/strong&gt;, haz clic sobre el grupo agendado en el día correspondiente y presiona &lt;strong&gt;Iniciar Toma de Pendientes&lt;/strong&gt;.">
+                                    <i class="bi bi-lightning-charge me-1 text-primary"></i> Medir pendientes en 1 clic desde la agenda</a>
                             </li>
                         </ul>
                     </div>

@@ -127,6 +127,60 @@
                                 </div>
                             </div>
 
+                            <!-- Programación de Toma y Tolerancias -->
+                            <div class="card mt-4 border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0"><i class="bi bi-calendar2-check"></i> Programación en Calendario y Tolerancias</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row g-3">
+                                        <div class="col-md-5">
+                                            <label class="form-label fw-semibold">Modalidad de Toma</label>
+                                            <select class="form-select" id="scheduleMode">
+                                                <option value="fixed_day" selected>Día fijo de cada mes (Ej: Día 15)</option>
+                                                <option value="interval">Cada N días (Desde última lectura)</option>
+                                                <option value="specific_date">Fecha puntual en calendario</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-7" id="boxScheduleFixedDay">
+                                            <label class="form-label fw-semibold">Día del Mes (1 al 31)</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">Día</span>
+                                                <input type="number" class="form-control fw-bold" id="scheduleDayOfMonth" value="15" min="1" max="31">
+                                                <span class="input-group-text">de cada mes</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-7 d-none" id="boxScheduleInterval">
+                                            <label class="form-label fw-semibold">Frecuencia en días</label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" id="scheduleIntervalDays" value="30" min="1" max="365">
+                                                <span class="input-group-text">días</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-7 d-none" id="boxScheduleSpecificDate">
+                                            <label class="form-label fw-semibold">Fecha Programada</label>
+                                            <input type="date" class="form-control" id="scheduleSpecificDate" value="{{ now()->format('Y-m-15') }}">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-semibold">🔔 Días de Preaviso (Antes)</label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" id="schedulePreNotice" value="3" min="0" max="60">
+                                                <span class="input-group-text">días antes</span>
+                                            </div>
+                                            <small class="text-muted">Para avisarte que se acerca la toma.</small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-semibold">⏳ Días de Tolerancia (Después)</label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" id="scheduleTolerance" value="5" min="0" max="60">
+                                                <span class="input-group-text">días de margen</span>
+                                            </div>
+                                            <small class="text-muted">Margen antes de marcar el grupo como vencido.</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="d-flex justify-content-end mt-4">
                                 <a href="{{ route('sensor-groups.index') }}" class="btn btn-secondary me-2">
                                     <i class="bi bi-arrow-left btn-icon"></i> Cancelar
@@ -146,6 +200,13 @@
 @push('scripts')
     <script>
         $(document).ready(function () {
+            $('#scheduleMode').change(function () {
+                const mode = $(this).val();
+                $('#boxScheduleFixedDay').toggleClass('d-none', mode !== 'fixed_day');
+                $('#boxScheduleInterval').toggleClass('d-none', mode !== 'interval');
+                $('#boxScheduleSpecificDate').toggleClass('d-none', mode !== 'specific_date');
+            });
+
             // Cargar información de la plantilla al seleccionar
             $('#templateId').change(function () {
                 const templateId = $(this).val();
@@ -195,6 +256,16 @@
                 const description = $('#groupDescription').val();
                 const templateId = $('#templateId').val();
 
+                const scheduleObj = {
+                    enabled: true,
+                    mode: $('#scheduleMode').val(),
+                    day_of_month: parseInt($('#scheduleDayOfMonth').val()) || 15,
+                    interval_days: parseInt($('#scheduleIntervalDays').val()) || 30,
+                    specific_date: $('#scheduleSpecificDate').val() || null,
+                    pre_notice_days: parseInt($('#schedulePreNotice').val()) || 3,
+                    tolerance_days: parseInt($('#scheduleTolerance').val()) || 5
+                };
+
                 let billing_settings = null;
                 if ($('#billingEnabled').is(':checked')) {
                     billing_settings = {
@@ -202,10 +273,14 @@
                         currency: $('#billingCurrency').val(),
                         fixed_charge: parseFloat($('#billingFixed').val()) || 0,
                         price_per_unit: parseFloat($('#billingPrice').val()) || 0,
-                        show_in_public_viewer: $('#billingShowPublic').is(':checked')
+                        show_in_public_viewer: $('#billingShowPublic').is(':checked'),
+                        schedule: scheduleObj
                     };
                 } else {
-                    billing_settings = { is_enabled: false };
+                    billing_settings = {
+                        is_enabled: false,
+                        schedule: scheduleObj
+                    };
                 }
 
                 if (!name || !templateId) {
@@ -226,6 +301,8 @@
                             name: name,
                             description: description,
                             template_id: templateId,
+                            periodo_medicion: scheduleObj.interval_days,
+                            dias_vencimiento: scheduleObj.tolerance_days,
                             billing_settings: billing_settings
                         })
                     });

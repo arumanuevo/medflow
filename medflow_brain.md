@@ -323,6 +323,42 @@ Respuesta `quota_exceeded` (403) con `upsell_data`: `missing_sensors`, `needed_p
 - Los packs se suman en bloques de a 10 sensores de manera automática.
 - **PROHIBIDO:** Nunca le digas al cliente interno que se meta a editar tarifas. Las tarifas o "pricing" general de la plataforma son estáticas para él.
 
+### 4.7 Calendario de Programación de Tomas y Tolerancias
+Permite programar cuándo se deben tomar las mediciones de un **Grupo de Sensores** completo o de **Sensores individuales** (con excepción propia), definiendo márgenes de pre-aviso y días de tolerancia para alertar al usuario oportunamente.
+
+#### ¿Cómo programar una fecha de toma y sus tolerancias?
+1. Ir al menú lateral izquierdo y hacer clic en **Calendario de Tomas** (también puedes configurarlo al crear o editar un **Grupo de Sensores** o al editar un **Sensor** individual).
+2. Hacer clic en el botón **Programar Toma / Tolerancias** (o hacer clic directamente sobre cualquier casilla de día del calendario mensual).
+3. Elegir el alcance:
+   - **Por Grupo Completo**: Todos los sensores activos del grupo heredan automáticamente la fecha de toma y las tolerancias.
+   - **Por Sensor(es) Particular(es)**: Permite asignar una regla especial (excepción) a uno o varios sensores individuales sin alterar el resto de su grupo.
+4. Elegir la **Modalidad de Programación**:
+   - **Día fijo de cada mes**: ideal si siempre mides el mismo día (por ejemplo, todos los **días 15** de cada mes).
+   - **Fecha específica única**: para agendar una toma puntual en una fecha exacta del calendario (ej: `15/10/2026`).
+   - **Intervalo continuo en días**: para medir cada cierta cantidad de días corridos desde la última lectura registrada (ej: cada `30` días).
+5. Definir las ventanas operativas en días:
+   - **Días de Pre-aviso (Ventana previa)**: cuántos días *antes* de la fecha programada el sistema abre la ventana de medición y comienza a avisarte (por defecto `3` días).
+   - **Días de Tolerancia (Plazo de gracia posterior)**: cuántos días *después* de la fecha programada tienes de margen para registrar la medición antes de que se marque como vencida (por defecto `3` días).
+6. Hacer clic en **Guardar Programación**.
+
+#### Ejemplo práctico de cómo se calcula la ventana y la tolerancia
+Si programas un grupo para el **día 15 de cada mes** con **3 días de Pre-aviso** y **3 días de Tolerancia**:
+- **Apertura de Ventana (Pre-aviso):** Del **día 12 al día 14** el estado pasa a 🟡 **En Ventana** y el sistema te avisa que ya puedes ir tomando las lecturas.
+- **Día Meta de Toma:** El **día 15** el sistema te indica 🟡 **Hoy Toca Medir**.
+- **Plazo de Gracia (Tolerancia):** Del **día 16 al día 18** inclusive, los sensores que aún no fueron medidos pasan a estado 🟠 **En Tolerancia**, avisándote cuántos días de gracia te quedan.
+- **Vencimiento:** A partir del **día 19**, cualquier sensor que no haya recibido su lectura desde el día 12 en adelante pasa a estado 🔴 **Fuera de Tolerancia (Vencido)**.
+- En cuanto se registra la lectura de un sensor dentro de este ciclo, ese sensor pasa automáticamente a 🟢 **Completado**.
+
+#### ¿Dónde me avisa el sistema cuando debo tomar una medición?
+1. **Campana / Ícono de Calendario en la barra superior:** Visible desde cualquier pantalla del sistema (arriba a la derecha). Muestra un contador con la cantidad de grupos o sensores que están en ventana, en tolerancia o vencidos.
+2. **Panel "Agenda de Tomas Programadas y Tolerancias" en el Dashboard:** Muestra en la pantalla de inicio el resumen del semáforo y los grupos que requieren atención hoy.
+3. **Vista mensual "Calendario de Tomas":** Muestra en cada casilla del mes los grupos y sensores agendados con su color de semáforo en tiempo real.
+4. **Recordatorios por Correo Electrónico:** El sistema también puede enviar un resumen por email cuando tienes tomas activas en ventana, en tolerancia o vencidas.
+
+#### ¿Cómo iniciar la toma de mediciones desde el Calendario o quitar una excepción?
+- **Medir en 1 clic:** Haz clic sobre el grupo agendado en cualquier día del **Calendario de Tomas** (o desde el **Dashboard**) y presiona el botón **Iniciar Toma de Pendientes**. El sistema te llevará directo a la pantalla de **Tomar Mediciones** con ese grupo preseleccionado.
+- **Quitar excepción de un sensor individual:** Si un sensor tenía una fecha especial y quieres que vuelva a seguir la regla de su grupo, ve al final de la pantalla **Calendario de Tomas** a la tabla **Excepciones por Sensor Individual** y haz clic en el botón de restablecer (o desactiva el interruptor **Usar programación individual para este sensor** dentro de **Sensores > Editar**).
+
 ---
 
 
@@ -331,6 +367,7 @@ Respuesta `quota_exceeded` (403) con `upsell_data`: `missing_sensors`, `needed_p
 ### Rutas web clave (`routes/web.php`)
 - `/visor/{token}` → Visor Público (sin auth).
 - `/dashboard`, `/sensors`, `/sensors/{sensor}`, `/mediciones`, `/mediciones/create/{sensor}`, `/mediciones/inspector`.
+- `/calendario-mediciones` → Calendario de Programación de Tomas y Tolerancias (`MeasurementScheduleController`).
 - `/sensor-groups`, `/sensor-groups/{group}/edit`.
 - `/bulk-measurements/*` (carga masiva en ruta).
 - `/campaigns/bulk`, `/campaigns/bulk/dispatch`, `/campaigns/bulk/export-links/{id}`.
@@ -369,9 +406,10 @@ Respuesta `quota_exceeded` (403) con `upsell_data`: `missing_sensors`, `needed_p
 
 ## 6. REGLAS DE RESPUESTA PARA FLOWY (resumen ejecutivo)
 
-- Ante "¿cómo hago X?": responder con el flujo paso a paso, citando botones en **negrita** (ej: **Tomar Mediciones**, **Habilitar Monetización**, **Reseteo de Medidor**).
+- Ante "¿cómo hago X?": responder con el flujo paso a paso, citando botones en **negrita** (ej: **Tomar Mediciones**, **Habilitar Monetización**, **Reseteo de Medidor**, **Calendario de Tomas**, **Programar Toma / Tolerancias**).
 - Ante cálculos: mostrar la **fórmula exacta** documentada (costo, prorrateo, packs, tasa diaria).
 - Ante límites: indicar el plan requerido (Free/Básico/Premium) y el middleware que lo valida.
 - Ante "¿existe la función Y?": solo confirmar si está en este documento; si no, declarar no documentada.
 - Nunca inventar endpoints, campos, ni tarifas. Las tarifas provienen de `pricing.json` .
 - Recordar siempre el blindaje del Workspace, la idempotencia por `mobile_uuid` y el reseteo admin-previo para cambios de hardware.
+

@@ -87,4 +87,20 @@ class Sensor extends Model
     {
         return $this->belongsToMany(WorkspaceCollaborator::class, 'collaborator_sensor', 'sensor_id', 'workspace_collaborator_id');
     }
+    /**
+     * Propietario del sensor (inspector que lo creó).
+     */
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\User::class, 'user_id');
+    }
+
+    /**
+     * Programaciones de medición del sensor.
+     */
+    public function scheduledMeasurements()
+    {
+        return $this->hasMany(\App\Models\ScheduledMeasurement::class);
+    }
+
 }

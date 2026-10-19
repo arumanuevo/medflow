@@ -584,15 +584,29 @@ try {
 
     <div class="card-body bg-light" id="flowyChatBox" style="height: 350px; overflow-y: auto; font-size: 0.8rem;">
         <div class="mb-3 text-start">
-            <span class="badge bg-white text-dark shadow-sm px-3 py-2 text-wrap" style="border-radius: 15px 15px 15px 0;">
-                ¡Hola! Soy tu asistente inteligente MedFlow. ¿En qué flujo u operación tienes dudas hoy?
+            <span class="badge bg-white text-dark shadow-sm px-3 py-2 text-wrap" style="border-radius: 15px 15px 15px 0; text-align: left !important; line-height: 1.4;">
+                ¡Hola! Soy <strong>Flowy</strong>, tu asistente inteligente MedFlow. ¿En qué flujo u operación tienes dudas hoy?
             </span>
+        </div>
+        <div class="mb-3 d-flex flex-wrap gap-1" id="flowyQuickPrompts">
+            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill py-1 px-2 flowy-quick-btn" style="font-size: 0.72rem;"
+                data-question="¿Cómo programo mediciones en el Calendario de Tomas y cómo funcionan los días de tolerancia?">
+                📅 ¿Cómo uso el Calendario y Tolerancias?
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill py-1 px-2 flowy-quick-btn" style="font-size: 0.72rem;"
+                data-question="¿Qué tomas tengo pendientes, en ventana o en tolerancia hoy en mi calendario?">
+                ⏰ ¿Qué tomas tengo pendientes hoy?
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill py-1 px-2 flowy-quick-btn" style="font-size: 0.72rem;"
+                data-question="¿Cómo programo una fecha especial para un sensor particular sin cambiar todo el grupo?">
+                🎯 Excepción por sensor en Calendario
+            </button>
         </div>
     </div>
 
     <div class="card-footer bg-white border-top-0 p-2">
         <div class="input-group">
-            <input type="text" id="flowyUserInput" class="form-control rounded-pill border-1 bg-light ps-3 me-2" placeholder="Escribe tu consulta..." aria-label="Escribe tu consulta...">
+            <input type="text" id="flowyUserInput" class="form-control rounded-pill border-1 bg-light ps-3 me-2" placeholder="Pregunta sobre calendario, tolerancias, sensores..." aria-label="Escribe tu consulta...">
             <button class="btn btn-primary rounded-circle d-flex align-items-center px-3" id="btnSendFlowy" style="height: 40px; width: 40px !important;">
                 <i class="bi bi-send-fill" style="margin-left: -2px;"></i>
             </button>
@@ -613,6 +627,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if(btnOpen) btnOpen.addEventListener('click', () => chatContainer.classList.toggle('d-none'));
     if(btnClose) btnClose.addEventListener('click', () => chatContainer.classList.add('d-none'));
+
+    document.querySelectorAll('.flowy-quick-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            userInput.value = this.getAttribute('data-question');
+            askQuestion();
+        });
+    });
 
     function askQuestion() {
         const text = userInput.value.trim();

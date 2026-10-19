@@ -12,8 +12,16 @@
 
     // Consultar tareas (Jobs) en segundo plano para notificar visualmente
     $pendingJobs = \DB::table('jobs')->count();
+    $headerScheduleAlerts = ['items' => [], 'total_actionable' => 0, 'counts' => ['overdue' => 0, 'in_tolerance' => 0, 'in_window' => 0]];
 
     if (auth()->check()) {
+        try {
+            $activeWorkspaceId = session('active_workspace', $user->id);
+            $headerScheduleAlerts = app(\App\Services\MeasurementScheduleService::class)->getActiveAlerts($user, $activeWorkspaceId);
+        } catch (\Exception $e) {
+            // Ignorar silenciosamente errores en el header
+        }
+
         try {
             $subscriptionService = app(\App\Services\Subscription\SubscriptionService::class, ['user' => $user]);
             $subscriptionInfo = $subscriptionService->getFullStatus();
@@ -54,6 +62,65 @@
     </div>
 
     <div class="modern-header-right">
+        {{-- ✅ CAMPANA DE NOTIFICACIONES DE CALENDARIO DE TOMAS Y TOLERANCIAS --}}
+        @php
+            $totalScheduleAlerts = $headerScheduleAlerts['total_actionable'] ?? 0;
+            $hasUrgentSchedule = (($headerScheduleAlerts['counts']['overdue'] ?? 0) + ($headerScheduleAlerts['counts']['in_tolerance'] ?? 0)) > 0;
+        @endphp
+        <div class="dropdown me-1">
+            <button class="btn btn-sm position-relative d-flex align-items-center justify-content-center"
+                type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                title="Avisos de Calendario de Tomas y Tolerancias"
+                style="width: 36px; height: 36px; border-radius: 50%; background: {{ $totalScheduleAlerts > 0 ? ($hasUrgentSchedule ? '#fff3cd' : '#e7f1ff') : '#f8f9fa' }}; border: 1px solid {{ $totalScheduleAlerts > 0 ? ($hasUrgentSchedule ? '#ffc107' : '#b6d4fe') : '#dee2e6' }}; color: {{ $totalScheduleAlerts > 0 ? ($hasUrgentSchedule ? '#856404' : '#0d6efd') : '#6c757d' }};">
+                <i class="bi bi-calendar2-check{{ $totalScheduleAlerts > 0 ? '-fill' : '' }} fs-6"></i>
+                @if($totalScheduleAlerts > 0)
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill {{ ($headerScheduleAlerts['counts']['overdue'] ?? 0) > 0 ? 'bg-danger' : ($hasUrgentSchedule ? 'bg-warning text-dark' : 'bg-primary') }}"
+                        style="font-size: 0.62rem;">
+                        {{ $totalScheduleAlerts > 99 ? '99+' : $totalScheduleAlerts }}
+                    </span>
+                @endif
+            </button>
+            <div class="dropdown-menu dropdown-menu-end shadow border-0 p-0" style="width: 340px; max-width: 92vw; border-radius: 12px; overflow: hidden; z-index: 1055;">
+                <div class="p-3 bg-primary text-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-calendar2-week me-1"></i> Agenda de Tomas</h6>
+                        <small class="opacity-75">Programación y Tolerancias</small>
+                    </div>
+                    <span class="badge bg-white text-primary rounded-pill">{{ $totalScheduleAlerts }} aviso(s)</span>
+                </div>
+                <div style="max-height: 300px; overflow-y: auto;">
+                    @forelse(array_slice($headerScheduleAlerts['items'] ?? [], 0, 5) as $alertItem)
+                        <a href="{{ route('schedule.index') }}" class="dropdown-item p-3 border-bottom text-wrap" style="white-space: normal;">
+                            <div class="d-flex justify-content-between align-items-start mb-1">
+                                <span class="fw-bold small text-dark">{{ $alertItem['group_name'] }}</span>
+                                <span class="badge bg-{{ $alertItem['badge'] }} {{ $alertItem['badge'] === 'warning' ? 'text-dark' : '' }}" style="font-size: 0.65rem;">
+                                    {{ $alertItem['label'] }}
+                                </span>
+                            </div>
+                            <div class="small text-muted mb-1">
+                                <i class="bi bi-speedometer2 me-1"></i><strong>{{ $alertItem['pending_count'] }}</strong> de {{ $alertItem['total_count'] }} pendientes
+                                · Meta: {{ \Carbon\Carbon::parse($alertItem['target_date'])->format('d/m/Y') }}
+                            </div>
+                            <div class="text-muted" style="font-size: 0.72rem;">
+                                {{ $alertItem['message'] }}
+                            </div>
+                        </a>
+                    @empty
+                        <div class="p-4 text-center text-muted">
+                            <i class="bi bi-check2-circle fs-3 text-success d-block mb-1"></i>
+                            <div class="small fw-semibold">¡Todo al día!</div>
+                            <div style="font-size: 0.75rem;">No hay tomas pendientes en ventana o tolerancia.</div>
+                        </div>
+                    @endforelse
+                </div>
+                <div class="p-2 bg-light text-center border-top">
+                    <a href="{{ route('schedule.index') }}" class="btn btn-sm btn-primary w-100">
+                        <i class="bi bi-calendar-event me-1"></i> Abrir Calendario de Tomas
+                    </a>
+                </div>
+            </div>
+        </div>
+
         {{-- ✅ BADGE DE SUSCRIPCIÓN --}}
         @if($subscriptionInfo)
             <span

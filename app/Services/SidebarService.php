@@ -83,6 +83,12 @@ class SidebarService
                 'active' => request()->is('bulk-measurements*') || request()->is('mediciones/select-sensor*'),
             ],
             [
+                'icon' => 'bi bi-calendar2-check',
+                'label' => 'Calendario de Tomas',
+                'url' => '/calendario-mediciones',
+                'active' => request()->is('calendario-mediciones*'),
+            ],
+            [
                 'icon' => 'bi bi-people',
                 'label' => 'Colaboraciones',
                 'url' => '/collaborations',
@@ -179,6 +185,12 @@ class SidebarService
                     'url' => '/mediciones/inspector',  // ✅ NUEVA RUTA
                     'active' => request()->is('mediciones/inspector*'),
                     'highlight' => true,
+                ],
+                [
+                    'icon' => 'bi bi-calendar2-check',
+                    'label' => 'Calendario de Tomas',
+                    'url' => '/calendario-mediciones',
+                    'active' => request()->is('calendario-mediciones*'),
                 ],
             ];
         }

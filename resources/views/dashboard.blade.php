@@ -82,6 +82,108 @@
     </div>
 </div>
 
+{{-- 📅 Agenda de Tomas Programadas y Estado de Tolerancias --}}
+@if(!isset($isPaused) || !$isPaused)
+<div class="card mb-4 border-0 shadow-sm">
+    <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2 py-3">
+        <h5 class="mb-0 fw-bold text-dark">
+            <i class="bi bi-calendar2-check text-primary me-2"></i>
+            Agenda de Tomas Programadas y Tolerancias
+            @if(($scheduleAlerts['counts']['actionable_total'] ?? 0) > 0)
+                <span class="badge bg-danger ms-2">{{ $scheduleAlerts['counts']['actionable_total'] }} pendiente(s)</span>
+            @endif
+        </h5>
+        <div class="d-flex gap-2">
+            <a href="{{ route('schedule.index') }}" class="btn btn-sm btn-primary">
+                <i class="bi bi-calendar3 me-1"></i> Abrir Calendario de Tomas
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        @php
+            $actionableList = $scheduleAlerts['actionable'] ?? [];
+            $upcomingList = $scheduleAlerts['upcoming'] ?? [];
+        @endphp
+
+        @if(count($actionableList) > 0)
+            <div class="alert alert-warning border-warning d-flex align-items-center mb-3 py-2">
+                <i class="bi bi-bell-fill fs-4 me-3 text-warning"></i>
+                <div class="small">
+                    <strong>Atención de Agenda:</strong> Tienes <strong>{{ count($actionableList) }}</strong> grupo(s) o sensor(es) que requieren medición según su fecha programada y margen de tolerancia.
+                </div>
+            </div>
+            <div class="row g-3 mb-3">
+                @foreach(array_slice($actionableList, 0, 6) as $alert)
+                    <div class="col-md-6 col-xl-4">
+                        <div class="p-3 rounded-3 border h-100 d-flex flex-column justify-content-between"
+                             style="border-left: 4px solid {{ $alert['color_hex'] }} !important; background: #fcfcfc;">
+                            <div>
+                                <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+                                    <span class="fw-bold text-dark small">
+                                        <i class="bi {{ $alert['type'] === 'group' ? 'bi-folder-fill text-primary' : 'bi-speedometer2 text-info' }} me-1"></i>
+                                        {{ $alert['title'] }}
+                                    </span>
+                                    <span class="badge {{ $alert['badge_class'] }}" style="font-size: 0.7rem; background-color: {{ $alert['color_hex'] }};">
+                                        {{ $alert['status_label'] }}
+                                    </span>
+                                </div>
+                                <p class="text-muted mb-2" style="font-size: 0.78rem;">
+                                    {{ $alert['status_message'] }}
+                                </p>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                <small class="text-muted" style="font-size: 0.72rem;">
+                                    Fecha: <strong>{{ $alert['target_date_formatted'] }}</strong> (Tol: +{{ $alert['tolerance_days'] }}d)
+                                </small>
+                                @if(!empty($alert['pending_sensor_ids']))
+                                    <form method="POST" action="{{ route('bulk-measurements.start') }}" class="d-inline">
+                                        @csrf
+                                        <input type="hidden" name="sensor_ids" value="{{ implode(',', $alert['pending_sensor_ids']) }}">
+                                        <button type="submit" class="btn btn-sm btn-primary py-0 px-2" style="font-size: 0.75rem;">
+                                            <i class="bi bi-play-fill"></i> Medir ({{ count($alert['pending_sensor_ids']) }})
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 p-3 rounded-3 bg-light border">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-check-circle-fill text-success fs-3"></i>
+                    <div>
+                        <h6 class="mb-0 fw-bold text-dark">¡Agenda de mediciones al día!</h6>
+                        <small class="text-muted">No tienes grupos ni sensores vencidos o en ventana crítica hoy.</small>
+                    </div>
+                </div>
+                <a href="{{ route('schedule.index') }}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-calendar-plus me-1"></i> Programar fechas (Ej: Día 15)
+                </a>
+            </div>
+        @endif
+
+        @if(count($upcomingList) > 0)
+            <div class="mt-3 pt-2 border-top">
+                <small class="text-muted fw-bold d-block mb-2">
+                    <i class="bi bi-clock-history me-1"></i> Próximas tomas programadas en el calendario:
+                </small>
+                <div class="d-flex flex-wrap gap-2">
+                    @foreach(array_slice($upcomingList, 0, 5) as $up)
+                        <a href="{{ route('schedule.index') }}" class="badge bg-light text-dark border text-decoration-none p-2">
+                            <i class="bi {{ $up['type'] === 'group' ? 'bi-folder text-primary' : 'bi-speedometer2 text-info' }} me-1"></i>
+                            <strong>{{ $up['title'] }}</strong>: {{ $up['target_date_formatted'] }}
+                            <span class="text-muted">(Preaviso -{{ $up['pre_notice_days'] }}d / Tol +{{ $up['tolerance_days'] }}d)</span>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+    </div>
+</div>
+@endif
+
 {{-- Configuración Global --}}
 <div class="card mb-4">
     <div class="card-header  d-flex justify-content-between align-items-center">

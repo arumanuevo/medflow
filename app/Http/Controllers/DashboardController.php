@@ -47,13 +47,28 @@ class DashboardController extends Controller
         $defaultPeriod = UserSetting::get($user->id, 'default_measurement_period', 30);
         $defaultExpiry = UserSetting::get($user->id, 'default_expiry_days', 5);
 
+        $scheduleAlerts = [
+            'all' => [],
+            'actionable' => [],
+            'upcoming' => [],
+            'counts' => ['actionable_total' => 0, 'overdue' => 0, 'in_tolerance' => 0, 'in_window' => 0],
+        ];
+        if (!$isPaused) {
+            try {
+                $scheduleAlerts = app(\App\Services\MeasurementScheduleService::class)->getActiveAlerts($user, $activeWorkspace);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Error cargando alertas de calendario en Dashboard: ' . $e->getMessage());
+            }
+        }
+
         return view('dashboard', compact(
             'defaultPeriod',
             'defaultExpiry',
             'activeWorkspace',
             'workspaceInfo',
             'isPaused',      // ✅ Pasar estado de pausa
-            'pauseMessage'   // ✅ Pasar mensaje de pausa
+            'pauseMessage',  // ✅ Pasar mensaje de pausa
+            'scheduleAlerts'
         ));
     }
 

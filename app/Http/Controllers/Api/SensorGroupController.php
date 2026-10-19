@@ -174,7 +174,18 @@ class SensorGroupController extends Controller
             $validatedData['dias_vencimiento'] = $group->dias_vencimiento;
         }
 
+        if (isset($validatedData['billing_settings']) && is_array($validatedData['billing_settings'])) {
+            $existingBilling = $group->billing_settings ?? [];
+            if (!isset($validatedData['billing_settings']['schedule']) && isset($existingBilling['schedule'])) {
+                $validatedData['billing_settings']['schedule'] = $existingBilling['schedule'];
+            }
+        }
+
         $group->update($validatedData);
+
+        if (!empty($group->billing_settings['schedule'])) {
+            app(\App\Services\MeasurementScheduleService::class)->saveGroupSchedule($group, $group->billing_settings['schedule']);
+        }
 
         return response()->json([
             'success' => true,

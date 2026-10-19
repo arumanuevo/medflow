@@ -96,6 +96,70 @@
                             <div id="metadata-fields"></div>
                         </div>
 
+                        <!-- 📅 Programación Particular de Toma (Opcional) -->
+                        @php
+                            $sensorSched = $sensor->metadata['schedule'] ?? [];
+                            $hasOverride = !empty($sensorSched['override']);
+                            $sMode = $sensorSched['mode'] ?? 'fixed_day';
+                            $sDay = $sensorSched['day_of_month'] ?? 15;
+                            $sDate = $sensorSched['specific_date'] ?? now()->format('Y-m-15');
+                            $sInterval = $sensorSched['interval_days'] ?? 30;
+                            $sPreNotice = $sensorSched['pre_notice_days'] ?? 3;
+                            $sTolerance = $sensorSched['tolerance_days'] ?? 5;
+                        @endphp
+                        <div class="card mt-4 mb-3 border-primary">
+                            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 fw-bold"><i class="bi bi-calendar2-check me-1"></i> Programación en Calendario (Opcional)</h6>
+                                <span class="badge bg-light text-primary">Tolerancias y Aviso</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-check form-switch mb-2">
+                                    <input type="hidden" name="metadata[schedule][override]" value="0">
+                                    <input class="form-check-input" type="checkbox" id="sensorScheduleOverride"
+                                           name="metadata[schedule][override]" value="1" {{ $hasOverride ? 'checked' : '' }}>
+                                    <label class="form-check-label fw-bold" for="sensorScheduleOverride">
+                                        Definir fecha y tolerancia particular para este sensor (no heredar del grupo)
+                                    </label>
+                                </div>
+                                <small class="text-muted d-block mb-3">
+                                    Si está desactivado, este sensor seguirá automáticamente la fecha programada de su grupo.
+                                </small>
+
+                                <div id="sensorScheduleFields" style="display: {{ $hasOverride ? 'block' : 'none' }};">
+                                    <div class="row g-3">
+                                        <div class="col-md-5">
+                                            <label class="form-label small fw-bold">Modalidad</label>
+                                            <select class="form-select" name="metadata[schedule][mode]" id="sensorScheduleMode">
+                                                <option value="fixed_day" {{ $sMode === 'fixed_day' ? 'selected' : '' }}>Día fijo de cada mes (Ej: Día 15)</option>
+                                                <option value="specific_date" {{ $sMode === 'specific_date' ? 'selected' : '' }}>Fecha puntual</option>
+                                                <option value="interval" {{ $sMode === 'interval' ? 'selected' : '' }}>Cada N días</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-7 {{ $sMode === 'fixed_day' ? '' : 'd-none' }}" id="sBoxFixedDay">
+                                            <label class="form-label small fw-bold">Día del Mes (1-31)</label>
+                                            <input type="number" class="form-control" name="metadata[schedule][day_of_month]" value="{{ $sDay }}" min="1" max="31">
+                                        </div>
+                                        <div class="col-md-7 {{ $sMode === 'specific_date' ? '' : 'd-none' }}" id="sBoxSpecificDate">
+                                            <label class="form-label small fw-bold">Fecha Exacta</label>
+                                            <input type="date" class="form-control" name="metadata[schedule][specific_date]" value="{{ $sDate }}">
+                                        </div>
+                                        <div class="col-md-7 {{ $sMode === 'interval' ? '' : 'd-none' }}" id="sBoxInterval">
+                                            <label class="form-label small fw-bold">Frecuencia (días)</label>
+                                            <input type="number" class="form-control" name="metadata[schedule][interval_days]" value="{{ $sInterval }}" min="1" max="365">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold">🔔 Días de Preaviso (Antes)</label>
+                                            <input type="number" class="form-control" name="metadata[schedule][pre_notice_days]" value="{{ $sPreNotice }}" min="0" max="60">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold">⏳ Días de Tolerancia (Después)</label>
+                                            <input type="number" class="form-control" name="metadata[schedule][tolerance_days]" value="{{ $sTolerance }}" min="0" max="60">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="d-flex justify-content-end mt-4">
                             <a href="{{ route('sensors.show', ['sensor' => $sensor->id]) }}" class="btn btn-secondary me-2">
                                 <i class="bi bi-arrow-left"></i> Cancelar
@@ -176,6 +240,21 @@
                     }
                 });
             }
+
+            $('#sensorScheduleOverride').change(function () {
+                if ($(this).is(':checked')) {
+                    $('#sensorScheduleFields').slideDown();
+                } else {
+                    $('#sensorScheduleFields').slideUp();
+                }
+            });
+
+            $('#sensorScheduleMode').change(function () {
+                const mode = $(this).val();
+                $('#sBoxFixedDay').toggleClass('d-none', mode !== 'fixed_day');
+                $('#sBoxSpecificDate').toggleClass('d-none', mode !== 'specific_date');
+                $('#sBoxInterval').toggleClass('d-none', mode !== 'interval');
+            });
 
             $('#group_id').change(function () {
                 loadGroupFields($(this).val());

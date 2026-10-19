@@ -143,6 +143,17 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('auth');
 
     // =============================================
+    // CALENDARIO DE PROGRAMACIÓN DE TOMAS Y TOLERANCIAS
+    // =============================================
+    Route::get('/calendario-mediciones', [\App\Http\Controllers\MeasurementScheduleController::class, 'index'])
+        ->name('schedule.index');
+    Route::post('/calendario-mediciones/save', [\App\Http\Controllers\MeasurementScheduleController::class, 'saveSchedule'])
+        ->name('schedule.save');
+    Route::delete('/calendario-mediciones/sensor/{sensor}/override', [\App\Http\Controllers\MeasurementScheduleController::class, 'removeSensorOverride'])
+        ->name('schedule.sensor.remove-override')
+        ->where('sensor', '[0-9]+');
+
+    // =============================================
     // GRUPOS DE SENSORES (vistas)
     // =============================================
     Route::get('/sensor-groups', [SensorGroupViewController::class, 'index'])->name('sensor-groups.index');

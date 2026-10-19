@@ -321,7 +321,35 @@ class SensorController extends Controller
             }
         }
 
-        $sensor->update($request->all());
+        $dataToUpdate = $request->except(['metadata']);
+        if ($request->has('metadata') && is_array($request->input('metadata'))) {
+            $existingMeta = $sensor->metadata ?? [];
+            $incomingMeta = $request->input('metadata');
+
+            if (isset($incomingMeta['schedule'])) {
+                $schedInput = $incomingMeta['schedule'];
+                $override = !empty($schedInput['override']) && $schedInput['override'] != '0';
+                if ($override) {
+                    $incomingMeta['schedule'] = [
+                        'override' => true,
+                        'mode' => $schedInput['mode'] ?? 'fixed_day',
+                        'day_of_month' => max(1, min(31, (int) ($schedInput['day_of_month'] ?? 15))),
+                        'specific_date' => $schedInput['specific_date'] ?? null,
+                        'interval_days' => max(1, (int) ($schedInput['interval_days'] ?? 30)),
+                        'pre_notice_days' => max(0, (int) ($schedInput['pre_notice_days'] ?? 3)),
+                        'tolerance_days' => max(0, (int) ($schedInput['tolerance_days'] ?? 5)),
+                        'updated_at' => now()->toDateTimeString(),
+                    ];
+                } else {
+                    unset($existingMeta['schedule']);
+                    unset($incomingMeta['schedule']);
+                }
+            }
+
+            $dataToUpdate['metadata'] = array_merge($existingMeta, $incomingMeta);
+        }
+
+        $sensor->update($dataToUpdate);
 
         return response()->json([
             'success' => true,
