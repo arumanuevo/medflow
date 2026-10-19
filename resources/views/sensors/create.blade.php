@@ -157,9 +157,13 @@
                             <div id="dynamic-metadata-container"
                                 class="mt-4 mb-3 p-3 bg-light rounded border border-light-subtle shadow-sm"
                                 style="display: none;">
-                                <h6 class="text-uppercase text-dark fw-bold mb-3 border-bottom border-secondary-subtle pb-2"
-                                    style="font-size: 0.75rem; letter-spacing: 1px;"><i
-                                        class="bi bi-card-checklist me-1"></i> Propiedades Extendidas de Plantilla</h6>
+                                <div class="d-flex justify-content-between align-items-center border-bottom border-secondary-subtle pb-2 mb-3 flex-wrap gap-2">
+                                    <h6 class="text-uppercase text-dark fw-bold mb-0"
+                                        style="font-size: 0.75rem; letter-spacing: 1px;"><i
+                                            class="bi bi-card-checklist me-1 text-primary"></i> Propiedades Extendidas de Plantilla</h6>
+                                    <span id="template-badge-info" class="badge bg-primary-subtle text-primary border border-primary-subtle"></span>
+                                </div>
+                                <div id="template-system-fields-info" class="mb-3"></div>
                                 <div id="metadata-fields" class="row g-3"></div>
                             </div>
 
@@ -180,18 +184,129 @@
     </div>
 @endsection
 
+@php
+    $groupTemplatesPayload = [];
+    foreach ($groups as $g) {
+        if ($g->template) {
+            $groupTemplatesPayload[$g->id] = [
+                'id' => $g->template->id,
+                'name' => $g->template->name,
+                'type' => $g->template->type,
+                'is_default' => (bool) $g->template->is_default,
+                'campos' => $g->template->getFields(),
+            ];
+        }
+    }
+@endphp
+
 @push('scripts')
     <script>
         $(document).ready(function () {
+            const groupTemplatesMap = @json($groupTemplatesPayload);
+            const structuralMeasurementFields = ['identificador', 'valor', 'consumo_m3', 'energia_kwh', 'caudal_lmin', 'iluminacion_lux', 'foto', 'fecha_medicion', 'tipo'];
+
+            function formatFieldLabel(name) {
+                if (!name) return '';
+                const text = String(name).replace(/_/g, ' ');
+                return text.charAt(0).toUpperCase() + text.slice(1);
+            }
+
+            function renderCreateTemplateFields(templateData) {
+                const container = $('#dynamic-metadata-container');
+                const fieldsContainer = $('#metadata-fields');
+                const systemInfoContainer = $('#template-system-fields-info');
+                const badgeInfo = $('#template-badge-info');
+
+                fieldsContainer.empty();
+                systemInfoContainer.empty();
+
+                const campos = (templateData && Array.isArray(templateData.campos))
+                    ? templateData.campos
+                    : (templateData && templateData.schema && Array.isArray(templateData.schema.campos) ? templateData.schema.campos : []);
+
+                if (templateData && templateData.name) {
+                    const typeBadge = templateData.is_default ? 'Por defecto' : 'Personalizada';
+                    badgeInfo.html(`<i class="bi bi-file-earmark-text me-1"></i> ${templateData.name} (${typeBadge})`).show();
+                } else {
+                    badgeInfo.hide();
+                }
+
+                const baseFields = campos.filter(c => c && (structuralMeasurementFields.includes(c.nombre) || c.es_foto));
+                const editableTemplateFields = campos.filter(c => c && !structuralMeasurementFields.includes(c.nombre) && !c.es_foto);
+
+                if (baseFields.length > 0) {
+                    const baseBadges = baseFields.map(c => {
+                        const unitTxt = c.unidad ? ` (${c.unidad})` : '';
+                        if (c.nombre === 'identificador') {
+                            return `<span class="badge bg-warning-subtle text-dark border border-warning-subtle"><i class="bi bi-key-fill me-1"></i>${c.nombre}: vinculado a Identificador Físico</span>`;
+                        }
+                        return `<span class="badge bg-white text-secondary border"><i class="bi bi-rulers me-1"></i>${c.nombre}${unitTxt} (se registra al medir)</span>`;
+                    }).join(' ');
+
+                    systemInfoContainer.html(`
+                        <div class="p-2 bg-white rounded border small text-muted d-flex flex-wrap align-items-center gap-2">
+                            <span class="fw-semibold text-dark"><i class="bi bi-layers me-1 text-primary"></i>Campos base de plantilla:</span>
+                            ${baseBadges}
+                        </div>
+                    `);
+                }
+
+                let html = '';
+                editableTemplateFields.forEach(field => {
+                    const isSensorContext = field.contexto === 'sensor';
+                    const isRequired = isSensorContext && Boolean(field.requerido);
+                    const requiredAttr = isRequired ? 'required' : '';
+                    const reqAsterisk = isRequired ? '<span class="text-danger">*</span>' : '';
+
+                    let inputType = 'text';
+                    if (field.tipo === 'numero') inputType = 'number';
+                    if (field.tipo === 'fecha') inputType = 'date';
+
+                    const unitLabel = field.unidad ? `<span class="badge bg-secondary-subtle text-secondary ms-1">${field.unidad}</span>` : '';
+                    const placeholder = field.unidad ? `Valor en ${field.unidad}` : 'Ingresar valor';
+
+                    let defaultVal = field.valor_por_defecto ?? '';
+                    if (defaultVal === '' && $('#is_community').val() == '1' && inputType === 'text') {
+                        defaultVal = 'Área Común';
+                    }
+
+                    html += `
+                        <div class="col-md-6 mb-2">
+                            <label class="form-label small fw-semibold text-muted mb-1 d-flex align-items-center">
+                                <span>${formatFieldLabel(field.nombre)} ${reqAsterisk}</span> ${unitLabel}
+                            </label>
+                            <div class="input-group shadow-sm">
+                                <span class="input-group-text bg-white text-muted border-end-0"><i class="bi bi-braces"></i></span>
+                                <input type="${inputType}" step="any" class="form-control border-start-0 ps-0" name="metadata[${field.nombre}]" value="${String(defaultVal).replace(/"/g, '&quot;')}" placeholder="${$('#is_community').val() == '1' && inputType === 'text' ? 'Ej: Área Común Central' : placeholder}" ${requiredAttr}>
+                                ${field.unidad ? `<span class="input-group-text bg-white text-muted">${field.unidad}</span>` : ''}
+                            </div>
+                            ${field.valor_por_defecto ? '<div class="form-text mt-1" style="font-size:0.7rem;"><i class="bi bi-info-circle"></i> Sugerido: ' + field.valor_por_defecto + '</div>' : ''}
+                        </div>
+                    `;
+                });
+
+                if (html !== '' || baseFields.length > 0) {
+                    if (html !== '') {
+                        fieldsContainer.html(html);
+                    }
+                    container.hide().fadeIn('fast');
+                } else {
+                    container.hide();
+                }
+            }
+
             // ✅ Escuchar cambios en el selector de Grupo para traer la plantilla
             $('#group_id').change(function () {
                 const groupId = $(this).val();
-                const container = $('#dynamic-metadata-container');
-                const fieldsContainer = $('#metadata-fields');
-                fieldsContainer.empty();
-                container.hide();
+                if (!groupId) {
+                    $('#dynamic-metadata-container').hide();
+                    return;
+                }
 
-                if (!groupId) return;
+                if (groupTemplatesMap[groupId]) {
+                    renderCreateTemplateFields(groupTemplatesMap[groupId]);
+                    return;
+                }
 
                 const token = localStorage.getItem('token');
                 if (!token) return;
@@ -205,43 +320,7 @@
                     },
                     success: function (response) {
                         if (response.success && response.data && response.data.template) {
-                            const schema = response.data.template.schema;
-                            if (schema && schema.campos) {
-                                // Extraer SOLO campos estáticos para el Sensor, excluyendo 'identificador' que ya es nativo
-                                const sensorFields = schema.campos.filter(c => c.contexto === 'sensor' && c.nombre !== 'identificador');
-
-                                if (sensorFields.length > 0) {
-                                    let html = '';
-                                    sensorFields.forEach(field => {
-                                        const requiredAttr = field.requerido ? 'required' : '';
-                                        const reqAsterisk = field.requerido ? '<span class="text-danger">*</span>' : '';
-
-                                        let inputType = 'text';
-                                        if (field.tipo === 'numero') inputType = 'number';
-                                        if (field.tipo === 'fecha') inputType = 'date';
-
-                                        const placeholder = field.unidad ? `(${field.unidad})` : 'Ingresar valor';
-
-                                        let defaultVal = '';
-                                        if ($('#is_community').val() == '1' && inputType === 'text') {
-                                            defaultVal = 'Área Común'; // Sugerencia de Lote
-                                        }
-
-                                        html += `
-                                                <div class="col-md-6 mb-2">
-                                                    <label class="form-label small fw-semibold text-muted mb-1">${field.nombre} ${reqAsterisk}</label>
-                                                    <div class="input-group shadow-sm">
-                                                        <span class="input-group-text bg-white text-muted border-end-0"><i class="bi bi-braces"></i></span>
-                                                        <input type="${inputType}" step="any" class="form-control border-start-0 ps-0" name="metadata[${field.nombre}]" value="${defaultVal}" placeholder="${$('#is_community').val() == '1' ? 'Ej: Área Común Central' : placeholder}" ${requiredAttr}>
-                                                    </div>
-                                                    ${field.valor_por_defecto ? '<div class="form-text mt-1" style="font-size:0.7rem;"><i class="bi bi-info-circle"></i> Sugerido: ' + field.valor_por_defecto + '</div>' : ''}
-                                                </div>
-                                            `;
-                                    });
-                                    fieldsContainer.html(html);
-                                    container.hide().fadeIn('fast');
-                                }
-                            }
+                            renderCreateTemplateFields(response.data.template);
                         }
                     },
                     error: function (xhr) {

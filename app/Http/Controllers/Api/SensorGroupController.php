@@ -112,7 +112,7 @@ class SensorGroupController extends Controller
     {
         $user = request()->user();
 
-        $group = SensorGroup::with(['template', 'sensors', 'user'])
+        $group = SensorGroup::with(['template.parent', 'sensors', 'user'])
             ->find($id);
 
         if (!$group) {
@@ -120,6 +120,10 @@ class SensorGroupController extends Controller
                 'success' => false,
                 'message' => 'Grupo no encontrado',
             ], 404);
+        }
+
+        if ($group->template) {
+            $group->template->schema = $group->template->getFullSchema();
         }
 
         $group->sensors_count = $group->sensors()->count();

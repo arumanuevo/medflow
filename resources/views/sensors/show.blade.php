@@ -50,16 +50,48 @@
                                 <div class="col-md-8">{{ $sensor->created_at->format('d/m/Y H:i') }}</div>
                             </div>
 
-                            @if ($sensor->metadata && !empty($sensor->metadata))
+                            @php
+                                $structuralFields = ['identificador', 'valor', 'consumo_m3', 'energia_kwh', 'caudal_lmin', 'iluminacion_lux', 'foto', 'fecha_medicion', 'tipo'];
+                                $internalMetaKeys = ['schedule', 'prorratear_comunidad'];
+                                $templateFields = ($sensor->group && $sensor->group->template) ? $sensor->group->template->getFields() : [];
+                                $specificTemplateFields = array_filter($templateFields, function ($c) use ($structuralFields) {
+                                    return !in_array($c['nombre'] ?? '', $structuralFields) && empty($c['es_foto']);
+                                });
+                                $sensorMeta = is_array($sensor->metadata) ? $sensor->metadata : [];
+                                $displayedKeys = [];
+                            @endphp
+
+                            @if (count($specificTemplateFields) > 0 || !empty($sensorMeta))
                                 <h6 class="mt-4 text-primary"><i class="bi bi-tags"></i> Propiedades Dinámicas (Plantilla)</h6>
                                 <hr class="mt-1 mb-2">
                                 <div class="p-3 bg-light rounded border">
-                                    @foreach ($sensor->metadata as $key => $value)
-                                        @if($value !== null && $value !== '')
+                                    @foreach ($specificTemplateFields as $campo)
+                                        @php
+                                            $fName = $campo['nombre'];
+                                            $displayedKeys[] = $fName;
+                                            $fVal = $sensorMeta[$fName] ?? ($campo['valor_por_defecto'] ?? null);
+                                            $fUnit = $campo['unidad'] ?? '';
+                                        @endphp
+                                        <div class="row mb-2">
+                                            <div class="col-md-5 text-capitalize text-muted">
+                                                <i class="bi bi-tag-fill me-1" style="font-size:0.7rem;"></i>{{ str_replace('_', ' ', $fName) }}:
+                                            </div>
+                                            <div class="col-md-7 fw-bold">
+                                                @if($fVal !== null && $fVal !== '' && !is_array($fVal))
+                                                    {{ $fVal }}{{ $fUnit ? ' ' . $fUnit : '' }}
+                                                @else
+                                                    <span class="text-muted fw-normal fst-italic">Sin especificar{{ $fUnit ? ' (' . $fUnit . ')' : '' }}</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endforeach
+
+                                    @foreach ($sensorMeta as $key => $value)
+                                        @if(!in_array($key, $displayedKeys) && !in_array($key, $internalMetaKeys) && !in_array($key, $structuralFields) && !is_array($value) && $value !== null && $value !== '')
                                             <div class="row mb-2">
-                                                <div class="col-md-4 text-capitalize text-muted"><i class="bi bi-tag-fill me-1"
+                                                <div class="col-md-5 text-capitalize text-muted"><i class="bi bi-tag-fill me-1"
                                                         style="font-size:0.7rem;"></i>{{ str_replace('_', ' ', $key) }}:</div>
-                                                <div class="col-md-8 fw-bold">{{ $value }}</div>
+                                                <div class="col-md-7 fw-bold">{{ $value }}</div>
                                             </div>
                                         @endif
                                     @endforeach

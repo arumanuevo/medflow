@@ -83,17 +83,20 @@
                                 <option value="" selected disabled>Selecciona un grupo...</option>
                                 @foreach($groups as $group)
                                     <option value="{{ $group->id }}" {{ $sensor->group_id == $group->id ? 'selected' : '' }}>
-                                        {{ $group->name }}
+                                        {{ $group->name }} ({{ $group->template->name ?? 'Sin plantilla' }})
                                     </option>
                                 @endforeach
                             </select>
                         </div>
 
-                        <!-- ✅ Contenedor dinámico de campos Metadata -->
-                        <div id="dynamic-metadata-container" class="mt-4 mb-3" style="display: none;">
-                            <h5 class="border-bottom pb-2 mb-3"><i class="bi bi-card-list"></i> Datos Específicos del Sensor
-                            </h5>
-                            <div id="metadata-fields"></div>
+                        <!-- ✅ Contenedor dinámico de campos Metadata y Plantilla -->
+                        <div id="dynamic-metadata-container" class="mt-4 mb-3 p-3 bg-light rounded border shadow-sm" style="display: none;">
+                            <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3 flex-wrap gap-2">
+                                <h5 class="mb-0"><i class="bi bi-card-list text-primary me-1"></i> Datos Específicos del Sensor</h5>
+                                <span id="template-badge-info" class="badge bg-primary-subtle text-primary border border-primary-subtle"></span>
+                            </div>
+                            <div id="template-system-fields-info" class="mb-3"></div>
+                            <div id="metadata-fields" class="row g-3"></div>
                         </div>
 
                         <!-- 📅 Programación Particular de Toma (Opcional) -->
@@ -175,19 +178,193 @@
     </div>
 @endsection
 
+@php
+    $groupTemplatesPayload = [];
+    foreach ($groups as $g) {
+        if ($g->template) {
+            $groupTemplatesPayload[$g->id] = [
+                'id' => $g->template->id,
+                'name' => $g->template->name,
+                'type' => $g->template->type,
+                'is_default' => (bool) $g->template->is_default,
+                'campos' => $g->template->getFields(),
+            ];
+        }
+    }
+@endphp
+
 @push('scripts')
     <script>
         $(document).ready(function () {
             const existingMetadata = @json($sensor->metadata ?? []);
+            const groupTemplatesMap = @json($groupTemplatesPayload);
+            const structuralMeasurementFields = ['identificador', 'valor', 'consumo_m3', 'energia_kwh', 'caudal_lmin', 'iluminacion_lux', 'foto', 'fecha_medicion', 'tipo'];
+            const internalMetadataKeys = ['schedule', 'prorratear_comunidad'];
 
-            function loadGroupFields(groupId) {
+            function formatFieldLabel(name) {
+                if (!name) return '';
+                const text = String(name).replace(/_/g, ' ');
+                return text.charAt(0).toUpperCase() + text.slice(1);
+            }
+
+            function renderTemplateFields(templateData) {
                 const container = $('#dynamic-metadata-container');
                 const fieldsContainer = $('#metadata-fields');
+                const systemInfoContainer = $('#template-system-fields-info');
+                const badgeInfo = $('#template-badge-info');
+
                 fieldsContainer.empty();
-                container.hide();
+                systemInfoContainer.empty();
 
-                if (!groupId) return;
+                const campos = (templateData && Array.isArray(templateData.campos))
+                    ? templateData.campos
+                    : (templateData && templateData.schema && Array.isArray(templateData.schema.campos) ? templateData.schema.campos : []);
 
+                if (templateData && templateData.name) {
+                    const typeBadge = templateData.is_default ? 'Por defecto' : 'Personalizada';
+                    badgeInfo.html(`<i class="bi bi-file-earmark-text me-1"></i> Plantilla: ${templateData.name} (${typeBadge})`).show();
+                } else {
+                    badgeInfo.hide();
+                }
+
+                // 1. Separar campos base de toma (valor, foto, identificador) de los campos específicos/extendidos de la plantilla
+                const baseFields = campos.filter(c => c && (structuralMeasurementFields.includes(c.nombre) || c.es_foto));
+                const editableTemplateFields = campos.filter(c => c && !structuralMeasurementFields.includes(c.nombre) && !c.es_foto);
+
+                if (baseFields.length > 0) {
+                    const baseBadges = baseFields.map(c => {
+                        const unitTxt = c.unidad ? ` (${c.unidad})` : '';
+                        if (c.nombre === 'identificador') {
+                            return `<span class="badge bg-warning-subtle text-dark border border-warning-subtle"><i class="bi bi-key-fill me-1"></i>${c.nombre}: vinculado al campo Identificador superior</span>`;
+                        }
+                        return `<span class="badge bg-white text-secondary border"><i class="bi bi-rulers me-1"></i>${c.nombre}${unitTxt} (se registra al tomar medición)</span>`;
+                    }).join(' ');
+
+                    systemInfoContainer.html(`
+                        <div class="p-2 bg-white rounded border small text-muted d-flex flex-wrap align-items-center gap-2">
+                            <span class="fw-semibold text-dark"><i class="bi bi-layers me-1 text-primary"></i>Campos base de plantilla:</span>
+                            ${baseBadges}
+                        </div>
+                    `);
+                }
+
+                // 2. Construir lista unificada de campos editables en el sensor:
+                //    a) Todos los campos específicos de la plantilla asignada (ej: voltaje, corriente, presion, lote, propietario, etc.)
+                //    b) Cualquier metadato extra que el sensor ya tenga guardado en BD (ej: importado por CSV) y que no esté en la plantilla
+                const renderedFieldNames = new Set();
+                let html = '';
+
+                editableTemplateFields.forEach(field => {
+                    renderedFieldNames.add(field.nombre);
+
+                    const isSensorContext = field.contexto === 'sensor';
+                    const isRequired = isSensorContext && Boolean(field.requerido);
+                    const requiredAttr = isRequired ? 'required' : '';
+                    const reqAsterisk = isRequired ? '<span class="text-danger">*</span>' : '';
+
+                    let inputType = 'text';
+                    if (field.tipo === 'numero') inputType = 'number';
+                    if (field.tipo === 'fecha') inputType = 'date';
+
+                    const unitLabel = field.unidad ? `<span class="badge bg-secondary-subtle text-secondary ms-1">${field.unidad}</span>` : '';
+                    const contextBadge = isSensorContext
+                        ? `<span class="badge bg-info-subtle text-info border border-info-subtle ms-auto" style="font-size:0.68rem;">Atributo de Sensor</span>`
+                        : `<span class="badge bg-primary-subtle text-primary border border-primary-subtle ms-auto" style="font-size:0.68rem;">Parámetro de Plantilla</span>`;
+
+                    const placeholder = field.unidad ? `Valor en ${field.unidad}` : 'Ingresar valor (opcional)';
+
+                    let currentValue = (existingMetadata && existingMetadata[field.nombre] !== undefined && existingMetadata[field.nombre] !== null)
+                        ? existingMetadata[field.nombre]
+                        : (field.valor_por_defecto ?? '');
+
+                    if (currentValue === '' && $('#is_community').val() == '1' && inputType === 'text') {
+                        currentValue = 'Área Común';
+                    }
+
+                    if (field.tipo === 'booleano') {
+                        html += `
+                            <div class="col-md-6">
+                                <label class="form-label d-flex align-items-center mb-1">
+                                    <span class="fw-semibold">${formatFieldLabel(field.nombre)}</span> ${reqAsterisk} ${unitLabel} ${contextBadge}
+                                </label>
+                                <select class="form-select" name="metadata[${field.nombre}]" ${requiredAttr}>
+                                    <option value="" ${currentValue === '' ? 'selected' : ''}>Sin especificar</option>
+                                    <option value="1" ${String(currentValue) === '1' || currentValue === true ? 'selected' : ''}>Sí</option>
+                                    <option value="0" ${String(currentValue) === '0' || currentValue === false ? 'selected' : ''}>No</option>
+                                </select>
+                            </div>
+                        `;
+                    } else {
+                        html += `
+                            <div class="col-md-6">
+                                <label class="form-label d-flex align-items-center mb-1">
+                                    <span class="fw-semibold">${formatFieldLabel(field.nombre)}</span> ${reqAsterisk} ${unitLabel} ${contextBadge}
+                                </label>
+                                <div class="input-group">
+                                    <input type="${inputType}" step="any" class="form-control" name="metadata[${field.nombre}]" value="${String(currentValue).replace(/"/g, '&quot;')}" placeholder="${$('#is_community').val() == '1' && inputType === 'text' ? 'Ej: Área Común Central' : placeholder}" ${requiredAttr}>
+                                    ${field.unidad ? `<span class="input-group-text bg-white text-muted">${field.unidad}</span>` : ''}
+                                </div>
+                                ${field.valor_por_defecto ? '<div class="form-text small">Referencia por defecto: ' + field.valor_por_defecto + '</div>' : ''}
+                            </div>
+                        `;
+                    }
+                });
+
+                // 3. Agregar campos existentes en existingMetadata que no estén en la plantilla ni sean internos
+                if (existingMetadata && typeof existingMetadata === 'object') {
+                    Object.keys(existingMetadata).forEach(key => {
+                        if (renderedFieldNames.has(key) || internalMetadataKeys.includes(key) || structuralMeasurementFields.includes(key)) {
+                            return;
+                        }
+                        const val = existingMetadata[key];
+                        if (val !== null && typeof val === 'object') {
+                            return;
+                        }
+                        renderedFieldNames.add(key);
+                        const safeVal = val !== undefined && val !== null ? String(val).replace(/"/g, '&quot;') : '';
+                        html += `
+                            <div class="col-md-6">
+                                <label class="form-label d-flex align-items-center mb-1">
+                                    <span class="fw-semibold">${formatFieldLabel(key)}</span>
+                                    <span class="badge bg-secondary-subtle text-secondary border ms-auto" style="font-size:0.68rem;">Metadato Guardado</span>
+                                </label>
+                                <input type="text" class="form-control" name="metadata[${key}]" value="${safeVal}" placeholder="Ingresar valor">
+                            </div>
+                        `;
+                    });
+                }
+
+                if (html !== '' || baseFields.length > 0) {
+                    if (html === '') {
+                        fieldsContainer.html(`
+                            <div class="col-12">
+                                <div class="text-muted small fst-italic">
+                                    <i class="bi bi-info-circle me-1"></i> Esta plantilla solo utiliza los campos base de lectura (identificador, valor y foto).
+                                </div>
+                            </div>
+                        `);
+                    } else {
+                        fieldsContainer.html(html);
+                    }
+                    container.fadeIn('fast');
+                } else {
+                    container.hide();
+                }
+            }
+
+            function loadGroupFields(groupId) {
+                if (!groupId) {
+                    $('#dynamic-metadata-container').hide();
+                    return;
+                }
+
+                // 1. Carga inmediata desde el mapa pre-cargado por PHP
+                if (groupTemplatesMap[groupId]) {
+                    renderTemplateFields(groupTemplatesMap[groupId]);
+                    return;
+                }
+
+                // 2. Fallback vía API si el grupo no estaba en el mapa inicial
                 const token = localStorage.getItem('token');
                 if (!token) return;
 
@@ -200,42 +377,7 @@
                     },
                     success: function (response) {
                         if (response.success && response.data && response.data.template) {
-                            const schema = response.data.template.schema;
-                            if (schema && schema.campos) {
-                                // Evitamos volver a renderizar 'identificador' dinámicamente porque ya es un campo principal (identifier)
-                                const sensorFields = schema.campos.filter(c => c.contexto === 'sensor' && c.nombre !== 'identificador');
-
-                                if (sensorFields.length > 0) {
-                                    let html = '';
-                                    sensorFields.forEach(field => {
-                                        const requiredAttr = field.requerido ? 'required' : '';
-                                        const reqAsterisk = field.requerido ? '<span class="text-danger">*</span>' : '';
-
-                                        let inputType = 'text';
-                                        if (field.tipo === 'numero') inputType = 'number';
-                                        if (field.tipo === 'fecha') inputType = 'date';
-
-                                        const placeholder = field.unidad ? `(${field.unidad})` : 'Ingresar valor';
-
-                                        // ✅ Usar valor preexistente si lo hay, si no el por defecto (o sugerencia de Área Común)
-                                        let currentValue = existingMetadata[field.nombre] !== undefined ? existingMetadata[field.nombre] : '';
-
-                                        if (currentValue === '' && $('#is_community').val() == '1' && inputType === 'text') {
-                                            currentValue = 'Área Común';
-                                        }
-
-                                        html += `
-                                                                <div class="mb-3">
-                                                                    <label class="form-label">${field.nombre} ${reqAsterisk}</label>
-                                                                    <input type="${inputType}" step="any" class="form-control" name="metadata[${field.nombre}]" value="${currentValue}" placeholder="${$('#is_community').val() == '1' ? 'Ej: Área Común Central' : placeholder}" ${requiredAttr}>
-                                                                    ${field.valor_por_defecto ? '<div class="form-text">Referencia: ' + field.valor_por_defecto + '</div>' : ''}
-                                                                </div>
-                                                            `;
-                                    });
-                                    fieldsContainer.html(html);
-                                    container.fadeIn();
-                                }
-                            }
+                            renderTemplateFields(response.data.template);
                         }
                     }
                 });

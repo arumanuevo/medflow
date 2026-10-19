@@ -19,7 +19,7 @@ class SensorViewController extends Controller
                 ->orWhereHas('sharedAccess', function ($q) use ($user) {
                     $q->where('shared_with', $user->id);
                 });
-        })->with(['user', 'template'])
+        })->with(['user', 'template.parent'])
             ->orderBy('name')
             ->get();
 
@@ -37,18 +37,28 @@ class SensorViewController extends Controller
     public function edit(Sensor $sensor)
     {
         $user = auth()->user();
-        $canEdit = $user->hasRole('admin') || ($sensor->group && $sensor->group->user_id === $user->id);
+        $sensor->load(['group.template.parent']);
+
+        $canEdit = $user->hasRole('admin') ||
+            ($sensor->group && $sensor->group->user_id === $user->id) ||
+            ($sensor->group && $sensor->group->sharedAccess()
+                ->where('shared_with', $user->id)
+                ->whereIn('role', ['inspector', 'admin'])
+                ->exists());
 
         if (!$canEdit) {
             abort(403, 'No tienes permiso para editar este sensor.');
         }
 
-        $groups = SensorGroup::where(function ($query) use ($user) {
+        $groups = SensorGroup::where(function ($query) use ($user, $sensor) {
             $query->where('user_id', $user->id)
                 ->orWhereHas('sharedAccess', function ($q) use ($user) {
                     $q->where('shared_with', $user->id);
                 });
-        })->with(['user', 'template'])
+            if ($sensor->group_id) {
+                $query->orWhere('id', $sensor->group_id);
+            }
+        })->with(['user', 'template.parent'])
             ->orderBy('name')
             ->get();
 
