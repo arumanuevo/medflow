@@ -515,16 +515,61 @@
         </div>
     </div>
 
-    <!-- Modal para ver foto en grande -->
+    <!-- Modal para ver foto en grande con Zoom, Paneo, Rotación y Mejora de Lectura -->
     <div class="modal fade" id="photoModal" tabindex="-1" aria-labelledby="photoModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="photoModalLabel">Evidencia Fotográfica</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body text-center">
-                    <img id="modalPhoto" src="" class="img-fluid mb-3" style="max-height: 50vh;" alt="Foto de la medición">
+                    {{-- Barra de herramientas de Zoom / Rotación / Contraste --}}
+                    <div id="photoZoomToolbar" class="d-flex flex-wrap justify-content-center align-items-center gap-2 mb-2 p-2 bg-light border rounded-3">
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Controles de Zoom">
+                            <button type="button" class="btn btn-outline-secondary" id="btnZoomOut" title="Alejar (-)">
+                                <i class="bi bi-zoom-out"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary fw-bold px-2" id="btnZoomReset" title="Restablecer vista (100%)" style="min-width: 62px;">
+                                100%
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" id="btnZoomIn" title="Acercar (+)">
+                                <i class="bi bi-zoom-in"></i>
+                            </button>
+                        </div>
+
+                        <div class="d-flex align-items-center gap-1 px-1" style="width: 140px;">
+                            <input type="range" class="form-range" id="photoZoomSlider" min="1" max="5" step="0.1" value="1" title="Nivel de Zoom (100% a 500%)">
+                        </div>
+
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Controles de Rotación">
+                            <button type="button" class="btn btn-outline-secondary" id="btnRotateLeft" title="Girar 90° a la izquierda">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" id="btnRotateRight" title="Girar 90° a la derecha">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </button>
+                        </div>
+
+                        <button type="button" class="btn btn-sm btn-outline-dark" id="btnEnhancePhoto" title="Aumentar contraste y nitidez para leer mejor los dígitos del medidor">
+                            <i class="bi bi-brightness-high"></i> Mejorar lectura
+                        </button>
+                    </div>
+
+                    {{-- Visor interactivo con soporte de Rueda de Mouse, Arrastrar (Pan) y Doble Clic --}}
+                    <div id="photoViewerViewport"
+                         class="position-relative overflow-hidden rounded-3 border bg-dark d-flex align-items-center justify-content-center mb-2"
+                         style="height: 54vh; cursor: grab; user-select: none; touch-action: none;">
+                        <img id="modalPhoto"
+                             src=""
+                             alt="Foto de la medición"
+                             draggable="false"
+                             style="max-height: 100%; max-width: 100%; object-fit: contain; transform-origin: center center; transition: transform 0.08s ease-out; will-change: transform;">
+                        <div class="position-absolute bottom-0 start-50 translate-middle-x mb-2 px-2 py-1 rounded bg-dark bg-opacity-75 text-white-50"
+                             style="font-size: 0.7rem; pointer-events: none;">
+                            💡 Usa la rueda del mouse o el control superior para hacer zoom · Arrastra para mover · Doble clic para acercar (2.5x)
+                        </div>
+                    </div>
 
                     <div id="photoUploadContainer" class="mt-3 p-3 bg-light rounded text-start">
                         <label class="form-label fw-bold">Adjuntar o Reemplazar Foto (Manual)</label>
@@ -829,6 +874,11 @@
                     const photoPath = $(this).data('photo-path');
                     const mId = $(this).data('measurement-id');
                     $('#modalPhoto').attr('src', photoPath).show();
+                    $('#photoZoomToolbar').removeClass('d-none').addClass('d-flex');
+                    $('#photoViewerViewport').removeClass('d-none').addClass('d-flex');
+                    if (typeof resetPhotoZoomState === 'function') {
+                        resetPhotoZoomState();
+                    }
                     $('#downloadPhoto').attr('href', photoPath).show();
                     $('#uploadPhotoMeasurementsId').val(mId);
                     $('#photoModalLabel').text('Ver/Reemplazar Foto');
@@ -840,6 +890,8 @@
                 $('.editPhotoBtn').click(function () {
                     const mId = $(this).data('measurement-id');
                     $('#modalPhoto').hide();
+                    $('#photoZoomToolbar').removeClass('d-flex').addClass('d-none');
+                    $('#photoViewerViewport').removeClass('d-flex').addClass('d-none');
                     $('#downloadPhoto').hide();
                     $('#uploadPhotoMeasurementsId').val(mId);
                     $('#photoModalLabel').text('Subir Foto Manual');
@@ -1519,6 +1571,163 @@
 
                 loadMeasurements();
             });
+
+            // =========================================================
+            // 🔍 CONTROL INTERACTIVO DE ZOOM, PANEO, ROTACIÓN Y CONTRASTE EN FOTOS
+            // =========================================================
+            let photoZoom = 1;
+            let photoPanX = 0;
+            let photoPanY = 0;
+            let photoRotate = 0;
+            let photoEnhanced = false;
+            let isDraggingPhoto = false;
+            let dragStartX = 0;
+            let dragStartY = 0;
+
+            const viewportEl = document.getElementById('photoViewerViewport');
+            const photoEl = document.getElementById('modalPhoto');
+            const zoomSliderEl = document.getElementById('photoZoomSlider');
+            const zoomResetBtn = document.getElementById('btnZoomReset');
+            const enhanceBtn = document.getElementById('btnEnhancePhoto');
+
+            function applyPhotoTransform() {
+                if (!photoEl) return;
+                if (photoZoom <= 1) {
+                    photoPanX = 0;
+                    photoPanY = 0;
+                }
+                photoEl.style.transform = `translate(${photoPanX}px, ${photoPanY}px) scale(${photoZoom}) rotate(${photoRotate}deg)`;
+                photoEl.style.filter = photoEnhanced ? 'contrast(1.4) brightness(1.08) saturate(1.15)' : 'none';
+                if (zoomResetBtn) {
+                    zoomResetBtn.innerText = Math.round(photoZoom * 100) + '%';
+                }
+                if (zoomSliderEl) {
+                    zoomSliderEl.value = photoZoom;
+                }
+                if (viewportEl) {
+                    viewportEl.style.cursor = isDraggingPhoto ? 'grabbing' : (photoZoom > 1 ? 'grab' : 'zoom-in');
+                }
+            }
+
+            window.resetPhotoZoomState = function () {
+                photoZoom = 1;
+                photoPanX = 0;
+                photoPanY = 0;
+                photoRotate = 0;
+                photoEnhanced = false;
+                if (enhanceBtn) {
+                    enhanceBtn.classList.remove('btn-warning', 'fw-bold');
+                    enhanceBtn.classList.add('btn-outline-dark');
+                }
+                applyPhotoTransform();
+            };
+
+            function setPhotoZoomLevel(newZoom) {
+                photoZoom = Math.min(5, Math.max(1, parseFloat(newZoom.toFixed(2))));
+                applyPhotoTransform();
+            }
+
+            $('#btnZoomIn').click(function () {
+                setPhotoZoomLevel(photoZoom + 0.35);
+            });
+
+            $('#btnZoomOut').click(function () {
+                setPhotoZoomLevel(photoZoom - 0.35);
+            });
+
+            $('#btnZoomReset').click(function () {
+                window.resetPhotoZoomState();
+            });
+
+            $('#photoZoomSlider').on('input', function () {
+                setPhotoZoomLevel(parseFloat(this.value) || 1);
+            });
+
+            $('#btnRotateLeft').click(function () {
+                photoRotate = (photoRotate - 90) % 360;
+                applyPhotoTransform();
+            });
+
+            $('#btnRotateRight').click(function () {
+                photoRotate = (photoRotate + 90) % 360;
+                applyPhotoTransform();
+            });
+
+            $('#btnEnhancePhoto').click(function () {
+                photoEnhanced = !photoEnhanced;
+                $(this).toggleClass('btn-outline-dark', !photoEnhanced)
+                       .toggleClass('btn-warning fw-bold', photoEnhanced);
+                applyPhotoTransform();
+            });
+
+            if (viewportEl) {
+                // Zoom con rueda del mouse
+                viewportEl.addEventListener('wheel', function (e) {
+                    e.preventDefault();
+                    const delta = e.deltaY < 0 ? 0.25 : -0.25;
+                    setPhotoZoomLevel(photoZoom + delta);
+                }, { passive: false });
+
+                // Doble clic para alternar rápido entre 100% y 250%
+                viewportEl.addEventListener('dblclick', function (e) {
+                    e.preventDefault();
+                    if (photoZoom > 1.1) {
+                        photoZoom = 1;
+                        photoPanX = 0;
+                        photoPanY = 0;
+                    } else {
+                        photoZoom = 2.5;
+                    }
+                    applyPhotoTransform();
+                });
+
+                // Arrastrar con el mouse (Pan)
+                viewportEl.addEventListener('mousedown', function (e) {
+                    if (photoZoom <= 1) return;
+                    isDraggingPhoto = true;
+                    dragStartX = e.clientX - photoPanX;
+                    dragStartY = e.clientY - photoPanY;
+                    if (photoEl) photoEl.style.transition = 'none';
+                    applyPhotoTransform();
+                });
+
+                window.addEventListener('mousemove', function (e) {
+                    if (!isDraggingPhoto) return;
+                    photoPanX = e.clientX - dragStartX;
+                    photoPanY = e.clientY - dragStartY;
+                    applyPhotoTransform();
+                });
+
+                window.addEventListener('mouseup', function () {
+                    if (!isDraggingPhoto) return;
+                    isDraggingPhoto = false;
+                    if (photoEl) photoEl.style.transition = 'transform 0.08s ease-out';
+                    applyPhotoTransform();
+                });
+
+                // Soporte táctil para arrastrar en tablets/celulares
+                viewportEl.addEventListener('touchstart', function (e) {
+                    if (photoZoom <= 1 || e.touches.length !== 1) return;
+                    isDraggingPhoto = true;
+                    dragStartX = e.touches[0].clientX - photoPanX;
+                    dragStartY = e.touches[0].clientY - photoPanY;
+                    if (photoEl) photoEl.style.transition = 'none';
+                }, { passive: true });
+
+                viewportEl.addEventListener('touchmove', function (e) {
+                    if (!isDraggingPhoto || e.touches.length !== 1) return;
+                    e.preventDefault();
+                    photoPanX = e.touches[0].clientX - dragStartX;
+                    photoPanY = e.touches[0].clientY - dragStartY;
+                    applyPhotoTransform();
+                }, { passive: false });
+
+                viewportEl.addEventListener('touchend', function () {
+                    if (!isDraggingPhoto) return;
+                    isDraggingPhoto = false;
+                    if (photoEl) photoEl.style.transition = 'transform 0.08s ease-out';
+                });
+            }
 
             // Cargar mediciones al inicio
             loadMeasurements();
