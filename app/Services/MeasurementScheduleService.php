@@ -679,6 +679,7 @@ class MeasurementScheduleService
                 'total_sensors' => $total,
                 'pending_sensor_ids' => ($actionableCount > 0 ? $actionableEvals : $pendingEvals)->pluck('sensor_id')->values()->toArray(),
                 'overdue_sensor_ids' => $overdueEvals->pluck('sensor_id')->values()->toArray(),
+                'all_sensor_ids' => $evals->pluck('sensor_id')->values()->toArray(),
                 'breakdown' => [
                     'overdue' => $overdueCount,
                     'in_tolerance' => $inToleranceCount,

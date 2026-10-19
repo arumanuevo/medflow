@@ -171,12 +171,19 @@
                                     Fecha: <strong>{{ $alert['target_date_formatted'] }}</strong> (Tol: +{{ $alert['tolerance_days'] }}d)
                                 </small>
                                 <div class="d-flex flex-wrap gap-1">
+                                    <button type="button"
+                                            class="btn btn-sm btn-dark py-0 px-2"
+                                            style="font-size: 0.72rem;"
+                                            title="Asignar estos sensores a un Inspector en la App Móvil (Flutter / Offline) mediante Token"
+                                            onclick="openDashboardMobileInvite({{ $alert['entity_id'] }})">
+                                        <i class="bi bi-phone-fill text-info"></i> Enviar a App
+                                    </button>
                                     @if(count($overdueIds) > 0 && count($overdueIds) < count($allPendingIds))
                                         <form method="POST" action="{{ route('bulk-measurements.start') }}" class="d-inline">
                                             @csrf
                                             <input type="hidden" name="sensor_ids" value="{{ implode(',', $overdueIds) }}">
                                             <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size: 0.72rem;">
-                                                <i class="bi bi-exclamation-circle"></i> Vencidos ({{ count($overdueIds) }})
+                                                <i class="bi bi-exclamation-circle"></i> Vencidos Web ({{ count($overdueIds) }})
                                             </button>
                                         </form>
                                     @endif
@@ -185,7 +192,7 @@
                                             @csrf
                                             <input type="hidden" name="sensor_ids" value="{{ implode(',', $allPendingIds) }}">
                                             <button type="submit" class="btn btn-sm btn-primary py-0 px-2" style="font-size: 0.75rem;">
-                                                <i class="bi bi-play-fill"></i> Medir ({{ count($allPendingIds) }})
+                                                <i class="bi bi-laptop"></i> Medir Web ({{ count($allPendingIds) }})
                                             </button>
                                         </form>
                                     @endif
@@ -316,4 +323,268 @@
         </div>
     @endif
 @endauth
+
+{{-- Modal de Asignación a Inspector Móvil (App Flutter / Offline) desde Dashboard --}}
+<div class="modal fade" id="dashboardMobileInviteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header bg-dark text-white" style="border-radius: 16px 16px 0 0;">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-phone-fill text-info me-2"></i>
+                    Asignar Toma a Inspector Móvil (App Flutter)
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-muted small mb-3">
+                    Genera un <strong>Token de Inspección Remota</strong> para la App Móvil de MedFlow (con soporte <strong>Offline</strong>).
+                    El inspector solo verá y medirá los sensores que determines aquí.
+                </p>
+
+                <div class="p-3 rounded-3 bg-light border mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-bold text-dark small" id="dashMobileInviteTitle">
+                            <i class="bi bi-folder-fill text-primary me-1"></i> Grupo seleccionado
+                        </span>
+                        <span class="badge bg-primary" id="dashMobileInviteBadge">0 sensores</span>
+                    </div>
+
+                    <label class="form-label small fw-bold text-dark mb-1">
+                        1. ¿Qué sensores deseas incluir en el Token del Inspector?
+                    </label>
+                    <div class="d-flex flex-column gap-2">
+                        <div class="form-check" id="dashScopePendingWrap">
+                            <input class="form-check-input" type="radio" name="dash_mobile_scope" id="dashScopePending" value="pending" checked onchange="updateDashMobileInviteScope()">
+                            <label class="form-check-label small" for="dashScopePending">
+                                ⏳ <strong>Todos los pendientes por medir</strong> (<span id="dashScopePendingCount">0</span> sensores)
+                            </label>
+                        </div>
+                        <div class="form-check" id="dashScopeOverdueWrap">
+                            <input class="form-check-input" type="radio" name="dash_mobile_scope" id="dashScopeOverdue" value="overdue" onchange="updateDashMobileInviteScope()">
+                            <label class="form-check-label small text-danger fw-semibold" for="dashScopeOverdue">
+                                🔴 <strong>Únicamente los sensores Vencidos urgentes</strong> (<span id="dashScopeOverdueCount">0</span> sensores)
+                            </label>
+                        </div>
+                        <div class="form-check" id="dashScopeAllWrap">
+                            <input class="form-check-input" type="radio" name="dash_mobile_scope" id="dashScopeAll" value="all" onchange="updateDashMobileInviteScope()">
+                            <label class="form-check-label small text-muted" for="dashScopeAll">
+                                📦 <strong>Todos los sensores del grupo</strong> (<span id="dashScopeAllCount">0</span> sensores)
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center">
+                        <small class="text-muted" style="font-size: 0.72rem;">¿Quieres elegir sensores manualmente?</small>
+                        <a href="#" id="dashLinkCustomizeBulk" class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold" style="font-size: 0.75rem;">
+                            <i class="bi bi-check2-square"></i> Ajustar en Tabla Masiva
+                        </a>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="dashInviteEmail" class="form-label fw-semibold small text-dark">
+                        2. Email del Inspector <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="bi bi-envelope text-primary"></i></span>
+                        <input type="email" id="dashInviteEmail" class="form-control" placeholder="inspector@empresa.com">
+                    </div>
+                    <div class="form-text" style="font-size: 0.73rem;">
+                        Al enviar, también podrás copiar el enlace/token o enviarlo por <strong>WhatsApp</strong>.
+                    </div>
+                </div>
+
+                <input type="hidden" id="dashInviteGroupId" value="0">
+                <input type="hidden" id="dashInviteSensorIds" value="">
+                <input type="hidden" id="dashInviteLimit" value="0">
+
+                <div id="dashInviteResultMsg" class="d-none mt-3"></div>
+            </div>
+            <div class="modal-footer bg-light" style="border-radius: 0 0 16px 16px;">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary btn-sm fw-bold px-3" id="btnSendDashMobileInvite" onclick="sendDashMobileInvite()">
+                    <i class="bi bi-send-check me-1"></i>
+                    <span id="btnSendDashMobileInviteText">Generar Token y Enviar</span>
+                    <span id="btnSendDashMobileInviteSpinner" class="spinner-border spinner-border-sm d-none ms-1"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+    const dashAlertsByGroupMap = @json(collect($scheduleAlerts['actionable'] ?? [])->keyBy('entity_id'));
+    let dashMobileCtx = { group_id: 0, title: '', pending_ids: [], overdue_ids: [], all_ids: [] };
+
+    function openDashboardMobileInvite(groupId) {
+        const alertItem = dashAlertsByGroupMap[groupId];
+        if (!alertItem) return;
+
+        dashMobileCtx = {
+            group_id: groupId,
+            title: alertItem.title || ('Grupo #' + groupId),
+            pending_ids: alertItem.pending_sensor_ids || [],
+            overdue_ids: alertItem.overdue_sensor_ids || [],
+            all_ids: alertItem.all_sensor_ids || alertItem.pending_sensor_ids || []
+        };
+
+        document.getElementById('dashMobileInviteTitle').innerHTML = `<i class="bi bi-folder-fill text-primary me-1"></i> ${dashMobileCtx.title}`;
+        document.getElementById('dashScopePendingCount').innerText = dashMobileCtx.pending_ids.length;
+        document.getElementById('dashScopeOverdueCount').innerText = dashMobileCtx.overdue_ids.length;
+        document.getElementById('dashScopeAllCount').innerText = dashMobileCtx.all_ids.length;
+
+        const hasOverdue = dashMobileCtx.overdue_ids.length > 0;
+        const hasPending = dashMobileCtx.pending_ids.length > 0;
+        document.getElementById('dashScopeOverdueWrap').classList.toggle('d-none', !hasOverdue);
+        document.getElementById('dashScopePendingWrap').classList.toggle('d-none', !hasPending);
+
+        if (hasPending) {
+            document.getElementById('dashScopePending').checked = true;
+        } else if (hasOverdue) {
+            document.getElementById('dashScopeOverdue').checked = true;
+        } else {
+            document.getElementById('dashScopeAll').checked = true;
+        }
+
+        document.getElementById('dashInviteGroupId').value = groupId;
+        document.getElementById('dashInviteResultMsg').classList.add('d-none');
+        document.getElementById('dashInviteResultMsg').innerHTML = '';
+
+        const btn = document.getElementById('btnSendDashMobileInvite');
+        btn.disabled = false;
+        document.getElementById('btnSendDashMobileInviteText').innerText = 'Generar Token y Enviar';
+        document.getElementById('btnSendDashMobileInviteSpinner').classList.add('d-none');
+
+        updateDashMobileInviteScope();
+        new bootstrap.Modal(document.getElementById('dashboardMobileInviteModal')).show();
+    }
+
+    function updateDashMobileInviteScope() {
+        const selected = document.querySelector('input[name="dash_mobile_scope"]:checked')?.value || 'pending';
+        let ids = [];
+        if (selected === 'overdue') {
+            ids = dashMobileCtx.overdue_ids;
+        } else if (selected === 'all') {
+            ids = dashMobileCtx.all_ids;
+        } else {
+            ids = dashMobileCtx.pending_ids;
+        }
+        document.getElementById('dashInviteSensorIds').value = ids.join(',');
+        document.getElementById('dashInviteLimit').value = ids.length;
+        document.getElementById('dashMobileInviteBadge').innerText = `${ids.length} sensor(es)`;
+        document.getElementById('dashLinkCustomizeBulk').href = `{{ route('bulk-measurements.select') }}?preselect_ids=${encodeURIComponent(ids.join(','))}`;
+    }
+
+    function sendDashMobileInvite() {
+        const email = (document.getElementById('dashInviteEmail').value || '').trim();
+        const sensorIds = document.getElementById('dashInviteSensorIds').value;
+        const limit = parseInt(document.getElementById('dashInviteLimit').value) || 0;
+        const groupId = parseInt(document.getElementById('dashInviteGroupId').value) || 0;
+        const msgDiv = document.getElementById('dashInviteResultMsg');
+        const btn = document.getElementById('btnSendDashMobileInvite');
+        const btnText = document.getElementById('btnSendDashMobileInviteText');
+        const spinner = document.getElementById('btnSendDashMobileInviteSpinner');
+
+        if (!email) {
+            msgDiv.innerHTML = '<div class="alert alert-warning py-2 small mb-0">Por favor ingresa el correo electrónico del inspector.</div>';
+            msgDiv.classList.remove('d-none');
+            return;
+        }
+        if (limit === 0 || !sensorIds) {
+            msgDiv.innerHTML = '<div class="alert alert-warning py-2 small mb-0">No hay sensores seleccionados.</div>';
+            msgDiv.classList.remove('d-none');
+            return;
+        }
+
+        btn.disabled = true;
+        spinner.classList.remove('d-none');
+        btnText.innerText = 'Generando token...';
+        msgDiv.classList.add('d-none');
+
+        const headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        };
+        const bearer = localStorage.getItem('token');
+        if (bearer) headers['Authorization'] = 'Bearer ' + bearer;
+
+        fetch('{{ route('schedule.invite-mobile') }}', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({
+                email: email,
+                sensor_limit: limit,
+                sensor_ids: sensorIds,
+                group_id: groupId
+            })
+        })
+        .then(async res => {
+            const text = await res.text();
+            if (!res.ok) {
+                let snippet = text.substring(0, 250).replace(/</g, '&lt;');
+                msgDiv.innerHTML = `<div class="alert alert-danger py-2 small mb-0">❌ Error (${res.status}):<br><code style="font-size:11px">${snippet}</code></div>`;
+                msgDiv.classList.remove('d-none');
+                btn.disabled = false;
+                btnText.innerText = 'Generar Token y Enviar';
+                spinner.classList.add('d-none');
+                return null;
+            }
+            try { return JSON.parse(text); } catch { return null; }
+        })
+        .then(data => {
+            if (!data) return;
+            if (data.success) {
+                const linkText = data.invite_link || '';
+                const rawToken = data.token || '';
+                const alertClass = data.mail_sent === false ? 'alert-warning' : 'alert-success';
+                const alertIcon = data.mail_sent === false ? '⚠️' : '✅';
+                msgDiv.innerHTML = `
+                    <div class="alert ${alertClass} py-2 small mb-2">
+                        ${alertIcon} ${data.message}
+                        <div class="mt-1 text-muted" style="font-size: 0.72rem;">
+                            Alcance asignado: <strong>${limit} sensor(es)</strong> (${dashMobileCtx.title}).
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold mb-1" style="font-size: 0.72rem;">Enlace de Autorización Directa (App Flutter):</label>
+                        <div class="d-flex align-items-center gap-1">
+                            <input type="text" class="form-control form-control-sm" value="${linkText}" readonly id="dashInviteLinkInput">
+                            <button type="button" class="btn btn-sm btn-outline-secondary text-nowrap" onclick="navigator.clipboard.writeText(document.getElementById('dashInviteLinkInput').value); this.innerText='¡Copiado!'; setTimeout(()=>this.innerText='Copiar', 2000);">Copiar</button>
+                            <a href="https://api.whatsapp.com/send?text=${encodeURIComponent('Hola! Aquí tienes el enlace y token para tomar las ' + limit + ' mediciones pendientes de ' + dashMobileCtx.title + ' en la App MedFlow Inspector: ' + linkText)}" target="_blank" class="btn btn-sm btn-success text-nowrap">
+                                <i class="bi bi-whatsapp"></i> WhatsApp
+                            </a>
+                        </div>
+                    </div>
+                    ${rawToken ? `
+                    <div>
+                        <label class="form-label small fw-bold mb-1" style="font-size: 0.72rem;">Token manual para pegar en la App Flutter:</label>
+                        <div class="d-flex align-items-center gap-1">
+                            <input type="text" class="form-control form-control-sm font-monospace" value="${rawToken}" readonly id="dashInviteRawTokenInput">
+                            <button type="button" class="btn btn-sm btn-outline-dark text-nowrap" onclick="navigator.clipboard.writeText(document.getElementById('dashInviteRawTokenInput').value); this.innerText='¡Copiado!'; setTimeout(()=>this.innerText='Copiar Token', 2000);">Copiar Token</button>
+                        </div>
+                    </div>` : ''}
+                `;
+                btn.disabled = false;
+                btnText.innerText = 'Generar Nuevo Token';
+                spinner.classList.add('d-none');
+            } else {
+                msgDiv.innerHTML = `<div class="alert alert-danger py-2 small mb-0">❌ ${data.message || 'Error al generar token.'}</div>`;
+                btn.disabled = false;
+                btnText.innerText = 'Generar Token y Enviar';
+                spinner.classList.add('d-none');
+            }
+            msgDiv.classList.remove('d-none');
+        })
+        .catch(err => {
+            msgDiv.innerHTML = `<div class="alert alert-danger py-2 small mb-0">❌ Error de red: ${err.message}</div>`;
+            msgDiv.classList.remove('d-none');
+            btn.disabled = false;
+            btnText.innerText = 'Generar Token y Enviar';
+            spinner.classList.add('d-none');
+        });
+    }
+</script>
+@endpush
 @endsection

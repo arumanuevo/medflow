@@ -266,12 +266,19 @@
                                         (Tol: +{{ $alert['tolerance_days'] }}d)
                                     </small>
                                     <div class="d-flex flex-wrap gap-1">
+                                        <button type="button"
+                                                class="btn btn-sm btn-dark py-0 px-2"
+                                                style="font-size: 0.72rem;"
+                                                title="Asignar estos sensores a un Inspector en la App Móvil (Flutter / Offline) mediante Token por Email o WhatsApp"
+                                                onclick="openMobileInviteForAlertGroup({{ $alert['entity_id'] }})">
+                                            <i class="bi bi-phone-fill text-info"></i> Enviar a App
+                                        </button>
                                         @if(count($overdueIds) > 0 && count($overdueIds) < count($allPendingIds))
                                             <form method="POST" action="{{ route('bulk-measurements.start') }}" class="d-inline">
                                                 @csrf
                                                 <input type="hidden" name="sensor_ids" value="{{ implode(',', $overdueIds) }}">
-                                                <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size: 0.72rem;" title="Medir únicamente los sensores vencidos de este grupo">
-                                                    <i class="bi bi-exclamation-circle"></i> Vencidos ({{ count($overdueIds) }})
+                                                <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size: 0.72rem;" title="Cargar por Web únicamente los sensores vencidos de este grupo">
+                                                    <i class="bi bi-exclamation-circle"></i> Vencidos Web ({{ count($overdueIds) }})
                                                 </button>
                                             </form>
                                         @endif
@@ -279,8 +286,8 @@
                                             <form method="POST" action="{{ route('bulk-measurements.start') }}" class="d-inline">
                                                 @csrf
                                                 <input type="hidden" name="sensor_ids" value="{{ implode(',', $allPendingIds) }}">
-                                                <button type="submit" class="btn btn-sm btn-primary py-0 px-2" style="font-size: 0.72rem;">
-                                                    <i class="bi bi-play-fill"></i> Medir ({{ count($allPendingIds) }})
+                                                <button type="submit" class="btn btn-sm btn-primary py-0 px-2" style="font-size: 0.72rem;" title="Cargar mediciones desde la vista Web con tu usuario administrador">
+                                                    <i class="bi bi-laptop"></i> Medir Web ({{ count($allPendingIds) }})
                                                 </button>
                                             </form>
                                         @endif
@@ -537,10 +544,17 @@
                                             </small>
                                         </td>
                                         <td class="text-end">
-                                            <button type="button" class="btn btn-sm btn-outline-primary"
-                                                    onclick='editGroupSchedule({{ $g->id }}, @json($gCfg))'>
-                                                <i class="bi bi-sliders me-1"></i> Configurar
-                                            </button>
+                                            <div class="d-inline-flex gap-1">
+                                                <button type="button" class="btn btn-sm btn-outline-dark"
+                                                        title="Generar token de inspección para App Móvil (Flutter / Offline)"
+                                                        onclick="openMobileInviteForAlertGroup({{ $g->id }})">
+                                                    <i class="bi bi-phone-fill text-info"></i> Token App
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-primary"
+                                                        onclick='editGroupSchedule({{ $g->id }}, @json($gCfg))'>
+                                                    <i class="bi bi-sliders me-1"></i> Configurar
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 @empty
@@ -929,16 +943,109 @@
                 <button type="button" class="btn btn-outline-secondary" id="btnEditFromDetail">
                     <i class="bi bi-sliders me-1"></i> Editar Fecha / Tolerancia
                 </button>
-                <div class="d-flex gap-2">
+                <div class="d-flex flex-wrap gap-2">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-dark fw-semibold" id="btnMobileInviteFromDetail" onclick="openMobileInviteFromDetailModal()">
+                        <i class="bi bi-phone-fill text-info me-1"></i> Enviar a App Inspector (Token)
+                    </button>
                     <form method="POST" action="{{ route('bulk-measurements.start') }}" id="formStartBulkFromCalendar">
                         @csrf
                         <input type="hidden" name="sensor_ids" id="inputBulkSensorIds" value="">
                         <button type="submit" class="btn btn-primary fw-bold" id="btnStartBulkFromCalendar">
-                            <i class="bi bi-play-circle-fill me-1"></i> Iniciar Toma de Pendientes
+                            <i class="bi bi-laptop me-1"></i> Iniciar Toma Web
                         </button>
                     </form>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- =========================================================================
+   MODAL 3: ASIGNAR SENSORES A INSPECTOR MÓVIL (APP FLUTTER / OFFLINE TOKEN)
+   ========================================================================= --}}
+<div class="modal fade" id="scheduleMobileInviteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header bg-dark text-white" style="border-radius: 16px 16px 0 0;">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-phone-fill text-info me-2"></i>
+                    Asignar Toma a Inspector Móvil (App Flutter)
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-muted small mb-3">
+                    Genera un <strong>Token de Inspección Remota</strong> para la App Móvil de MedFlow (con soporte <strong>Offline</strong>).
+                    El inspector solo verá y medirá los sensores que determines aquí, sin necesidad de entrar al panel administrativo web.
+                </p>
+
+                <div class="p-3 rounded-3 bg-light border mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-bold text-dark small" id="mobileInviteTargetTitle">
+                            <i class="bi bi-folder-fill text-primary me-1"></i> Grupo seleccionado
+                        </span>
+                        <span class="badge bg-primary" id="mobileInviteSelectedBadge">0 sensores</span>
+                    </div>
+
+                    <label class="form-label small fw-bold text-dark mb-1">
+                        1. ¿Qué sensores deseas incluir en el Token del Inspector?
+                    </label>
+                    <div class="d-flex flex-column gap-2" id="mobileInviteScopeRadios">
+                        <div class="form-check" id="scopePendingWrap">
+                            <input class="form-check-input" type="radio" name="mobile_invite_scope" id="scopePending" value="pending" checked onchange="updateMobileInviteScopeSelection()">
+                            <label class="form-check-label small" for="scopePending">
+                                ⏳ <strong>Todos los pendientes por medir</strong> (<span id="scopePendingCount">0</span> sensores)
+                            </label>
+                        </div>
+                        <div class="form-check" id="scopeOverdueWrap">
+                            <input class="form-check-input" type="radio" name="mobile_invite_scope" id="scopeOverdue" value="overdue" onchange="updateMobileInviteScopeSelection()">
+                            <label class="form-check-label small text-danger fw-semibold" for="scopeOverdue">
+                                🔴 <strong>Únicamente los sensores Vencidos urgentes</strong> (<span id="scopeOverdueCount">0</span> sensores)
+                            </label>
+                        </div>
+                        <div class="form-check" id="scopeAllWrap">
+                            <input class="form-check-input" type="radio" name="mobile_invite_scope" id="scopeAll" value="all" onchange="updateMobileInviteScopeSelection()">
+                            <label class="form-check-label small text-muted" for="scopeAll">
+                                📦 <strong>Todos los sensores del lote/grupo</strong> (<span id="scopeAllCount">0</span> sensores)
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mt-2 pt-2 border-top d-flex justify-content-between align-items-center">
+                        <small class="text-muted" style="font-size: 0.72rem;">¿Quieres elegir sensores manualmente uno por uno?</small>
+                        <a href="#" id="linkCustomizeInBulkSelect" class="btn btn-link btn-sm p-0 text-decoration-none fw-semibold" style="font-size: 0.75rem;">
+                            <i class="bi bi-check2-square"></i> Ajustar en Tabla Masiva
+                        </a>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="scheduleInviteEmail" class="form-label fw-semibold small text-dark">
+                        2. Email del Inspector (Recibirá el Token y Enlace directo) <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="bi bi-envelope text-primary"></i></span>
+                        <input type="email" id="scheduleInviteEmail" class="form-control" placeholder="inspector@empresa.com">
+                    </div>
+                    <div class="form-text" style="font-size: 0.73rem;">
+                        Al enviar, también podrás <strong>copiar el enlace o el token</strong> directamente o enviarlo por <strong>WhatsApp</strong>.
+                    </div>
+                </div>
+
+                <input type="hidden" id="scheduleInviteGroupId" value="0">
+                <input type="hidden" id="scheduleInviteSensorIds" value="">
+                <input type="hidden" id="scheduleInviteLimit" value="0">
+
+                <div id="scheduleInviteResultMsg" class="d-none mt-3"></div>
+            </div>
+            <div class="modal-footer bg-light" style="border-radius: 0 0 16px 16px;">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary btn-sm fw-bold px-3" id="btnSendScheduleMobileInvite" onclick="sendScheduleMobileInvite()">
+                    <i class="bi bi-send-check me-1"></i>
+                    <span id="btnSendScheduleMobileInviteText">Generar Token y Enviar</span>
+                    <span id="btnSendScheduleMobileInviteSpinner" class="spinner-border spinner-border-sm d-none ms-1"></span>
+                </button>
             </div>
         </div>
     </div>
@@ -950,9 +1057,17 @@
     const groupsConfigMap = @json($groupsConfigMap);
     const sensorsConfigMap = @json($sensorsConfigMap);
     const calendarEventsMap = @json(collect($calendarData['all_events'])->keyBy('id'));
+    const allAlertsByGroupMap = @json(collect($activeAlerts['all'] ?? [])->keyBy('entity_id'));
     let currentDetailEvent = null;
     let currentDetailPage = 1;
     const DETAIL_PAGE_SIZE = 25;
+    let currentMobileInviteContext = {
+        group_id: 0,
+        title: '',
+        pending_ids: [],
+        overdue_ids: [],
+        all_ids: []
+    };
 
     function syncTargetTypeUI() {
         const type = document.querySelector('input[name="target_type"]:checked').value;
@@ -1173,8 +1288,8 @@
 
         document.getElementById('inputBulkSensorIds').value = (idsToMeasure || []).join(',');
         document.getElementById('btnStartBulkFromCalendar').innerHTML = (ev.pending_sensor_ids && ev.pending_sensor_ids.length > 0)
-            ? `<i class="bi bi-play-circle-fill me-1"></i> Iniciar Toma de Pendientes (${ev.pending_sensor_ids.length})`
-            : `<i class="bi bi-arrow-repeat me-1"></i> Tomar Medición Nuevamente (${(ev.all_sensor_ids || []).length})`;
+            ? `<i class="bi bi-laptop me-1"></i> Medir Web (${ev.pending_sensor_ids.length})`
+            : `<i class="bi bi-arrow-repeat me-1"></i> Medir Web Nuevamente (${(ev.all_sensor_ids || []).length})`;
 
         document.getElementById('btnEditFromDetail').onclick = function () {
             bootstrap.Modal.getInstance(document.getElementById('eventDetailModal')).hide();
@@ -1187,5 +1302,205 @@
 
         new bootstrap.Modal(document.getElementById('eventDetailModal')).show();
     }
+
+    function openMobileInviteForAlertGroup(groupId) {
+        const alertItem = allAlertsByGroupMap[groupId];
+        if (!alertItem) return;
+
+        openMobileInviteModalWithConfig({
+            group_id: groupId,
+            title: alertItem.title || ('Grupo #' + groupId),
+            pending_ids: alertItem.pending_sensor_ids || [],
+            overdue_ids: alertItem.overdue_sensor_ids || [],
+            all_ids: alertItem.all_sensor_ids || alertItem.pending_sensor_ids || []
+        });
+    }
+
+    function openMobileInviteFromDetailModal() {
+        if (!currentDetailEvent) return;
+        const detailModalEl = document.getElementById('eventDetailModal');
+        const detailInstance = bootstrap.Modal.getInstance(detailModalEl);
+        if (detailInstance) detailInstance.hide();
+
+        const details = currentDetailEvent.sensors_detail || [];
+        const overdueIds = details.filter(s => !s.is_measured && s.status === 'overdue').map(s => s.sensor_id);
+        const pendingIds = currentDetailEvent.pending_sensor_ids || [];
+        const allIds = currentDetailEvent.all_sensor_ids || [];
+
+        openMobileInviteModalWithConfig({
+            group_id: currentDetailEvent.group_id || (currentDetailEvent.type === 'group' ? currentDetailEvent.entity_id : 0),
+            title: (currentDetailEvent.type === 'group' ? 'Grupo: ' : 'Compromiso: ') + currentDetailEvent.title,
+            pending_ids: pendingIds,
+            overdue_ids: overdueIds,
+            all_ids: allIds
+        });
+    }
+
+    function openMobileInviteModalWithConfig(ctx) {
+        currentMobileInviteContext = ctx;
+
+        document.getElementById('mobileInviteTargetTitle').innerHTML = `<i class="bi bi-folder-fill text-primary me-1"></i> ${ctx.title}`;
+        document.getElementById('scopePendingCount').innerText = (ctx.pending_ids || []).length;
+        document.getElementById('scopeOverdueCount').innerText = (ctx.overdue_ids || []).length;
+        document.getElementById('scopeAllCount').innerText = (ctx.all_ids || []).length;
+
+        const hasOverdue = (ctx.overdue_ids || []).length > 0;
+        const hasPending = (ctx.pending_ids || []).length > 0;
+
+        document.getElementById('scopeOverdueWrap').classList.toggle('d-none', !hasOverdue);
+        document.getElementById('scopePendingWrap').classList.toggle('d-none', !hasPending);
+
+        if (hasPending) {
+            document.getElementById('scopePending').checked = true;
+        } else if (hasOverdue) {
+            document.getElementById('scopeOverdue').checked = true;
+        } else {
+            document.getElementById('scopeAll').checked = true;
+        }
+
+        document.getElementById('scheduleInviteGroupId').value = ctx.group_id || 0;
+        document.getElementById('scheduleInviteResultMsg').classList.add('d-none');
+        document.getElementById('scheduleInviteResultMsg').innerHTML = '';
+
+        const btn = document.getElementById('btnSendScheduleMobileInvite');
+        btn.disabled = false;
+        document.getElementById('btnSendScheduleMobileInviteText').innerText = 'Generar Token y Enviar';
+        document.getElementById('btnSendScheduleMobileInviteSpinner').classList.add('d-none');
+
+        updateMobileInviteScopeSelection();
+        new bootstrap.Modal(document.getElementById('scheduleMobileInviteModal')).show();
+    }
+
+    function updateMobileInviteScopeSelection() {
+        const selectedScope = document.querySelector('input[name="mobile_invite_scope"]:checked')?.value || 'pending';
+        let chosenIds = [];
+        if (selectedScope === 'overdue') {
+            chosenIds = currentMobileInviteContext.overdue_ids || [];
+        } else if (selectedScope === 'all') {
+            chosenIds = currentMobileInviteContext.all_ids || [];
+        } else {
+            chosenIds = currentMobileInviteContext.pending_ids || [];
+        }
+
+        document.getElementById('scheduleInviteSensorIds').value = chosenIds.join(',');
+        document.getElementById('scheduleInviteLimit').value = chosenIds.length;
+        document.getElementById('mobileInviteSelectedBadge').innerText = `${chosenIds.length} sensor(es)`;
+
+        const preselectUrl = `{{ route('bulk-measurements.select') }}?preselect_ids=${encodeURIComponent(chosenIds.join(','))}`;
+        document.getElementById('linkCustomizeInBulkSelect').href = preselectUrl;
+    }
+
+    function sendScheduleMobileInvite() {
+        const email = (document.getElementById('scheduleInviteEmail').value || '').trim();
+        const sensorIds = document.getElementById('scheduleInviteSensorIds').value;
+        const limit = parseInt(document.getElementById('scheduleInviteLimit').value) || 0;
+        const groupId = parseInt(document.getElementById('scheduleInviteGroupId').value) || 0;
+        const msgDiv = document.getElementById('scheduleInviteResultMsg');
+        const btn = document.getElementById('btnSendScheduleMobileInvite');
+        const btnText = document.getElementById('btnSendScheduleMobileInviteText');
+        const spinner = document.getElementById('btnSendScheduleMobileInviteSpinner');
+
+        if (!email) {
+            msgDiv.innerHTML = '<div class="alert alert-warning py-2 small mb-0"><i class="bi bi-exclamation-triangle me-1"></i> Por favor ingresa el correo electrónico del inspector.</div>';
+            msgDiv.classList.remove('d-none');
+            return;
+        }
+        if (limit === 0 || !sensorIds) {
+            msgDiv.innerHTML = '<div class="alert alert-warning py-2 small mb-0">No hay sensores seleccionados en este alcance.</div>';
+            msgDiv.classList.remove('d-none');
+            return;
+        }
+
+        btn.disabled = true;
+        spinner.classList.remove('d-none');
+        btnText.innerText = 'Generando token...';
+        msgDiv.classList.add('d-none');
+
+        const headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+        };
+        const bearer = localStorage.getItem('token');
+        if (bearer) {
+            headers['Authorization'] = 'Bearer ' + bearer;
+        }
+
+        fetch('{{ route('schedule.invite-mobile') }}', {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({
+                email: email,
+                sensor_limit: limit,
+                sensor_ids: sensorIds,
+                group_id: groupId
+            })
+        })
+        .then(async res => {
+            const text = await res.text();
+            if (!res.ok) {
+                let snippet = text.substring(0, 250).replace(/</g, '&lt;');
+                msgDiv.innerHTML = `<div class="alert alert-danger py-2 small mb-0">❌ Error (${res.status}):<br><code style="font-size:11px">${snippet}</code></div>`;
+                msgDiv.classList.remove('d-none');
+                btn.disabled = false;
+                btnText.innerText = 'Generar Token y Enviar';
+                spinner.classList.add('d-none');
+                return null;
+            }
+            try { return JSON.parse(text); } catch { return null; }
+        })
+        .then(data => {
+            if (!data) return;
+            if (data.success) {
+                const linkText = data.invite_link || '';
+                const rawToken = data.token || '';
+                const alertClass = data.mail_sent === false ? 'alert-warning' : 'alert-success';
+                const alertIcon = data.mail_sent === false ? '⚠️' : '✅';
+                msgDiv.innerHTML = `
+                    <div class="alert ${alertClass} py-2 small mb-2">
+                        ${alertIcon} ${data.message}
+                        <div class="mt-1 text-muted" style="font-size: 0.72rem;">
+                            Alcance asignado: <strong>${limit} sensor(es)</strong> (${currentMobileInviteContext.title}).
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold mb-1" style="font-size: 0.72rem;">Enlace de Autorización Directa (App Flutter):</label>
+                        <div class="d-flex align-items-center gap-1">
+                            <input type="text" class="form-control form-control-sm" value="${linkText}" readonly id="scheduleInviteLinkInput">
+                            <button type="button" class="btn btn-sm btn-outline-secondary text-nowrap" onclick="navigator.clipboard.writeText(document.getElementById('scheduleInviteLinkInput').value); this.innerText='¡Copiado!'; setTimeout(()=>this.innerText='Copiar', 2000);">Copiar</button>
+                            <a href="https://api.whatsapp.com/send?text=${encodeURIComponent('Hola! Aquí tienes el enlace y token para tomar las ' + limit + ' mediciones pendientes de ' + currentMobileInviteContext.title + ' en la App MedFlow Inspector: ' + linkText)}" target="_blank" class="btn btn-sm btn-success text-nowrap">
+                                <i class="bi bi-whatsapp"></i> WhatsApp
+                            </a>
+                        </div>
+                    </div>
+                    ${rawToken ? `
+                    <div>
+                        <label class="form-label small fw-bold mb-1" style="font-size: 0.72rem;">Token manual para pegar en la App Flutter:</label>
+                        <div class="d-flex align-items-center gap-1">
+                            <input type="text" class="form-control form-control-sm font-monospace" value="${rawToken}" readonly id="scheduleInviteRawTokenInput">
+                            <button type="button" class="btn btn-sm btn-outline-dark text-nowrap" onclick="navigator.clipboard.writeText(document.getElementById('scheduleInviteRawTokenInput').value); this.innerText='¡Copiado!'; setTimeout(()=>this.innerText='Copiar Token', 2000);">Copiar Token</button>
+                        </div>
+                    </div>` : ''}
+                `;
+                btn.disabled = false;
+                btnText.innerText = 'Generar Nuevo Token';
+                spinner.classList.add('d-none');
+            } else {
+                msgDiv.innerHTML = `<div class="alert alert-danger py-2 small mb-0">❌ ${data.message || 'Error al generar token.'}</div>`;
+                btn.disabled = false;
+                btnText.innerText = 'Generar Token y Enviar';
+                spinner.classList.add('d-none');
+            }
+            msgDiv.classList.remove('d-none');
+        })
+        .catch(err => {
+            msgDiv.innerHTML = `<div class="alert alert-danger py-2 small mb-0">❌ Error de red: ${err.message}</div>`;
+            msgDiv.classList.remove('d-none');
+            btn.disabled = false;
+            btnText.innerText = 'Generar Token y Enviar';
+            spinner.classList.add('d-none');
+        });
+    }
 </script>
 @endpush
+

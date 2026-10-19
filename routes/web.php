@@ -152,6 +152,8 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/calendario-mediciones/sensor/{sensor}/override', [\App\Http\Controllers\MeasurementScheduleController::class, 'removeSensorOverride'])
         ->name('schedule.sensor.remove-override')
         ->where('sensor', '[0-9]+');
+    Route::post('/calendario-mediciones/invite-mobile', [\App\Http\Controllers\Api\MobileOfflineController::class, 'inviteOperator'])
+        ->name('schedule.invite-mobile');
 
     // =============================================
     // GRUPOS DE SENSORES (vistas)

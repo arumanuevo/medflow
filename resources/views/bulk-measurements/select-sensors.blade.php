@@ -805,6 +805,32 @@
             // Iniciar paginación en el renderizado inicial
             applyFilters();
 
+            // ✅ Preselección automática cuando viene desde el Calendario de Tomas (?preselect_ids=1,2,3)
+            const urlParams = new URLSearchParams(window.location.search);
+            const preselectRaw = urlParams.get('preselect_ids');
+            if (preselectRaw) {
+                const preselectSet = new Set(
+                    preselectRaw.split(',').map(v => parseInt(v.trim(), 10)).filter(n => !isNaN(n))
+                );
+                if (preselectSet.size > 0) {
+                    $sensorCheckboxes.each(function () {
+                        const sId = parseInt($(this).data('sensor-id'), 10);
+                        if (preselectSet.has(sId)) {
+                            $(this).prop('checked', true);
+                            $(this).closest('tr').addClass('selected-row');
+                            if (!selectionOrder.includes(sId)) {
+                                selectionOrder.push(sId);
+                            }
+                        }
+                    });
+                    updateSelectedCount();
+                    showAlert(
+                        `<i class="bi bi-calendar2-check-fill me-1"></i> Se preseleccionaron <strong>${selectionOrder.length} sensor(es)</strong> desde el Calendario de Tomas. Puedes ajustar la selección y hacer clic en <strong>📱 Invitar Inspector</strong> (App Flutter) o en <strong>Comenzar Medición Masiva</strong>.`,
+                        'info'
+                    );
+                }
+            }
+
             // ✅ BOTÓN: Abrir modal de invitación SOLO si hay sensores seleccionados
             document.getElementById('inviteInspectorBtn').addEventListener('click', function () {
                 const selectedCount = getSelectedCount();
@@ -861,21 +887,19 @@
                 btnText.textContent = 'Enviando...';
                 msgDiv.classList.add('d-none');
 
+                const reqHeaders = {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                };
                 const authToken = localStorage.getItem('token');
-                if (!authToken) {
-                    msgDiv.innerHTML = '<div class="alert alert-warning py-2">No hay sesión activa. Por favor, volvé a iniciar sesión e intentá nuevamente.</div>';
-                    msgDiv.classList.remove('d-none');
-                    return;
+                if (authToken) {
+                    reqHeaders['Authorization'] = 'Bearer ' + authToken;
                 }
 
-                fetch('/api/mobile/v1/invite', {
+                fetch('{{ route('schedule.invite-mobile') }}', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
-                    },
+                    headers: reqHeaders,
                     body: JSON.stringify({
                         email: email,
                         sensor_limit: limit,

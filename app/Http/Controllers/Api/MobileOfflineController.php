@@ -174,15 +174,28 @@ class MobileOfflineController extends Controller
         }
 
         // Despachar el correo corporativo
-        Mail::to($request->input('email'))
-            ->send(new MobileAccessInvite($deepLink, $user->name, $sensorLimit, $groupName));
+        $mailSent = true;
+        $mailWarning = null;
+        try {
+            Mail::to($request->input('email'))
+                ->send(new MobileAccessInvite($deepLink, $user->name, $sensorLimit, $groupName));
+        } catch (\Throwable $e) {
+            $mailSent = false;
+            $mailWarning = 'El token fue generado, pero hubo una demora/error en el servidor de correo. Puedes copiar el enlace o enviarlo por WhatsApp.';
+            Log::warning("Error SMTP enviando MobileAccessInvite a {$request->input('email')}: " . $e->getMessage());
+        }
 
         Log::info("Token móvil generado para inspector: {$request->input('email')} | limit={$sensorLimit} | GroupID={$groupId}");
 
         return response()->json([
             'success' => true,
-            'message' => "Enlace de acceso enviado a {$request->input('email')} correctamente.",
-            'invite_link' => $deepLink
+            'mail_sent' => $mailSent,
+            'mail_warning' => $mailWarning,
+            'message' => $mailSent
+                ? "Enlace de acceso enviado a {$request->input('email')} correctamente."
+                : $mailWarning,
+            'invite_link' => $deepLink,
+            'token' => $plainToken,
         ]);
     }
 
