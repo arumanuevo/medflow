@@ -85,9 +85,9 @@
 {{-- 📅 Agenda de Tomas Programadas y Estado de Tolerancias --}}
 @if(!isset($isPaused) || !$isPaused)
 <div class="card mb-4 border-0 shadow-sm">
-    <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2 py-3">
-        <h5 class="mb-0 fw-bold text-dark">
-            <i class="bi bi-calendar2-check text-primary me-2"></i>
+    <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2 py-3">
+        <h5 class="mb-0 fw-bold text-white">
+            <i class="bi bi-calendar2-check text-warning me-2"></i>
             Agenda de Tomas Programadas y Tolerancias
             @if(($scheduleAlerts['counts']['actionable_total'] ?? 0) > 0)
                 <span class="badge bg-danger ms-2">{{ $scheduleAlerts['counts']['actionable_total'] }} pendiente(s)</span>

@@ -589,24 +589,32 @@ try {
             </span>
         </div>
         <div class="mb-3 d-flex flex-wrap gap-1" id="flowyQuickPrompts">
-            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill py-1 px-2 flowy-quick-btn" style="font-size: 0.72rem;"
-                data-question="¿Cómo programo mediciones en el Calendario de Tomas y cómo funcionan los días de tolerancia?">
-                📅 ¿Cómo uso el Calendario y Tolerancias?
+            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill py-1 px-2 flowy-quick-btn" style="font-size: 0.71rem;"
+                data-question="¿Cómo realizo una carga de mediciones masiva o mediante foto con inteligencia artificial (OCR)?">
+                📸 Carga de mediciones y OCR
             </button>
-            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill py-1 px-2 flowy-quick-btn" style="font-size: 0.72rem;"
-                data-question="¿Qué tomas tengo pendientes, en ventana o en tolerancia hoy en mi calendario?">
-                ⏰ ¿Qué tomas tengo pendientes hoy?
+            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill py-1 px-2 flowy-quick-btn" style="font-size: 0.71rem;"
+                data-question="¿Cómo detecta el sistema las anomalías de consumo y cómo audito lecturas dudosas?">
+                🚨 Anomalías y auditoría
             </button>
-            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill py-1 px-2 flowy-quick-btn" style="font-size: 0.72rem;"
-                data-question="¿Cómo programo una fecha especial para un sensor particular sin cambiar todo el grupo?">
-                🎯 Excepción por sensor en Calendario
+            <button type="button" class="btn btn-sm btn-outline-primary rounded-pill py-1 px-2 flowy-quick-btn" style="font-size: 0.71rem;"
+                data-question="¿Qué tomas tengo pendientes hoy en el Calendario y cómo funcionan las tolerancias?">
+                📅 Calendario y tomas de hoy
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill py-1 px-2 flowy-quick-btn" style="font-size: 0.71rem;"
+                data-question="¿Cómo funciona el Mapa interactivo de sensores, calor de consumo y validación GPS?">
+                🗺️ Mapa y geocercas GPS
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill py-1 px-2 flowy-quick-btn" style="font-size: 0.71rem;"
+                data-question="¿Cómo puedo filtrar y exportar reportes de mediciones o consumos en PDF y CSV?">
+                📄 Exportar reportes PDF/CSV
             </button>
         </div>
     </div>
 
     <div class="card-footer bg-white border-top-0 p-2">
         <div class="input-group">
-            <input type="text" id="flowyUserInput" class="form-control rounded-pill border-1 bg-light ps-3 me-2" placeholder="Pregunta sobre calendario, tolerancias, sensores..." aria-label="Escribe tu consulta...">
+            <input type="text" id="flowyUserInput" class="form-control rounded-pill border-1 bg-light ps-3 me-2" placeholder="Pregunta sobre sensores, lecturas, calendario, reportes..." aria-label="Escribe tu consulta...">
             <button class="btn btn-primary rounded-circle d-flex align-items-center px-3" id="btnSendFlowy" style="height: 40px; width: 40px !important;">
                 <i class="bi bi-send-fill" style="margin-left: -2px;"></i>
             </button>
@@ -618,6 +626,7 @@ try {
 document.addEventListener('DOMContentLoaded', function() {
     // Memoria a corto plazo del chat (Max 6 interacciones)
     let flowyMemory = [];
+    let isFlowyAsking = false;
     const btnOpen = document.getElementById('btnFlowyAI');
     const btnClose = document.getElementById('closeFlowyChat');
     const chatContainer = document.getElementById('chatFlowyContainer');
@@ -628,35 +637,51 @@ document.addEventListener('DOMContentLoaded', function() {
     if(btnOpen) btnOpen.addEventListener('click', () => chatContainer.classList.toggle('d-none'));
     if(btnClose) btnClose.addEventListener('click', () => chatContainer.classList.add('d-none'));
 
-    document.querySelectorAll('.flowy-quick-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            userInput.value = this.getAttribute('data-question');
-            askQuestion();
+    // Delegación de eventos en chatBox para que los botones sigan funcionando siempre
+    if (chatBox) {
+        chatBox.addEventListener('click', function(e) {
+            const quickBtn = e.target.closest('.flowy-quick-btn');
+            if (!quickBtn) return;
+            e.preventDefault();
+            if (isFlowyAsking) return;
+            const question = quickBtn.getAttribute('data-question');
+            if (question) {
+                userInput.value = question;
+                askQuestion();
+            }
         });
-    });
+    }
+
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
 
     function askQuestion() {
+        if (isFlowyAsking) return;
         const text = userInput.value.trim();
         if (!text) return;
 
-        chatBox.innerHTML += `
+        isFlowyAsking = true;
+        chatBox.insertAdjacentHTML('beforeend', `
             <div class="mb-3 text-end">
                 <span class="badge bg-primary text-white shadow-sm px-3 py-2 text-wrap" style="border-radius: 15px 15px 0 15px; text-align: left !important; font-weight: normal;">
-                    ${text}
+                    ${escapeHtml(text)}
                 </span>
             </div>
-        `;
+        `);
         userInput.value = '';
         chatBox.scrollTop = chatBox.scrollHeight;
 
         const spinnerId = 'spinner-' + Date.now();
-        chatBox.innerHTML += `
+        chatBox.insertAdjacentHTML('beforeend', `
             <div class="mb-3 text-start" id="${spinnerId}">
                 <span class="badge bg-white text-primary shadow-sm px-3 py-2 text-wrap" style="border-radius: 15px 15px 15px 0; font-weight: normal;">
                     <i class="bi bi-chat-dots-fill heartbeat-anim"></i> Pensando...
                 </span>
             </div>
-        `;
+        `);
         chatBox.scrollTop = chatBox.scrollHeight;
 
         // Antes de enviar, push history local
@@ -671,11 +696,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 chat_history: historyJSON
             },
             success: function(response) {
-                document.getElementById(spinnerId).remove();
+                isFlowyAsking = false;
+                const spinnerEl = document.getElementById(spinnerId);
+                if (spinnerEl) spinnerEl.remove();
 
                 // Advanced Lightweight Markdown Parser
                 function parseMD(md) {
-                    let html = md;
+                    let html = md || '';
                     html = html.replace(/^### (.*$)/gim, '<h6 class="mt-3 mb-1 fw-bold text-primary border-bottom pb-1" style="font-size: 0.85rem;">$1</h6>');
                     html = html.replace(/^## (.*$)/gim, '<h6 class="mt-3 mb-1 fw-bold text-primary border-bottom pb-1" style="font-size: 0.85rem;">$1</h6>');
                     html = html.replace(/^# (.*$)/gim, '<h6 class="mt-3 mb-1 fw-bold text-primary border-bottom pb-1" style="font-size: 0.85rem;">$1</h6>');
@@ -688,18 +715,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 if(response.success === false) {
-                   chatBox.innerHTML += `
+                    chatBox.insertAdjacentHTML('beforeend', `
                         <div class="mb-3 text-start">
                             <div class="bg-warning text-dark shadow-sm px-3 py-2" style="border-radius: 15px 15px 15px 0; max-width: 90%; text-align: left !important; font-weight: normal; line-height: 1.5; font-size: 0.8rem; display: inline-block;">${response.answer}</div>
                         </div>
-                    `;
+                    `);
                 } else {
                     let formattedHtml = parseMD(response.answer);
-                    chatBox.innerHTML += `
+                    chatBox.insertAdjacentHTML('beforeend', `
                         <div class="mb-3 text-start">
                             <div class="bg-white text-dark shadow-sm px-3 py-3" style="border-radius: 15px 15px 15px 0; max-width: 95%; text-align: left !important; font-weight: normal; line-height: 1.5; font-size: 0.8rem; display: inline-block; line-height: 1.35;">${formattedHtml}</div>
                         </div>
-                    `;
+                    `);
                     // Almacenamos este exito en la memoria temporal
                     flowyMemory.push({role: 'user', content: text});
                     flowyMemory.push({role: 'bot', content: response.answer});
@@ -710,13 +737,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 chatBox.scrollTop = chatBox.scrollHeight;
             },
             error: function(xhr) {
-                document.getElementById(spinnerId).remove();
+                isFlowyAsking = false;
+                const spinnerEl = document.getElementById(spinnerId);
+                if (spinnerEl) spinnerEl.remove();
                 let serverError = xhr.responseJSON && xhr.responseJSON.answer ? xhr.responseJSON.answer : 'Error de respuesta del servidor.';
-                chatBox.innerHTML += `
+                chatBox.insertAdjacentHTML('beforeend', `
                     <div class="mb-3 text-start">
                         <span class="badge bg-danger text-white shadow-sm px-3 py-2 text-wrap" style="border-radius: 15px 15px 15px 0; max-width: 90%; white-space: pre-wrap; font-weight: normal; line-height: 1.4;">Error 500: ${serverError}</span>
                     </div>
-                `;
+                `);
                 chatBox.scrollTop = chatBox.scrollHeight;
             }
         });

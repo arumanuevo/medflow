@@ -17,26 +17,26 @@
     .calendar-grid {
         display: grid;
         grid-template-columns: repeat(7, minmax(0, 1fr));
-        gap: 8px;
+        gap: 6px;
     }
     .calendar-weekday {
         text-align: center;
         font-weight: 700;
-        font-size: 0.78rem;
+        font-size: 0.72rem;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.4px;
         color: #495057;
-        padding: 8px 4px;
+        padding: 5px 4px;
         background: #f8f9fa;
-        border-radius: 8px;
+        border-radius: 6px;
         border: 1px solid #e9ecef;
     }
     .calendar-day-cell {
-        min-height: 125px;
+        min-height: 92px;
         background: #ffffff;
         border: 1px solid #e9ecef;
-        border-radius: 10px;
-        padding: 8px;
+        border-radius: 8px;
+        padding: 6px;
         display: flex;
         flex-direction: column;
         transition: all 0.2s ease;
@@ -44,7 +44,7 @@
     }
     .calendar-day-cell:hover {
         border-color: #0d6efd;
-        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.08);
+        box-shadow: 0 3px 10px rgba(13, 110, 253, 0.08);
     }
     .calendar-day-cell.is-today {
         border: 2px solid #0d6efd;
@@ -53,20 +53,20 @@
     .calendar-day-cell.empty-cell {
         background: #f8f9fa;
         opacity: 0.55;
-        min-height: 80px;
+        min-height: 60px;
     }
     .calendar-day-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 6px;
+        margin-bottom: 4px;
     }
     .calendar-day-number {
         font-weight: 700;
-        font-size: 0.9rem;
+        font-size: 0.8rem;
         color: #343a40;
-        width: 28px;
-        height: 28px;
+        width: 24px;
+        height: 24px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -79,9 +79,9 @@
     .btn-add-day-schedule {
         opacity: 0;
         transition: opacity 0.15s ease;
-        padding: 0 5px;
-        font-size: 0.75rem;
-        line-height: 1.3;
+        padding: 0 4px !important;
+        font-size: 0.68rem !important;
+        line-height: 1.2;
     }
     .calendar-day-cell:hover .btn-add-day-schedule {
         opacity: 1;
@@ -90,16 +90,16 @@
         display: block;
         width: 100%;
         text-align: left;
-        padding: 5px 7px;
-        margin-bottom: 5px;
-        border-radius: 7px;
-        font-size: 0.74rem;
-        line-height: 1.25;
+        padding: 3px 6px;
+        margin-bottom: 4px;
+        border-radius: 6px;
+        font-size: 0.69rem;
+        line-height: 1.2;
         cursor: pointer;
         border: 1px solid rgba(0,0,0,0.08);
-        border-left-width: 4px;
+        border-left-width: 3px;
         background: #fff;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.03);
         transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
     .calendar-event-pill:hover {
@@ -163,8 +163,8 @@
     @endif
 
     {{-- Cabecera Principal --}}
-    <div class="card border-0 shadow-sm mb-4" style="border-radius: 14px; overflow: hidden;">
-        <div class="card-body p-4" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); color: #fff;">
+    <div class="card border-0 shadow-sm mb-3" style="border-radius: 14px; overflow: hidden;">
+        <div class="card-body p-3 px-4" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); color: #fff;">
             <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
                 <div>
                     <h4 class="mb-1 fw-bold d-flex align-items-center gap-2">
@@ -189,14 +189,14 @@
 
     {{-- Banner de Alertas Operativas Activas Consolidado por Grupo (1 tarjeta por Grupo) --}}
     @if(count($activeAlerts['actionable']) > 0)
-        <div class="card border-0 shadow-sm mb-4 border-start border-4 border-warning" style="border-radius: 12px;">
-            <div class="card-header bg-white py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+        <div class="card border-0 shadow-sm mb-3 border-start border-4 border-warning" style="border-radius: 12px;">
+            <div class="card-header py-2 px-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
                 <div>
-                    <h6 class="mb-0 fw-bold text-dark">
+                    <h6 class="mb-0 fw-bold text-white">
                         <i class="bi bi-bell-fill text-warning me-2"></i>
                         Avisos Activos por Grupo ({{ count($activeAlerts['actionable']) }} {{ count($activeAlerts['actionable']) === 1 ? 'grupo' : 'grupos' }})
                     </h6>
-                    <small class="text-muted">Consolidado automático por grupo (sin repetir tarjetas aunque existan miles de sensores)</small>
+                    <small class="text-white-50">Consolidado automático por grupo (sin repetir tarjetas aunque existan miles de sensores)</small>
                 </div>
                 <div class="d-flex flex-wrap align-items-center gap-1">
                     @if(($activeAlerts['counts']['overdue'] ?? 0) > 0)
@@ -374,20 +374,20 @@
 
     {{-- Calendario Mensual Interactivo --}}
     <div class="card border-0 shadow-sm mb-4" style="border-radius: 14px;">
-        <div class="card-header bg-white py-3 d-flex flex-wrap justify-content-between align-items-center gap-2 border-bottom">
+        <div class="card-header py-2 px-3 d-flex flex-wrap justify-content-between align-items-center gap-2 border-bottom">
             <div class="d-flex align-items-center gap-2">
                 <a href="{{ route('schedule.index', ['year' => $prevMonthDate->year, 'month' => $prevMonthDate->month]) }}"
-                   class="btn btn-sm btn-outline-secondary">
+                   class="btn btn-sm btn-outline-light">
                     <i class="bi bi-chevron-left"></i>
                 </a>
-                <h5 class="mb-0 fw-bold px-2 text-dark">
+                <h5 class="mb-0 fw-bold px-2 text-white">
                     {{ $monthName }} {{ $year }}
                 </h5>
                 <a href="{{ route('schedule.index', ['year' => $nextMonthDate->year, 'month' => $nextMonthDate->month]) }}"
-                   class="btn btn-sm btn-outline-secondary">
+                   class="btn btn-sm btn-outline-light">
                     <i class="bi bi-chevron-right"></i>
                 </a>
-                <a href="{{ route('schedule.index') }}" class="btn btn-sm btn-light border ms-2">
+                <a href="{{ route('schedule.index') }}" class="btn btn-sm btn-light fw-semibold ms-2">
                     Hoy ({{ now()->format('d/m') }})
                 </a>
             </div>
@@ -401,7 +401,7 @@
             </div>
         </div>
 
-        <div class="card-body p-3">
+        <div class="card-body p-2 p-md-3">
             @php
                 // Lunes = 1 ... Domingo = 7
                 $firstDayOfWeek = $currentMonthDate->dayOfWeekIso;
@@ -458,7 +458,7 @@
                                             {{ $ev['measured_sensors'] }}/{{ $ev['total_sensors'] }}
                                         </span>
                                     </div>
-                                    <div class="d-flex justify-content-between align-items-center mt-1 text-muted" style="font-size: 0.66rem;">
+                                    <div class="d-flex justify-content-between align-items-center mt-1 text-muted" style="font-size: 0.64rem;">
                                         <span>{{ $ev['status_label'] }}</span>
                                         <span title="Preaviso: -{{ $ev['pre_notice_days'] }}d | Tolerancia: +{{ $ev['tolerance_days'] }}d">
                                             Tol: -{{ $ev['pre_notice_days'] }}/+{{ $ev['tolerance_days'] }}d
@@ -468,7 +468,7 @@
                             @endforeach
                             @if(count($dayEvents) > 3)
                                 <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none w-100 text-center fw-semibold"
-                                        style="font-size: 0.7rem;"
+                                        style="font-size: 0.68rem;"
                                         onclick="document.querySelectorAll('.extra-day-ev-{{ $day }}').forEach(el => el.classList.toggle('d-none')); this.innerText = this.innerText.includes('+') ? 'Mostrar menos' : '+{{ count($dayEvents) - 3 }} más en este día';">
                                     +{{ count($dayEvents) - 3 }} más en este día
                                 </button>
@@ -485,12 +485,12 @@
         {{-- Tabla de Grupos --}}
         <div class="col-lg-7">
             <div class="card border-0 shadow-sm h-100" style="border-radius: 14px;">
-                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0 fw-bold">
-                        <i class="bi bi-folder2-open text-primary me-2"></i>
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold text-white">
+                        <i class="bi bi-folder2-open text-warning me-2"></i>
                         Reglas de Programación por Grupo de Sensores
                     </h6>
-                    <small class="text-muted">Aplica a todos los sensores del grupo</small>
+                    <small class="text-white-50">Aplica a todos los sensores del grupo</small>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -563,12 +563,12 @@
                 @php
                     $overriddenSensors = $sensors->filter(fn($s) => !empty($sensorsConfigMap[$s->id]['override']));
                 @endphp
-                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0 fw-bold">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold text-white">
                         <i class="bi bi-speedometer2 text-info me-2"></i>
                         Sensores con Programación Particular ({{ $overriddenSensors->count() }})
                     </h6>
-                    <button type="button" class="btn btn-sm btn-outline-info" onclick="openScheduleModal('sensor')">
+                    <button type="button" class="btn btn-sm btn-info text-dark fw-semibold" onclick="openScheduleModal('sensor')">
                         <i class="bi bi-plus-lg"></i> Añadir excepción
                     </button>
                 </div>
