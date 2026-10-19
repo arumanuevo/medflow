@@ -215,20 +215,27 @@ class MeasurementScheduleService
         $windowStart = $targetDate->copy()->subDays($preNoticeDays)->startOfDay();
         $toleranceEnd = $targetDate->copy()->addDays($toleranceDays)->endOfDay();
 
-        // Buscar si existe una medición dentro de la ventana ampliada del ciclo
-        // Para día fijo o fecha puntual, aceptamos mediciones desde windowStart hasta toleranceEnd
+        // Optimización para miles de sensores (Evita N+1 queries usando la relación precargada lastMeasurement)
         $cycleMeasurement = null;
+        $lastM = $sensor->lastMeasurement;
+
         if ($config['mode'] === 'interval') {
-            // En modo intervalo, si targetDate fue calculado desde lastMeasurement, aún no está medido el nuevo ciclo
-            $lastM = $sensor->lastMeasurement;
             if ($lastM && Carbon::parse($lastM->measured_at)->gte($targetDate->copy()->startOfDay())) {
                 $cycleMeasurement = $lastM;
             }
         } else {
-            $cycleMeasurement = $sensor->measurements()
-                ->whereBetween('measured_at', [$windowStart->copy()->startOfDay(), $toleranceEnd->copy()->endOfDay()])
-                ->orderBy('measured_at', 'desc')
-                ->first();
+            if ($lastM) {
+                $lastMeasuredAt = Carbon::parse($lastM->measured_at);
+                if ($lastMeasuredAt->between($windowStart->copy()->startOfDay(), $toleranceEnd->copy()->endOfDay())) {
+                    $cycleMeasurement = $lastM;
+                } elseif ($lastMeasuredAt->gt($toleranceEnd->copy()->endOfDay()) && $toleranceEnd->lt($today)) {
+                    // Solo si estamos consultando un mes histórico pasado y existe una medición más nueva que el cierre de ese mes
+                    $cycleMeasurement = $sensor->measurements()
+                        ->whereBetween('measured_at', [$windowStart->copy()->startOfDay(), $toleranceEnd->copy()->endOfDay()])
+                        ->orderBy('measured_at', 'desc')
+                        ->first();
+                }
+            }
         }
 
         $isMeasured = $cycleMeasurement !== null;
@@ -327,7 +334,7 @@ class MeasurementScheduleService
 
     /**
      * Genera los eventos del calendario mensual agrupando sensores por Grupo (cuando heredan)
-     * e individualizando los Sensores con programación propia.
+     * y agrupando también excepciones individuales si caen el mismo día para no saturar la grilla.
      */
     public function getCalendarMonthData(User $user, int $year, int $month, $workspaceId = null): array
     {
@@ -345,9 +352,8 @@ class MeasurementScheduleService
             'scheduled' => 0,
         ];
 
-        // Separar sensores que tienen override individual vs los que siguen a su grupo
         $groupBuckets = [];
-        $individualEvals = [];
+        $individualBuckets = [];
 
         foreach ($sensors as $sensor) {
             $eval = $this->evaluateSensorForMonth($sensor, $year, $month, $today);
@@ -355,8 +361,29 @@ class MeasurementScheduleService
                 continue;
             }
 
+            // Contabilizar en las tarjetas superiores por cada sensor individual evaluado en el mes
+            $summary['total_commitments']++;
+            if (isset($summary[$eval['status']])) {
+                $summary[$eval['status']]++;
+            }
+
             if (!empty($eval['config']['override'])) {
-                $individualEvals[] = $eval;
+                $iKey = $sensor->group_id . '_' . $eval['target_date'];
+                if (!isset($individualBuckets[$iKey])) {
+                    $individualBuckets[$iKey] = [
+                        'group' => $sensor->group,
+                        'target_date' => $eval['target_date'],
+                        'target_date_formatted' => $eval['target_date_formatted'],
+                        'target_day' => $eval['target_day'],
+                        'window_start_formatted' => $eval['window_start_formatted'],
+                        'tolerance_end_formatted' => $eval['tolerance_end_formatted'],
+                        'pre_notice_days' => $eval['pre_notice_days'],
+                        'tolerance_days' => $eval['tolerance_days'],
+                        'config' => $eval['config'],
+                        'sensors' => [],
+                    ];
+                }
+                $individualBuckets[$iKey]['sensors'][] = $eval;
             } else {
                 $gKey = $sensor->group_id . '_' . $eval['target_date'];
                 if (!isset($groupBuckets[$gKey])) {
@@ -385,7 +412,6 @@ class MeasurementScheduleService
             $pendingSensorIds = collect($bucket['sensors'])->where('is_measured', false)->pluck('sensor_id')->values()->toArray();
             $allSensorIds = collect($bucket['sensors'])->pluck('sensor_id')->values()->toArray();
 
-            // El estado del grupo lo define el primer sensor pendiente (o 'completed' si todos fueron medidos)
             $samplePending = collect($bucket['sensors'])->firstWhere('is_measured', false);
             $representative = $samplePending ?? $bucket['sensors'][0];
 
@@ -414,7 +440,7 @@ class MeasurementScheduleService
                 'status' => $status,
                 'status_label' => $statusLabel,
                 'status_message' => $pendingSensors === 0
-                    ? "Todos los sensores del grupo ({$totalSensors}) fueron medidos en este ciclo."
+                    ? "Todos los sensores de este lote ({$totalSensors}) fueron medidos en este ciclo."
                     : "Faltan medir {$pendingSensors} de {$totalSensors} sensores. " . $representative['status_message'],
                 'color_hex' => $colorHex,
                 'badge_class' => $badgeClass,
@@ -428,56 +454,64 @@ class MeasurementScheduleService
 
             $eventsByDay[$bucket['target_day']][] = $event;
             $allEvents[] = $event;
-            $summary['total_commitments']++;
-            if (isset($summary[$status])) {
-                $summary[$status]++;
-            }
         }
 
-        // Procesar sensores individuales con override
-        foreach ($individualEvals as $eval) {
-            $status = $eval['status'];
+        // Procesar sensores individuales con override (si hay varios el mismo día en el mismo grupo, se agrupan en una sola píldora)
+        foreach ($individualBuckets as $iKey => $bucket) {
+            $totalSensors = count($bucket['sensors']);
+            $measuredSensors = collect($bucket['sensors'])->where('is_measured', true)->count();
+            $pendingSensors = $totalSensors - $measuredSensors;
+            $pendingSensorIds = collect($bucket['sensors'])->where('is_measured', false)->pluck('sensor_id')->values()->toArray();
+            $allSensorIds = collect($bucket['sensors'])->pluck('sensor_id')->values()->toArray();
+
+            $samplePending = collect($bucket['sensors'])->firstWhere('is_measured', false);
+            $eval = $samplePending ?? $bucket['sensors'][0];
+
+            $status = $pendingSensors === 0 ? 'completed' : $eval['status'];
+            $isSingle = $totalSensors === 1;
+
             $event = [
-                'id' => 'sensor_' . $eval['sensor_id'] . '_' . $eval['target_date'],
+                'id' => 'sensor_override_' . $iKey,
                 'type' => 'sensor',
                 'entity_id' => $eval['sensor_id'],
                 'group_id' => $eval['group_id'],
                 'group_name' => $eval['group_name'],
-                'title' => $eval['sensor_name'],
-                'subtitle' => $eval['sensor_identifier'] . ' (' . $eval['group_name'] . ')',
-                'target_date' => $eval['target_date'],
-                'target_date_formatted' => $eval['target_date_formatted'],
-                'day' => $eval['target_day'],
-                'window_start_formatted' => $eval['window_start_formatted'],
-                'tolerance_end_formatted' => $eval['tolerance_end_formatted'],
-                'pre_notice_days' => $eval['pre_notice_days'],
-                'tolerance_days' => $eval['tolerance_days'],
+                'title' => $isSingle ? $eval['sensor_name'] : "{$totalSensors} Sensores ({$eval['group_name']})",
+                'subtitle' => $isSingle
+                    ? $eval['sensor_identifier'] . ' (' . $eval['group_name'] . ')'
+                    : "Excepciones individuales · {$measuredSensors}/{$totalSensors} medidos",
+                'target_date' => $bucket['target_date'],
+                'target_date_formatted' => $bucket['target_date_formatted'],
+                'day' => $bucket['target_day'],
+                'window_start_formatted' => $bucket['window_start_formatted'],
+                'tolerance_end_formatted' => $bucket['tolerance_end_formatted'],
+                'pre_notice_days' => $bucket['pre_notice_days'],
+                'tolerance_days' => $bucket['tolerance_days'],
                 'mode' => $eval['config']['mode'],
                 'day_of_month' => $eval['config']['day_of_month'],
                 'specific_date' => $eval['config']['specific_date'],
                 'interval_days' => $eval['config']['interval_days'],
                 'status' => $status,
-                'status_label' => $eval['status_label'],
-                'status_message' => $eval['status_message'],
-                'color_hex' => $eval['color_hex'],
-                'badge_class' => $eval['badge_class'],
-                'total_sensors' => 1,
-                'measured_sensors' => $eval['is_measured'] ? 1 : 0,
-                'pending_sensors' => $eval['is_measured'] ? 0 : 1,
-                'pending_sensor_ids' => $eval['is_measured'] ? [] : [$eval['sensor_id']],
-                'all_sensor_ids' => [$eval['sensor_id']],
-                'sensors_detail' => [$eval],
+                'status_label' => $pendingSensors === 0 ? 'Cumplido' : $eval['status_label'],
+                'status_message' => $isSingle
+                    ? $eval['status_message']
+                    : ($pendingSensors === 0
+                        ? "Los {$totalSensors} sensores personalizados fueron medidos."
+                        : "Faltan medir {$pendingSensors} de {$totalSensors} sensores personalizados. " . $eval['status_message']),
+                'color_hex' => $pendingSensors === 0 ? '#198754' : $eval['color_hex'],
+                'badge_class' => $pendingSensors === 0 ? 'bg-success' : $eval['badge_class'],
+                'total_sensors' => $totalSensors,
+                'measured_sensors' => $measuredSensors,
+                'pending_sensors' => $pendingSensors,
+                'pending_sensor_ids' => $pendingSensorIds,
+                'all_sensor_ids' => $allSensorIds,
+                'sensors_detail' => $bucket['sensors'],
             ];
 
-            $eventsByDay[$eval['target_day']][] = $event;
+            $eventsByDay[$bucket['target_day']][] = $event;
             $allEvents[] = $event;
-            $summary['total_commitments']++;
-            if (isset($summary[$status])) {
-                $summary[$status]++;
-            }
         }
 
-        // Ordenar todos los eventos por día ascendente
         usort($allEvents, fn($a, $b) => $a['day'] <=> $b['day']);
 
         return [
@@ -490,8 +524,8 @@ class MeasurementScheduleService
     }
 
     /**
-     * Obtiene las alertas operativas activas (en ventana, hoy, en tolerancia o vencidas)
-     * para mostrar en el Header (Campanita) y en el Dashboard.
+     * Obtiene las alertas operativas activas CONSOLIDADAS POR GRUPO (máximo 1 tarjeta por Grupo),
+     * evitando que 1.459 sensores vencidos o con distintas fechas generen cientos de tarjetas repetidas.
      */
     public function getActiveAlerts(User $user, $workspaceId = null): array
     {
@@ -499,88 +533,35 @@ class MeasurementScheduleService
         $today = Carbon::now()->startOfDay();
 
         $groupBuckets = [];
-        $individualAlerts = [];
+        $sensorCounts = [
+            'completed' => 0,
+            'scheduled' => 0,
+            'in_window' => 0,
+            'in_tolerance' => 0,
+            'overdue' => 0,
+        ];
 
         foreach ($sensors as $sensor) {
-            $eval = $this->evaluateCurrentSensorStatus($sensor, $today);
-
-            if (!empty($eval['config']['override'])) {
-                $individualAlerts[] = [
-                    'type' => 'sensor',
-                    'entity_id' => $sensor->id,
-                    'title' => $sensor->name . ' (' . $sensor->identifier . ')',
-                    'group_name' => $sensor->group->name ?? 'Sin grupo',
-                    'target_date' => $eval['target_date'],
-                    'target_date_formatted' => $eval['target_date_formatted'],
-                    'window_start_formatted' => $eval['window_start_formatted'],
-                    'tolerance_end_formatted' => $eval['tolerance_end_formatted'],
-                    'tolerance_days' => $eval['tolerance_days'],
-                    'pre_notice_days' => $eval['pre_notice_days'],
-                    'status' => $eval['status'],
-                    'status_label' => $eval['status_label'],
-                    'status_message' => $eval['status_message'],
-                    'color_hex' => $eval['color_hex'],
-                    'badge_class' => $eval['badge_class'],
-                    'is_today' => $eval['is_today'],
-                    'pending_sensors' => $eval['is_measured'] ? 0 : 1,
-                    'total_sensors' => 1,
-                    'pending_sensor_ids' => $eval['is_measured'] ? [] : [$sensor->id],
-                    'days_diff_from_target' => $eval['days_diff_from_target'],
-                ];
-            } else {
-                $gKey = $sensor->group_id . '_' . $eval['target_date'];
-                if (!isset($groupBuckets[$gKey])) {
-                    $groupBuckets[$gKey] = [
-                        'group' => $sensor->group,
-                        'eval_sample' => $eval,
-                        'sensors' => [],
-                    ];
-                }
-                $groupBuckets[$gKey]['sensors'][] = $eval;
+            if (!$sensor->group) {
+                continue;
             }
+            $eval = $this->evaluateCurrentSensorStatus($sensor, $today);
+            $st = $eval['status'];
+            if (isset($sensorCounts[$st])) {
+                $sensorCounts[$st]++;
+            }
+
+            $gId = $sensor->group_id;
+            if (!isset($groupBuckets[$gId])) {
+                $groupBuckets[$gId] = [
+                    'group' => $sensor->group,
+                    'sensors' => [],
+                ];
+            }
+            $groupBuckets[$gId]['sensors'][] = $eval;
         }
 
-        $alerts = [];
-
-        foreach ($groupBuckets as $bucket) {
-            $total = count($bucket['sensors']);
-            $pendingEvals = collect($bucket['sensors'])->where('is_measured', false);
-            $pendingCount = $pendingEvals->count();
-            $rep = $pendingEvals->first() ?? $bucket['eval_sample'];
-            $status = $pendingCount === 0 ? 'completed' : $rep['status'];
-
-            $alerts[] = [
-                'type' => 'group',
-                'entity_id' => $bucket['group']->id,
-                'title' => 'Grupo: ' . $bucket['group']->name,
-                'group_name' => $bucket['group']->name,
-                'target_date' => $rep['target_date'],
-                'target_date_formatted' => $rep['target_date_formatted'],
-                'window_start_formatted' => $rep['window_start_formatted'],
-                'tolerance_end_formatted' => $rep['tolerance_end_formatted'],
-                'tolerance_days' => $rep['tolerance_days'],
-                'pre_notice_days' => $rep['pre_notice_days'],
-                'status' => $status,
-                'status_label' => $pendingCount === 0 ? 'Al día' : $rep['status_label'],
-                'status_message' => $pendingCount === 0
-                    ? "Los {$total} sensores ya fueron medidos en este período."
-                    : "{$pendingCount} de {$total} sensores pendientes. " . $rep['status_message'],
-                'color_hex' => $pendingCount === 0 ? '#198754' : $rep['color_hex'],
-                'badge_class' => $pendingCount === 0 ? 'bg-success' : $rep['badge_class'],
-                'is_today' => $rep['is_today'] && $pendingCount > 0,
-                'pending_sensors' => $pendingCount,
-                'total_sensors' => $total,
-                'pending_sensor_ids' => $pendingEvals->pluck('sensor_id')->values()->toArray(),
-                'days_diff_from_target' => $rep['days_diff_from_target'],
-            ];
-        }
-
-        foreach ($individualAlerts as $ind) {
-            $alerts[] = $ind;
-        }
-
-        // Prioridad de ordenamiento: overdue -> in_tolerance -> in_window -> scheduled -> completed
-        $priorityMap = [
+        $priorityOrder = [
             'overdue' => 1,
             'in_tolerance' => 2,
             'in_window' => 3,
@@ -588,9 +569,130 @@ class MeasurementScheduleService
             'completed' => 5,
         ];
 
-        usort($alerts, function ($a, $b) use ($priorityMap) {
-            $pA = $priorityMap[$a['status']] ?? 99;
-            $pB = $priorityMap[$b['status']] ?? 99;
+        $alerts = [];
+
+        foreach ($groupBuckets as $gId => $bucket) {
+            $evals = collect($bucket['sensors']);
+            $total = $evals->count();
+
+            $overdueEvals = $evals->where('status', 'overdue');
+            $inToleranceEvals = $evals->where('status', 'in_tolerance');
+            $inWindowEvals = $evals->where('status', 'in_window');
+            $scheduledEvals = $evals->where('status', 'scheduled');
+            $completedEvals = $evals->where('status', 'completed');
+
+            $overdueCount = $overdueEvals->count();
+            $inToleranceCount = $inToleranceEvals->count();
+            $inWindowCount = $inWindowEvals->count();
+            $scheduledCount = $scheduledEvals->count();
+            $completedCount = $completedEvals->count();
+
+            // Los sensores que requieren acción hoy son los que están vencidos, en tolerancia o en ventana
+            $actionableEvals = $evals->filter(fn($e) => in_array($e['status'], ['overdue', 'in_tolerance', 'in_window']));
+            $actionableCount = $actionableEvals->count();
+            $pendingEvals = $evals->where('is_measured', false);
+            $pendingCount = $pendingEvals->count();
+
+            // Determinar el sensor representativo según la urgencia más alta del grupo
+            $rep = $overdueEvals->sortBy('target_date')->first()
+                ?? $inToleranceEvals->sortBy('target_date')->first()
+                ?? $inWindowEvals->sortBy('target_date')->first()
+                ?? $scheduledEvals->sortBy('target_date')->first()
+                ?? $evals->first();
+
+            // Estado dominante del grupo
+            if ($overdueCount > 0) {
+                $dominantStatus = 'overdue';
+            } elseif ($inToleranceCount > 0) {
+                $dominantStatus = 'in_tolerance';
+            } elseif ($inWindowCount > 0) {
+                $dominantStatus = 'in_window';
+            } elseif ($scheduledCount > 0) {
+                $dominantStatus = 'scheduled';
+            } else {
+                $dominantStatus = 'completed';
+            }
+
+            // Construir resumen claro y compacto (ideal tanto para 1 sensor como para 1.500 sensores)
+            $breakdownParts = [];
+            if ($overdueCount > 0) {
+                $breakdownParts[] = "{$overdueCount} vencido(s)";
+            }
+            if ($inToleranceCount > 0) {
+                $breakdownParts[] = "{$inToleranceCount} en tolerancia";
+            }
+            if ($inWindowCount > 0) {
+                $breakdownParts[] = "{$inWindowCount} para medir hoy/en ventana";
+            }
+            if ($completedCount > 0) {
+                $breakdownParts[] = "{$completedCount} al día";
+            }
+
+            $distinctTargetDates = $actionableEvals->pluck('target_date_formatted')->unique()->values();
+            $dateRangeText = $distinctTargetDates->count() > 1
+                ? $distinctTargetDates->first() . ' al ' . $distinctTargetDates->last()
+                : ($rep['target_date_formatted'] ?? '-');
+
+            if ($actionableCount === 0) {
+                $statusMessage = $pendingCount === 0
+                    ? "Los {$total} sensores del grupo están al día en su ciclo actual."
+                    : "Próxima toma programada para el {$rep['target_date_formatted']} ({$pendingCount} sensores).";
+            } elseif (count($breakdownParts) > 1 || $distinctTargetDates->count() > 1) {
+                $statusMessage = "{$actionableCount} de {$total} sensores requieren medición (" . implode(' · ', $breakdownParts) . ").";
+            } else {
+                $statusMessage = "{$actionableCount} de {$total} sensores pendientes. " . $rep['status_message'];
+            }
+
+            $badgeMap = [
+                'overdue' => 'danger',
+                'in_tolerance' => 'warning',
+                'in_window' => 'warning',
+                'scheduled' => 'primary',
+                'completed' => 'success',
+            ];
+
+            $alerts[] = [
+                'type' => 'group',
+                'entity_id' => $bucket['group']->id,
+                'title' => 'Grupo: ' . $bucket['group']->name,
+                'group_name' => $bucket['group']->name,
+                'target_date' => $rep['target_date'],
+                'target_date_formatted' => $dateRangeText,
+                'window_start' => $rep['window_start'],
+                'window_start_formatted' => $rep['window_start_formatted'],
+                'grace_end' => $rep['tolerance_end'],
+                'tolerance_end_formatted' => $rep['tolerance_end_formatted'],
+                'tolerance_days' => $rep['tolerance_days'],
+                'pre_notice_days' => $rep['pre_notice_days'],
+                'status' => $dominantStatus,
+                'label' => $dominantStatus === 'completed' ? 'Al día' : $rep['status_label'],
+                'status_label' => $dominantStatus === 'completed' ? 'Al día' : $rep['status_label'],
+                'message' => $statusMessage,
+                'status_message' => $statusMessage,
+                'badge' => $badgeMap[$dominantStatus] ?? 'primary',
+                'color_hex' => $dominantStatus === 'completed' ? '#198754' : $rep['color_hex'],
+                'badge_class' => $dominantStatus === 'completed' ? 'bg-success' : $rep['badge_class'],
+                'is_today' => $inWindowEvals->where('is_today', true)->isNotEmpty(),
+                'pending_count' => $actionableCount > 0 ? $actionableCount : $pendingCount,
+                'total_count' => $total,
+                'pending_sensors' => $actionableCount > 0 ? $actionableCount : $pendingCount,
+                'total_sensors' => $total,
+                'pending_sensor_ids' => ($actionableCount > 0 ? $actionableEvals : $pendingEvals)->pluck('sensor_id')->values()->toArray(),
+                'overdue_sensor_ids' => $overdueEvals->pluck('sensor_id')->values()->toArray(),
+                'breakdown' => [
+                    'overdue' => $overdueCount,
+                    'in_tolerance' => $inToleranceCount,
+                    'in_window' => $inWindowCount,
+                    'scheduled' => $scheduledCount,
+                    'completed' => $completedCount,
+                ],
+                'days_diff_from_target' => $rep['days_diff_from_target'],
+            ];
+        }
+
+        usort($alerts, function ($a, $b) use ($priorityOrder) {
+            $pA = $priorityOrder[$a['status']] ?? 99;
+            $pB = $priorityOrder[$b['status']] ?? 99;
             if ($pA !== $pB) {
                 return $pA <=> $pB;
             }
@@ -602,13 +704,17 @@ class MeasurementScheduleService
 
         return [
             'all' => $alerts,
+            'items' => $actionableAlerts,
             'actionable' => $actionableAlerts,
             'upcoming' => $upcomingAlerts,
+            'total_actionable' => count($actionableAlerts),
             'counts' => [
                 'actionable_total' => count($actionableAlerts),
-                'overdue' => count(array_filter($actionableAlerts, fn($a) => $a['status'] === 'overdue')),
-                'in_tolerance' => count(array_filter($actionableAlerts, fn($a) => $a['status'] === 'in_tolerance')),
-                'in_window' => count(array_filter($actionableAlerts, fn($a) => $a['status'] === 'in_window')),
+                'overdue' => $sensorCounts['overdue'],
+                'in_tolerance' => $sensorCounts['in_tolerance'],
+                'in_window' => $sensorCounts['in_window'],
+                'scheduled' => $sensorCounts['scheduled'],
+                'completed' => $sensorCounts['completed'],
             ],
         ];
     }

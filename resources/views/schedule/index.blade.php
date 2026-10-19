@@ -187,55 +187,118 @@
         </div>
     </div>
 
-    {{-- Banner de Alertas Operativas Activas (Hoy / En Ventana / En Tolerancia / Vencidos) --}}
+    {{-- Banner de Alertas Operativas Activas Consolidado por Grupo (1 tarjeta por Grupo) --}}
     @if(count($activeAlerts['actionable']) > 0)
         <div class="card border-0 shadow-sm mb-4 border-start border-4 border-warning" style="border-radius: 12px;">
-            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h6 class="mb-0 fw-bold text-dark">
-                    <i class="bi bi-bell-fill text-warning me-2"></i>
-                    Avisos Activos de Medición ({{ count($activeAlerts['actionable']) }})
-                </h6>
-                <span class="badge bg-light text-dark border">Segun fechas programadas y márgenes de tolerancia</span>
+            <div class="card-header bg-white py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div>
+                    <h6 class="mb-0 fw-bold text-dark">
+                        <i class="bi bi-bell-fill text-warning me-2"></i>
+                        Avisos Activos por Grupo ({{ count($activeAlerts['actionable']) }} {{ count($activeAlerts['actionable']) === 1 ? 'grupo' : 'grupos' }})
+                    </h6>
+                    <small class="text-muted">Consolidado automático por grupo (sin repetir tarjetas aunque existan miles de sensores)</small>
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-1">
+                    @if(($activeAlerts['counts']['overdue'] ?? 0) > 0)
+                        <span class="badge bg-danger">🔴 {{ $activeAlerts['counts']['overdue'] }} sensor(es) vencidos</span>
+                    @endif
+                    @if(($activeAlerts['counts']['in_tolerance'] ?? 0) > 0)
+                        <span class="badge bg-orange">🟠 {{ $activeAlerts['counts']['in_tolerance'] }} en tolerancia</span>
+                    @endif
+                    @if(($activeAlerts['counts']['in_window'] ?? 0) > 0)
+                        <span class="badge bg-warning text-dark">🟡 {{ $activeAlerts['counts']['in_window'] }} hoy / en ventana</span>
+                    @endif
+                </div>
             </div>
-            <div class="card-body py-2 px-3">
-                <div class="row g-2">
-                    @foreach(array_slice($activeAlerts['actionable'], 0, 6) as $alert)
-                        <div class="col-md-6 col-xl-4">
+            <div class="card-body py-3 px-3">
+                <div class="row g-3">
+                    @foreach($activeAlerts['actionable'] as $idx => $alert)
+                        @php
+                            $bd = $alert['breakdown'] ?? [];
+                            $overdueIds = $alert['overdue_sensor_ids'] ?? [];
+                            $allPendingIds = $alert['pending_sensor_ids'] ?? [];
+                        @endphp
+                        <div class="col-md-6 col-xl-4 {{ $idx >= 6 ? 'd-none extra-group-alert' : '' }}">
                             <div class="p-3 rounded-3 border d-flex flex-column justify-content-between h-100"
                                  style="border-left: 4px solid {{ $alert['color_hex'] }} !important; background: #fafafa;">
                                 <div>
-                                    <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+                                    <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
                                         <span class="fw-bold text-dark small">
-                                            <i class="bi {{ $alert['type'] === 'group' ? 'bi-folder-fill text-primary' : 'bi-speedometer2 text-info' }} me-1"></i>
+                                            <i class="bi bi-folder-fill text-primary me-1"></i>
                                             {{ $alert['title'] }}
                                         </span>
                                         <span class="badge {{ $alert['badge_class'] }}" style="font-size: 0.68rem;">
                                             {{ $alert['status_label'] }}
                                         </span>
                                     </div>
+
+                                    {{-- Desglose compacto por estado dentro del grupo --}}
+                                    <div class="d-flex flex-wrap gap-1 mb-2">
+                                        @if(($bd['overdue'] ?? 0) > 0)
+                                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle" style="font-size: 0.68rem;">
+                                                🔴 {{ $bd['overdue'] }} vencido(s)
+                                            </span>
+                                        @endif
+                                        @if(($bd['in_tolerance'] ?? 0) > 0)
+                                            <span class="badge bg-warning bg-opacity-10 text-orange border border-warning-subtle" style="font-size: 0.68rem;">
+                                                🟠 {{ $bd['in_tolerance'] }} en tolerancia
+                                            </span>
+                                        @endif
+                                        @if(($bd['in_window'] ?? 0) > 0)
+                                            <span class="badge bg-warning bg-opacity-25 text-dark border border-warning" style="font-size: 0.68rem;">
+                                                🟡 {{ $bd['in_window'] }} hoy / en ventana
+                                            </span>
+                                        @endif
+                                        @if(($bd['completed'] ?? 0) > 0)
+                                            <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle" style="font-size: 0.68rem;">
+                                                🟢 {{ $bd['completed'] }} al día
+                                            </span>
+                                        @endif
+                                    </div>
+
                                     <p class="mb-2 text-muted" style="font-size: 0.76rem;">
                                         {{ $alert['status_message'] }}
                                     </p>
                                 </div>
-                                <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 pt-2 border-top">
                                     <small class="text-muted" style="font-size: 0.7rem;">
                                         <i class="bi bi-calendar-event"></i> Meta: <strong>{{ $alert['target_date_formatted'] }}</strong>
                                         (Tol: +{{ $alert['tolerance_days'] }}d)
                                     </small>
-                                    @if(!empty($alert['pending_sensor_ids']))
-                                        <form method="POST" action="{{ route('bulk-measurements.start') }}" class="d-inline">
-                                            @csrf
-                                            <input type="hidden" name="sensor_ids" value="{{ implode(',', $alert['pending_sensor_ids']) }}">
-                                            <button type="submit" class="btn btn-sm btn-primary py-0 px-2" style="font-size: 0.73rem;">
-                                                <i class="bi bi-play-fill"></i> Medir ahora ({{ count($alert['pending_sensor_ids']) }})
-                                            </button>
-                                        </form>
-                                    @endif
+                                    <div class="d-flex flex-wrap gap-1">
+                                        @if(count($overdueIds) > 0 && count($overdueIds) < count($allPendingIds))
+                                            <form method="POST" action="{{ route('bulk-measurements.start') }}" class="d-inline">
+                                                @csrf
+                                                <input type="hidden" name="sensor_ids" value="{{ implode(',', $overdueIds) }}">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size: 0.72rem;" title="Medir únicamente los sensores vencidos de este grupo">
+                                                    <i class="bi bi-exclamation-circle"></i> Vencidos ({{ count($overdueIds) }})
+                                                </button>
+                                            </form>
+                                        @endif
+                                        @if(!empty($allPendingIds))
+                                            <form method="POST" action="{{ route('bulk-measurements.start') }}" class="d-inline">
+                                                @csrf
+                                                <input type="hidden" name="sensor_ids" value="{{ implode(',', $allPendingIds) }}">
+                                                <button type="submit" class="btn btn-sm btn-primary py-0 px-2" style="font-size: 0.72rem;">
+                                                    <i class="bi bi-play-fill"></i> Medir ({{ count($allPendingIds) }})
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     @endforeach
                 </div>
+
+                @if(count($activeAlerts['actionable']) > 6)
+                    <div class="text-center mt-3">
+                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                onclick="document.querySelectorAll('.extra-group-alert').forEach(el => el.classList.toggle('d-none')); this.innerText = this.innerText.includes('Ver') ? 'Ocultar grupos adicionales' : 'Ver los {{ count($activeAlerts['actionable']) - 6 }} grupos adicionales';">
+                            Ver los {{ count($activeAlerts['actionable']) - 6 }} grupos adicionales
+                        </button>
+                    </div>
+                @endif
             </div>
         </div>
     @endif
@@ -383,9 +446,9 @@
                         </div>
 
                         <div class="calendar-day-events flex-grow-1">
-                            @foreach($dayEvents as $ev)
-                                <div class="calendar-event-pill status-{{ $ev['status'] }}"
-                                     onclick='openEventDetailModal(@json($ev))'>
+                            @foreach($dayEvents as $evIdx => $ev)
+                                <div class="calendar-event-pill status-{{ $ev['status'] }} {{ $evIdx >= 3 ? 'd-none extra-day-ev-' . $day : '' }}"
+                                     onclick="openEventDetailById('{{ $ev['id'] }}')">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <span class="fw-bold text-truncate text-dark" style="max-width: 78%;">
                                             <i class="bi {{ $ev['type'] === 'group' ? 'bi-folder-fill text-primary' : 'bi-speedometer2 text-info' }} me-1"></i>
@@ -403,6 +466,13 @@
                                     </div>
                                 </div>
                             @endforeach
+                            @if(count($dayEvents) > 3)
+                                <button type="button" class="btn btn-link btn-sm p-0 text-decoration-none w-100 text-center fw-semibold"
+                                        style="font-size: 0.7rem;"
+                                        onclick="document.querySelectorAll('.extra-day-ev-{{ $day }}').forEach(el => el.classList.toggle('d-none')); this.innerText = this.innerText.includes('+') ? 'Mostrar menos' : '+{{ count($dayEvents) - 3 }} más en este día';">
+                                    +{{ count($dayEvents) - 3 }} más en este día
+                                </button>
+                            @endif
                         </div>
                     </div>
                 @endfor
@@ -490,34 +560,41 @@
         {{-- Tabla de Sensores Particulares con Programación Propia (Excepciones) --}}
         <div class="col-lg-5">
             <div class="card border-0 shadow-sm h-100" style="border-radius: 14px;">
+                @php
+                    $overriddenSensors = $sensors->filter(fn($s) => !empty($sensorsConfigMap[$s->id]['override']));
+                @endphp
                 <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                     <h6 class="mb-0 fw-bold">
                         <i class="bi bi-speedometer2 text-info me-2"></i>
-                        Sensores con Programación Particular
+                        Sensores con Programación Particular ({{ $overriddenSensors->count() }})
                     </h6>
                     <button type="button" class="btn btn-sm btn-outline-info" onclick="openScheduleModal('sensor')">
                         <i class="bi bi-plus-lg"></i> Añadir excepción
                     </button>
                 </div>
+                @if($overriddenSensors->count() > 5)
+                    <div class="px-3 py-2 bg-light border-bottom">
+                        <input type="text" class="form-control form-control-sm" id="searchOverriddenSensors"
+                               placeholder="Filtrar sensores con excepción por nombre o código..."
+                               oninput="filterOverrideTable(this.value)">
+                    </div>
+                @endif
                 <div class="card-body p-0">
-                    @php
-                        $overriddenSensors = $sensors->filter(fn($s) => !empty($sensorsConfigMap[$s->id]['override']));
-                    @endphp
-                    <div class="table-responsive">
+                    <div class="table-responsive" style="max-height: 360px; overflow-y: auto;">
                         <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
+                            <thead class="table-light sticky-top">
                                 <tr>
                                     <th>Sensor</th>
                                     <th>Programación</th>
                                     <th class="text-end">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="overrideSensorsTableBody">
                                 @forelse($overriddenSensors as $s)
                                     @php
                                         $sCfg = $sensorsConfigMap[$s->id];
                                     @endphp
-                                    <tr>
+                                    <tr class="override-sensor-row">
                                         <td>
                                             <div class="fw-bold text-dark small">{{ $s->name }}</div>
                                             <small class="text-muted" style="font-size: 0.72rem;">
@@ -624,17 +701,23 @@
                         </div>
                     </div>
 
-                    {{-- Selector de Sensores Particulares --}}
+                    {{-- Selector de Sensores Particulares con Buscador Rápido --}}
                     <div class="mb-4 d-none" id="sensorTargetSelector">
                         <label for="modalSensorIds" class="form-label fw-semibold">Seleccionar Sensor(es) Particular(es) <span class="text-danger">*</span></label>
-                        <select class="form-select" id="modalSensorIds" name="sensor_ids[]" multiple size="6">
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" class="form-control" id="filterModalSensorsInput"
+                                   placeholder="Buscar sensor entre los {{ $sensors->count() }} disponibles por nombre, código o grupo..."
+                                   oninput="filterModalSelectSensors(this.value)">
+                        </div>
+                        <select class="form-select" id="modalSensorIds" name="sensor_ids[]" multiple size="7">
                             @foreach($sensors as $s)
                                 <option value="{{ $s->id }}">
                                     {{ $s->name }} ({{ $s->identifier }}) — Grupo: {{ $s->group->name ?? 'Sin grupo' }}
                                 </option>
                             @endforeach
                         </select>
-                        <div class="form-text">Puedes mantener presionada la tecla Ctrl (o Cmd) para elegir varios sensores a la vez.</div>
+                        <div class="form-text">Puedes buscar arriba y mantener presionada la tecla Ctrl (o Cmd) para elegir varios sensores a la vez.</div>
                     </div>
 
                     {{-- 2. Modalidad de Fecha --}}
@@ -749,7 +832,7 @@
 </div>
 
 {{-- =========================================================================
-   MODAL 2: DETALLE DE COMPROMISO DEL CALENDARIO Y ACCIÓN RÁPIDA
+   MODAL 2: DETALLE DE COMPROMISO DEL CALENDARIO (CON BUSCADOR Y PAGINACIÓN)
    ========================================================================= --}}
 <div class="modal fade" id="eventDetailModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -793,10 +876,29 @@
                     </div>
                 </div>
 
-                <h6 class="fw-bold mb-2">
-                    <i class="bi bi-list-check me-1"></i> Estado de Sensores en este Compromiso
-                </h6>
-                <div class="table-responsive border rounded-3" style="max-height: 260px; overflow-y: auto;">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                    <h6 class="fw-bold mb-0">
+                        <i class="bi bi-list-check me-1"></i> Sensores en este Compromiso
+                    </h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        <select class="form-select form-select-sm" id="detailSensorStatusFilter" style="width: auto;" onchange="resetAndRenderDetailSensors()">
+                            <option value="all">Todos los estados</option>
+                            <option value="pending">⏳ Solo Pendientes</option>
+                            <option value="overdue">🔴 Solo Vencidos</option>
+                            <option value="in_tolerance">🟠 Solo En Tolerancia</option>
+                            <option value="in_window">🟡 Solo En Ventana / Hoy</option>
+                            <option value="completed">🟢 Solo Medidos</option>
+                        </select>
+                        <div class="input-group input-group-sm" style="width: 230px;">
+                            <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" class="form-control" id="detailSensorSearch"
+                                   placeholder="Buscar nombre o código..."
+                                   oninput="resetAndRenderDetailSensors()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive border rounded-3" style="max-height: 290px; overflow-y: auto;">
                     <table class="table table-sm table-hover align-middle mb-0">
                         <thead class="table-light sticky-top">
                             <tr>
@@ -808,6 +910,19 @@
                         </thead>
                         <tbody id="eventDetailSensorsTableBody"></tbody>
                     </table>
+                </div>
+
+                {{-- Paginación en cliente para soportar 1.500+ sensores sin trabar el navegador --}}
+                <div class="d-flex justify-content-between align-items-center mt-2 small text-muted" id="detailPaginationBar">
+                    <span id="detailPaginationInfo">Mostrando 0 de 0</span>
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-outline-secondary" id="btnDetailPrevPage" onclick="changeDetailPage(-1)">
+                            <i class="bi bi-chevron-left"></i> Anterior
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="btnDetailNextPage" onclick="changeDetailPage(1)">
+                            Siguiente <i class="bi bi-chevron-right"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer bg-light d-flex justify-content-between flex-wrap gap-2" style="border-radius: 0 0 16px 16px;">
@@ -834,7 +949,10 @@
 <script>
     const groupsConfigMap = @json($groupsConfigMap);
     const sensorsConfigMap = @json($sensorsConfigMap);
+    const calendarEventsMap = @json(collect($calendarData['all_events'])->keyBy('id'));
     let currentDetailEvent = null;
+    let currentDetailPage = 1;
+    const DETAIL_PAGE_SIZE = 25;
 
     function syncTargetTypeUI() {
         const type = document.querySelector('input[name="target_type"]:checked').value;
@@ -860,6 +978,23 @@
     document.querySelectorAll('input[name="mode"]').forEach(el => {
         el.addEventListener('change', syncModeUI);
     });
+
+    function filterModalSelectSensors(query) {
+        const q = (query || '').toLowerCase().trim();
+        const select = document.getElementById('modalSensorIds');
+        Array.from(select.options).forEach(opt => {
+            const match = !q || opt.text.toLowerCase().includes(q);
+            opt.hidden = !match;
+        });
+    }
+
+    function filterOverrideTable(query) {
+        const q = (query || '').toLowerCase().trim();
+        document.querySelectorAll('.override-sensor-row').forEach(tr => {
+            const match = !q || tr.innerText.toLowerCase().includes(q);
+            tr.style.display = match ? '' : 'none';
+        });
+    }
 
     function openScheduleModal(defaultType = 'group') {
         document.getElementById('scheduleModalTitle').innerText = 'Programar Toma de Medición y Tolerancias';
@@ -935,10 +1070,89 @@
         new bootstrap.Modal(document.getElementById('scheduleConfigModal')).show();
     }
 
+    function openEventDetailById(evId) {
+        const ev = calendarEventsMap[evId];
+        if (ev) {
+            openEventDetailModal(ev);
+        }
+    }
+
+    function getFilteredDetailSensors() {
+        if (!currentDetailEvent || !currentDetailEvent.sensors_detail) return [];
+        const query = (document.getElementById('detailSensorSearch').value || '').toLowerCase().trim();
+        const statusFilter = document.getElementById('detailSensorStatusFilter').value || 'all';
+
+        return currentDetailEvent.sensors_detail.filter(s => {
+            if (statusFilter === 'pending' && s.is_measured) return false;
+            if (statusFilter === 'completed' && !s.is_measured) return false;
+            if (['overdue', 'in_tolerance', 'in_window'].includes(statusFilter) && s.status !== statusFilter) return false;
+
+            if (query) {
+                const nameMatch = (s.sensor_name || '').toLowerCase().includes(query);
+                const idMatch = (s.sensor_identifier || '').toLowerCase().includes(query);
+                return nameMatch || idMatch;
+            }
+            return true;
+        });
+    }
+
+    function resetAndRenderDetailSensors() {
+        currentDetailPage = 1;
+        renderDetailSensorsTable();
+    }
+
+    function changeDetailPage(delta) {
+        currentDetailPage += delta;
+        renderDetailSensorsTable();
+    }
+
+    function renderDetailSensorsTable() {
+        const tbody = document.getElementById('eventDetailSensorsTableBody');
+        tbody.innerHTML = '';
+
+        const filtered = getFilteredDetailSensors();
+        const total = filtered.length;
+        const totalPages = Math.max(1, Math.ceil(total / DETAIL_PAGE_SIZE));
+        if (currentDetailPage < 1) currentDetailPage = 1;
+        if (currentDetailPage > totalPages) currentDetailPage = totalPages;
+
+        const startIdx = (currentDetailPage - 1) * DETAIL_PAGE_SIZE;
+        const pageItems = filtered.slice(startIdx, startIdx + DETAIL_PAGE_SIZE);
+
+        if (pageItems.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-3 small">No se encontraron sensores con ese filtro.</td></tr>`;
+        } else {
+            pageItems.forEach(s => {
+                const tr = document.createElement('tr');
+                const statusBadge = s.is_measured
+                    ? `<span class="badge bg-success"><i class="bi bi-check-lg"></i> Medido (${s.measured_at})</span>`
+                    : `<span class="badge ${s.badge_class}">${s.status_label}</span>`;
+
+                tr.innerHTML = `
+                    <td class="fw-semibold">${s.sensor_name}</td>
+                    <td><code class="text-dark">${s.sensor_identifier}</code></td>
+                    <td>${statusBadge}</td>
+                    <td class="text-end">
+                        <a href="/mediciones/create/${s.sensor_id}" class="btn btn-sm ${s.is_measured ? 'btn-outline-secondary' : 'btn-primary'} py-0 px-2">
+                            <i class="bi bi-rulers"></i> ${s.is_measured ? 'Nueva toma' : 'Medir'}
+                        </a>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        const fromNum = total === 0 ? 0 : startIdx + 1;
+        const toNum = Math.min(startIdx + DETAIL_PAGE_SIZE, total);
+        document.getElementById('detailPaginationInfo').innerText = `Mostrando ${fromNum}–${toNum} de ${total} sensor(es) (Pág. ${currentDetailPage}/${totalPages})`;
+        document.getElementById('btnDetailPrevPage').disabled = (currentDetailPage <= 1);
+        document.getElementById('btnDetailNextPage').disabled = (currentDetailPage >= totalPages);
+    }
+
     function openEventDetailModal(ev) {
         currentDetailEvent = ev;
         document.getElementById('eventDetailHeader').style.background = ev.color_hex || '#0d6efd';
-        document.getElementById('eventDetailTitle').innerText = (ev.type === 'group' ? '📦 Grupo: ' : '📟 Sensor: ') + ev.title;
+        document.getElementById('eventDetailTitle').innerText = (ev.type === 'group' ? '📦 Grupo: ' : '📟 Sensor(es): ') + ev.title;
         document.getElementById('eventDetailSubtitle').innerText = ev.subtitle || '';
 
         document.getElementById('eventDetailStatusLabel').innerText = ev.status_label;
@@ -949,27 +1163,9 @@
         document.getElementById('eventDetailTargetDate').innerText = ev.target_date_formatted;
         document.getElementById('eventDetailToleranceEnd').innerText = `${ev.tolerance_end_formatted} (+${ev.tolerance_days}d)`;
 
-        const tbody = document.getElementById('eventDetailSensorsTableBody');
-        tbody.innerHTML = '';
-
-        (ev.sensors_detail || []).forEach(s => {
-            const tr = document.createElement('tr');
-            const statusBadge = s.is_measured
-                ? `<span class="badge bg-success"><i class="bi bi-check-lg"></i> Medido (${s.measured_at})</span>`
-                : `<span class="badge ${s.badge_class}">${s.status_label}</span>`;
-
-            tr.innerHTML = `
-                <td class="fw-semibold">${s.sensor_name}</td>
-                <td><code class="text-dark">${s.sensor_identifier}</code></td>
-                <td>${statusBadge}</td>
-                <td class="text-end">
-                    <a href="/mediciones/create/${s.sensor_id}" class="btn btn-sm ${s.is_measured ? 'btn-outline-secondary' : 'btn-primary'} py-0 px-2">
-                        <i class="bi bi-rulers"></i> ${s.is_measured ? 'Nueva toma' : 'Medir'}
-                    </a>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
+        document.getElementById('detailSensorSearch').value = '';
+        document.getElementById('detailSensorStatusFilter').value = 'all';
+        resetAndRenderDetailSensors();
 
         const idsToMeasure = (ev.pending_sensor_ids && ev.pending_sensor_ids.length > 0)
             ? ev.pending_sensor_ids

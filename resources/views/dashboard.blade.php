@@ -106,44 +106,90 @@
         @endphp
 
         @if(count($actionableList) > 0)
-            <div class="alert alert-warning border-warning d-flex align-items-center mb-3 py-2">
-                <i class="bi bi-bell-fill fs-4 me-3 text-warning"></i>
-                <div class="small">
-                    <strong>Atención de Agenda:</strong> Tienes <strong>{{ count($actionableList) }}</strong> grupo(s) o sensor(es) que requieren medición según su fecha programada y margen de tolerancia.
+            <div class="alert alert-warning border-warning d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3 py-2">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-bell-fill fs-4 me-3 text-warning"></i>
+                    <div class="small">
+                        <strong>Atención de Agenda:</strong> Tienes <strong>{{ count($actionableList) }}</strong> grupo(s) con sensores que requieren medición según su fecha programada y margen de tolerancia.
+                    </div>
+                </div>
+                <div class="d-flex flex-wrap gap-1">
+                    @if(($scheduleAlerts['counts']['overdue'] ?? 0) > 0)
+                        <span class="badge bg-danger">🔴 {{ $scheduleAlerts['counts']['overdue'] }} vencidos</span>
+                    @endif
+                    @if(($scheduleAlerts['counts']['in_tolerance'] ?? 0) > 0)
+                        <span class="badge bg-warning text-dark">🟠 {{ $scheduleAlerts['counts']['in_tolerance'] }} en tolerancia</span>
+                    @endif
+                    @if(($scheduleAlerts['counts']['in_window'] ?? 0) > 0)
+                        <span class="badge bg-primary">🟡 {{ $scheduleAlerts['counts']['in_window'] }} hoy / en ventana</span>
+                    @endif
                 </div>
             </div>
             <div class="row g-3 mb-3">
                 @foreach(array_slice($actionableList, 0, 6) as $alert)
+                    @php
+                        $bd = $alert['breakdown'] ?? [];
+                        $overdueIds = $alert['overdue_sensor_ids'] ?? [];
+                        $allPendingIds = $alert['pending_sensor_ids'] ?? [];
+                    @endphp
                     <div class="col-md-6 col-xl-4">
                         <div class="p-3 rounded-3 border h-100 d-flex flex-column justify-content-between"
                              style="border-left: 4px solid {{ $alert['color_hex'] }} !important; background: #fcfcfc;">
                             <div>
-                                <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+                                <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
                                     <span class="fw-bold text-dark small">
-                                        <i class="bi {{ $alert['type'] === 'group' ? 'bi-folder-fill text-primary' : 'bi-speedometer2 text-info' }} me-1"></i>
+                                        <i class="bi bi-folder-fill text-primary me-1"></i>
                                         {{ $alert['title'] }}
                                     </span>
                                     <span class="badge {{ $alert['badge_class'] }}" style="font-size: 0.7rem; background-color: {{ $alert['color_hex'] }};">
                                         {{ $alert['status_label'] }}
                                     </span>
                                 </div>
+                                <div class="d-flex flex-wrap gap-1 mb-2">
+                                    @if(($bd['overdue'] ?? 0) > 0)
+                                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle" style="font-size: 0.68rem;">
+                                            🔴 {{ $bd['overdue'] }} vencido(s)
+                                        </span>
+                                    @endif
+                                    @if(($bd['in_tolerance'] ?? 0) > 0)
+                                        <span class="badge bg-warning bg-opacity-10 text-dark border border-warning-subtle" style="font-size: 0.68rem;">
+                                            🟠 {{ $bd['in_tolerance'] }} en tolerancia
+                                        </span>
+                                    @endif
+                                    @if(($bd['in_window'] ?? 0) > 0)
+                                        <span class="badge bg-warning bg-opacity-25 text-dark border border-warning" style="font-size: 0.68rem;">
+                                            🟡 {{ $bd['in_window'] }} hoy / en ventana
+                                        </span>
+                                    @endif
+                                </div>
                                 <p class="text-muted mb-2" style="font-size: 0.78rem;">
                                     {{ $alert['status_message'] }}
                                 </p>
                             </div>
-                            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 pt-2 border-top">
                                 <small class="text-muted" style="font-size: 0.72rem;">
                                     Fecha: <strong>{{ $alert['target_date_formatted'] }}</strong> (Tol: +{{ $alert['tolerance_days'] }}d)
                                 </small>
-                                @if(!empty($alert['pending_sensor_ids']))
-                                    <form method="POST" action="{{ route('bulk-measurements.start') }}" class="d-inline">
-                                        @csrf
-                                        <input type="hidden" name="sensor_ids" value="{{ implode(',', $alert['pending_sensor_ids']) }}">
-                                        <button type="submit" class="btn btn-sm btn-primary py-0 px-2" style="font-size: 0.75rem;">
-                                            <i class="bi bi-play-fill"></i> Medir ({{ count($alert['pending_sensor_ids']) }})
-                                        </button>
-                                    </form>
-                                @endif
+                                <div class="d-flex flex-wrap gap-1">
+                                    @if(count($overdueIds) > 0 && count($overdueIds) < count($allPendingIds))
+                                        <form method="POST" action="{{ route('bulk-measurements.start') }}" class="d-inline">
+                                            @csrf
+                                            <input type="hidden" name="sensor_ids" value="{{ implode(',', $overdueIds) }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size: 0.72rem;">
+                                                <i class="bi bi-exclamation-circle"></i> Vencidos ({{ count($overdueIds) }})
+                                            </button>
+                                        </form>
+                                    @endif
+                                    @if(!empty($allPendingIds))
+                                        <form method="POST" action="{{ route('bulk-measurements.start') }}" class="d-inline">
+                                            @csrf
+                                            <input type="hidden" name="sensor_ids" value="{{ implode(',', $allPendingIds) }}">
+                                            <button type="submit" class="btn btn-sm btn-primary py-0 px-2" style="font-size: 0.75rem;">
+                                                <i class="bi bi-play-fill"></i> Medir ({{ count($allPendingIds) }})
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     </div>
