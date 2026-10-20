@@ -247,7 +247,20 @@ Route::middleware(['auth'])->group(function () {
             return redirect('/dashboard')->with('error', 'Plan no encontrado.');
         }
 
-        // Verificar si ya tiene suscripción activa
+        // ✅ Cargar precios dinámicos configurados por el SuperAdmin en storage/app/pricing.json
+        $sysPrices = @json_decode(@file_get_contents(storage_path('app/pricing.json')), true) ?: [
+            'basico' => 10000,
+            'premium' => 25000,
+            'pack' => 10000,
+        ];
+        if (isset($sysPrices[$plan])) {
+            $planData['price_ars'] = (float) $sysPrices[$plan];
+            $planData['price'] = (int) round($sysPrices[$plan] * 100);
+        } else {
+            $planData['price_ars'] = (float) ($planData['price'] / 100);
+        }
+
+        // Verificar si ya tiene suscripción activa del mismo nivel o superior (permitir upgrade de basico -> premium)
         $activeSubscription = \App\Models\Subscription::where('user_id', $user->id)
             ->where('status', 'active')
             ->where(function ($q) {
@@ -255,8 +268,8 @@ Route::middleware(['auth'])->group(function () {
             })
             ->first();
 
-        if ($activeSubscription) {
-            return redirect('/dashboard')->with('info', 'Ya tienes una suscripción activa.');
+        if ($activeSubscription && ($activeSubscription->plan === $plan || $activeSubscription->plan === 'premium')) {
+            return redirect('/profile')->with('info', 'Ya tienes una suscripción activa para este plan.');
         }
 
         return view('subscriptions.payment', [

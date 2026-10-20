@@ -65,7 +65,7 @@
                     <p class="text-muted">{{ $planData['description'] }}</p>
                     
                     <div class="price-display">
-                        ${{ number_format($planData['price'] / 100, 2) }}
+                        ${{ number_format($planData['price_ars'] ?? ($planData['price'] / 100), 0, ',', '.') }}
                         <small>ARS</small>
                     </div>
                     
@@ -138,8 +138,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             if (data.success && data.data.preference_id) {
-                // ✅ Renderizar el botón de Mercado Pago
-                renderWalletBrick(data.data.preference_id, publicKey);
+                // ✅ Si Mercado Pago devuelve init_point, redirigir directamente o renderizar Wallet Brick
+                if (data.data.init_point) {
+                    window.location.href = data.data.init_point;
+                    return;
+                }
+                renderWalletBrick(data.data.preference_id, data.data.public_key || publicKey);
             } else {
                 throw new Error(data.message || 'No se pudo crear la preferencia');
             }

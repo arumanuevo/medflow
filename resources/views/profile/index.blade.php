@@ -655,7 +655,7 @@
 @endsection
 
 @push('scripts')
-    
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
     @php
         $sysPrices = @json_decode(file_get_contents(storage_path('app/pricing.json')), true) ?: ['basico' => 10000, 'premium' => 25000, 'pack' => 10000];
         $priceBasico = $sysPrices['basico'] ?? 10000;
@@ -669,20 +669,20 @@
 
 
         /**
-         * Subir de plan (Free  Básico, Free  Premium, Básico  Premium)
+         * Subir de plan (Free -> Básico, Free -> Premium, Básico -> Premium)
          */
         function upgradePlan(targetPlan) {
             const planNames = {
-                'basico': 'Básico ($10 ARS)',
-                'premium': 'Premium ($25 ARS)'
+                'basico': `Básico ($${PRICE_BASICO.toLocaleString('es-AR')} ARS)`,
+                'premium': `Premium ($${PRICE_PREMIUM.toLocaleString('es-AR')} ARS)`
             };
 
             const planIcons = {
-                'basico': '',
-                'premium': ''
+                'basico': '📦',
+                'premium': '⭐'
             };
 
-            if (!confirm(`?Deseas cambiar al plan ${planIcons[targetPlan]} ${planNames[targetPlan]}?`)) {
+            if (!confirm(`¿Deseas cambiar al plan ${planIcons[targetPlan]} ${planNames[targetPlan]}?`)) {
                 return;
             }
 
@@ -691,32 +691,32 @@
             @else
                 window.location.href = `/suscripcion/${targetPlan}/pagar`;
             @endif
-                                              }
+        }
 
         /**
-         * Bajar de plan (Premium  Básico)
+         * Bajar de plan (Premium -> Básico)
          */
         function downgradePlan(targetPlan) {
             const planNames = {
-                'basico': 'Básico ($10 ARS)',
+                'basico': `Básico ($${PRICE_BASICO.toLocaleString('es-AR')} ARS)`,
                 'free': 'Free (Gratuito)'
             };
 
             const planIcons = {
-                'basico': '',
-                'free': ''
+                'basico': '📦',
+                'free': '🎁'
             };
 
-            if (!confirm(`?Deseas bajar al plan ${planIcons[targetPlan]} ${planNames[targetPlan]}?`)) {
+            if (!confirm(`¿Deseas bajar al plan ${planIcons[targetPlan]} ${planNames[targetPlan]}?`)) {
                 return;
             }
 
             @if(app()->environment('local'))
                 debugActivateSubscription(targetPlan);
             @else
-                showAlert(' La bajada de plan se aplicar al finalizar el período actual.', 'warning');
+                showAlert('⚠️ La bajada de plan se aplicará al finalizar el período actual.', 'warning');
             @endif
-                                              }
+        }
 
         /**
          * Cancelar suscripción
@@ -1292,10 +1292,10 @@
                                                                                                                                                         <div class="col-md-5 mt-2 mt-md-0">
                                                                                                                                                             <div class="d-flex flex-wrap gap-2 justify-content-md-end">
                                                                                                                                                                 <button class="btn btn-primary btn-sm" onclick="upgradePlan('basico')">
-                                                                                                                                                                    <i class="bi bi-credit-card me-1"></i> Plan Básico ($10 ARS)
+                                                                                                                                                                    <i class="bi bi-credit-card me-1"></i> Plan Básico ($${PRICE_BASICO.toLocaleString('es-AR')} ARS)
                                                                                                                                                                 </button>
                                                                                                                                                                 <button class="btn btn-warning btn-sm" onclick="upgradePlan('premium')">
-                                                                                                                                                                    <i class="bi bi-star me-1"></i> Plan Premium ($25 ARS)
+                                                                                                                                                                    <i class="bi bi-star me-1"></i> Plan Premium ($${PRICE_PREMIUM.toLocaleString('es-AR')} ARS)
                                                                                                                                                                 </button>
                                                                                                                                                                 @if(app()->environment('local'))
                                                                                                                                                                     <button class="btn btn-secondary btn-sm" onclick="debugActivateSubscription('free')">
@@ -1399,10 +1399,10 @@
                                                                                                     <!-- Footer Upgrades -->
                                                                                                     <div class="card-footer bg-light p-3 border-top d-flex gap-2 justify-content-center flex-wrap">
                                                                                                         <button class="btn btn-primary rounded-pill px-4 shadow-sm transition-all" onclick="upgradePlan('basico')">
-                                                                                                            <i class="bi bi-credit-card me-1"></i> Subir a Básico ($10 ARS)
+                                                                                                            <i class="bi bi-credit-card me-1"></i> Subir a Básico ($${PRICE_BASICO.toLocaleString('es-AR')} ARS)
                                                                                                         </button>
                                                                                                         <button class="btn btn-warning rounded-pill px-4 shadow-sm fw-bold text-dark transition-all" onclick="upgradePlan('premium')">
-                                                                                                            <i class="bi bi-star-fill me-1 text-dark"></i> Escalar a Premium ($25 ARS)
+                                                                                                            <i class="bi bi-star-fill me-1 text-dark"></i> Escalar a Premium ($${PRICE_PREMIUM.toLocaleString('es-AR')} ARS)
                                                                                                         </button>
                                                                                                         @if(app()->environment('local'))
                                                                                                             <button class="btn btn-outline-secondary rounded-pill px-3 transition-all" onclick="debugActivateSubscription('free')">
@@ -1823,8 +1823,10 @@
                 return;
             }
 
-            if (confirm(`Estás por comprar una expansin de +${packs * 10} sensores por $${packs * 10000} ARS hasta fin de mes. ¿Estás seguro?`)) {
-                showAlert(' Generando preferencia de pago...', 'info');
+            const totalPackCost = (packs * PRICE_PACK).toLocaleString('es-AR');
+
+            if (confirm(`Estás por comprar una expansión de +${packs * 10} sensores por $${totalPackCost} ARS hasta fin de mes. ¿Estás seguro?`)) {
+                showAlert('⏳ Generando preferencia de pago...', 'info');
 
                 $.ajax({
                     url: '/api/subscription/buy-packs',
@@ -1839,32 +1841,38 @@
                     success: function (response) {
                         if (response.success && response.data.preference_id) {
 
-                            //  BYPASS PARA ENTORNO LOCAL
+                            // ✅ BYPASS PARA ENTORNO LOCAL
                             if (response.data.is_local) {
-                                showAlert(' [DEV] Packs acreditados localmente en Sandbox. Recargando perfil...', 'success');
+                                showAlert('✅ [DEV] Packs acreditados localmente en Sandbox. Recargando perfil...', 'success');
                                 setTimeout(() => window.location.reload(), 1500);
                                 return;
                             }
 
-                            showAlert(' Redirigiendo a Mercado Pago...', 'success');
-                            // Inicializar Checkout Pro
-                            const devEnv = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-                            const mp = new MercadoPago(response.data.public_key, {
-                                locale: 'es-AR'
-                            });
+                            showAlert('✅ Redirigiendo a Mercado Pago...', 'success');
 
-                            if (devEnv) {
-                                showAlert(' Modo Desarrollo: Simulando redirección. Por favor aprueba en sandbox mercadopago.', 'warning');
+                            // ✅ Redirección directa y confiable al Checkout Pro de Mercado Pago
+                            if (response.data.init_point) {
+                                window.location.href = response.data.init_point;
+                                return;
                             }
 
-                            mp.checkout({
-                                preference: {
-                                    id: response.data.preference_id
-                                },
-                                autoOpen: true,
-                            });
+                            // Fallback mediante SDK JS v2 de Mercado Pago
+                            if (typeof MercadoPago !== 'undefined' && response.data.public_key) {
+                                const mp = new MercadoPago(response.data.public_key, {
+                                    locale: 'es-AR'
+                                });
+
+                                mp.checkout({
+                                    preference: {
+                                        id: response.data.preference_id
+                                    },
+                                    autoOpen: true,
+                                });
+                            } else {
+                                showAlert('No se pudo inicializar la pasarela de Mercado Pago. Verifica la configuración de claves.', 'danger');
+                            }
                         } else {
-                            showAlert('Error: ' + (response.message || 'Respuesta invlida al general link de pago'), 'danger');
+                            showAlert('Error: ' + (response.message || 'Respuesta inválida al generar link de pago'), 'danger');
                         }
                     },
                     error: function (xhr) {

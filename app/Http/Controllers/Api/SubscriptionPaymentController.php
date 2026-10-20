@@ -33,6 +33,28 @@ class SubscriptionPaymentController extends Controller
     }
 
     /**
+     * Obtener los precios configurados dinámicamente por el SuperAdmin en storage/app/pricing.json
+     */
+    private function getSystemPrices(): array
+    {
+        $defaultPrices = [
+            'basico' => 10000,
+            'premium' => 25000,
+            'pack' => 10000,
+        ];
+
+        $pricingPath = storage_path('app/pricing.json');
+        if (file_exists($pricingPath)) {
+            $decoded = json_decode(file_get_contents($pricingPath), true);
+            if (is_array($decoded)) {
+                return array_merge($defaultPrices, $decoded);
+            }
+        }
+
+        return $defaultPrices;
+    }
+
+    /**
      * Crear una preferencia de pago para una suscripción
      */
     public function createPreference(Request $request)
@@ -77,12 +99,19 @@ class SubscriptionPaymentController extends Controller
             ], 404);
         }
 
+        // ✅ Obtener precio dinámico configurado por el SuperAdmin en pricing.json
+        $systemPrices = $this->getSystemPrices();
+        $dynamicPrice = isset($systemPrices[$plan])
+            ? (float) $systemPrices[$plan]
+            : ((float) $planConfig['price'] / 100);
+
         Log::info('📋 Datos del plan', [
             'plan' => $plan,
-            'config' => $planConfig
+            'config' => $planConfig,
+            'dynamic_price' => $dynamicPrice
         ]);
 
-        // Verificar si el usuario ya tiene una suscripción activa
+        // Verificar si el usuario ya tiene una suscripción activa del mismo plan (permitir upgrade de basico -> premium)
         $activeSubscription = Subscription::where('user_id', $user->id)
             ->where('status', 'active')
             ->where(function ($q) {
@@ -90,14 +119,16 @@ class SubscriptionPaymentController extends Controller
             })
             ->first();
 
-        if ($activeSubscription) {
-            Log::info('⚠️ Usuario ya tiene suscripción activa', [
+        if ($activeSubscription && ($activeSubscription->plan === $plan || $activeSubscription->plan === 'premium')) {
+            Log::info('⚠️ Usuario ya tiene suscripción activa de este nivel o superior', [
                 'user_id' => $user->id,
-                'subscription_id' => $activeSubscription->id
+                'subscription_id' => $activeSubscription->id,
+                'active_plan' => $activeSubscription->plan,
+                'target_plan' => $plan
             ]);
             return response()->json([
                 'success' => false,
-                'message' => 'Ya tienes una suscripción activa',
+                'message' => 'Ya tienes una suscripción activa para este plan.',
                 'data' => [
                     'subscription' => $activeSubscription
                 ]
@@ -121,7 +152,7 @@ class SubscriptionPaymentController extends Controller
                         "title" => $planConfig['name'] . ' - MedFlow',
                         "description" => $planConfig['description'],
                         "quantity" => 1,
-                        "unit_price" => (float) $planConfig['price'] / 100,
+                        "unit_price" => (float) $dynamicPrice,
                         "currency_id" => $planConfig['currency']
                     ]
                 ],
@@ -157,7 +188,7 @@ class SubscriptionPaymentController extends Controller
                 'plan' => $plan,
                 'status' => 'pending',
                 'preference_id' => $preference->id,
-                'amount' => (float) $planConfig['price'] / 100,
+                'amount' => (float) $dynamicPrice,
                 'currency' => $planConfig['currency'],
             ]);
 
@@ -172,6 +203,8 @@ class SubscriptionPaymentController extends Controller
                 'success' => true,
                 'data' => [
                     'preference_id' => $preference->id,
+                    'init_point' => $preference->init_point ?? null,
+                    'sandbox_init_point' => $preference->sandbox_init_point ?? null,
                     'subscription_id' => $subscription->id,
                     'public_key' => config('mercadopago.public_key'),
                 ]
@@ -243,6 +276,12 @@ class SubscriptionPaymentController extends Controller
                 $payment = $client->get($paymentId);
 
                 if ($payment->status === 'approved') {
+                    // Si el usuario estaba haciendo upgrade desde otra suscripción activa, expirar las anteriores
+                    Subscription::where('user_id', $user->id)
+                        ->where('id', '!=', $subscription->id)
+                        ->where('status', 'active')
+                        ->update(['status' => 'expired', 'expires_at' => now()]);
+
                     $subscription->markAsPaid($paymentId);
 
                     $user->subscription_type = $plan === 'premium' ? 'corporativo' : 'domiciliario';
@@ -350,6 +389,27 @@ class SubscriptionPaymentController extends Controller
             }
 
             if ($payment->status === 'approved') {
+                // ✅ Soporte para acreditación de packs extras por webhook (external_reference: "{userId}_packs_{packs}_{timestamp}")
+                if ($plan === 'packs') {
+                    $packsCount = isset($parts[2]) && is_numeric($parts[2]) ? (int) $parts[2] : 1;
+                    $user = User::find($userId);
+                    if ($user && $packsCount > 0) {
+                        $user->additional_sensor_packs += $packsCount;
+                        $user->save();
+                    }
+                    Log::info('Pago de packs confirmado por webhook', [
+                        'user_id' => $userId,
+                        'payment_id' => $paymentId,
+                        'packs' => $packsCount
+                    ]);
+                    return response()->json(['status' => 'success']);
+                }
+
+                // Expirar cualquier suscripción activa previa antes de activar la nueva
+                Subscription::where('user_id', $userId)
+                    ->where('status', 'active')
+                    ->update(['status' => 'expired', 'expires_at' => now()]);
+
                 $subscription = Subscription::where('user_id', $userId)
                     ->where('plan', $plan)
                     ->where('status', 'pending')
@@ -491,7 +551,9 @@ class SubscriptionPaymentController extends Controller
             ], 500);
         }
 
-        $pricePerPack = 10000; // 10.000 ARS por Pack de 10 sensores
+        // ✅ Obtener el valor por pack configurado por el SuperAdmin en storage/app/pricing.json
+        $systemPrices = $this->getSystemPrices();
+        $pricePerPack = (float) ($systemPrices['pack'] ?? 10000);
 
         try {
             $client = new PreferenceClient();
@@ -501,6 +563,7 @@ class SubscriptionPaymentController extends Controller
             $successUrl = $baseUrl . '/subscription/success_packs?packs=' . $packs;
             $failureUrl = $baseUrl . '/subscription/failure/premium';
             $pendingUrl = $baseUrl . '/subscription/pending/premium';
+            $notificationUrl = $baseUrl . '/api/subscription/webhook';
 
             $preferenceData = [
                 "items" => [
@@ -522,7 +585,8 @@ class SubscriptionPaymentController extends Controller
                     "pending" => $pendingUrl
                 ],
                 "auto_return" => "approved",
-                "external_reference" => $user->id . '_packs_' . time(),
+                "external_reference" => $user->id . '_packs_' . $packs . '_' . time(),
+                "notification_url" => $notificationUrl,
                 "statement_descriptor" => "MedFlow Extra",
             ];
 
@@ -532,7 +596,11 @@ class SubscriptionPaymentController extends Controller
                 'success' => true,
                 'data' => [
                     'preference_id' => $preference->id,
+                    'init_point' => $preference->init_point ?? null,
+                    'sandbox_init_point' => $preference->sandbox_init_point ?? null,
                     'public_key' => config('mercadopago.public_key'),
+                    'unit_price' => $pricePerPack,
+                    'total_price' => (float) ($packs * $pricePerPack),
                 ]
             ]);
 

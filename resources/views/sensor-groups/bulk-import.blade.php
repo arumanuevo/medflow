@@ -477,8 +477,14 @@
                             }
                             
                             showAlert('✅ Redirigiendo a Mercado Pago para confirmar tu compra...', 'success');
-                            
-                            const mp = new MercadoPago('APP_USR-79f9f592-1234-1234-1234-fcba80287103', { locale: 'es-AR' });
+
+                            if (response.data.init_point) {
+                                window.location.href = response.data.init_point;
+                                return;
+                            }
+
+                            const mpPublicKey = response.data.public_key || '{{ config("mercadopago.public_key") }}';
+                            const mp = new MercadoPago(mpPublicKey, { locale: 'es-AR' });
                             mp.checkout({
                                 preference: { id: response.data.preference_id },
                                 autoOpen: true

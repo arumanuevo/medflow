@@ -78,7 +78,10 @@ class BulkSensorImportController extends Controller
             if (!$limitStatus['is_unlimited'] && $totalRows > $limitStatus['remaining']) {
                 $missingSensors = $totalRows - $limitStatus['remaining'];
                 $neededPacks = ceil($missingSensors / 10);
-                $cost = number_format($neededPacks * 10000, 0, ',', '.'); // 10000 ARS per pack
+
+                $sysPrices = @json_decode(@file_get_contents(storage_path('app/pricing.json')), true) ?: ['pack' => 10000];
+                $packPrice = (float) ($sysPrices['pack'] ?? 10000);
+                $cost = number_format($neededPacks * $packPrice, 0, ',', '.');
 
                 return response()->json([
                     'success' => false,
@@ -87,7 +90,7 @@ class BulkSensorImportController extends Controller
                     'upsell_data' => [
                         'missing_sensors' => $missingSensors,
                         'needed_packs' => $neededPacks,
-                        'estimated_cost' => $neededPacks * 10000,
+                        'estimated_cost' => $neededPacks * $packPrice,
                         'formatted_cost' => $cost
                     ]
                 ], 403);
