@@ -160,9 +160,9 @@ class SensorMapController extends Controller
                 'has_coords' => $hasCoords,
                 'last_value' => $lastValue,
                 'last_measured_at' => $lastDate,
-                'show_url' => route('sensors.show', ['sensor' => $sensor->id]),
-                'edit_url' => route('sensors.edit', ['sensor' => $sensor->id]),
-                'measure_url' => route('measurements.create', ['sensor' => $sensor->id]),
+                'show_url' => url('/sensors/' . $sensor->id),
+                'edit_url' => url('/sensors/' . $sensor->id . '/edit'),
+                'measure_url' => url('/mediciones/create/' . $sensor->id),
             ];
         }
 

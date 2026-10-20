@@ -66,7 +66,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('/sensors', SensorController::class)
         ->except(['create', 'edit'])
-        ->parameter('sensor', 'sensor');
+        ->parameter('sensor', 'sensor')
+        ->names('api.sensors');
 
     Route::get('/sensors/with-remaining-days', [SensorController::class, 'getSensorsWithRemainingDays'])
         ->name('api.sensors.with-remaining-days');

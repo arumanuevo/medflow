@@ -129,12 +129,17 @@ class SensorViewController extends Controller
     {
         $user = auth()->user();
 
-        // Verificar permisos: admin, inspector o consumidor
+        // Verificar permisos: admin, propietario del grupo, acceso compartido o colaborador activo del workspace
         $canViewSensor = $user->hasRole('admin') ||
             ($sensor->group && $sensor->group->user_id === $user->id) ||
             ($sensor->group && $sensor->group->sharedAccess()
                 ->where('shared_with', $user->id)
                 ->whereIn('role', ['inspector', 'admin', 'consumidor'])
+                ->exists()) ||
+            ($sensor->group && \App\Models\WorkspaceCollaborator::where('workspace_id', $sensor->group->user_id)
+                ->where('user_id', $user->id)
+                ->where('status', 'active')
+                ->where('is_paused', false)
                 ->exists());
 
         if (!$canViewSensor) {
