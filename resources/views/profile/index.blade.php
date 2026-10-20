@@ -1828,6 +1828,16 @@
             if (confirm(`Estás por comprar una expansión de +${packs * 10} sensores por $${totalPackCost} ARS hasta fin de mes. ¿Estás seguro?`)) {
                 showAlert('⏳ Generando preferencia de pago...', 'info');
 
+                // Abrir la nueva pestaña de forma síncrona tras la confirmación para evitar bloqueadores de popups
+                let mpWindow = null;
+                @if(!app()->environment('local'))
+                    mpWindow = window.open('about:blank', '_blank');
+                    if (mpWindow && mpWindow.document) {
+                        mpWindow.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Conectando con Mercado Pago...</title><style>body{font-family:system-ui,-apple-system,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#f8fafc;color:#1e293b;text-align:center}.box{padding:2rem;border-radius:12px;background:#fff;box-shadow:0 4px 20px rgba(0,0,0,.08)}</style></head><body><div class="box"><h3>Conectando con Mercado Pago...</h3><p>Por favor espera unos segundos mientras preparamos tu pago seguro.</p></div></body></html>');
+                        mpWindow.document.close();
+                    }
+                @endif
+
                 $.ajax({
                     url: '/api/subscription/buy-packs',
                     method: 'POST',
@@ -1843,18 +1853,24 @@
 
                             // ✅ BYPASS PARA ENTORNO LOCAL
                             if (response.data.is_local) {
+                                if (mpWindow && !mpWindow.closed) mpWindow.close();
                                 showAlert('✅ [DEV] Packs acreditados localmente en Sandbox. Recargando perfil...', 'success');
                                 setTimeout(() => window.location.reload(), 1500);
                                 return;
                             }
 
-                            showAlert('✅ Redirigiendo a Mercado Pago...', 'success');
-
-                            // ✅ Redirección directa y confiable al Checkout Pro de Mercado Pago
+                            // ✅ Abrir Checkout Pro de Mercado Pago en la nueva pestaña
                             if (response.data.init_point) {
-                                window.location.href = response.data.init_point;
+                                if (mpWindow && !mpWindow.closed) {
+                                    mpWindow.location.href = response.data.init_point;
+                                } else {
+                                    window.open(response.data.init_point, '_blank');
+                                }
+                                showAlert('✅ Se abrió Mercado Pago en una nueva pestaña para completar tu pago.', 'success');
                                 return;
                             }
+
+                            if (mpWindow && !mpWindow.closed) mpWindow.close();
 
                             // Fallback mediante SDK JS v2 de Mercado Pago
                             if (typeof MercadoPago !== 'undefined' && response.data.public_key) {
@@ -1872,10 +1888,12 @@
                                 showAlert('No se pudo inicializar la pasarela de Mercado Pago. Verifica la configuración de claves.', 'danger');
                             }
                         } else {
+                            if (mpWindow && !mpWindow.closed) mpWindow.close();
                             showAlert('Error: ' + (response.message || 'Respuesta inválida al generar link de pago'), 'danger');
                         }
                     },
                     error: function (xhr) {
+                        if (mpWindow && !mpWindow.closed) mpWindow.close();
                         let errorMsg = 'Error procesando solicitud.';
                         if (xhr.responseJSON && xhr.responseJSON.message) {
                             errorMsg = xhr.responseJSON.message;

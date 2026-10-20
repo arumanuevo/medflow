@@ -111,12 +111,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const loadingOverlay = document.getElementById('loadingOverlay');
     const publicKey = "{{ config('mercadopago.public_key') }}";
 
-    // ✅ Función para crear preferencia y renderizar botón
+    // ✅ Función para crear preferencia y abrir pago en pestaña nueva
     async function createPreferenceAndPay() {
         // Mostrar loading
         loadingOverlay.classList.add('active');
         createBtn.disabled = true;
         createBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Preparando pago...';
+
+        let mpWindow = window.open('about:blank', '_blank');
+        if (mpWindow && mpWindow.document) {
+            mpWindow.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Conectando con Mercado Pago...</title><style>body{font-family:system-ui,-apple-system,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#f8fafc;color:#1e293b;text-align:center}.box{padding:2rem;border-radius:12px;background:#fff;box-shadow:0 4px 20px rgba(0,0,0,.08)}</style></head><body><div class="box"><h3>Conectando con Mercado Pago...</h3><p>Por favor espera unos segundos mientras preparamos tu pago seguro.</p></div></body></html>');
+            mpWindow.document.close();
+        }
 
         try {
             const response = await fetch('/api/subscription/create-preference', {
@@ -138,17 +144,26 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             if (data.success && data.data.preference_id) {
-                // ✅ Si Mercado Pago devuelve init_point, redirigir directamente o renderizar Wallet Brick
+                // ✅ Si Mercado Pago devuelve init_point, abrir en la nueva pestaña
                 if (data.data.init_point) {
-                    window.location.href = data.data.init_point;
+                    if (mpWindow && !mpWindow.closed) {
+                        mpWindow.location.href = data.data.init_point;
+                    } else {
+                        window.open(data.data.init_point, '_blank');
+                    }
+                    loadingOverlay.classList.remove('active');
+                    createBtn.disabled = false;
+                    createBtn.innerHTML = '<i class="bi bi-box-arrow-up-right"></i> Reabrir pago en Mercado Pago';
                     return;
                 }
+                if (mpWindow && !mpWindow.closed) mpWindow.close();
                 renderWalletBrick(data.data.preference_id, data.data.public_key || publicKey);
             } else {
                 throw new Error(data.message || 'No se pudo crear la preferencia');
             }
 
         } catch (error) {
+            if (mpWindow && !mpWindow.closed) mpWindow.close();
             console.error('❌ Error:', error);
             alert('Error: ' + error.message);
             

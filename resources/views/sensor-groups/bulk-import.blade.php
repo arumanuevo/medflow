@@ -455,6 +455,15 @@
                 
                 btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Procesando pago...');
                 
+                let mpWindow = null;
+                @if(!app()->environment('local'))
+                    mpWindow = window.open('about:blank', '_blank');
+                    if (mpWindow && mpWindow.document) {
+                        mpWindow.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Conectando con Mercado Pago...</title><style>body{font-family:system-ui,-apple-system,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#f8fafc;color:#1e293b;text-align:center}.box{padding:2rem;border-radius:12px;background:#fff;box-shadow:0 4px 20px rgba(0,0,0,.08)}</style></head><body><div class="box"><h3>Conectando con Mercado Pago...</h3><p>Por favor espera unos segundos mientras preparamos tu pago seguro.</p></div></body></html>');
+                        mpWindow.document.close();
+                    }
+                @endif
+
                 $.ajax({
                     url: '/api/subscription/buy-packs',
                     method: 'POST',
@@ -466,9 +475,11 @@
                     success: function(response) {
                         if (response.success && response.data.preference_id) {
                             $('#quotaUpsellModal').modal('hide');
+                            btn.prop('disabled', false).html('<i class="bi bi-cart3 me-2"></i> Comprar Packs e Importar');
                             
                             // ✅ BYPASS PARA ENTORNO LOCAL
                             if (response.data.is_local) {
+                                if (mpWindow && !mpWindow.closed) mpWindow.close();
                                 showAlert('✅ [DEV] Packs acreditados localmente en Sandbox. Recargando cuotas...', 'success');
                                 setTimeout(() => {
                                     window.location.reload();
@@ -476,12 +487,17 @@
                                 return;
                             }
                             
-                            showAlert('✅ Redirigiendo a Mercado Pago para confirmar tu compra...', 'success');
-
                             if (response.data.init_point) {
-                                window.location.href = response.data.init_point;
+                                if (mpWindow && !mpWindow.closed) {
+                                    mpWindow.location.href = response.data.init_point;
+                                } else {
+                                    window.open(response.data.init_point, '_blank');
+                                }
+                                showAlert('✅ Se abrió Mercado Pago en una nueva pestaña para confirmar tu compra.', 'success');
                                 return;
                             }
+
+                            if (mpWindow && !mpWindow.closed) mpWindow.close();
 
                             const mpPublicKey = response.data.public_key || '{{ config("mercadopago.public_key") }}';
                             const mp = new MercadoPago(mpPublicKey, { locale: 'es-AR' });
@@ -490,11 +506,13 @@
                                 autoOpen: true
                             });
                         } else {
+                            if (mpWindow && !mpWindow.closed) mpWindow.close();
                             btn.prop('disabled', false).html('<i class="bi bi-cart3 me-2"></i> Comprar Packs e Importar');
                             showAlert('Error al generar la preferencia de pago', 'danger');
                         }
                     },
                     error: function() {
+                        if (mpWindow && !mpWindow.closed) mpWindow.close();
                         btn.prop('disabled', false).html('<i class="bi bi-cart3 me-2"></i> Comprar Packs e Importar');
                         showAlert('Error de conexión con el procesador de pagos', 'danger');
                     }
