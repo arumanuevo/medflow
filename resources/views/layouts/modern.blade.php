@@ -602,8 +602,8 @@ try {
                 📅 Calendario y tomas de hoy
             </button>
             <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill py-1 px-2 flowy-quick-btn" style="font-size: 0.71rem;"
-                data-question="¿Cómo funciona el Mapa interactivo de sensores, calor de consumo y validación GPS?">
-                🗺️ Mapa y geocercas GPS
+                data-question="¿Cómo uso el Mapa de Sensores (GIS) para ubicar medidores y ver vencimientos o picos de consumo?">
+                🗺️ Mapa GIS y Picos de Consumo
             </button>
             <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill py-1 px-2 flowy-quick-btn" style="font-size: 0.71rem;"
                 data-question="¿Cómo puedo filtrar y exportar reportes de mediciones o consumos en PDF y CSV?">

@@ -14,7 +14,7 @@
                 <div class="input-group mt-4 shadow-sm" style="max-width: 600px; margin: 0 auto;">
                     <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
                     <input type="text" id="helpSearch" class="form-control border-start-0 py-3"
-                        placeholder="Buscar por palabra clave (ej: Calendario, Tolerancias, Plantillas, Colaboradores)...">
+                        placeholder="Buscar por palabra clave (ej: Mapa GIS, Coordenadas, Calendario, Tolerancias, Plantillas)...">
                 </div>
             </div>
         </div>
@@ -232,8 +232,8 @@
                             <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
                                     data-bs-toggle="modal" data-bs-target="#helpModal"
                                     data-title="Beneficios de ser Premium"
-                                    data-content="La suscripción Premium desbloquea el potencial total del sistema: Importación masiva de sensores, gestión y creación de plantillas métricas, incorporación de colaboradores e inspectores, exportación avanzada de datos y panel de analíticas exclusivas."
-                                    data-steps="Visualizarás menús desbloqueados (ej. &lt;strong&gt;Analíticas, Importaciones&lt;/strong&gt;) de forma automática según la membresía.">
+                                    data-content="La suscripción Premium desbloquea el potencial total del sistema: Mapa Interactivo de Sensores (GIS) con diagnóstico geográfico de picos de consumo y estado de tomas, importación masiva de sensores, gestión y creación de plantillas métricas, incorporación de colaboradores e inspectores, exportación avanzada de datos y panel de analíticas exclusivas."
+                                    data-steps="Visualizarás menús desbloqueados (ej. &lt;strong&gt;Mapa de Sensores, Analíticas, Importaciones&lt;/strong&gt;) de forma automática según la membresía.">
                                     <i class="bi bi-info-circle me-1 text-secondary"></i> Funcionalidades Premium</a></li>
                             <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
                                     data-bs-toggle="modal" data-bs-target="#helpModal"
@@ -351,7 +351,7 @@
                             <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
                                     data-bs-toggle="modal" data-bs-target="#helpModal"
                                     data-title="Días de Pre-aviso y Días de Tolerancia"
-                                    data-content="Para que nunca se te pase una fecha de lectura, cada programación te permite definir dos márgenes en días:<br><br><strong>• Días de Pre-aviso (Ventana previa):</strong> Cantidad de días <em>antes</em> de la fecha programada en que el sistema abre la ventana de medición y comienza a avisarte (por ejemplo, 3 días antes del día 15, es decir, desde el día 12).<br><br><strong>• Días de Tolerancia (Plazo de gracia posterior):</strong> Cantidad de días <em>después</em> de la fecha programada en que aún estás a tiempo de registrar la lectura sin que se marque como vencida (por ejemplo, 3 días de tolerancia después del día 15, hasta el día 18 inclusive)."
+                                    data-content="Para que nunca se te pase una fecha de lectura, cada programación te permite definir dos márgenes en días:<br><br><strong>• Días de Pre-aviso (Ventana previa):</strong> Cantidad de días <em>antes</em> de la fecha programada en que el sistema abre la ventana de medición y comienza a avisarte (por ejemplo, 3 días antes del día 15, es decir, desde el día 12).<br><strong>• Días de Tolerancia (Plazo de gracia posterior):</strong> Cantidad de días <em>después</em> de la fecha programada en que aún estás a tiempo de registrar la lectura sin que se marque como vencida (por ejemplo, 3 días de tolerancia después del día 15, hasta el día 18 inclusive)."
                                     data-steps="Configúralos dentro de &lt;strong&gt;Calendario de Tomas > Programar Toma / Tolerancias&lt;/strong&gt; o al editar un &lt;strong&gt;Grupo de Sensores&lt;/strong&gt;.">
                                     <i class="bi bi-sliders me-1 text-primary"></i> ¿Qué son el Pre-aviso y la Tolerancia?</a>
                             </li>
@@ -375,6 +375,54 @@
                                     data-content="Cuando llega el día de medición (o estás en ventana/tolerancia), al hacer clic sobre el evento en el <strong>Calendario de Tomas</strong> verás qué sensores ya fueron medidos y cuáles siguen pendientes. Con un solo clic en el botón <strong>Iniciar Toma de Pendientes</strong>, el sistema abrirá directamente la ruta de carga masiva para ese grupo."
                                     data-steps="Entra a &lt;strong&gt;Calendario de Tomas&lt;/strong&gt;, haz clic sobre el grupo agendado en el día correspondiente y presiona &lt;strong&gt;Iniciar Toma de Pendientes&lt;/strong&gt;.">
                                     <i class="bi bi-lightning-charge me-1 text-primary"></i> Medir pendientes en 1 clic desde la agenda</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Módulo 10: Mapa Interactivo de Sensores (GIS) y Telemetría -->
+            <div class="col help-card">
+                <div class="card h-100 border-0 shadow-sm rounded-4" style="border-left: 4px solid #198754 !important;">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center me-3"
+                                style="width: 45px; height: 45px;">
+                                <i class="bi bi-geo-alt-fill fs-5"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-0">Mapa Interactivo de Sensores (GIS)</h5>
+                                <span class="badge bg-success-subtle text-success border border-success-subtle mt-1" style="font-size: 0.68rem;">Premium · Nuevo</span>
+                            </div>
+                        </div>
+                        <ul class="list-unstyled text-muted mb-0">
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal"
+                                    data-title="¿Cómo asignar o mover la coordenada de un sensor en el mapa?"
+                                    data-content="El módulo <strong>Mapa de Sensores</strong> te permite georreferenciar cada medidor de forma visual y sin salir de la pantalla, ofreciendo tres métodos:<br><br><strong>1. Clic directo en el mapa (Ubicar / Mover):</strong> Pulsa el botón <strong>Ubicar</strong> (o <strong>Mover</strong> si ya tenía pin) en la tarjeta del sensor dentro de la lista lateral y haz clic sobre el punto exacto del mapa (puedes alternar entre vista <strong>Calles</strong> y <strong>Satélite</strong> o buscar direcciones por nombre).<br><strong>2. Arrastrar y Soltar (Drag & Drop):</strong> Si el sensor ya tiene un pin en el mapa, simplemente mantén presionado el marcador con el mouse y arrástralo a su nueva posición; se guarda automáticamente al soltarlo.<br><strong>3. Carga Manual o Pegado Rápido desde Google Maps:</strong> Haz clic en el botón <strong>Manual</strong> de la tarjeta y pega directamente el par de coordenadas copiado de Google Maps (ej: <code>-34.6037, -58.3816</code>) para que el sistema separe latitud y longitud por ti."
+                                    data-steps="Ve al menú lateral izquierdo, entra en &lt;strong&gt;Mapa de Sensores&lt;/strong&gt;, selecciona un sensor de la lista derecha y pulsa &lt;strong&gt;Ubicar&lt;/strong&gt;, &lt;strong&gt;Mover&lt;/strong&gt; o &lt;strong&gt;Manual&lt;/strong&gt;.">
+                                    <i class="bi bi-pin-map-fill me-1 text-success"></i> ¿Cómo ubicar o mover sensores en el mapa?</a>
+                            </li>
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal"
+                                    data-title="Modos de Coloración GIS: Estado de Tomas, Picos de Consumo y Servicio"
+                                    data-content="En la barra superior del mapa encontrarás el selector <strong>Pintar pines por</strong>, que transforma el mapa en un tablero de control territorial:<br><br><strong>• Estado de Tomas:</strong> Pinta cada marcador según el semáforo de tu calendario: 🟢 <strong>Medido al día</strong>, 🟡 <strong>En ventana / Hoy toca</strong>, 🟠 <strong>En tolerancia</strong>, 🔴 <strong>Atrasado (Vencido)</strong> o 🔵 <strong>Programado</strong>.<br><br><strong>• Picos y Consumos:</strong> Analiza la tasa diaria de consumo de cada medidor respecto a su promedio histórico y pinta con un <strong>halo rojo pulsante</strong> los sensores con 🔥 <strong>Pico de consumo (+50% o más sobre su media)</strong>, en morado 🟣 los <strong>Estancados (consumo 0 por más de 15 días, posible medidor trabado)</strong> y en verde 🟢 los de consumo normal.<br><br><strong>• Tipo de Servicio:</strong> Colorea los sensores según su suministro (Agua, Electricidad, Gas o General)."
+                                    data-steps="Dentro de &lt;strong&gt;Mapa de Sensores&lt;/strong&gt;, usa los botones superiores &lt;strong&gt;Estado de Tomas&lt;/strong&gt;, &lt;strong&gt;Picos y Consumos&lt;/strong&gt; o &lt;strong&gt;Tipo de Servicio&lt;/strong&gt;.">
+                                    <i class="bi bi-palette-fill me-1 text-success"></i> Colorear mapa por Vencimientos o Picos de Consumo</a>
+                            </li>
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal"
+                                    data-title="Tarjetas de Diagnóstico Rápido (Filtros GIS en 1 clic)"
+                                    data-content="Debajo del encabezado del mapa tienes <strong>7 tarjetas de resumen en vivo</strong>: <em>Total Sensores, Medidos (Al día), Faltan Medir, Atrasados / Vencidos, Picos de Consumo, Estancados (0 cons.) y Sin Coordenada</em>.<br><br>Al hacer clic en cualquiera de estas tarjetas, el sistema filtra simultáneamente los pines del mapa y el listado lateral para mostrarte únicamente los medidores con esa condición (por ejemplo, ver de un pantallazo en qué calles o lotes están los medidores atrasados o los que registraron un pico inusual)."
+                                    data-steps="Haz clic sobre cualquier tarjeta superior (ej: &lt;strong&gt;Atrasados / Vencidos&lt;/strong&gt; o &lt;strong&gt;Picos de Consumo&lt;/strong&gt;) en &lt;strong&gt;Mapa de Sensores&lt;/strong&gt; para aislar esos medidores.">
+                                    <i class="bi bi-funnel-fill me-1 text-success"></i> Filtrar en 1 clic faltantes, atrasados o anomalías</a>
+                            </li>
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal"
+                                    data-title="Telemetría Rápida y Acciones desde el Pin del Mapa"
+                                    data-content="Al hacer clic sobre cualquier pin del mapa se despliega su ficha resumida con:<br><br><strong>• Estado operativo y de consumo:</strong> Última lectura, fecha, variación porcentual contra el promedio diario histórico y alerta si presenta pico o estancamiento.<br><strong>• Botón Telemetría (Gráfico en vivo):</strong> Abre una ventana emergente con la curva histórica de consumos y lecturas de las últimas tomas sin abandonar el mapa.<br><strong>• Botón Medir:</strong> Te lleva en un clic a registrar la lectura de ese sensor en particular.<br><strong>• Botón Ficha:</strong> Abre la página de detalle completo e historial del sensor."
+                                    data-steps="Haz clic en cualquier marcador del &lt;strong&gt;Mapa de Sensores&lt;/strong&gt; y presiona &lt;strong&gt;Telemetría&lt;/strong&gt;, &lt;strong&gt;Medir&lt;/strong&gt; o &lt;strong&gt;Ficha&lt;/strong&gt;.">
+                                    <i class="bi bi-graph-up-arrow me-1 text-success"></i> Ver curva de telemetría y medir desde el mapa</a>
                             </li>
                         </ul>
                     </div>

@@ -359,6 +359,39 @@ Si programas un grupo para el **día 15 de cada mes** con **3 días de Pre-aviso
 - **Medir en 1 clic:** Haz clic sobre el grupo agendado en cualquier día del **Calendario de Tomas** (o desde el **Dashboard**) y presiona el botón **Iniciar Toma de Pendientes**. El sistema te llevará directo a la pantalla de **Tomar Mediciones** con ese grupo preseleccionado.
 - **Quitar excepción de un sensor individual:** Si un sensor tenía una fecha especial y quieres que vuelva a seguir la regla de su grupo, ve al final de la pantalla **Calendario de Tomas** a la tabla **Excepciones por Sensor Individual** y haz clic en el botón de restablecer (o desactiva el interruptor **Usar programación individual para este sensor** dentro de **Sensores > Editar**).
 
+### 4.8 Mapa Interactivo de Sensores (GIS) y Diagnóstico Geográfico de Consumos (Exclusivo Premium)
+Permite a los administradores con plan **Premium** georreferenciar sus medidores en un mapa interactivo (con vista **Calles** y **Satélite**) y usarlo como una herramienta visual de diagnóstico operativo y de consumos.
+
+#### ¿Cómo entrar al Mapa y cómo asignar o mover la coordenada de un sensor?
+1. En el menú lateral izquierdo, hacer clic en **Mapa de Sensores** (también puedes llegar desde la ficha de cualquier sensor pulsando el botón **Ubicar en Mapa**).
+2. Existen **3 formas amigables** de cargar o corregir la coordenada (latitud y longitud) de un sensor:
+   - **Clic directo en el mapa (Ubicar / Mover):** En la lista lateral derecha del mapa, busca el sensor y haz clic en el botón **Ubicar** (o **Mover** si ya tenía pin). Se activará una barra superior indicando el modo ubicación; simplemente haz clic sobre el punto exacto del mapa (puedes usar el buscador de direcciones de arriba a la izquierda) y el pin se guardará al instante.
+   - **Arrastrar y soltar (Drag & Drop):** Si el sensor ya tiene un pin en el mapa, mantén presionado el marcador con el mouse y arrástralo hasta su posición exacta; al soltarlo se actualiza automáticamente.
+   - **Carga Manual o Pegado Rápido de Google Maps:** En la tarjeta del sensor haz clic en el botón **Manual**. Puedes escribir latitud y longitud o pegar directamente el texto copiado desde Google Maps (por ejemplo `-34.603722, -58.381592`) en el campo de pegado rápido y presionar **Guardar Coordenadas**.
+
+#### ¿Cómo usar el Mapa para ver estadísticas, vencimientos y picos de consumo?
+1. **Selector "Pintar pines por" (arriba a la izquierda del mapa):**
+   - **Estado de Tomas:** Colorea cada pin según el semáforo del Calendario de Tomas:
+     * 🟢 **Medido (Al día):** Ya tiene su lectura registrada en el ciclo actual.
+     * 🟡 **En Ventana / Hoy Toca:** Está dentro de los días de pre-aviso o en su día programado de toma.
+     * 🟠 **En Tolerancia:** Pasó su fecha programada pero sigue dentro de los días de gracia.
+     * 🔴 **Atrasado / Fuera de Tolerancia (Vencido):** Superó los días de tolerancia sin lectura registrada.
+     * 🔵 **Programado:** Su ventana de medición aún no comienza.
+   - **Picos y Consumos:** Evalúa automáticamente el ritmo de consumo diario de cada sensor frente a su promedio histórico:
+     * 🔥 **Pico de Consumo (Rojo con halo pulsante):** El último consumo diario supera en **+50% o más** su media histórica (posible fuga, pérdida o consumo anormal).
+     * 🟣 **Estancado / Consumo 0 (Morado):** Registra **0 consumo durante 15 días o más** entre lecturas (posible medidor trabado, manipulado o inmueble desocupado).
+     * 🟢 **Consumo Normal (Verde):** Variación dentro de los parámetros habituales.
+     * ⚪ **Sin Historial (Gris):** Tiene menos de 2 mediciones registradas.
+   - **Tipo de Servicio:** Colorea los pines según el suministro de su plantilla (**Agua**, **Electricidad**, **Gas** o **General**).
+2. **Tarjetas Superiores de Diagnóstico en 1 Clic (Filtros Rápidos):**
+   - En la parte superior del **Mapa de Sensores** hay **7 tarjetas interactivas**: **Total Sensores**, **Medidos (Al día)**, **Faltan Medir**, **Atrasados / Vencidos**, **Picos de Consumo**, **Estancados (0 cons.)** y **Sin Coordenada**.
+   - Al hacer clic sobre cualquiera de esas tarjetas, el mapa y la lista lateral se filtran al instante para mostrar únicamente los sensores en esa situación (y cambia automáticamente la coloración del mapa para resaltar el problema).
+3. **Ficha flotante del Pin y Curva de Telemetría:**
+   - Al hacer clic sobre un pin del mapa verás su última lectura, el estado de su toma, el diagnóstico de consumo (con el porcentaje de variación respecto a su promedio diario) y tres botones directos:
+     * **Telemetría:** Abre en el mismo mapa una ventana con la **curva histórica de consumos y lecturas** de ese medidor.
+     * **Medir:** Lleva directo a registrar una nueva medición para ese sensor.
+     * **Ficha:** Abre la vista de detalle completo del sensor.
+
 ---
 
 
@@ -368,6 +401,7 @@ Si programas un grupo para el **día 15 de cada mes** con **3 días de Pre-aviso
 - `/visor/{token}` → Visor Público (sin auth).
 - `/dashboard`, `/sensors`, `/sensors/{sensor}`, `/mediciones`, `/mediciones/create/{sensor}`, `/mediciones/inspector`.
 - `/calendario-mediciones` → Calendario de Programación de Tomas y Tolerancias (`MeasurementScheduleController`).
+- `/mapa-sensores` → Mapa Interactivo de Sensores (GIS), coordenadas y diagnóstico geográfico de tomas y picos de consumo (`SensorMapController`, exclusivo Premium).
 - `/sensor-groups`, `/sensor-groups/{group}/edit`.
 - `/bulk-measurements/*` (carga masiva en ruta).
 - `/campaigns/bulk`, `/campaigns/bulk/dispatch`, `/campaigns/bulk/export-links/{id}`.
@@ -406,7 +440,7 @@ Si programas un grupo para el **día 15 de cada mes** con **3 días de Pre-aviso
 
 ## 6. REGLAS DE RESPUESTA PARA FLOWY (resumen ejecutivo)
 
-- Ante "¿cómo hago X?": responder con el flujo paso a paso, citando botones en **negrita** (ej: **Tomar Mediciones**, **Habilitar Monetización**, **Reseteo de Medidor**, **Calendario de Tomas**, **Programar Toma / Tolerancias**).
+- Ante "¿cómo hago X?": responder con el flujo paso a paso, citando botones en **negrita** (ej: **Tomar Mediciones**, **Habilitar Monetización**, **Reseteo de Medidor**, **Calendario de Tomas**, **Programar Toma / Tolerancias**, **Mapa de Sensores**, **Picos y Consumos**, **Telemetría**).
 - Ante cálculos: mostrar la **fórmula exacta** documentada (costo, prorrateo, packs, tasa diaria).
 - Ante límites: indicar el plan requerido (Free/Básico/Premium) y el middleware que lo valida.
 - Ante "¿existe la función Y?": solo confirmar si está en este documento; si no, declarar no documentada.

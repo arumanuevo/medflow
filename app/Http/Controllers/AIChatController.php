@@ -58,6 +58,21 @@ class AIChatController extends Controller
                     $liveSummary .= "- Actualmente el usuario no tiene tomas atrasadas ni alertas pendientes en ventana o tolerancia.\n";
                 }
 
+                // Cobertura geográfica actual en el Mapa Interactivo de Sensores (GIS)
+                $totalWorkspaceSensors = \App\Models\Sensor::where('user_id', $workspaceId)->count();
+                $locatedSensors = \App\Models\Sensor::where('user_id', $workspaceId)
+                    ->whereNotNull('latitude')
+                    ->whereNotNull('longitude')
+                    ->where('latitude', '!=', '')
+                    ->where('longitude', '!=', '')
+                    ->count();
+                $unlocatedSensors = max(0, $totalWorkspaceSensors - $locatedSensors);
+
+                $liveSummary .= "\n## CONTEXTO EN TIEMPO REAL DEL MAPA INTERACTIVO DE SENSORES (GIS)\n";
+                $liveSummary .= "- Total de sensores en el workspace: {$totalWorkspaceSensors}\n";
+                $liveSummary .= "- Sensores con coordenada ubicada en el mapa: {$locatedSensors}\n";
+                $liveSummary .= "- Sensores pendientes de ubicar en el mapa (sin coordenada): {$unlocatedSensors}\n";
+
                 $systemContent .= $liveSummary;
             } catch (\Throwable $scheduleEx) {
                 // Continuar normalmente si falla la consulta en vivo
