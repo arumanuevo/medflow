@@ -768,13 +768,13 @@
             </div>
 
             <div class="row g-4">
-                <!-- Captura 1: mapa1.png -->
+                <!-- Captura 1: mapa1.PNG -->
                 <div class="col-lg-4 col-md-6">
                     <div class="gis-card">
                         <div class="gis-img-wrapper">
                             <span class="gis-step-pill"><i class="bi bi-pin-map-fill me-1"></i> Georreferenciación &amp; Tomas</span>
-                            <img src="{{ asset('flyer/mapa1.png') }}"
-                                onerror="if(!this.dataset.fallback){this.dataset.fallback=1;this.src='{{ asset('mapa1.png') }}';}"
+                            <img src="{{ asset('mapa1.PNG') }}"
+                                onerror="const alts=['{{ asset('mapa1.png') }}','{{ asset('flyer/mapa1.PNG') }}','{{ asset('flyer/mapa1.png') }}']; const i=parseInt(this.dataset.fb||0); if(i<alts.length){this.dataset.fb=i+1;this.src=alts[i];}"
                                 alt="Mapa Interactivo de Sensores - Estado de Tomas">
                         </div>
                         <div class="gis-card-body">
@@ -784,13 +784,13 @@
                     </div>
                 </div>
 
-                <!-- Captura 2: mapa2.png -->
+                <!-- Captura 2: mapa2.PNG -->
                 <div class="col-lg-4 col-md-6">
                     <div class="gis-card">
                         <div class="gis-img-wrapper">
                             <span class="gis-step-pill"><i class="bi bi-fire me-1"></i> Radar Territorial de Anomalías</span>
-                            <img src="{{ asset('flyer/mapa2.png') }}"
-                                onerror="if(!this.dataset.fallback){this.dataset.fallback=1;this.src='{{ asset('mapa2.png') }}';}"
+                            <img src="{{ asset('mapa2.PNG') }}"
+                                onerror="const alts=['{{ asset('mapa2.png') }}','{{ asset('flyer/mapa2.PNG') }}','{{ asset('flyer/mapa2.png') }}']; const i=parseInt(this.dataset.fb||0); if(i<alts.length){this.dataset.fb=i+1;this.src=alts[i];}"
                                 alt="Mapa GIS - Detección de Picos de Consumo">
                         </div>
                         <div class="gis-card-body">
@@ -800,13 +800,13 @@
                     </div>
                 </div>
 
-                <!-- Captura 3: mapa3.png -->
+                <!-- Captura 3: mapa3.PNG -->
                 <div class="col-lg-4 col-md-12">
                     <div class="gis-card">
                         <div class="gis-img-wrapper">
                             <span class="gis-step-pill"><i class="bi bi-graph-up-arrow me-1"></i> Telemetría Directa en Mapa</span>
-                            <img src="{{ asset('flyer/mapa3.png') }}"
-                                onerror="if(!this.dataset.fallback){this.dataset.fallback=1;this.src='{{ asset('mapa3.png') }}';}"
+                            <img src="{{ asset('mapa3.PNG') }}"
+                                onerror="const alts=['{{ asset('mapa3.png') }}','{{ asset('flyer/mapa3.PNG') }}','{{ asset('flyer/mapa3.png') }}']; const i=parseInt(this.dataset.fb||0); if(i<alts.length){this.dataset.fb=i+1;this.src=alts[i];}"
                                 alt="Mapa GIS - Filtros en 1 Clic y Curva de Telemetría">
                         </div>
                         <div class="gis-card-body">
