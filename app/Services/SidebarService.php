@@ -117,6 +117,12 @@ class SidebarService
 
         if ($hasPremium) {
             $menu[] = [
+                'icon' => 'bi bi-geo-alt-fill',
+                'label' => 'Mapa de Sensores',
+                'url' => '/mapa-sensores',
+                'active' => request()->is('mapa-sensores*'),
+            ];
+            $menu[] = [
                 'icon' => 'bi bi-broadcast',
                 'label' => 'Campañas Públicas',
                 'url' => '/campaigns/bulk',

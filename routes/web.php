@@ -190,6 +190,18 @@ Route::middleware(['auth'])->group(function () {
         ->name('campaigns.bulk.export')
         ->where('id', '[0-9]+');
 
+    // =============================================
+    // MAPA INTERACTIVO DE SENSORES - GIS (Exclusivo Premium)
+    // =============================================
+    Route::get('/mapa-sensores', [\App\Http\Controllers\SensorMapController::class, 'index'])
+        ->name('sensor-map.index');
+    Route::post('/mapa-sensores/{sensor}/coordinates', [\App\Http\Controllers\SensorMapController::class, 'updateCoordinates'])
+        ->name('sensor-map.update-coordinates')
+        ->where('sensor', '[0-9]+');
+    Route::delete('/mapa-sensores/{sensor}/coordinates', [\App\Http\Controllers\SensorMapController::class, 'clearCoordinates'])
+        ->name('sensor-map.clear-coordinates')
+        ->where('sensor', '[0-9]+');
+
     // Route temporarily moved to bottom
 
     // =============================================

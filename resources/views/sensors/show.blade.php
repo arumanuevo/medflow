@@ -20,6 +20,9 @@
                                     auth()->user()->hasRole('admin') ||
                                     (isset($sensor->group) && $sensor->group->user_id === auth()->user()->id)
                                 )
+                                <a href="{{ route('sensor-map.index', ['sensor_id' => $sensor->id]) }}" class="btn btn-info text-white me-2" title="Ver o asignar coordenada en el Mapa Interactivo (Premium)">
+                                    <i class="bi bi-geo-alt-fill"></i> Ubicar en Mapa
+                                </a>
                                 <a href="{{ route('sensors.edit', ['sensor' => $sensor->id]) }}" class="btn btn-warning">
                                     <i class="bi bi-pencil"></i> Editar Sensor
                                 </a>
