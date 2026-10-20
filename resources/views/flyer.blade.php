@@ -719,10 +719,12 @@
                 <div class="col-lg-4 col-md-6">
                     <div class="bento-card">
                         <div class="bento-img-container">
-                            <img src="{{ asset('flyer/grupos_sensores.PNG') }}" alt="Organización de Sensores">
+                            <img src="{{ asset('calendario.PNG') }}"
+                                onerror="const alts=['{{ asset('flyer/calendario.PNG') }}','{{ asset('calendario.png') }}','{{ asset('flyer/calendario.png') }}']; const i=parseInt(this.dataset.fb||0); if(i<alts.length){this.dataset.fb=i+1;this.src=alts[i];}"
+                                alt="Logística y Calendario de Tomas">
                         </div>
                         <div class="bento-content">
-                            <h3><i class="bi bi-diagram-3-fill text-primary me-2"></i> Logística y Calendario de Tomas</h3>
+                            <h3><i class="bi bi-calendar2-check-fill text-primary me-2"></i> Logística y Calendario de Tomas</h3>
                             <p>Segmenta edificios, barrios o alas industriales en Grupos Logísticos, agenda días fijos de medición con ventanas de pre-aviso y días de tolerancia, e importa redes
                                 enteras desde Excel aplicando plantillas de Agua, Electricidad o Gas.</p>
                         </div>
