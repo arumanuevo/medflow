@@ -89,14 +89,14 @@
             color: #4a5568;
             line-height: 1.7;
             margin-bottom: 2rem;
-            max-width: 500px;
+            max-width: 540px;
         }
 
         .feature-item {
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            padding: 0.6rem 0;
+            padding: 0.55rem 0;
             font-size: 1rem;
             color: #2d3748;
         }
@@ -112,6 +112,17 @@
             flex-shrink: 0;
             color: #0d6efd;
             font-size: 1rem;
+        }
+
+        .feature-item .badge-new {
+            background: linear-gradient(135deg, #0d6efd, #0dcaf0);
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 0.15rem 0.5rem;
+            border-radius: 50px;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
         }
 
         .hero-buttons {
@@ -464,7 +475,10 @@
                 <a class="navbar-brand brand-text" href="#">
                     <i class="bi bi-activity me-2"></i>MedFlow
                 </a>
-                                <div class="d-flex gap-3 align-items-center">
+                <div class="d-flex gap-3 align-items-center">
+                    <a href="{{ route('promocion') }}" class="text-primary text-decoration-none d-none d-md-block fw-semibold">
+                        <i class="bi bi-stars me-1"></i> Tour de Plataforma
+                    </a>
                     <a href="#contacto" class="text-muted text-decoration-none d-none d-md-block fw-semibold">
                         <i class="bi bi-headset me-1"></i> Asesoramiento
                     </a>
@@ -488,24 +502,34 @@
                 </h1>
                 <p class="hero-subtitle">
                     La plataforma completa para monitorear sensores en obras civiles,
-                    industrias y hogares. Toma mediciones, genera reportes y colabora con tu equipo.
+                    industrias, consorcios y hogares. Toma mediciones auditadas, geolocaliza tu red en mapas interactivos, genera reportes y colabora con tu equipo.
                 </p>
 
                 <div class="feature-item">
                     <span class="icon"><i class="bi bi-check-lg"></i></span>
-                    <span>Monitoreo en tiempo real</span>
+                    <span>Monitoreo en tiempo real y auditoría fotográfica con zoom HD</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon"><i class="bi bi-geo-alt-fill"></i></span>
+                    <span><strong>Mapa Interactivo GIS:</strong> coordenadas, estado de tomas y picos de consumo</span>
+                    <span class="badge-new">Nuevo</span>
+                </div>
+                <div class="feature-item">
+                    <span class="icon"><i class="bi bi-calendar2-check-fill"></i></span>
+                    <span><strong>Calendario de Tomas:</strong> programación de ciclos, pre-avisos y tolerancias</span>
+                    <span class="badge-new">Nuevo</span>
                 </div>
                 <div class="feature-item">
                     <span class="icon"><i class="bi bi-check-lg"></i></span>
-                    <span>Importación masiva desde Excel/CSV</span>
+                    <span>Importación masiva e histórica desde Excel/CSV</span>
                 </div>
                 <div class="feature-item">
                     <span class="icon"><i class="bi bi-check-lg"></i></span>
-                    <span>Reportes y análisis de consumos</span>
+                    <span>Reportes avanzados, liquidación contable y prorrateo de áreas comunes</span>
                 </div>
                 <div class="feature-item">
                     <span class="icon"><i class="bi bi-check-lg"></i></span>
-                    <span>Colaboración con roles y permisos</span>
+                    <span>Colaboración multi-rol, App móvil para inspectores y Asistente IA 24/7</span>
                 </div>
 
                 <div class="hero-buttons">
@@ -514,6 +538,9 @@
                     </a>
                     <a href="#planes" class="btn btn-outline-custom">
                         <i class="bi bi-grid me-2"></i> Ver planes
+                    </a>
+                    <a href="{{ route('promocion') }}" class="btn btn-outline-custom">
+                        <i class="bi bi-map me-2"></i> Ver funciones y GIS
                     </a>
                 </div>
             </div>
@@ -638,6 +665,7 @@
                             <div class="plan-feature"><i class="bi bi-check"></i> 2 Sensores en total</div>
                             <div class="plan-feature"><i class="bi bi-check"></i> Mediciones Básicas (1 imagen x vez)</div>
                             <div class="plan-feature"><i class="bi bi-check"></i> Reportes Mensuales Generales</div>
+                            <div class="plan-feature text-muted"><i class="bi bi-x text-muted"></i> Mapa Interactivo GIS y Telemetría</div>
                             <div class="plan-feature text-muted"><i class="bi bi-x text-muted"></i> Delegación de Roles y Huéspedes</div>
                             <div class="plan-feature text-muted"><i class="bi bi-x text-muted"></i> Contraste de Fotos Histórico</div>
                         </div>
@@ -655,8 +683,10 @@
                         <div class="text-start" style="font-size: 0.85rem;">
                             <div class="plan-feature"><i class="bi bi-check text-success"></i> 2 Grupos Máximo</div>
                             <div class="plan-feature"><i class="bi bi-check text-success"></i> 10 Sensores en Total</div>
+                            <div class="plan-feature"><i class="bi bi-check text-success"></i> Calendario de Tomas y Tolerancias</div>
                             <div class="plan-feature"><i class="bi bi-check text-success"></i> Control de Errores Básico</div>
                             <div class="plan-feature"><i class="bi bi-check text-success"></i> Estadísticas Analíticas Extendidas</div>
+                            <div class="plan-feature text-muted"><i class="bi bi-x text-muted"></i> Mapa Interactivo GIS y Picos en Mapa</div>
                             <div class="plan-feature text-muted"><i class="bi bi-x text-muted"></i> Delegación de Roles e Inspectores</div>
                         </div>
                     </div>
@@ -673,14 +703,16 @@
                         
                         <hr>
                         <div class="text-start" style="font-size: 0.85rem;">
+                            <div class="plan-feature"><i class="bi bi-geo-alt-fill text-primary"></i> <b class="text-primary">Mapa Interactivo GIS y Telemetría</b></div>
+                            <div class="plan-feature"><i class="bi bi-graph-up-arrow text-primary"></i> <b class="text-dark">Radar GIS de Picos y Vencimientos</b></div>
+                            <div class="plan-feature"><i class="bi bi-calendar2-check text-primary"></i> <b class="text-dark">Calendario de Tomas y Tolerancias</b></div>
                             <div class="plan-feature"><i class="bi bi-robot text-primary"></i> <b class="text-primary">Chat IA 24/7 (Flowy)</b></div>
-                              <div class="plan-feature"><i class="bi bi-check text-primary"></i> <b class="text-dark">Colaboración Multi-Rol</b></div>
+                            <div class="plan-feature"><i class="bi bi-check text-primary"></i> <b class="text-dark">Colaboración Multi-Rol e Inspectores</b></div>
                             <div class="plan-feature"><i class="bi bi-check text-primary"></i> Delegar rutas in-app a Huéspedes</div>
                             <div class="plan-feature"><i class="bi bi-check text-primary"></i> Base de 20 Sensores (<b class="text-primary">+ Packs Extra</b>)</div>
                             <div class="plan-feature"><i class="bi bi-check text-primary"></i> Importación Masiva e Histórica</div>
-                            <div class="plan-feature"><i class="bi bi-check text-primary"></i> Contraste de Fotos Analítico</div>
+                            <div class="plan-feature"><i class="bi bi-check text-primary"></i> Contraste y Zoom HD de Fotos</div>
                             <div class="plan-feature"><i class="bi bi-check text-primary"></i> Detección de Anormalidades y Fugas</div>
-                            <div class="plan-feature"><i class="bi bi-check text-primary"></i> Control Extendido de Datos Erráticos</div>
                         </div>
                     </div>
                 </div>
@@ -694,7 +726,7 @@
                         <div class="price" style="font-size: 1.8rem;">Custom<small></small></div>
                         <hr>
                         <div class="text-start" style="font-size: 0.85rem;">
-                            <div class="plan-feature"><i class="bi bi-check"></i> Todo lo del plan Premium</div>
+                            <div class="plan-feature"><i class="bi bi-check"></i> Todo lo del plan Premium + GIS</div>
                             <div class="plan-feature"><i class="bi bi-check"></i> Desarrollo UI a Medida S/ Motor Base</div>
                             <div class="plan-feature"><i class="bi bi-check"></i> Administración Total Tercerizada</div>
                             <div class="plan-feature"><i class="bi bi-check"></i> Despliegue Dedicado (SLA 24/7)</div>
@@ -707,9 +739,6 @@
         </div>
 
         <!-- ========================================= -->
-        <!-- FOOTER & LEGAL -->
-        <!-- ========================================= -->
-                <!-- ========================================= -->
         <!-- CONTACT SECTION -->
         <!-- ========================================= -->
         <div id="contacto" class="row mt-5 mb-5 align-items-center animate-fade-in animate-delay-3 px-3">
@@ -767,6 +796,9 @@
             </div>
         </div>
 
+        <!-- ========================================= -->
+        <!-- FOOTER & LEGAL -->
+        <!-- ========================================= -->
         <footer class="footer mt-5 pt-4">
             <div class="row">
                 <div class="col-12">
@@ -955,53 +987,53 @@
                 }, 5000);
             }
 
-                // Contact Form AJAX
-        $('#contactForm').on('submit', function(e) {
-            e.preventDefault();
-            var btn = $(this).find('button[type="submit"]');
-            var originalText = btn.html();
-            btn.prop('disabled', true).html('<i class="spinner-border spinner-border-sm me-2"></i> Enviando...');
-            
-            $.ajax({
-                url: '/contacto',
-                type: 'POST',
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    name: $('#contactName').val(),
-                    email: $('#contactEmail').val(),
-                    message: $('#contactMessage').val()
-                },
-                success: function(res) {
-                    btn.prop('disabled', false).html(originalText);
-                    
-                    $('#contactForm').find('.alert').remove(); // Clear previous alerts
-                    $('#contactForm').prepend('<div class="alert alert-success alert-dismissible fade show mb-4" role="alert"><i class="bi bi-check-circle-fill me-2"></i>Gracias por contactarnos. Nos comunicaremos a la brevedad.<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');
-                    $('#contactForm')[0].reset();
-                },
-                error: function(err) {
-                    btn.prop('disabled', false).html(originalText);
-                    
-                    $('#contactForm').find('.alert').remove(); // Clear previous alerts
-                    $('#contactForm').prepend('<div class="alert alert-danger alert-dismissible fade show mb-4" role="alert"><i class="bi bi-exclamation-triangle-fill me-2"></i>Hubo un error al enviar el mensaje. Inténtalo más tarde.<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');
+            // Contact Form AJAX
+            $('#contactForm').on('submit', function(e) {
+                e.preventDefault();
+                var btn = $(this).find('button[type="submit"]');
+                var originalText = btn.html();
+                btn.prop('disabled', true).html('<i class="spinner-border spinner-border-sm me-2"></i> Enviando...');
+                
+                $.ajax({
+                    url: '/contacto',
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        name: $('#contactName').val(),
+                        email: $('#contactEmail').val(),
+                        message: $('#contactMessage').val()
+                    },
+                    success: function(res) {
+                        btn.prop('disabled', false).html(originalText);
+                        
+                        $('#contactForm').find('.alert').remove(); // Clear previous alerts
+                        $('#contactForm').prepend('<div class="alert alert-success alert-dismissible fade show mb-4" role="alert"><i class="bi bi-check-circle-fill me-2"></i>Gracias por contactarnos. Nos comunicaremos a la brevedad.<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');
+                        $('#contactForm')[0].reset();
+                    },
+                    error: function(err) {
+                        btn.prop('disabled', false).html(originalText);
+                        
+                        $('#contactForm').find('.alert').remove(); // Clear previous alerts
+                        $('#contactForm').prepend('<div class="alert alert-danger alert-dismissible fade show mb-4" role="alert"><i class="bi bi-exclamation-triangle-fill me-2"></i>Hubo un error al enviar el mensaje. Inténtalo más tarde.<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');
+                    }
+                });
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            $('a[href^="#contacto"]').on('click', function(e) {
+                e.preventDefault();
+                var target = $(this.getAttribute('href'));
+                if( target.length ) {
+                    $('html, body').stop().animate({
+                        scrollTop: target.offset().top - 80
+                    }, 800);
                 }
             });
         });
-    });
-</script>
-
-<script>
-    $(document).ready(function() {
-        $('a[href^="#contacto"]').on('click', function(e) {
-            e.preventDefault();
-            var target = $(this.getAttribute('href'));
-            if( target.length ) {
-                $('html, body').stop().animate({
-                    scrollTop: target.offset().top - 80
-                }, 800);
-            }
-        });
-    });
-</script>
+    </script>
 </body>
 
 </html>

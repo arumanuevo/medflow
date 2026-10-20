@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MedFlow | Ecosistema Total de Medición y Facturación</title>
+    <title>MedFlow | Ecosistema Total de Medición, GIS y Facturación</title>
 
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -322,6 +322,143 @@
             line-height: 1.6;
         }
 
+        /* GIS Showcase Section */
+        .gis-section {
+            padding: 120px 0;
+            background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
+            color: #f8fafc;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gis-section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(rgba(56, 189, 248, 0.14) 1px, transparent 1px);
+            background-size: 28px 28px;
+            pointer-events: none;
+        }
+
+        .gis-section .section-header h2 {
+            color: #ffffff;
+        }
+
+        .gis-section .section-header p {
+            color: #cbd5e1;
+        }
+
+        .gis-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 18px;
+            margin-bottom: 20px;
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(52, 211, 153, 0.35);
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
+
+        .gis-card {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(12px);
+            border-radius: 22px;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            overflow: hidden;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.4s ease;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.3);
+        }
+
+        .gis-card:hover {
+            transform: translateY(-10px);
+            border-color: #38bdf8;
+            box-shadow: 0 25px 55px rgba(14, 165, 233, 0.25);
+        }
+
+        .gis-img-wrapper {
+            width: 100%;
+            height: 260px;
+            background: #090d16;
+            overflow: hidden;
+            position: relative;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+        }
+
+        .gis-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            transition: transform 0.5s ease;
+        }
+
+        .gis-card:hover .gis-img-wrapper img {
+            transform: scale(1.06);
+        }
+
+        .gis-step-pill {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            background: rgba(15, 23, 42, 0.85);
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: 50px;
+            backdrop-filter: blur(6px);
+        }
+
+        .gis-card-body {
+            padding: 28px;
+            flex-grow: 1;
+        }
+
+        .gis-card-body h3 {
+            color: #ffffff;
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .gis-card-body p {
+            color: #cbd5e1;
+            font-size: 0.96rem;
+            line-height: 1.6;
+            margin-bottom: 0;
+        }
+
+        .gis-highlight-strip {
+            margin-top: 48px;
+            background: rgba(30, 41, 59, 0.65);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            border-radius: 20px;
+            padding: 28px 32px;
+        }
+
+        .gis-pill-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #e2e8f0;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .gis-pill-item i {
+            font-size: 1.35rem;
+            color: #38bdf8;
+        }
+
         /* Carousel Section */
         .carousel-section {
             padding: 120px 0;
@@ -515,14 +652,15 @@
     <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
-            <a class="navbar-brand" href="#"><i class="bi bi-droplet-half"></i> MedFlow</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-toggle="collapse"
+            <a class="navbar-brand" href="/"><i class="bi bi-droplet-half"></i> MedFlow</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                 data-bs-target="#navMenu">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse text-end" id="navMenu">
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
                     <li class="nav-item"><a class="nav-link" href="#modulos">Módulos</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#gis">Mapa GIS</a></li>
                     <li class="nav-item"><a class="nav-link" href="#analiticas">Analíticas</a></li>
                     <li class="nav-item"><a class="nav-link" href="#plataforma">La Plataforma</a></li>
                     <li class="nav-item ms-lg-3">
@@ -543,12 +681,12 @@
         </div>
         <div class="container hero-content">
             <div class="row align-items-center mb-5">
-                <div class="col-lg-8 mx-auto text-center">
+                <div class="col-lg-9 mx-auto text-center">
                     <div class="badge-software"><i class="bi bi-lightning-charge-fill me-1"></i> Plataforma SaaS
-                        Industrial</div>
-                    <h1>Mide, Audita y Factura con <span>Precisión Absoluta</span></h1>
-                    <p>MedFlow es el ecosistema definitivo para consorcios, plantas y redes de distribución. Gestiona
-                        tus sensores en campo, captura mediciones auditadas mediante fotografía y dispara facturaciones
+                        Industrial &amp; GIS</div>
+                    <h1>Mide, Geolocaliza y Factura con <span>Precisión Absoluta</span></h1>
+                    <p class="mx-auto">MedFlow es el ecosistema definitivo para consorcios, barrios privados, plantas y redes de distribución. Gestiona
+                        tus sensores en mapas interactivos GIS, programa tu calendario de tomas con tolerancias, captura mediciones auditadas con zoom fotográfico y dispara facturaciones
                         automáticas con inteligencia de tasa diaria.</p>
                 </div>
             </div>
@@ -584,10 +722,9 @@
                             <img src="{{ asset('flyer/grupos_sensores.PNG') }}" alt="Organización de Sensores">
                         </div>
                         <div class="bento-content">
-                            <h3><i class="bi bi-diagram-3-fill text-primary me-2"></i> Logística de Estructuras</h3>
-                            <p>Segmenta edificios, barrios o alas industriales en Grupos Logísticos. Importa redes
-                                enteras con nuestro gestor Excel y aplica plantillas técnicas según tu tipo de sensor
-                                (Agua, Electricidad, Gas).</p>
+                            <h3><i class="bi bi-diagram-3-fill text-primary me-2"></i> Logística y Calendario de Tomas</h3>
+                            <p>Segmenta edificios, barrios o alas industriales en Grupos Logísticos, agenda días fijos de medición con ventanas de pre-aviso y días de tolerancia, e importa redes
+                                enteras desde Excel aplicando plantillas de Agua, Electricidad o Gas.</p>
                         </div>
                     </div>
                 </div>
@@ -597,10 +734,8 @@
                             <img src="{{ asset('flyer/tomar_mediciones.PNG') }}" alt="Captura de Medición">
                         </div>
                         <div class="bento-content">
-                            <h3><i class="bi bi-camera-fill text-primary me-2"></i> Recolección de Campo Auditada</h3>
-                            <p>El inspector utiliza su móvil como terminal de ingreso, reportando anomalías
-                                geolocalizadas con fotografías obligatorias del contador como respaldo incuestionable de
-                                su métrica.</p>
+                            <h3><i class="bi bi-camera-fill text-primary me-2"></i> Recolección Auditada con Zoom HD</h3>
+                            <p>El inspector utiliza su móvil como terminal de ingreso reportando lecturas con fotografías obligatorias del contador, y el administrador cuenta con inspector de zoom interactivo para auditar cada dígito al milímetro.</p>
                         </div>
                     </div>
                 </div>
@@ -614,6 +749,99 @@
                             <p>Algoritmos de cálculo automático que procesan las lecturas transformándolas en consumos y
                                 liquidaciones a cobrar, detectando estancamientos, prorrateando áreas comunes
                                 y alertando desfases.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- NUEVA SECCIÓN: ANÁLISIS DE INFORMACIÓN GEOGRÁFICA (GIS) -->
+    <section class="gis-section" id="gis">
+        <div class="container position-relative" style="z-index: 2;">
+            <div class="section-header">
+                <div class="gis-badge">
+                    <i class="bi bi-geo-alt-fill"></i> Exclusivo Plan Premium · Nuevo Módulo GIS
+                </div>
+                <h2>Análisis de Información Geográfica (GIS)</h2>
+                <p>Transforma tus coordenadas en un centro de comando territorial. Visualiza de un pantallazo qué medidores faltan medir, cuáles están vencidos y dónde se concentran los picos de consumo o posibles fugas.</p>
+            </div>
+
+            <div class="row g-4">
+                <!-- Captura 1: mapa1.png -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="gis-card">
+                        <div class="gis-img-wrapper">
+                            <span class="gis-step-pill"><i class="bi bi-pin-map-fill me-1"></i> Georreferenciación &amp; Tomas</span>
+                            <img src="{{ asset('flyer/mapa1.png') }}"
+                                onerror="if(!this.dataset.fallback){this.dataset.fallback=1;this.src='{{ asset('mapa1.png') }}';}"
+                                alt="Mapa Interactivo de Sensores - Estado de Tomas">
+                        </div>
+                        <div class="gis-card-body">
+                            <h3><i class="bi bi-compass text-info me-2"></i> Ubicación Ágil y Semáforo Operativo</h3>
+                            <p>Posiciona cada medidor sobre vista Calles o Satélite con un clic, arrastrando el marcador (Drag &amp; Drop) o pegando coordenadas de Google Maps. Los pines cambian de color en vivo según el calendario: medidos al día, en ventana, en tolerancia o atrasados.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Captura 2: mapa2.png -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="gis-card">
+                        <div class="gis-img-wrapper">
+                            <span class="gis-step-pill"><i class="bi bi-fire me-1"></i> Radar Territorial de Anomalías</span>
+                            <img src="{{ asset('flyer/mapa2.png') }}"
+                                onerror="if(!this.dataset.fallback){this.dataset.fallback=1;this.src='{{ asset('mapa2.png') }}';}"
+                                alt="Mapa GIS - Detección de Picos de Consumo">
+                        </div>
+                        <div class="gis-card-body">
+                            <h3><i class="bi bi-activity text-danger me-2"></i> Mapa de Picos de Consumo y Fugas</h3>
+                            <p>Activa el modo <strong>Picos y Consumos</strong> para que el motor contraste el ritmo diario actual contra el promedio histórico de cada lote. Los medidores con saltos mayores al +50% emiten un halo rojo pulsante y los estancados (consumo 0 prolongado) se destacan en morado.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Captura 3: mapa3.png -->
+                <div class="col-lg-4 col-md-12">
+                    <div class="gis-card">
+                        <div class="gis-img-wrapper">
+                            <span class="gis-step-pill"><i class="bi bi-graph-up-arrow me-1"></i> Telemetría Directa en Mapa</span>
+                            <img src="{{ asset('flyer/mapa3.png') }}"
+                                onerror="if(!this.dataset.fallback){this.dataset.fallback=1;this.src='{{ asset('mapa3.png') }}';}"
+                                alt="Mapa GIS - Filtros en 1 Clic y Curva de Telemetría">
+                        </div>
+                        <div class="gis-card-body">
+                            <h3><i class="bi bi-sliders text-success me-2"></i> Filtros en 1 Clic y Curva Histórica</h3>
+                            <p>Utiliza las 7 tarjetas superiores para aislar instantáneamente sensores pendientes, vencidos o con anomalías. Haz clic en cualquier pin para inspeccionar su curva histórica de telemetría en una ventana emergente o iniciar su medición de inmediato.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Barra de capacidades GIS -->
+            <div class="gis-highlight-strip">
+                <div class="row g-3 text-start">
+                    <div class="col-lg-3 col-md-6">
+                        <div class="gis-pill-item">
+                            <i class="bi bi-layers-half"></i>
+                            <span>Capas Calles (OSM) y Satélite Esri HD</span>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="gis-pill-item">
+                            <i class="bi bi-funnel-fill"></i>
+                            <span>7 Tarjetas de Diagnóstico y Filtro Rápido</span>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="gis-pill-item">
+                            <i class="bi bi-exclamation-diamond-fill"></i>
+                            <span>Alerta de Picos (+50%) y Medidores Trabados</span>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="gis-pill-item">
+                            <i class="bi bi-bar-chart-line-fill"></i>
+                            <span>Gráfico de Telemetría Integrado en cada Pin</span>
                         </div>
                     </div>
                 </div>
@@ -700,7 +928,7 @@
         <div class="container py-5">
             <div class="section-header">
                 <h2>Explora el Entorno</h2>
-                <p>Navega a través de un Panel limpio, documentado, con Códigos QR y herramientas Backups para tu máxima
+                <p>Navega a través de un Panel limpio, documentado, con Mapas GIS, Calendario de Tolerancias, Códigos QR y herramientas de Backups para tu máxima
                     tranquilidad.</p>
             </div>
 
@@ -732,16 +960,16 @@
                 <div class="masonry-item">
                     <img src="{{ asset('flyer/sensores.PNG') }}" alt="Inventario">
                     <div class="masonry-caption">
-                        <h4><i class="bi bi-router text-primary me-2"></i> Inventario Táctico</h4>
-                        <p>Tu flota en terreno unificada. Busca, filtra y monitoriza qué inspectores están atendiendo
+                        <h4><i class="bi bi-router text-primary me-2"></i> Inventario Táctico y Calendario</h4>
+                        <p>Tu flota en terreno unificada con semáforo de vencimientos y tolerancias. Busca, filtra y monitoriza qué inspectores están atendiendo
                             qué líneas.</p>
                     </div>
                 </div>
                 <div class="masonry-item">
                     <img src="{{ asset('flyer/detalle_consumo.PNG') }}" alt="Liquidador">
                     <div class="masonry-caption">
-                        <h4><i class="bi bi-receipt-cutoff text-primary me-2"></i> Detalles de Liquidación</h4>
-                        <p>Transparencia fotográfica por cada medidor para respaldar los cálculos financieros ante
+                        <h4><i class="bi bi-receipt-cutoff text-primary me-2"></i> Detalles de Liquidación con Zoom HD</h4>
+                        <p>Transparencia fotográfica con lupa interactiva de alta precisión por cada medidor para respaldar los cálculos financieros ante
                             reclamos.</p>
                     </div>
                 </div>
@@ -749,7 +977,7 @@
                     <img src="{{ asset('flyer/centro_ayuda.PNG') }}" alt="Base de Conocimiento">
                     <div class="masonry-caption">
                         <h4><i class="bi bi-robot text-primary me-2"></i> Soporte C-Level (IA)</h4>
-                          <p>Los suscriptores Premium desbloquean a <b>Flowy</b>, un agente de Inteligencia Artificial integrado 24/7 para consultas operativas al instante sin tickets de espera.</p>
+                        <p>Los suscriptores Premium desbloquean a <b>Flowy</b>, un agente de Inteligencia Artificial integrado 24/7 con lectura en tiempo real de tu agenda y cobertura GIS.</p>
                     </div>
                 </div>
             </div>
@@ -760,7 +988,7 @@
     <section class="cta-section">
         <div class="container">
             <h2>Listo para la revolución métrica.</h2>
-            <p>Empieza a operar. Agrega tus sensores, configura a tus clientes y observa los datos fluir con
+            <p>Empieza a operar. Agrega tus sensores, geolocalízalos en el mapa y observa los datos fluir con
                 rentabilidad segura.</p>
             <a href="/login" class="btn-modern text-primary bg-white shadow-lg fw-bold"
                 style="padding: 16px 40px; font-size: 1.25rem;">
