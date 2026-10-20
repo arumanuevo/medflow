@@ -31,11 +31,31 @@
     .gis-sensor-item {
         border: 1px solid #e2e8f0;
         border-radius: 10px;
-        padding: 0.75rem;
+        padding: 0.7rem;
         margin-bottom: 0.6rem;
         background: #ffffff;
         transition: all 0.18s ease;
         cursor: pointer;
+        overflow: hidden;
+    }
+
+    .gis-card-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        width: 100%;
+    }
+
+    .gis-card-actions .btn {
+        flex: 1 1 auto;
+        min-width: 0;
+        font-size: 0.74rem;
+        padding: 0.24rem 0.4rem;
+        white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
     }
 
     .gis-sensor-item:hover {
@@ -684,34 +704,34 @@ document.addEventListener('DOMContentLoaded', function () {
                 : `<div class="small text-muted fst-italic mt-1">Sin coordenadas asignadas</div>`;
 
             const primaryActionBtn = sensor.has_coords
-                ? `<button type="button" class="btn btn-outline-primary btn-sm py-0 px-2" onclick="event.stopPropagation(); window.gisFocusSensor(${sensor.id})" title="Centrar en el mapa">
+                ? `<button type="button" class="btn btn-outline-primary btn-sm" onclick="event.stopPropagation(); window.gisFocusSensor(${sensor.id})" title="Centrar en el mapa">
                        <i class="bi bi-crosshair"></i> Ver
                    </button>
-                   <button type="button" class="btn btn-outline-warning text-dark btn-sm py-0 px-2" onclick="event.stopPropagation(); window.gisStartPlacing(${sensor.id})" title="Hacer clic en el mapa para moverlo">
+                   <button type="button" class="btn btn-outline-warning text-dark btn-sm" onclick="event.stopPropagation(); window.gisStartPlacing(${sensor.id})" title="Hacer clic en el mapa para moverlo">
                        <i class="bi bi-cursor-fill"></i> Mover
                    </button>`
-                : `<button type="button" class="btn btn-warning btn-sm py-0 px-2 fw-semibold text-dark" onclick="event.stopPropagation(); window.gisStartPlacing(${sensor.id})">
-                       <i class="bi bi-geo-fill me-1"></i>Ubicar en mapa
+                : `<button type="button" class="btn btn-warning btn-sm fw-semibold text-dark" onclick="event.stopPropagation(); window.gisStartPlacing(${sensor.id})">
+                       <i class="bi bi-geo-fill"></i> Ubicar en mapa
                    </button>`;
 
             html += `
                 <div class="gis-sensor-item ${activeClass}" id="sidebar-sensor-${sensor.id}" onclick="window.gisHandleCardClick(${sensor.id})">
-                    <div class="d-flex justify-content-between align-items-start gap-1">
-                        <div class="fw-bold text-dark text-truncate" style="max-width: 175px;" title="${escapeHtml(sensor.name)}">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                        <div class="fw-bold text-dark text-truncate flex-grow-1" style="min-width: 0;" title="${escapeHtml(sensor.name)}">
                             ${escapeHtml(sensor.name)}
                         </div>
-                        ${statusBadge}
+                        <div class="flex-shrink-0">${statusBadge}</div>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center small text-muted mt-1">
-                        <span><i class="bi bi-folder2 me-1"></i>${escapeHtml(sensor.group_name)}</span>
-                        <span class="badge bg-light text-secondary border">#${escapeHtml(sensor.identifier)}</span>
+                    <div class="d-flex justify-content-between align-items-center gap-2 small text-muted mt-1">
+                        <span class="text-truncate flex-grow-1" style="min-width: 0;" title="${escapeHtml(sensor.group_name)}">
+                            <i class="bi bi-folder2 me-1"></i>${escapeHtml(sensor.group_name)}
+                        </span>
+                        <span class="badge bg-light text-secondary border flex-shrink-0">#${escapeHtml(sensor.identifier)}</span>
                     </div>
                     ${coordsLine}
-                    <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
-                        <div class="d-flex gap-1">
-                            ${primaryActionBtn}
-                        </div>
-                        <button type="button" class="btn btn-light btn-sm py-0 px-2 border" onclick="event.stopPropagation(); window.gisOpenManualModal(${sensor.id})" title="Editar latitud/longitud manualmente">
+                    <div class="gis-card-actions mt-2 pt-2 border-top">
+                        ${primaryActionBtn}
+                        <button type="button" class="btn btn-light btn-sm border" onclick="event.stopPropagation(); window.gisOpenManualModal(${sensor.id})" title="Editar latitud/longitud manualmente">
                             <i class="bi bi-pencil-square"></i> Manual
                         </button>
                     </div>
