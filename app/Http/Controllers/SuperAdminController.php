@@ -14,6 +14,68 @@ use Illuminate\Support\Facades\Storage;
 
 class SuperAdminController extends Controller
 {
+    /**
+     * Envía un correo de diagnóstico SMTP (síncrono, sin colas) para verificar
+     * la configuración de correo activa (ej. Amazon SES) desde el panel SuperAdmin.
+     */
+    public function testMail(Request $request)
+    {
+        $request->validate([
+            'test_email' => 'required|email|max:150',
+        ]);
+
+        $to = $request->input('test_email');
+        $host = config('mail.mailers.smtp.host');
+        $port = config('mail.mailers.smtp.port');
+        $encryption = config('mail.mailers.smtp.encryption');
+        $mailer = config('mail.default');
+        $from = config('mail.from.address');
+        $fromName = config('mail.from.name');
+
+        $html = '<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px;">'
+            . '<h2 style="color: #0d6efd; margin-top: 0;">✅ Prueba de correo MedFlow</h2>'
+            . '<p>Si estás leyendo este mensaje, la configuración de envío de correo funciona correctamente.</p>'
+            . '<table style="font-size: 14px; color: #475569; border-collapse: collapse;">'
+            . '<tr><td style="padding: 4px 12px 4px 0;"><strong>Fecha:</strong></td><td>' . e(now()->format('d/m/Y H:i:s')) . '</td></tr>'
+            . '<tr><td style="padding: 4px 12px 4px 0;"><strong>Entorno:</strong></td><td>' . e(app()->environment()) . '</td></tr>'
+            . '<tr><td style="padding: 4px 12px 4px 0;"><strong>Mailer:</strong></td><td>' . e($mailer) . '</td></tr>'
+            . '<tr><td style="padding: 4px 12px 4px 0;"><strong>Servidor SMTP:</strong></td><td>' . e($host) . ':' . e($port) . ' (' . e($encryption ?: 'sin cifrado') . ')</td></tr>'
+            . '<tr><td style="padding: 4px 12px 4px 0;"><strong>Remitente:</strong></td><td>' . e($fromName) . ' &lt;' . e($from) . '&gt;</td></tr>'
+            . '</table>'
+            . '<p style="font-size: 12px; color: #94a3b8; margin-top: 24px;">Tip: en Gmail usa "Mostrar original" para verificar SPF, DKIM y DMARC = PASS.</p>'
+            . '</div>';
+
+        $diag = "Mailer: {$mailer} | Host: {$host}:{$port} ({$encryption}) | From: {$from}";
+
+        try {
+            $start = microtime(true);
+            Mail::send([], [], function ($message) use ($to, $html) {
+                $message->to($to)
+                    ->subject('🧪 Prueba de correo MedFlow (' . now()->format('d/m/Y H:i') . ')')
+                    ->html($html);
+            });
+            $elapsed = round((microtime(true) - $start) * 1000);
+
+            \Illuminate\Support\Facades\Log::info("SuperAdmin test mail enviado a {$to}. {$diag}");
+
+            return back()->with('success', "✅ Correo de prueba aceptado por el servidor SMTP en {$elapsed} ms y enviado a {$to}. Revisa bandeja de entrada y spam. [{$diag}]");
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("SuperAdmin test mail falló hacia {$to}: " . $e->getMessage());
+
+            $hint = '';
+            $msg = $e->getMessage();
+            if (stripos($msg, 'not verified') !== false || stripos($msg, 'Email address is not verified') !== false) {
+                $hint = ' 👉 Amazon SES sigue en Sandbox o el remitente/destinatario no está verificado: verifica el dominio y solicita acceso a producción.';
+            } elseif (stripos($msg, 'authentication') !== false || stripos($msg, '535') !== false) {
+                $hint = ' 👉 Credenciales SMTP inválidas: revisa MAIL_USERNAME / MAIL_PASSWORD (deben ser las credenciales SMTP de SES, no las de la consola AWS) y ejecuta php artisan config:clear.';
+            } elseif (stripos($msg, 'Connection') !== false || stripos($msg, 'timed out') !== false) {
+                $hint = ' 👉 No se pudo conectar al servidor SMTP: revisa MAIL_HOST / MAIL_PORT (587 con tls) y que el hosting permita salida por ese puerto.';
+            }
+
+            return back()->with('error', '❌ Falló el envío: ' . $msg . $hint . " [{$diag}]");
+        }
+    }
+
     public function invoicesIndex()
     {
         $invoices = Invoice::with('user')->orderBy('created_at', 'desc')->get();

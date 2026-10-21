@@ -7,9 +7,43 @@
             <div>
                 <a href="{{ route('superadmin.invoices') }}" class="btn btn-outline-primary"><i class="bi bi-receipt"></i>
                     Historial Facturas Manuales</a>
+                <button type="button" class="btn btn-outline-dark ms-2" data-toggle="modal" data-target="#testMailModal">
+                    <i class="bi bi-envelope-check"></i> Probar Correo (SMTP)
+                </button>
                 <button type="button" class="btn btn-outline-success ms-2" data-toggle="modal" data-target="#editPricesModal">
                     <i class="bi bi-currency-dollar"></i> Configurar Precios
                 </button>
+            </div>
+        </div>
+
+        <!-- Modal: Probar configuración de correo (SMTP / Amazon SES) -->
+        <div class="modal fade" id="testMailModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <form action="{{ route('superadmin.mail.test') }}" method="POST" class="modal-content"
+                    onsubmit="var b=this.querySelector('button[type=submit]'); b.disabled=true; b.innerHTML='Enviando...';">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="bi bi-envelope-check me-1"></i> Probar configuración de correo</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar"><span aria-hidden="true">&times;</span></button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table table-sm small mb-3">
+                            <tr><th class="text-muted">Mailer</th><td><code>{{ config('mail.default') }}</code></td></tr>
+                            <tr><th class="text-muted">Servidor</th><td><code>{{ config('mail.mailers.smtp.host') }}:{{ config('mail.mailers.smtp.port') }}</code> ({{ config('mail.mailers.smtp.encryption') ?: 'sin cifrado' }})</td></tr>
+                            <tr><th class="text-muted">Remitente</th><td><code>{{ config('mail.from.address') }}</code></td></tr>
+                        </table>
+                        <label class="form-label fw-bold">Enviar correo de prueba a:</label>
+                        <input type="email" name="test_email" class="form-control" required
+                            value="{{ old('test_email', auth()->user()->email) }}">
+                        <small class="text-muted d-block mt-2">
+                            El envío es inmediato (sin cola). Si Amazon SES aún está en <strong>Sandbox</strong>, solo llegará a direcciones verificadas en la consola de SES.
+                        </small>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-dark"><i class="bi bi-send"></i> Enviar prueba</button>
+                    </div>
+                </form>
             </div>
         </div>
 

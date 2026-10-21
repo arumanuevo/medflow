@@ -75,6 +75,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/users/{user}/send-message', [\App\Http\Controllers\SuperAdminController::class, 'sendCustomMessage'])->name('superadmin.users.message');
         Route::delete('/users/{user}', [\App\Http\Controllers\SuperAdminController::class, 'deleteUser'])->name('superadmin.users.delete');
         Route::post('/prices', [\App\Http\Controllers\SuperAdminController::class, 'savePrices'])->name('superadmin.prices.save');
+        Route::post('/mail-test', [\App\Http\Controllers\SuperAdminController::class, 'testMail'])->name('superadmin.mail.test');
     });
 
     // Dashboard

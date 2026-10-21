@@ -35,7 +35,7 @@ class IndividualReportMail extends Mailable
     {
         return new Envelope(
             subject: 'Informe Avanzado de Consumo - ' . ($this->sensor->name ?? 'MedFlow'),
-            from: new Address(config('mail.from.address', 'no-reply@wiroos.com'), config('mail.from.name', 'MedFlow Reports'))
+            from: new Address(config('mail.from.address', 'no-reply@arumasoft.com'), config('mail.from.name', 'MedFlow Reports'))
         );
     }
 
