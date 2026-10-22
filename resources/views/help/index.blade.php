@@ -277,6 +277,13 @@
                             </li>
                             <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
                                     data-bs-toggle="modal" data-bs-target="#helpModal"
+                                    data-title="Sobrescritura y Actualización Masiva (Sin costo de cuota)"
+                                    data-content="¿Necesitas actualizar nombres, descripciones o añadir nuevas columnas a medidores que ya tienes cargados? Puedes volver a subir tu archivo Excel/CSV sobre el mismo Grupo. MedFlow detectará automáticamente los <strong>Identificadores</strong> ya existentes y <strong>sobrescribirá/actualizará</strong> su información sin duplicarlos.<br><br><strong>Consumo de Cupo en tu Plan:</strong> Las actualizaciones consumen <code>0 cupo</code> de suscripción. Únicamente se descuenta cupo de tu plan si el archivo incluye identificadores nuevos que no existían previamente en ese grupo."
+                                    data-steps="1. Ve a <strong>Sensores > Importar Sensores</strong> y selecciona tu Grupo.<br>2. Sube la planilla con los mismos Identificadores y las nuevas columnas.<br>3. Mapea los campos; los registros coincidentes se actualizarán sin consumir cuota adicional.">
+                                    <i class="bi bi-arrow-repeat me-1" style="color: #6f42c1;"></i> Sobrescritura y actualización sin costo</a>
+                            </li>
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal"
                                     data-title="Migración del Histórico de Consumos"
                                     data-content="Si deseas que los gráficos de MedFlow reaccionen al instante mostrando toda tu historia de consumos del último año, necesitas inyectar un histórico. Para que el motor asocie cada lectura pasada a su respectivo sensor, nuestro importador buscará <strong>únicamente el Identificador Físico</strong>. Tu Excel de Historial debe tener tres columnas excluyentes: <code>1) Identificador del Medidor</code>, <code>2) Fecha de la Medición (ideal en formato Año-Mes-Día YYYY-MM-DD)</code> y <code>3) El Valor numérico capturado</code>."
                                     data-steps="Deberás realizar esto <strong>DESPUÉS</strong> de haber importado los sensores primero. MedFlow rastreará todos los Identificadores coincidiendo y anidará tus historias fotográficas o datos numéricos sin colapsar.">

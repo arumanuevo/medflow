@@ -680,6 +680,19 @@
                         $('#progressContainer').addClass('d-none');
                         $('#importBtn').prop('disabled', false);
 
+                        // ✅ Interceptar Error de Cuota con Oportunidad de Upsell
+                        if (xhr.status === 403 && xhr.responseJSON?.error_type === 'quota_exceeded' && xhr.responseJSON?.upsell_data) {
+                            const upsell = xhr.responseJSON.upsell_data;
+                            $('#quotaUpsellMessage').text(xhr.responseJSON.message);
+                            $('#upsellMissingSensors').text(upsell.missing_sensors);
+                            $('#upsellNeededPacks').text(upsell.needed_packs + ' packs');
+                            $('#upsellCost').text(upsell.formatted_cost);
+                            
+                            $('#btnBuyAndImport').data('packs', upsell.needed_packs);
+                            $('#quotaUpsellModal').modal('show');
+                            return;
+                        }
+
                         // ✅ Manejar errores específicos
                         let errorMessage = 'Error al importar sensores';
 
@@ -687,24 +700,23 @@
                             errorMessage = 'Error de conexión. Verifica tu conexión a internet e intenta nuevamente.';
                         } else if (xhr.status === 413) {
                             errorMessage = 'El archivo es demasiado grande. El tamaño máximo permitido es 10MB.';
+                        } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
                         } else if (xhr.status === 403) {
-                            errorMessage = 'No tienes permiso para importar sensores en este grupo.';
+                            errorMessage = 'No tienes permiso para importar sensores en este grupo o se excedió la cuota de tu plan.';
                         } else if (xhr.status === 404) {
                             errorMessage = 'El grupo seleccionado no existe.';
-                        } else if (xhr.responseJSON) {
-                            if (xhr.responseJSON.message) {
-                                errorMessage = xhr.responseJSON.message;
-                            }
-                            if (xhr.responseJSON.errors) {
-                                const errors = Object.values(xhr.responseJSON.errors).flat();
-                                errorMessage += '<br><ul>';
-                                errors.forEach(err => {
-                                    errorMessage += `<li>${err}</li>`;
-                                });
-                                errorMessage += '</ul>';
-                            }
                         } else if (xhr.statusText) {
                             errorMessage += ': ' + xhr.statusText;
+                        }
+
+                        if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            const errors = Object.values(xhr.responseJSON.errors).flat();
+                            errorMessage += '<br><ul>';
+                            errors.forEach(err => {
+                                errorMessage += `<li>${err}</li>`;
+                            });
+                            errorMessage += '</ul>';
                         }
 
                         // ✅ Mostrar error en un modal si es detallado
@@ -1035,6 +1047,9 @@
 
         const formData = new FormData();
         formData.append('file', file);
+        if (selectedGroupId) {
+            formData.append('group_id', selectedGroupId);
+        }
 
         $.ajax({
             url: '/api/sensor-groups/analyze-file',
@@ -1735,16 +1750,14 @@
                                 <li class="mt-2">
                                     <strong>¿Qué va a pasar?</strong>
                                     <ul class="mb-0">
-                                        <li>🔄 Los sensores con <strong>identificador existente</strong> se <strong>actualizarán</strong></li>
-                                        <li>🆕 Los sensores con <strong>identificador nuevo</strong> se <strong>crearán</strong></li>
-                                        <li>📊 <strong>Total final aproximado:</strong> ${existingSensors} + (identificadores nuevos)</li>
+                                        <li>🔄 Los sensores con <strong>identificador existente</strong> se <strong>actualizarán</strong> <span class="badge bg-success-subtle text-success border ms-1"><i class="bi bi-check-circle"></i> 0 costo de cuota</span></li>
+                                        <li>🆕 Los sensores con <strong>identificador nuevo</strong> se <strong>crearán</strong> <span class="badge bg-primary-subtle text-primary border ms-1"><i class="bi bi-plus-circle"></i> Consumen cuota</span></li>
+                                        <li>📊 <strong>Total final en base de datos:</strong> ${existingSensors} + (identificadores nuevos)</li>
                                     </ul>
                                 </li>
                                 <li class="mt-2"><small class="text-muted">
                                     <i class="bi bi-info-circle"></i> 
-                                    <strong>Nota:</strong> El número final de sensores dependerá de cuántos identificadores sean nuevos.
-                                    Como máximo, el total será <strong>${existingSensors + totalReal}</strong> (si todos los registros fueran nuevos).
-                                    Los sensores existentes se actualizan, no se duplican.
+                                    <strong>Regla de Suscripción:</strong> Si estás re-importando los mismos sensores para actualizar nombres o agregar nuevas columnas de metadatos, <strong>no se consume cupo de tu plan</strong>. Solo se descuenta cupo por aquellos identificadores que no existían previamente en este grupo.
                                 </small></li>
                             </ul>
                         </div>
@@ -1867,16 +1880,14 @@
                     <li class="mt-2">
                         <strong>¿Qué va a pasar?</strong>
                         <ul class="mb-0">
-                            <li>🔄 Los sensores con <strong>identificador existente</strong> se <strong>actualizarán</strong></li>
-                            <li>🆕 Los sensores con <strong>identificador nuevo</strong> se <strong>crearán</strong></li>
-                            <li>📊 <strong>Total final aproximado:</strong> ${existingSensors} + (identificadores nuevos)</li>
+                            <li>🔄 Los sensores con <strong>identificador existente</strong> se <strong>actualizarán</strong> <span class="badge bg-success-subtle text-success border ms-1"><i class="bi bi-check-circle"></i> 0 costo de cuota</span></li>
+                            <li>🆕 Los sensores con <strong>identificador nuevo</strong> se <strong>crearán</strong> <span class="badge bg-primary-subtle text-primary border ms-1"><i class="bi bi-plus-circle"></i> Consumen cuota</span></li>
+                            <li>📊 <strong>Total final en base de datos:</strong> ${existingSensors} + (identificadores nuevos)</li>
                         </ul>
                     </li>
                     <li class="mt-2"><small class="text-muted">
                         <i class="bi bi-info-circle"></i> 
-                        <strong>Nota:</strong> El número final de sensores dependerá de cuántos identificadores sean nuevos.
-                        Como máximo, el total será <strong>${existingSensors + totalReal}</strong> (si todos los registros fueran nuevos).
-                        Los sensores existentes se actualizan, no se duplican.
+                        <strong>Regla de Suscripción:</strong> Si estás re-importando los mismos sensores para actualizar nombres o agregar nuevas columnas de metadatos, <strong>no se consume cupo de tu plan</strong>. Solo se descuenta cupo por aquellos identificadores que no existían previamente en este grupo.
                     </small></li>
                 </ul>
             </div>

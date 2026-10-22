@@ -204,8 +204,9 @@ Stack: Flutter (`mobile-app/`). Backend: `app/Http/Controllers/Api/MobileOffline
 - Columnas adicionales (ej: inquilino, deuda, piso) se convierten automáticamente en **Metadatos (Campos Extra)** inyectados en `sensor.metadata`.
 - Campos predefinidos disponibles: `fecha_instalacion` (date), `serial` (text), `fecha_fabricacion` (date), `calibracion` (date), etc.
 - Mapeo validado: `field_mapping` debe incluir `name` e `identifier`.
-- Detección de duplicados por `identifier`: si existe, actualiza (merge de metadata); si no, crea.
-- **Telemetría/Prefacturación de cuota (ver §4):** si las filas exceden el cupo restante, retorna `quota_exceeded` con `upsell_data` (packs necesarios + costo estimado).
+- Detección de duplicados por `identifier`: si existe en el grupo, **se actualiza** (merge de metadata, nombre, descripción); si no, se crea.
+- **Regla de Cuota en Sobrescritura:** Las actualizaciones o sobrescrituras de sensores existentes consumen **0 cupo de suscripción**. Si un usuario tiene 300 sensores (su tope) y re-importa un Excel con esos mismos 300 identificadores para agregar nuevas columnas o actualizar datos, **no consume cuota adicional ni se le pide comprar packs**. La cuota solo se cobra sobre los identificadores verdaderamente nuevos.
+- **Telemetría/Prefacturación de cuota (ver §4):** solo si los sensores *nuevos* a crear exceden el cupo libre restante, retorna `quota_exceeded` con `upsell_data` (packs necesarios + costo estimado).
 
 #### Migración del Histórico de Consumos — `BulkMeasurementImportController`
 - Requiere **tres** columnas: `sensor` (identificador), `valor` (numérico), `fecha`.
@@ -296,13 +297,18 @@ maxSensors = base + (extraPacks * 10)
 `additional_sensor_packs` es un entero persistente en `users`. Cada pack suma **10** sensores.
 
 #### Pre-facturación en importación masiva (`BulkSensorImportController`)
-Al analizar el archivo, si las filas exceden el cupo restante:
+Al importar o analizar el archivo, la cuota solo se evalúa sobre los **sensores netamente nuevos** a dar de alta (los existentes que se actualizan tienen costo 0 de cuota):
 ```text
-missingSensors = totalRows - limitStatus.remaining
-neededPacks = ceil(missingSensors / 10)
-estimated_cost = neededPacks * 10000   // ARS por pack
+newSensorsToCreate = uniqueIncomingIdentifiers - existingIdentifiersInGroup
+if (newSensorsToCreate > limitStatus.remaining) {
+    missingSensors = newSensorsToCreate - limitStatus.remaining
+    neededPacks = ceil(missingSensors / 10)
+    estimated_cost = neededPacks * 10000   // ARS por pack
+}
 ```
 Respuesta `quota_exceeded` (403) con `upsell_data`: `missing_sensors`, `needed_packs`, `estimated_cost`, `formatted_cost`.
+
+*Instrucción Flowy:* Si un usuario consulta si puede sobrescribir o actualizar un grupo de 300 sensores con nuevos datos o columnas sin exceder los 300 de su plan, respóndele afirmativamente: **MedFlow reconoce los identificadores y actualiza los registros con 0 costo de cuota adicional**. Solo se computará cuota si se agregan identificadores nuevos que no existían.
 
 #### Compra de packs mid-cycle (`SubscriptionPaymentController::buyExtraPacks`)
 - Validación: `packs` entero `1..100`.

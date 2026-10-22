@@ -75,8 +75,21 @@ class BulkSensorImportController extends Controller
             $subscriptionService = new SubscriptionService($user);
             $limitStatus = $subscriptionService->getLimitStatus()['sensors'];
 
-            if (!$limitStatus['is_unlimited'] && $totalRows > $limitStatus['remaining']) {
-                $missingSensors = $totalRows - $limitStatus['remaining'];
+            // ✅ Si se especificó un grupo objetivo, calcular cuántos sensores ya existen en él.
+            // Los sensores ya existentes en el grupo serán actualizados/sobrescritos y NO consumen nueva cuota.
+            $groupId = $request->input('group_id');
+            $existingInGroup = 0;
+            if (!empty($groupId)) {
+                $existingInGroup = Sensor::where('group_id', $groupId)->count();
+            }
+
+            // El excedente mínimo garantizado de sensores nuevos (asumiendo en el mejor caso que se actualicen todos los existentes del grupo)
+            $minPossibleNew = max(0, $totalRows - $existingInGroup);
+
+            // Solo bloquear en el paso 1 si incluso asumiendo que todos los sensores del grupo se actualicen,
+            // el excedente mínimo aún supera el cupo libre disponible.
+            if (!$limitStatus['is_unlimited'] && $minPossibleNew > $limitStatus['remaining']) {
+                $missingSensors = $minPossibleNew - $limitStatus['remaining'];
                 $neededPacks = ceil($missingSensors / 10);
 
                 $sysPrices = @json_decode(@file_get_contents(storage_path('app/pricing.json')), true) ?: ['pack' => 10000];
@@ -86,7 +99,7 @@ class BulkSensorImportController extends Controller
                 return response()->json([
                     'success' => false,
                     'error_type' => 'quota_exceeded',
-                    'message' => "Atención: El archivo contiene {$totalRows} sensores, pero solo tienes espacio libre para {$limitStatus['remaining']}.",
+                    'message' => "Atención: El archivo contiene {$totalRows} registros. Considerando que tu grupo ya tiene {$existingInGroup} sensores, habrá al menos {$minPossibleNew} sensores nuevos pero solo tienes espacio libre para {$limitStatus['remaining']}.",
                     'upsell_data' => [
                         'missing_sensors' => $missingSensors,
                         'needed_packs' => $neededPacks,
@@ -110,7 +123,8 @@ class BulkSensorImportController extends Controller
                     'quota' => [
                         'max' => $limitStatus['max'],
                         'remaining' => $limitStatus['remaining'],
-                        'is_unlimited' => $limitStatus['is_unlimited']
+                        'is_unlimited' => $limitStatus['is_unlimited'],
+                        'existing_in_group' => $existingInGroup
                     ]
                 ]
             ]);
@@ -661,24 +675,50 @@ class BulkSensorImportController extends Controller
                 ], 400);
             }
 
-            // ✅ VERIFICAR CUOTAS DE SENSORES
-            $subscriptionService = new SubscriptionService($user);
-            $limitStatus = $subscriptionService->getLimitStatus()['sensors'];
-
-            // Calculamos cuántos sensores válidos vienen
+            // ✅ VERIFICAR CUOTAS DE SENSORES CALCULANDO SENSORES NUEVOS VS ACTUALIZADOS
+            // Extraer identificadores del archivo para saber cuáles ya existen en el grupo objetivo
+            $incomingIdentifiers = [];
             $incomingSensors = 0;
             for ($i = 1; $i < count($allData); $i++) {
                 if (!empty($allData[$i]) && count(array_filter($allData[$i])) > 0) {
                     $incomingSensors++;
+                    $idVal = $this->getMappedValue($allData[$i], $fieldMapping, 'identifier');
+                    if (!empty($idVal)) {
+                        $incomingIdentifiers[$idVal] = true;
+                    }
                 }
             }
 
-            if (!$limitStatus['is_unlimited'] && $incomingSensors > $limitStatus['remaining']) {
-                $statusPlan = $subscriptionService->getPlan()->getPlanName();
+            $uniqueIncomingIdentifiers = array_keys($incomingIdentifiers);
+
+            // Consultar cuántos identificadores ya existen en el grupo objetivo
+            $existingInDbCount = Sensor::where('group_id', $request->group_id)
+                ->whereIn('identifier', $uniqueIncomingIdentifiers)
+                ->count();
+
+            // Sensores netamente NUEVOS que se crearán (los existentes solo se actualizan y no consumen cuota)
+            $newSensorsToCreate = max(0, count($uniqueIncomingIdentifiers) - $existingInDbCount);
+
+            $subscriptionService = new SubscriptionService($user);
+            $limitStatus = $subscriptionService->getLimitStatus()['sensors'];
+
+            if (!$limitStatus['is_unlimited'] && $newSensorsToCreate > $limitStatus['remaining']) {
+                $missingSensors = $newSensorsToCreate - $limitStatus['remaining'];
+                $neededPacks = ceil($missingSensors / 10);
+                $sysPrices = @json_decode(@file_get_contents(storage_path('app/pricing.json')), true) ?: ['pack' => 10000];
+                $packPrice = (float) ($sysPrices['pack'] ?? 10000);
+                $cost = number_format($neededPacks * $packPrice, 0, ',', '.');
+
                 return response()->json([
                     'success' => false,
-                    'message' => "Atención: El archivo contiene {$incomingSensors} sensores y tienes espacio para {$limitStatus['remaining']}. " .
-                        "Para procesar este listado, adquiere Packs Extra desde Mi Perfil o depura tu base de datos actual.",
+                    'error_type' => 'quota_exceeded',
+                    'message' => "Atención: El archivo contiene {$newSensorsToCreate} sensores nuevos (y {$existingInDbCount} actualizaciones de sensores existentes), pero tu plan solo tiene espacio disponible para {$limitStatus['remaining']} nuevos sensores. Para procesar este listado, adquiere {$neededPacks} pack(s) extra desde Mi Perfil o depura registros.",
+                    'upsell_data' => [
+                        'missing_sensors' => $missingSensors,
+                        'needed_packs' => $neededPacks,
+                        'estimated_cost' => $neededPacks * $packPrice,
+                        'formatted_cost' => $cost
+                    ]
                 ], 403);
             }
 
