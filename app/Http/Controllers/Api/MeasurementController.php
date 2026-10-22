@@ -109,12 +109,29 @@ class MeasurementController extends Controller
             $measurements->setCollection($measurementsWithData);
         }
 
+        // Extraer campos personalizados de los sensores del grupo si hay filtro activo por grupo
+        $groupExtraFields = [];
+        if ($request->filled('group_id')) {
+            $sensorsInGroup = Sensor::where('group_id', $request->group_id)->get(['id', 'metadata']);
+            $keysSet = [];
+            foreach ($sensorsInGroup as $s) {
+                $meta = is_array($s->metadata) ? $s->metadata : json_decode($s->metadata, true);
+                if (!empty($meta) && is_array($meta)) {
+                    foreach (array_keys($meta) as $k) {
+                        $keysSet[$k] = true;
+                    }
+                }
+            }
+            $groupExtraFields = array_keys($keysSet);
+        }
+
         // Formatear la respuesta
         return response()->json([
             'success' => true,
             'message' => 'Mediciones obtenidas correctamente',
             'data' => $measurements->items(),
             'error_stats' => $errorStats,
+            'group_extra_fields' => $groupExtraFields,
             'meta' => [
                 'current_page' => $measurements->currentPage(),
                 'from' => $measurements->firstItem(),
@@ -178,9 +195,10 @@ class MeasurementController extends Controller
         // ✅ AÑADIR CAMPOS EXTRA DEL SENSOR (dinámico desde metadata)
         $sensor = $measurement->sensor;
         if ($sensor) {
+            $meta = is_array($sensor->metadata) ? $sensor->metadata : json_decode($sensor->metadata, true);
             // Enviar TODOS los campos extra dinámicamente desde metadata
             $measurement->sensor_extra_fields = array_filter(
-                $sensor->metadata ?? [],
+                $meta ?? [],
                 fn($v) => $v !== null && $v !== ''
             );
 

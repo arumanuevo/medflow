@@ -613,6 +613,47 @@
         </div>
     </div>
 
+    <!-- Modal para Atributos y Campos Personalizados del Sensor -->
+    <div class="modal fade" id="sensorMetadataModal" tabindex="-1" aria-labelledby="sensorMetadataModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="sensorMetadataModalLabel">
+                        <i class="bi bi-tags-fill me-2"></i> Atributos del Sensor
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="d-flex align-items-center mb-3 p-3 bg-light rounded-3 border">
+                        <div class="bg-primary text-white rounded-3 p-2 me-3 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                            <i class="bi bi-hdd-network-fill fs-5"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-1" id="sensorMetaName">—</h6>
+                            <small class="text-muted">Identificador: <code id="sensorMetaId" class="text-primary fw-bold">—</code></small>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered table-striped mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 45%;">Campo Personalizado</th>
+                                    <th>Valor Asignado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sensorMetaTableBody">
+                                <!-- Filas dinámicas -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Barra de acciones flotante (se muestra al seleccionar filas) -->
     <div id="bulkActionsBar"
         class="position-fixed bottom-0 start-50 translate-middle-x mb-4 shadow rounded px-4 py-3 bg-white"
@@ -689,7 +730,9 @@
                             if (response.error_stats) {
                                 errorStats = response.error_stats;
                             }
-                            renderMeasurements(response.data);
+                            const groupExtraFields = response.group_extra_fields || [];
+                            renderTableHeaders(groupExtraFields);
+                            renderMeasurements(response.data, groupExtraFields);
                             if (!$('#errorStatsContainer').hasClass('d-none') && errorStats) {
                                 updateErrorStats(errorStats);
                             }
@@ -704,26 +747,39 @@
                     },
                     error: function (xhr) {
                         console.error('Error cargando mediciones:', xhr);
+                        const totalColspan = 12 + activeGroupExtraFields.length;
                         $('#measurementsTableBody').html(`
-                                                                                                <tr>
-                                                                                                    <td colspan="12" class="text-center text-danger">
-                                                                                                        <i class="bi bi-exclamation-triangle"></i> Error al cargar las mediciones. Por favor, intente de nuevo.
-                                                                                                    </td>
-                                                                                                </tr>
-                                                                                            `);
+                            <tr>
+                                <td colspan="${totalColspan}" class="text-center text-danger py-4">
+                                    <i class="bi bi-exclamation-triangle"></i> Error al cargar las mediciones. Por favor, intente de nuevo.
+                                </td>
+                            </tr>
+                        `);
                     }
                 });
             }
 
+            // Función para escapar HTML de forma segura
+            function escapeHtml(str) {
+                if (str === null || str === undefined) return '';
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
             // Función para mostrar errores
             function showError(message) {
+                const totalColspan = 12 + activeGroupExtraFields.length;
                 $('#measurementsTableBody').html(`
-                                                                                        <tr>
-                                                                                            <td colspan="12" class="text-center text-danger">
-                                                                                                <i class="bi bi-exclamation-triangle"></i> ${message}
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                    `);
+                    <tr>
+                        <td colspan="${totalColspan}" class="text-center text-danger py-4">
+                            <i class="bi bi-exclamation-triangle"></i> ${escapeHtml(message)}
+                        </td>
+                    </tr>
+                `);
             }
 
             // Función para actualizar estadísticas de errores
@@ -737,8 +793,6 @@
             // Función para obtener campos dinámicos del sensor
             function getSensorDynamicFields(sensor) {
                 if (!sensor) return {};
-                // Aquí puedes mapear los campos dinámicos que tenga el sensor
-                // Por ejemplo: numero_lote, codigo_medidor, etc.
                 const fields = {};
                 if (sensor.numero_lote) fields.numero_lote = sensor.numero_lote;
                 if (sensor.codigo_medidor) fields.codigo_medidor = sensor.codigo_medidor;
@@ -746,17 +800,79 @@
                 return fields;
             }
 
+            let activeGroupExtraFields = [];
+
+            // Renderizar dinámicamente los encabezados de la tabla
+            function renderTableHeaders(groupExtraFields) {
+                activeGroupExtraFields = groupExtraFields || [];
+                let headersHtml = `
+                    <th style="width: 40px; text-align: center;">
+                        <input class="form-check-input" type="checkbox" id="selectAllMeasurements">
+                    </th>
+                    <th class="sortable" data-field="sensor_id" style="cursor: pointer;">
+                        Sensor <i class="bi bi-arrow-down-up text-muted ms-1" style="font-size: 0.75rem;"></i>
+                    </th>
+                    <th>Identificador</th>
+                    <th>Grupo</th>
+                `;
+
+                // Columnas dinámicas contextuales si se filtró por un grupo específico
+                activeGroupExtraFields.forEach(field => {
+                    const label = field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    headersHtml += `
+                        <th class="bg-primary-subtle text-primary border-primary text-nowrap" title="Campo personalizado de este grupo">
+                            <i class="bi bi-tag-fill me-1" style="font-size: 0.72rem;"></i>${escapeHtml(label)}
+                        </th>
+                    `;
+                });
+
+                headersHtml += `
+                    <th>Plantilla</th>
+                    <th>Valor</th>
+                    <th>Datos Dinámicos (Medición)</th>
+                    <th class="sortable" data-field="measured_at" style="cursor: pointer;">
+                        Fecha <i class="bi bi-arrow-down-up text-muted ms-1" style="font-size: 0.75rem;"></i>
+                    </th>
+                    <th>Consumo</th>
+                    <th>Estado</th>
+                    <th>Foto</th>
+                    <th>Acciones</th>
+                `;
+
+                $('#measurementsTable thead tr').html(headersHtml);
+
+                // Reasociar eventos de ordenamiento y selección general
+                $('#selectAllMeasurements').off('change').on('change', function () {
+                    const isChecked = $(this).prop('checked');
+                    $('.measurement-checkbox').prop('checked', isChecked);
+                    updateBulkActionsVisibility();
+                });
+
+                $('.sortable').off('click').on('click', function () {
+                    const field = $(this).data('field');
+                    if (currentSortField === field) {
+                        currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        currentSortField = field;
+                        currentSortDirection = 'asc';
+                    }
+                    loadMeasurements();
+                });
+            }
+
             // Función para renderizar mediciones
-            // Función para renderizar mediciones
-            function renderMeasurements(measurements) {
-                if (measurements.length === 0) {
+            function renderMeasurements(measurements, groupExtraFields) {
+                const extraCols = groupExtraFields || [];
+                const totalColspan = 12 + extraCols.length;
+
+                if (!measurements || measurements.length === 0) {
                     $('#measurementsTableBody').html(`
-                                                                                            <tr>
-                                                                                                <td colspan="11" class="text-center">
-                                                                                                    <i class="bi bi-inbox"></i> No se encontraron mediciones
-                                                                                                </td>
-                                                                                            </tr>
-                                                                                        `);
+                        <tr>
+                            <td colspan="${totalColspan}" class="text-center text-muted py-4">
+                                <i class="bi bi-inbox fs-3 d-block mb-2"></i> No se encontraron mediciones
+                            </td>
+                        </tr>
+                    `);
                     return;
                 }
 
@@ -790,28 +906,37 @@
                     const templateName = measurement.template_name || '';
                     const templateType = measurement.template_type || '';
 
-                    // ✅ Construir display del sensor con campos extra dinámicos
-                    let sensorDisplay = `<span class="sensor-name">${sensorName}</span>`;
-
-                    // ✅ Campos extra del sensor - 100% dinámico desde metadata
+                    // ✅ Campos extra del sensor (Metadata)
                     const extraFields = measurement.sensor_extra_fields || {};
-                    let extraFieldsHtml = [];
-                    Object.keys(extraFields).forEach(key => {
-                        if (extraFields[key] && extraFields[key] !== null && extraFields[key] !== '') {
-                            // Capitalizar el nombre del campo para mejor legibilidad
-                            const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                            extraFieldsHtml.push(`${label}: ${extraFields[key]}`);
-                        }
-                    });
+                    const extraCount = Object.keys(extraFields).length;
+                    const metaJsonSafe = escapeHtml(JSON.stringify(extraFields));
 
-                    if (extraFieldsHtml.length > 0) {
-                        sensorDisplay += `<span class="sensor-identifier">${extraFieldsHtml.join(' | ')}</span>`;
+                    // ✅ Sensor display: limpio y compacto para no deformar celdas ni saturar con 25 badges
+                    let sensorDisplay = `<span class="sensor-name">${escapeHtml(sensorName)}</span>`;
+                    if (extraCount > 0 && extraCols.length === 0) {
+                        // En vista unificada, mostrar enlace compacto y elegante para abrir la ficha de atributos
+                        sensorDisplay += `
+                            <a href="#" class="viewSensorMetaBtn text-decoration-none small text-muted d-inline-flex align-items-center mt-1" 
+                               data-sensor-name="${escapeHtml(sensorName)}" 
+                               data-sensor-id="${escapeHtml(sensorIdentifier)}" 
+                               data-meta='${metaJsonSafe}'
+                               title="Ver los ${extraCount} campos personalizados asignados a este sensor">
+                                <i class="bi bi-tags text-primary me-1"></i> ${extraCount} atributos
+                            </a>
+                        `;
                     }
+
+                    // ✅ Columnas dinámicas si se filtró por grupo específico
+                    let dynamicCellsHtml = '';
+                    extraCols.forEach(k => {
+                        const val = (extraFields[k] !== undefined && extraFields[k] !== null && extraFields[k] !== '') ? extraFields[k] : '—';
+                        dynamicCellsHtml += `<td class="text-nowrap fw-semibold text-dark">${escapeHtml(String(val))}</td>`;
+                    });
 
                     // ✅ Construir label de plantilla
                     let templateDisplay = templateName || templateType || 'N/A';
                     if (templateName && templateType && templateName !== templateType) {
-                        templateDisplay = `<span class="sensor-name">${templateName}</span><span class="sensor-identifier">${templateType}</span>`;
+                        templateDisplay = `<span class="sensor-name">${escapeHtml(templateName)}</span><span class="sensor-identifier">${escapeHtml(templateType)}</span>`;
                     }
 
                     // ✅ Agregar datos dinámicos de la medición (excluyendo el campo principal y foto)
@@ -819,7 +944,7 @@
                     Object.keys(data).forEach(k => {
                         if (k !== mainField && k !== 'foto' && k !== 'foto_evidencia') {
                             const lbl = k.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                            measurementDataHtml.push(`<div><strong>${lbl}:</strong> ${data[k]}</div>`);
+                            measurementDataHtml.push(`<div><strong>${escapeHtml(lbl)}:</strong> ${escapeHtml(String(data[k]))}</div>`);
                         }
                     });
                     const measurementDataDisplay = measurementDataHtml.length > 0 ? `<div style="font-size:0.75rem; color:#495057;">${measurementDataHtml.join('')}</div>` : '<span class="text-muted small">N/A</span>';
@@ -834,6 +959,7 @@
                                                                                                 </td>
                                                                                                 <td><code>${sensorIdentifier || '—'}</code></td>
                                                                                                 <td>${groupName}</td>
+                                                                                                ${dynamicCellsHtml}
                                                                                                 <td><div class="sensor-info">${templateDisplay}</div></td>
                                                                                                 <td><strong>${value} ${unit}</strong></td>
                                                                                                 <td>${measurementDataDisplay}</td>
@@ -851,6 +977,15 @@
                                                                                                 </td>
                                                                                                 <td>
                                                                                                     <div class="table-actions">
+                                                                                                        ${extraCount > 0 ? `
+                                                                                                            <button class="btn btn-sm btn-outline-primary viewSensorMetaBtn" 
+                                                                                                                    title="Ver atributos del sensor (${extraCount})" 
+                                                                                                                    data-sensor-name="${escapeHtml(sensorName)}" 
+                                                                                                                    data-sensor-id="${escapeHtml(sensorIdentifier)}" 
+                                                                                                                    data-meta='${metaJsonSafe}'>
+                                                                                                                <i class="bi bi-tags"></i>
+                                                                                                            </button>
+                                                                                                        ` : ''}
                                                                                                         <a href="{{ url('/mediciones/edit') }}/${measurement.id}" class="btn btn-sm btn-warning" title="Editar">
                                                                                                             <i class="bi bi-pencil"></i>
                                                                                                         </a>
@@ -858,7 +993,7 @@
                                                                                                             <i class="bi bi-trash"></i>
                                                                                                         </button>
                                                                                                         ${status !== 'valid' ?
-                            `<button class="btn btn-sm btn-info viewErrorBtn" title="Ver detalles del error" data-measurement-id="${measurement.id}">
+                                                                                                            `<button class="btn btn-sm btn-info viewErrorBtn" title="Ver detalles del error" data-measurement-id="${measurement.id}">
                                                                                                                 <i class="bi bi-exclamation-triangle"></i>
                                                                                                             </button>` : ''}
                                                                                                     </div>
@@ -868,6 +1003,40 @@
                 });
 
                 $('#measurementsTableBody').html(html);
+
+                // Evento para abrir modal de atributos del sensor
+                $('.viewSensorMetaBtn').off('click').on('click', function (e) {
+                    e.preventDefault();
+                    const sensorName = $(this).attr('data-sensor-name') || 'Sensor';
+                    const sensorId = $(this).attr('data-sensor-id') || '—';
+                    let meta = $(this).attr('data-meta');
+                    if (typeof meta === 'string') {
+                        try { meta = JSON.parse(meta); } catch (err) { meta = {}; }
+                    }
+                    meta = meta || {};
+
+                    $('#sensorMetaName').text(sensorName);
+                    $('#sensorMetaId').text(sensorId);
+
+                    let rowsHtml = '';
+                    const keys = Object.keys(meta);
+                    if (keys.length === 0) {
+                        rowsHtml = '<tr><td colspan="2" class="text-center text-muted py-3">Este sensor no tiene atributos personalizados asignados.</td></tr>';
+                    } else {
+                        keys.forEach(k => {
+                            const label = k.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                            rowsHtml += `
+                                <tr>
+                                    <td class="fw-semibold text-secondary align-middle">${escapeHtml(label)}</td>
+                                    <td class="align-middle"><code class="text-dark bg-white border px-2 py-1 rounded fs-6">${escapeHtml(String(meta[k]))}</code></td>
+                                </tr>
+                            `;
+                        });
+                    }
+
+                    $('#sensorMetaTableBody').html(rowsHtml);
+                    $('#sensorMetadataModal').modal('show');
+                });
 
                 // Asignar eventos
                 $('.viewPhotoBtn').click(function () {
