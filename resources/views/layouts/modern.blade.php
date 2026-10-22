@@ -579,7 +579,12 @@ try {
     
     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center p-3">
         <h6 class="mb-0 fw-bold"><i class="bi bi-robot me-2"></i> Flowy (Beta IA)</h6>
-        <button type="button" class="btn-close btn-close-white" id="closeFlowyChat" style="font-size: 0.8rem;"></button>
+        <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-sm btn-link text-white text-decoration-none p-0 opacity-75" id="clearFlowyChat" title="Reiniciar conversación" style="transition: opacity 0.2s;">
+                <i class="bi bi-arrow-counterclockwise fs-6"></i>
+            </button>
+            <button type="button" class="btn-close btn-close-white" id="closeFlowyChat" style="font-size: 0.8rem;"></button>
+        </div>
     </div>
 
     <div class="card-body bg-light" id="flowyChatBox" style="height: 350px; overflow-y: auto; font-size: 0.8rem;">
@@ -610,6 +615,7 @@ try {
                 📄 Exportar reportes PDF/CSV
             </button>
         </div>
+        <div id="flowyMessagesContainer"></div>
     </div>
 
     <div class="card-footer bg-white border-top-0 p-2">
@@ -624,33 +630,17 @@ try {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Memoria a corto plazo del chat (Max 6 interacciones)
     let flowyMemory = [];
+    let flowyMessages = [];
     let isFlowyAsking = false;
     const btnOpen = document.getElementById('btnFlowyAI');
     const btnClose = document.getElementById('closeFlowyChat');
+    const btnClear = document.getElementById('clearFlowyChat');
     const chatContainer = document.getElementById('chatFlowyContainer');
     const chatBox = document.getElementById('flowyChatBox');
+    const messagesContainer = document.getElementById('flowyMessagesContainer');
     const userInput = document.getElementById('flowyUserInput');
     const btnSend = document.getElementById('btnSendFlowy');
-
-    if(btnOpen) btnOpen.addEventListener('click', () => chatContainer.classList.toggle('d-none'));
-    if(btnClose) btnClose.addEventListener('click', () => chatContainer.classList.add('d-none'));
-
-    // Delegación de eventos en chatBox para que los botones sigan funcionando siempre
-    if (chatBox) {
-        chatBox.addEventListener('click', function(e) {
-            const quickBtn = e.target.closest('.flowy-quick-btn');
-            if (!quickBtn) return;
-            e.preventDefault();
-            if (isFlowyAsking) return;
-            const question = quickBtn.getAttribute('data-question');
-            if (question) {
-                userInput.value = question;
-                askQuestion();
-            }
-        });
-    }
 
     function escapeHtml(str) {
         const div = document.createElement('div');
@@ -658,40 +648,172 @@ document.addEventListener('DOMContentLoaded', function() {
         return div.innerHTML;
     }
 
+    // Parseador Markdown ligero con soporte para encabezados, negrita, código, listas y enlaces
+    function parseMD(md) {
+        let html = md || '';
+        html = html.replace(/^### (.*$)/gim, '<h6 class="mt-3 mb-1 fw-bold text-primary border-bottom pb-1" style="font-size: 0.85rem;">$1</h6>');
+        html = html.replace(/^## (.*$)/gim, '<h6 class="mt-3 mb-1 fw-bold text-primary border-bottom pb-1" style="font-size: 0.85rem;">$1</h6>');
+        html = html.replace(/^# (.*$)/gim, '<h6 class="mt-3 mb-1 fw-bold text-primary border-bottom pb-1" style="font-size: 0.85rem;">$1</h6>');
+        html = html.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');
+        html = html.replace(/`(.*?)`/gim, '<code class="bg-light px-1 text-danger rounded" style="font-size: 0.85rem;">$1</code>');
+        html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="fw-bold text-primary text-decoration-underline">$1</a>');
+        html = html.replace(/^\s*-\s(.*$)/gim, '<li class="ms-3 mb-1">$1</li>');
+        html = html.replace(/^\-\-\-[ \t]*$/gim, '<hr class="my-2 border-secondary">');
+        html = html.replace(/\n/g, '<br>');
+        return html;
+    }
+
+    function renderMessageHtml(msg) {
+        if (msg.role === 'user') {
+            return `
+                <div class="mb-3 text-end">
+                    <span class="badge bg-primary text-white shadow-sm px-3 py-2 text-wrap" style="border-radius: 15px 15px 0 15px; text-align: left !important; font-weight: normal; max-width: 90%;">
+                        ${escapeHtml(msg.content)}
+                    </span>
+                </div>
+            `;
+        } else if (msg.role === 'warning') {
+            return `
+                <div class="mb-3 text-start">
+                    <div class="bg-warning text-dark shadow-sm px-3 py-2" style="border-radius: 15px 15px 15px 0; max-width: 90%; text-align: left !important; font-weight: normal; line-height: 1.5; font-size: 0.8rem; display: inline-block;">${escapeHtml(msg.content)}</div>
+                </div>
+            `;
+        } else if (msg.role === 'error') {
+            return `
+                <div class="mb-3 text-start">
+                    <span class="badge bg-danger text-white shadow-sm px-3 py-2 text-wrap" style="border-radius: 15px 15px 15px 0; max-width: 90%; white-space: pre-wrap; font-weight: normal; line-height: 1.4;">${escapeHtml(msg.content)}</span>
+                </div>
+            `;
+        } else { // 'bot'
+            return `
+                <div class="mb-3 text-start">
+                    <div class="bg-white text-dark shadow-sm px-3 py-3" style="border-radius: 15px 15px 15px 0; max-width: 95%; text-align: left !important; font-weight: normal; line-height: 1.35; font-size: 0.8rem; display: inline-block;">${parseMD(msg.content)}</div>
+                </div>
+            `;
+        }
+    }
+
+    function saveState() {
+        try {
+            localStorage.setItem('flowy_chat_messages', JSON.stringify(flowyMessages));
+            localStorage.setItem('flowy_memory', JSON.stringify(flowyMemory));
+        } catch(e) {}
+    }
+
+    function loadState() {
+        try {
+            // 1. Restaurar memoria backend
+            const savedMemory = localStorage.getItem('flowy_memory');
+            if (savedMemory) {
+                flowyMemory = JSON.parse(savedMemory) || [];
+            }
+            // 2. Restaurar historial visual de mensajes
+            const savedMessages = localStorage.getItem('flowy_chat_messages');
+            if (savedMessages) {
+                flowyMessages = JSON.parse(savedMessages) || [];
+                if (messagesContainer && flowyMessages.length > 0) {
+                    let html = '';
+                    flowyMessages.forEach(msg => {
+                        html += renderMessageHtml(msg);
+                    });
+                    messagesContainer.innerHTML = html;
+                }
+            }
+            // 3. Restaurar estado de visibilidad del popup (abierto / cerrado)
+            const isOpen = localStorage.getItem('flowy_chat_open');
+            if (isOpen === '1' && chatContainer) {
+                chatContainer.classList.remove('d-none');
+            }
+            if (chatBox) {
+                setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 100);
+            }
+        } catch(e) {}
+    }
+
+    loadState();
+
+    if (btnOpen && chatContainer) {
+        btnOpen.addEventListener('click', () => {
+            chatContainer.classList.toggle('d-none');
+            const isNowOpen = !chatContainer.classList.contains('d-none');
+            localStorage.setItem('flowy_chat_open', isNowOpen ? '1' : '0');
+            if (isNowOpen && chatBox) {
+                setTimeout(() => { chatBox.scrollTop = chatBox.scrollHeight; }, 50);
+            }
+        });
+    }
+
+    if (btnClose && chatContainer) {
+        btnClose.addEventListener('click', () => {
+            chatContainer.classList.add('d-none');
+            localStorage.setItem('flowy_chat_open', '0');
+        });
+    }
+
+    if (btnClear) {
+        btnClear.addEventListener('click', () => {
+            if (flowyMessages.length > 0) {
+                flowyMessages = [];
+                flowyMemory = [];
+                if (messagesContainer) messagesContainer.innerHTML = '';
+                localStorage.removeItem('flowy_chat_messages');
+                localStorage.removeItem('flowy_memory');
+            }
+        });
+    }
+
+    // Delegación de eventos en chatBox para prompts rápidos
+    if (chatBox) {
+        chatBox.addEventListener('click', function(e) {
+            const quickBtn = e.target.closest('.flowy-quick-btn');
+            if (!quickBtn) return;
+            e.preventDefault();
+            if (isFlowyAsking) return;
+            const question = quickBtn.getAttribute('data-question');
+            if (question && userInput) {
+                userInput.value = question;
+                askQuestion();
+            }
+        });
+    }
+
     function askQuestion() {
-        if (isFlowyAsking) return;
+        if (isFlowyAsking || !userInput) return;
         const text = userInput.value.trim();
         if (!text) return;
 
         isFlowyAsking = true;
-        chatBox.insertAdjacentHTML('beforeend', `
-            <div class="mb-3 text-end">
-                <span class="badge bg-primary text-white shadow-sm px-3 py-2 text-wrap" style="border-radius: 15px 15px 0 15px; text-align: left !important; font-weight: normal;">
-                    ${escapeHtml(text)}
-                </span>
-            </div>
-        `);
+        const userMsg = { role: 'user', content: text };
+        flowyMessages.push(userMsg);
+        saveState();
+
+        if (messagesContainer) {
+            messagesContainer.insertAdjacentHTML('beforeend', renderMessageHtml(userMsg));
+        }
         userInput.value = '';
         chatBox.scrollTop = chatBox.scrollHeight;
 
         const spinnerId = 'spinner-' + Date.now();
-        chatBox.insertAdjacentHTML('beforeend', `
-            <div class="mb-3 text-start" id="${spinnerId}">
-                <span class="badge bg-white text-primary shadow-sm px-3 py-2 text-wrap" style="border-radius: 15px 15px 15px 0; font-weight: normal;">
-                    <i class="bi bi-chat-dots-fill heartbeat-anim"></i> Pensando...
-                </span>
-            </div>
-        `);
+        if (messagesContainer) {
+            messagesContainer.insertAdjacentHTML('beforeend', `
+                <div class="mb-3 text-start" id="${spinnerId}">
+                    <span class="badge bg-white text-primary shadow-sm px-3 py-2 text-wrap" style="border-radius: 15px 15px 15px 0; font-weight: normal;">
+                        <i class="bi bi-chat-dots-fill heartbeat-anim"></i> Pensando...
+                    </span>
+                </div>
+            `);
+        }
         chatBox.scrollTop = chatBox.scrollHeight;
 
-        // Antes de enviar, push history local
         let historyJSON = JSON.stringify(flowyMemory);
+        const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+        const tokenVal = csrfMeta ? csrfMeta.getAttribute('content') : '';
 
         $.ajax({
             url: "/api/soporte/ask",
             type: "POST",
             data: {
-                _token: document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                _token: tokenVal,
                 message: text,
                 chat_history: historyJSON
             },
@@ -700,38 +822,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 const spinnerEl = document.getElementById(spinnerId);
                 if (spinnerEl) spinnerEl.remove();
 
-                // Advanced Lightweight Markdown Parser
-                function parseMD(md) {
-                    let html = md || '';
-                    html = html.replace(/^### (.*$)/gim, '<h6 class="mt-3 mb-1 fw-bold text-primary border-bottom pb-1" style="font-size: 0.85rem;">$1</h6>');
-                    html = html.replace(/^## (.*$)/gim, '<h6 class="mt-3 mb-1 fw-bold text-primary border-bottom pb-1" style="font-size: 0.85rem;">$1</h6>');
-                    html = html.replace(/^# (.*$)/gim, '<h6 class="mt-3 mb-1 fw-bold text-primary border-bottom pb-1" style="font-size: 0.85rem;">$1</h6>');
-                    html = html.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');
-                    html = html.replace(/`(.*?)`/gim, '<code class="bg-light px-1 text-danger rounded" style="font-size: 0.85rem;">$1</code>');
-                    html = html.replace(/^\s*-\s(.*$)/gim, '<li class="ms-3 mb-1">$1</li>');
-                    html = html.replace(/^\-\-\-[ 	]*$/gim, '<hr class="my-2 border-secondary">');
-                    html = html.replace(/\n/g, '<br>');
-                    return html;
-                }
-
-                if(response.success === false) {
-                    chatBox.insertAdjacentHTML('beforeend', `
-                        <div class="mb-3 text-start">
-                            <div class="bg-warning text-dark shadow-sm px-3 py-2" style="border-radius: 15px 15px 15px 0; max-width: 90%; text-align: left !important; font-weight: normal; line-height: 1.5; font-size: 0.8rem; display: inline-block;">${response.answer}</div>
-                        </div>
-                    `);
+                if (response.success === false) {
+                    const warnMsg = { role: 'warning', content: response.answer };
+                    flowyMessages.push(warnMsg);
+                    saveState();
+                    if (messagesContainer) {
+                        messagesContainer.insertAdjacentHTML('beforeend', renderMessageHtml(warnMsg));
+                    }
                 } else {
-                    let formattedHtml = parseMD(response.answer);
-                    chatBox.insertAdjacentHTML('beforeend', `
-                        <div class="mb-3 text-start">
-                            <div class="bg-white text-dark shadow-sm px-3 py-3" style="border-radius: 15px 15px 15px 0; max-width: 95%; text-align: left !important; font-weight: normal; line-height: 1.5; font-size: 0.8rem; display: inline-block; line-height: 1.35;">${formattedHtml}</div>
-                        </div>
-                    `);
-                    // Almacenamos este exito en la memoria temporal
+                    const botMsg = { role: 'bot', content: response.answer };
+                    flowyMessages.push(botMsg);
                     flowyMemory.push({role: 'user', content: text});
                     flowyMemory.push({role: 'bot', content: response.answer});
-                    if(flowyMemory.length > 6) {
-                        flowyMemory.splice(0, 2); // Borrar el par mas antiguo si superan 3 idas y vueltas
+                    if (flowyMemory.length > 6) {
+                        flowyMemory.splice(0, 2);
+                    }
+                    saveState();
+                    if (messagesContainer) {
+                        messagesContainer.insertAdjacentHTML('beforeend', renderMessageHtml(botMsg));
                     }
                 }
                 chatBox.scrollTop = chatBox.scrollHeight;
@@ -741,11 +849,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const spinnerEl = document.getElementById(spinnerId);
                 if (spinnerEl) spinnerEl.remove();
                 let serverError = xhr.responseJSON && xhr.responseJSON.answer ? xhr.responseJSON.answer : 'Error de respuesta del servidor.';
-                chatBox.insertAdjacentHTML('beforeend', `
-                    <div class="mb-3 text-start">
-                        <span class="badge bg-danger text-white shadow-sm px-3 py-2 text-wrap" style="border-radius: 15px 15px 15px 0; max-width: 90%; white-space: pre-wrap; font-weight: normal; line-height: 1.4;">Error 500: ${serverError}</span>
-                    </div>
-                `);
+                const errMsg = { role: 'error', content: 'Error: ' + serverError };
+                flowyMessages.push(errMsg);
+                saveState();
+                if (messagesContainer) {
+                    messagesContainer.insertAdjacentHTML('beforeend', renderMessageHtml(errMsg));
+                }
                 chatBox.scrollTop = chatBox.scrollHeight;
             }
         });
@@ -755,7 +864,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if(userInput) userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') askQuestion(); });
 
     const style = document.createElement('style');
-    style.innerHTML = `@keyframes heartbeat { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } } .heartbeat-anim { display: inline-block; animation: heartbeat 1.5s infinite; }`;
+    style.innerHTML = `
+        @keyframes heartbeat { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } } 
+        .heartbeat-anim { display: inline-block; animation: heartbeat 1.5s infinite; }
+        #clearFlowyChat:hover { opacity: 1 !important; transform: rotate(-35deg); }
+    `;
     document.head.appendChild(style);
 });
 </script>
