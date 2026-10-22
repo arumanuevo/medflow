@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\SensorGroup;
 use App\Models\Sensor;
 use App\Jobs\SendPublicVisorEmailJob;
+use App\Services\EmailReputationService;
 use Illuminate\Support\Facades\Log;
 
 class BulkNotificationController extends Controller
@@ -22,8 +23,10 @@ class BulkNotificationController extends Controller
             return redirect()->route('dashboard')->with('error', 'Las Campañas Públicas son exclusivas del plan Premium.');
         }
 
+        $workspaceId = session('active_workspace', $user->id);
+
         // Extraer los grupos que el usuario puede administrar
-        $groups = SensorGroup::where('user_id', $user->id)
+        $groups = SensorGroup::where('user_id', $workspaceId)
             ->orWhereHas('sharedAccess', function ($q) use ($user) {
                 $q->where('shared_with', $user->id)
                     ->whereIn('role', ['admin']);
@@ -32,7 +35,10 @@ class BulkNotificationController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('notifications.bulk.index', compact('groups'));
+        // Resumen de reputación y salud de envíos para el usuario
+        $reputation = EmailReputationService::getWorkspaceReputationSummary($workspaceId);
+
+        return view('notifications.bulk.index', compact('groups', 'reputation'));
     }
 
     /**
@@ -41,11 +47,13 @@ class BulkNotificationController extends Controller
     public function dispatchCampaign(Request $request)
     {
         $user = $request->user();
+        $workspaceId = session('active_workspace', $user->id);
 
         $request->validate([
             'group_id' => 'required|exists:sensor_groups,id',
             'message_body' => 'nullable|string|max:1000',
             'email_field' => 'required|string',
+            'only_new' => 'nullable|boolean',
         ]);
 
         $subService = app(\App\Services\Subscription\SubscriptionService::class, ['user' => $user]);
@@ -59,11 +67,21 @@ class BulkNotificationController extends Controller
         $group = SensorGroup::findOrFail($request->group_id);
 
         // Control de permisos estrictos sobre el grupo
-        if ($group->user_id !== $user->id && !$group->sharedAccess()->where('shared_with', $user->id)->where('role', 'admin')->exists()) {
+        if ($group->user_id !== $workspaceId && !$group->sharedAccess()->where('shared_with', $user->id)->where('role', 'admin')->exists()) {
             return response()->json([
                 'success' => false,
                 'message' => 'No tienes permisos de administrador sobre este grupo.'
             ], 403);
+        }
+
+        // 🛡️ CONTROL DE REPUTACIÓN Y COOLDOWN DE 24 HS
+        $eligibility = EmailReputationService::checkWorkspaceCampaignEligibility($workspaceId, $group->id);
+        if (!$eligibility['allowed']) {
+            return response()->json([
+                'success' => false,
+                'message' => $eligibility['message'],
+                'error_code' => $eligibility['error_code'] ?? 'CAMPAIGN_BLOCKED'
+            ], 422);
         }
 
         $sensors = $group->sensors;
@@ -75,50 +93,108 @@ class BulkNotificationController extends Controller
             ], 400);
         }
 
+        $onlyNew = $request->boolean('only_new', false);
         $enqueuedCount = 0;
-        $ignoredCount = 0;
+        $skippedEmpty = 0;
+        $skippedSuppressed = 0;
+        $skippedInvalid = 0;
+        $skippedAlreadyTokenized = 0;
+        $seenEmails = [];
 
         $isLocal = app()->environment('local');
         $emailField = $request->email_field; // The dynamic field chosen by the admin
 
         foreach ($sensors as $sensor) {
+            // Si el usuario eligió "Solo nuevos", salteamos sensores que ya tenían token generado previamente
+            if ($onlyNew && !empty($sensor->public_token)) {
+                $skippedAlreadyTokenized++;
+                continue;
+            }
+
             $destEmail = null;
             if (isset($sensor->metadata) && is_array($sensor->metadata)) {
                 if (isset($sensor->metadata[$emailField]) && !empty($sensor->metadata[$emailField])) {
-                    $destEmail = $sensor->metadata[$emailField];
+                    $destEmail = trim((string)$sensor->metadata[$emailField]);
                 }
             }
 
-            if ($destEmail) {
-                if ($isLocal) {
-                    if ($enqueuedCount < 2) {
-                        SendPublicVisorEmailJob::dispatch($sensor, $request->message_body, 'scastellano10@gmail.com');
-                        $enqueuedCount++;
-                    } else {
-                        $ignoredCount++;
-                    }
+            if (empty($destEmail)) {
+                $skippedEmpty++;
+                continue;
+            }
+
+            $cleanEmail = strtolower($destEmail);
+
+            // Evitar duplicados exactos dentro de la misma tirada de campaña
+            if (isset($seenEmails[$cleanEmail])) {
+                continue;
+            }
+            $seenEmails[$cleanEmail] = true;
+
+            // 🛡️ VALIDACIÓN DE CALIDAD Y LISTA DE SUPRESIÓN
+            $quality = EmailReputationService::validateEmailQuality($cleanEmail);
+            if (!$quality['valid']) {
+                if (stripos($quality['reason'], 'suprimido') !== false) {
+                    $skippedSuppressed++;
                 } else {
-                    SendPublicVisorEmailJob::dispatch($sensor, $request->message_body, $destEmail);
+                    $skippedInvalid++;
+                }
+                continue;
+            }
+
+            // Encolar con retraso escalonado (pacing de 2 segundos por correo) para proteger CPU y SMTP
+            $delaySeconds = $enqueuedCount * 2;
+
+            if ($isLocal) {
+                if ($enqueuedCount < 2) {
+                    SendPublicVisorEmailJob::dispatch($sensor, $request->message_body, 'scastellano10@gmail.com', $workspaceId)
+                        ->delay(now()->addSeconds($delaySeconds));
                     $enqueuedCount++;
+                } else {
+                    $skippedEmpty++;
                 }
             } else {
-                $ignoredCount++;
+                SendPublicVisorEmailJob::dispatch($sensor, $request->message_body, $cleanEmail, $workspaceId)
+                    ->delay(now()->addSeconds($delaySeconds));
+                $enqueuedCount++;
             }
         }
 
-        // Si es entorno de producción, la cuenta de encolados es real
-        $msg = "Campaña procesada. $enqueuedCount correos puestos en cola de envío automático de forma escalonada. ($ignoredCount omitidos o sin dirección de correo)";
-        if ($isLocal) {
-            $msg = "⚠️ [DEV TRAP] Modo desarrollo activo. Se ignoró y canceló el correo para " . ($sensors->count() - $enqueuedCount) . " sensores reales. Se enviaron únicamente $enqueuedCount correos de prueba hacia scastellano10@gmail.com y el resto fue salteado para proteger tu base de usuarios.";
+        // Registrar la campaña para métricas y cooldown
+        EmailReputationService::recordDispatch($workspaceId, $group->id, $user->id, [
+            'total' => $sensors->count(),
+            'enqueued' => $enqueuedCount,
+            'skipped_empty' => $skippedEmpty,
+            'skipped_suppressed' => $skippedSuppressed,
+            'skipped_invalid' => $skippedInvalid,
+        ]);
+
+        $totalSkipped = $skippedEmpty + $skippedSuppressed + $skippedInvalid + $skippedAlreadyTokenized;
+        $approxMinutes = ceil(($enqueuedCount * 2) / 60);
+
+        $msg = "Campaña procesada exitosamente. Se encolaron {$enqueuedCount} correos con envío dosificado (~{$approxMinutes} min).";
+        if ($totalSkipped > 0) {
+            $msg .= " Detalle de omitidos: {$skippedEmpty} sin email";
+            if ($skippedSuppressed > 0) $msg .= ", {$skippedSuppressed} suprimidos por rebote previo";
+            if ($skippedInvalid > 0) $msg .= ", {$skippedInvalid} con formato o dominio inválido";
+            if ($skippedAlreadyTokenized > 0) $msg .= ", {$skippedAlreadyTokenized} ya notificados anteriormente";
+            $msg .= ".";
         }
 
-        Log::info("Dispatching bulk notification: {$msg}", ['user_id' => $user->id, 'group_id' => $group->id]);
+        if ($isLocal) {
+            $msg = "⚠️ [DEV TRAP] Modo local activo: Se encolaron únicamente {$enqueuedCount} correos de prueba hacia scastellano10@gmail.com y el resto fue protegido.";
+        }
+
+        Log::info("Dispatching bulk notification: {$msg}", ['user_id' => $user->id, 'workspace_id' => $workspaceId, 'group_id' => $group->id]);
 
         return response()->json([
             'success' => true,
             'message' => $msg,
             'enqueued' => $enqueuedCount,
-            'ignored' => $ignoredCount
+            'skipped_empty' => $skippedEmpty,
+            'skipped_suppressed' => $skippedSuppressed,
+            'skipped_invalid' => $skippedInvalid,
+            'skipped_already_tokenized' => $skippedAlreadyTokenized,
         ]);
     }
 

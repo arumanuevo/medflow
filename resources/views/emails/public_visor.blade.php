@@ -19,7 +19,7 @@
             <strong>{{ $sensor->name }}</strong> (ID: {{ $sensor->identifier ?? 'N/A' }}).
         </p>
 
-        @if($messageBody)
+        @if(!empty($messageBody))
             <div
                 style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #0d6efd; margin: 20px 0; font-style: italic;">
                 {{ $messageBody }}
@@ -29,7 +29,7 @@
         <p style="font-size: 16px;">Puedes visualizar todo el detalle histórico, estadísticas, y fotos de verificación
             ingresando a tu visor privado. <strong>No necesitas contraseña.</strong></p>
 
-        <div style="text-align: center; margin: 40px 0;">
+        <div style="text-align: center; margin: 35px 0;">
             <a href="{{ $publicUrl }}"
                 style="background-color: #0d6efd; color: white; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;">
                 Ver Mis Consumos
@@ -43,18 +43,25 @@
                 alt="QR Code" style="border: 1px solid #ddd; padding: 10px; border-radius: 10px;">
         </p>
 
-        <div style="margin-top: 40px; text-align: left; font-size: 15px; color: #555;">
+        <div style="margin-top: 35px; text-align: left; font-size: 14px; color: #555;">
             <p>Atentamente,<br>
                 <strong>El Equipo de Medflow Analytics</strong>
             </p>
         </div>
 
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 25px 0;">
 
-        <p style="font-size: 12px; color: #999; text-align: center;">
-            Este email fue enviado a través de la plataforma Medflow Analytics.<br>
-            Si crees que recibiste este correo por error, por favor ignóralo.
-        </p>
+        <div style="font-size: 12px; color: #888; text-align: center; line-height: 1.5;">
+            <p style="margin-bottom: 8px;">
+                Este correo fue emitido por la administración de tu grupo a través de <strong>Medflow</strong> para fines informativos y de transparencia métrica.
+            </p>
+            @if(!empty($unsubscribeUrl))
+                <p style="margin-top: 6px;">
+                    ¿Ya no resides en este lote o no deseas recibir notificaciones por correo? 
+                    <a href="{{ $unsubscribeUrl }}" style="color: #6c757d; text-decoration: underline;">Desuscribirme de este medidor</a>.
+                </p>
+            @endif
+        </div>
     </div>
 
 </body>

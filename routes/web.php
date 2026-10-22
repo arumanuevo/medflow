@@ -28,6 +28,8 @@ Route::post('/register', [RegisterController::class, 'register'])->middleware('g
 
 // Visor Público de Consumos
 Route::get('/visor/{token}', [\App\Http\Controllers\PublicViewerController::class, 'show'])->name('public.visor');
+// Cancelación de suscripción de notificaciones (One-Click Unsubscribe)
+Route::get('/notificaciones/baja/{token}', [\App\Http\Controllers\Api\SESWebhookController::class, 'unsubscribe'])->name('notifications.unsubscribe');
 // Landing pública
 Route::get('/', [LandingController::class, 'index'])->name('landing');
 Route::post('/registro', [LandingController::class, 'register'])->name('landing.register');
@@ -76,6 +78,8 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/users/{user}', [\App\Http\Controllers\SuperAdminController::class, 'deleteUser'])->name('superadmin.users.delete');
         Route::post('/prices', [\App\Http\Controllers\SuperAdminController::class, 'savePrices'])->name('superadmin.prices.save');
         Route::post('/mail-test', [\App\Http\Controllers\SuperAdminController::class, 'testMail'])->name('superadmin.mail.test');
+        Route::delete('/suppressions/{id}', [\App\Http\Controllers\SuperAdminController::class, 'deleteSuppression'])->name('superadmin.suppressions.delete');
+        Route::post('/suppressions', [\App\Http\Controllers\SuperAdminController::class, 'addSuppression'])->name('superadmin.suppressions.add');
     });
 
     // Dashboard

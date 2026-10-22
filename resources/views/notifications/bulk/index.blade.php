@@ -15,16 +15,56 @@
 
                 <div class="card-body bg-light rounded-bottom">
 
-                    <div class="alert alert-info border-info d-flex align-items-center">
-                        <i class="bi bi-info-circle-fill fs-4 me-3 text-info"></i>
-                        <div>
-                            <strong>Manejo Automático de Envio:</strong> El sistema utilizará colas (Queues) para proteger
-                            los envíos masivos. Puede procesar miles de correos de forma automática.
+                    <!-- Estado de Reputación y Advertencia de Seguridad -->
+                    <div class="card border-0 shadow-sm mb-4" style="border-left: 5px solid {{ ($reputation['status'] ?? '') === 'bloqueada' ? '#dc3545' : ((($reputation['status'] ?? '') === 'en_riesgo') ? '#ffc107' : '#0d6efd') }} !important;">
+                        <div class="card-body p-3 p-md-4 bg-white rounded-3">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 42px; height: 42px; background: rgba(13, 110, 253, 0.1); color: #0d6efd;">
+                                        <i class="bi bi-shield-check fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold mb-0">Seguridad SMTP y Reputación de Entregabilidad</h6>
+                                        <small class="text-muted">Motor de despacho certificado mediante Amazon SES</small>
+                                    </div>
+                                </div>
+                                <div class="mt-2 mt-md-0">
+                                    <span class="badge {{ $reputation['badge_class'] ?? 'bg-success' }} px-3 py-2">
+                                        <i class="bi bi-activity me-1"></i> {{ $reputation['status_label'] ?? 'Reputación Óptima' }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="row g-2 mt-1 small text-muted">
+                                <div class="col-md-4">
+                                    <i class="bi bi-send-check text-primary me-1"></i> Enviados últimos 30 días: <strong>{{ $reputation['total_sent_30d'] ?? 0 }}</strong>
+                                </div>
+                                <div class="col-md-4">
+                                    <i class="bi bi-exclamation-triangle text-warning me-1"></i> Rebotes registrados: <strong>{{ $reputation['bounces_30d'] ?? 0 }}</strong> ({{ $reputation['bounce_rate'] ?? 0 }}%)
+                                </div>
+                                <div class="col-md-4">
+                                    <i class="bi bi-slash-circle text-danger me-1"></i> Quejas / Spam: <strong>{{ $reputation['complaints_30d'] ?? 0 }}</strong>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-warning border-0 bg-warning-subtle text-dark mt-3 mb-0 p-3 rounded-3" style="font-size: 0.88rem;">
+                                <div class="d-flex">
+                                    <i class="bi bi-exclamation-octagon-fill fs-5 text-warning me-2 flex-shrink-0"></i>
+                                    <div>
+                                        <strong>IMPORTANTE: El campo de correo electrónico es sensible y auditado en tiempo real.</strong>
+                                        <ul class="mb-0 ps-3 mt-1">
+                                            <li><strong>Prohibido usar correos falsos o inventados:</strong> Direcciones como <code>test.com</code>, <code>ejemplo.com</code> o correos mal escritos generan rebotes directos que dañan la reputación del servidor.</li>
+                                            <li><strong>Protección automática por umbrales:</strong> Si una lista de destinatarios genera más del 5% de rebotes o reportes de spam, el sistema <strong>pausará automáticamente el despacho masivo de tu cuenta</strong> para auditoría.</li>
+                                            <li><strong>Envíos dosificados y Cooldown:</strong> Para garantizar un 99% de entrada a bandeja principal (inbox), los correos se envían de forma escalonada con un período de enfriamiento de 24 horas por grupo.</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
                             @if(app()->environment('local'))
-                                <br><strong class="text-danger mt-1 d-block"><i class="bi bi-shield-lock-fill"></i> MODO
-                                    DESARROLLO (DEV TRAP):</strong> Se encuentra en local. El sistema validará todo, pero
-                                ignorará las direcciones y <strong>SÓLO enviará 1 correo</strong> a
-                                <code>scastellano10@gmail.com</code> para protección anti-spam de prueba.
+                                <div class="alert alert-info border-0 mt-2 mb-0 py-2 small">
+                                    <i class="bi bi-laptop me-1"></i> <strong>Modo Desarrollo Local:</strong> Las campañas envían un máximo de 2 correos hacia <code>scastellano10@gmail.com</code> como prueba de simulación segura.
+                                </div>
                             @endif
                         </div>
                     </div>
@@ -93,10 +133,22 @@
 
                             <div class="mb-4">
                                 <label class="form-label fw-bold">3. Mensaje Adjunto (Opcional)</label>
-                                <textarea class="form-control" id="message_body" rows="4"
+                                <textarea class="form-control" id="message_body" rows="3"
                                     placeholder="Ej: Estimado propietario, adjunto a la presente le hacemos llegar el botón de acceso total hacia las mediciones auditadas de su lote para este semestre."></textarea>
                                 <div class="form-text">Si dejas este campo en blanco, sólo se enviará la grilla genérica de
                                     bienvenida con el link.</div>
+                            </div>
+
+                            <div class="mb-4 p-3 bg-light rounded border">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="only_new" value="1">
+                                    <label class="form-check-label fw-bold text-dark" for="only_new">
+                                        <i class="bi bi-person-check-fill text-success me-1"></i> Notificar únicamente a medidores nuevos (ahorro de envíos)
+                                    </label>
+                                    <div class="form-text small text-muted">
+                                        Si marcas esta casilla, se omitirán los sensores que ya recibieron su enlace/QR previamente, enviando el correo solo a nuevas incorporaciones de este grupo.
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="d-grid mt-4">
@@ -162,6 +214,7 @@
             const groupId = $('#group_id').val();
             const emailField = $('#email_field').val();
             const msg = $('#message_body').val();
+            const onlyNew = $('#only_new').is(':checked') ? 1 : 0;
 
             if (!groupId) {
                 showLocalAlert('Atención: Debes seleccionar un grupo de lotes como destino principal.', 'warning');
@@ -176,8 +229,14 @@
             let btn = $(this);
             let originalText = btn.html();
 
-            if (confirm("¿Confirmar emisión? Se comenzará el despachador de emails masivo para este barrio/grupo utilizando el campo " + emailField + ".")) {
-                btn.addClass('disabled').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Encolando...');
+            const confirmMsg = "⚠️ ¿Confirmar inicio de campaña masiva?\n\n" +
+                "• Los correos deben ser reales y válidos. MedFlow audita los rebotes mediante Amazon SES.\n" +
+                "• Si la lista genera más de un 5% de rebotes o quejas de spam, la emisión se pausará automáticamente.\n" +
+                "• Los correos se enviarán de forma escalonada para proteger la entrega a bandeja principal.\n\n" +
+                "¿Deseas comenzar el encolado ahora?";
+
+            if (confirm(confirmMsg)) {
+                btn.addClass('disabled').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Encolando y validando...');
 
                 $.ajax({
                     url: '{{ route("campaigns.bulk.dispatch") }}',
@@ -190,7 +249,8 @@
                     data: {
                         group_id: groupId,
                         email_field: emailField,
-                        message_body: msg
+                        message_body: msg,
+                        only_new: onlyNew
                     },
                     success: function (res) {
                         btn.removeClass('disabled').html(originalText);
@@ -203,7 +263,8 @@
                     },
                     error: function (xhr) {
                         btn.removeClass('disabled').html(originalText);
-                        showLocalAlert(xhr.responseJSON?.message || 'Error grave al lanzar la campaña.', 'danger');
+                        const errorMsg = xhr.responseJSON?.message || 'Error grave al lanzar la campaña.';
+                        showLocalAlert(errorMsg, 'danger');
                     }
                 });
             }

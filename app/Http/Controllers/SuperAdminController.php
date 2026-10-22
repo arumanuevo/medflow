@@ -10,6 +10,8 @@ use App\Mail\SuperAdminMessage;
 use App\Mail\SuperAdminReceipt;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Invoice;
+use App\Models\EmailSuppression;
+use App\Services\EmailReputationService;
 use Illuminate\Support\Facades\Storage;
 
 class SuperAdminController extends Controller
@@ -207,7 +209,50 @@ class SuperAdminController extends Controller
     {
         $users = User::all();
         $prices = @json_decode(file_get_contents(storage_path('app/pricing.json')), true) ?: ['basico' => 10000.00, 'premium' => 25000.00, 'pack' => 10000.00];
-        return view('superadmin.users', compact('users', 'prices'));
+
+        EmailReputationService::ensureTablesExist();
+        $suppressions = collect();
+        try {
+            $suppressions = EmailSuppression::orderBy('created_at', 'desc')->take(100)->get();
+        } catch (\Throwable $e) {
+            // Silencioso si la tabla recién se crea
+        }
+
+        return view('superadmin.users', compact('users', 'prices', 'suppressions'));
+    }
+
+    public function deleteSuppression(Request $request, $id)
+    {
+        try {
+            $sup = EmailSuppression::findOrFail($id);
+            $email = $sup->email;
+            $sup->delete();
+            return back()->with('success', "Dirección {$email} removida de la lista de supresión. Vuelve a estar habilitada para envíos.");
+        } catch (\Throwable $e) {
+            return back()->with('error', "No se pudo remover la dirección: " . $e->getMessage());
+        }
+    }
+
+    public function addSuppression(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|max:191',
+            'reason' => 'required|string|in:bounce,complaint,unsubscribe,manual',
+        ]);
+
+        try {
+            EmailReputationService::addSuppression(
+                $request->email,
+                $request->reason,
+                'ManualAdmin',
+                null,
+                'admin_action',
+                ['note' => $request->input('note')]
+            );
+            return back()->with('success', "Dirección {$request->email} agregada a la lista de supresión preventivamente.");
+        } catch (\Throwable $e) {
+            return back()->with('error', "Error al agregar a lista de supresión: " . $e->getMessage());
+        }
     }
 
     public function savePrices(Request $request)

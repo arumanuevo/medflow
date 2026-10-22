@@ -28,6 +28,10 @@ use App\Http\Controllers\Api\SubscriptionPlanController;
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/register', [AuthController::class, 'registerConsumer']);
 
+// ✅ Webhook receptor de Amazon SES (Rebotes, Quejas y Confirmaciones SNS)
+Route::post('/webhooks/ses', [\App\Http\Controllers\Api\SESWebhookController::class, 'handle'])
+    ->name('api.webhooks.ses');
+
 // ✅ Ruta pública para campos extras (solo para pruebas)
 Route::get('/sensor-groups/extra-fields', [BulkSensorImportController::class, 'getExtraFields'])
     ->name('api.sensor-groups.extra-fields');

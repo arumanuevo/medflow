@@ -10,6 +10,9 @@
                 <button type="button" class="btn btn-outline-dark ms-2" data-toggle="modal" data-target="#testMailModal">
                     <i class="bi bi-envelope-check"></i> Probar Correo (SMTP)
                 </button>
+                <button type="button" class="btn btn-outline-danger ms-2" data-toggle="modal" data-target="#suppressionsModal">
+                    <i class="bi bi-shield-slash"></i> Lista de Supresión ({{ isset($suppressions) ? $suppressions->count() : 0 }})
+                </button>
                 <button type="button" class="btn btn-outline-success ms-2" data-toggle="modal" data-target="#editPricesModal">
                     <i class="bi bi-currency-dollar"></i> Configurar Precios
                 </button>
@@ -44,6 +47,98 @@
                         <button type="submit" class="btn btn-dark"><i class="bi bi-send"></i> Enviar prueba</button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <!-- Modal: Lista de Supresión (Rebotes, Quejas y Desuscripciones) -->
+        <div class="modal fade" id="suppressionsModal" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title"><i class="bi bi-shield-slash me-1"></i> Lista de Supresión (Protección Anti-Spam / Rebotes SES)</h5>
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Cerrar"><span aria-hidden="true">&times;</span></button>
+                    </div>
+                    <div class="modal-body p-3">
+                        <p class="small text-muted mb-3">
+                            Las direcciones de esta lista quedan <strong>bloqueadas automáticamente para cualquier envío saliente</strong> (campañas, reportes e invitaciones). Esto protege tu cuenta de Amazon SES contra suspensiones.
+                        </p>
+
+                        <!-- Formulario para agregar manualmente -->
+                        <form action="{{ route('superadmin.suppressions.add') }}" method="POST" class="row g-2 mb-3 p-2 bg-light rounded border">
+                            @csrf
+                            <div class="col-md-5">
+                                <input type="email" name="email" class="form-control form-control-sm" placeholder="email@dominio.com" required>
+                            </div>
+                            <div class="col-md-3">
+                                <select name="reason" class="form-control form-control-sm">
+                                    <option value="manual">Manual (Admin)</option>
+                                    <option value="bounce">Rebote (Bounce)</option>
+                                    <option value="complaint">Queja (Spam)</option>
+                                    <option value="unsubscribe">Desuscripción</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                                    <i class="bi bi-plus-circle me-1"></i> Bloquear Email
+                                </button>
+                            </div>
+                        </form>
+
+                        @if(!isset($suppressions) || $suppressions->isEmpty())
+                            <div class="text-center py-4 text-muted">
+                                <i class="bi bi-shield-check text-success fs-1 d-block mb-2"></i>
+                                <p class="mb-0">No hay correos en la lista de supresión. La reputación está limpia.</p>
+                            </div>
+                        @else
+                            <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                                <table class="table table-sm table-hover align-middle small mb-0">
+                                    <thead class="table-light sticky-top">
+                                        <tr>
+                                            <th>Email</th>
+                                            <th>Motivo</th>
+                                            <th>Subtipo / Origen</th>
+                                            <th>Fecha</th>
+                                            <th class="text-end">Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($suppressions as $sup)
+                                            <tr>
+                                                <td class="fw-bold">{{ $sup->email }}</td>
+                                                <td>
+                                                    @if($sup->reason === 'complaint')
+                                                        <span class="badge bg-danger">Queja / Spam</span>
+                                                    @elseif($sup->reason === 'bounce')
+                                                        <span class="badge bg-warning text-dark">Rebote</span>
+                                                    @elseif($sup->reason === 'unsubscribe')
+                                                        <span class="badge bg-secondary">Baja Usuario</span>
+                                                    @else
+                                                        <span class="badge bg-dark">Manual</span>
+                                                    @endif
+                                                </td>
+                                                <td class="text-muted">{{ $sup->sub_type ?: $sup->source }}</td>
+                                                <td>{{ $sup->created_at ? $sup->created_at->format('d/m/Y H:i') : '-' }}</td>
+                                                <td class="text-end">
+                                                    <form action="{{ route('superadmin.suppressions.delete', $sup->id) }}" method="POST" class="d-inline"
+                                                        onsubmit="return confirm('¿Desbloquear {{ $sup->email }}? Volverá a recibir correos si se le envían.');">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-xs btn-outline-success py-0 px-2" title="Desbloquear">
+                                                            <i class="bi bi-unlock"></i> Desbloquear
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endif
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
             </div>
         </div>
 
