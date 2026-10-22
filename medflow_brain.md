@@ -224,6 +224,16 @@ Stack: Flutter (`mobile-app/`). Backend: `app/Http/Controllers/Api/MobileOffline
   - Fecha inválida → error de fila: *"Usa formato YYYY-MM-DD o DD/MM/YYYY"*.
 - Duplicados exactos (misma fecha + mismo valor) se omiten o sobrescriben según flag `overwriteDuplicates`.
 
+#### Columna Foto en Importación Masiva (Referencias e Imágenes Físicas)
+- El archivo Excel/CSV **solo transporta el nombre o referencia** del archivo (ej: `100_17-06-2022` o `foto1.jpg`), nunca los bytes binarios de la imagen.
+- **Normalización inteligente (`normalizePhotoName`):**
+  - Si no tiene extensión (`100_17-06-2022`), el sistema agrega `.jpg` automáticamente.
+  - Se almacena con el prefijo canónico `/measurements/` (ej: `/measurements/100_17-06-2022.jpg`).
+  - Celdas vacías, `Sin Foto`, `N/A`, `na`, `null` se guardan como `'Sin Foto'`.
+- **Carga de imágenes físicas:**
+  1. *Vía Interfaz Web:* En `/mediciones`, cada fila muestra el botón `[+ Subir]` o `[Ver/Reemplazar]` para subirla de forma individual con recorte y zoom.
+  2. *Vía Servidor (Lote):* Para cargas históricas masivas, el administrador puede copiar directamente los archivos físicos a la carpeta `public/measurements/` del servidor con los mismos nombres asignados en la planilla.
+
 ### 3.6 Descarga y Expiración de Backups (Fotos)
 
 #### Política de retención de fotos

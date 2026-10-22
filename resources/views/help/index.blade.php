@@ -298,6 +298,13 @@
                                     <i class="bi bi-exclamation-triangle-fill me-1" style="color: #6f42c1;"></i> Regla vital
                                     contra fallos de tiempos</a>
                             </li>
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal"
+                                    data-title="Fotos en la Importación Masiva (Referencias y Archivos)"
+                                    data-content="Al importar mediciones desde Excel, el archivo sólo registra el <strong>nombre o referencia de la foto</strong> (ej: <code>100_17-06-2022</code> o <code>100_17-06-2022.jpg</code>). El sistema le añade automáticamente <code>.jpg</code> si no tiene extensión y lo vincula a <code>/measurements/</code>.<br><br><strong>¿Cómo subir las fotos físicas?</strong><br>• <strong>Desde la App:</strong> En la tabla de Mediciones, pulsa <strong>Ver / Reemplazar</strong> o <strong>Subir</strong> en cada fila.<br>• <strong>Por Servidor:</strong> Si tienes cientos de fotos, puedes copiarlas masivamente a la carpeta <code>public/measurements/</code> en tu servidor manteniendo los mismos nombres de archivo.<br>• <strong>Sin Foto:</strong> Si dejas la celda vacía o 'Sin Foto', la medición se guarda lista con el botón para adjuntar la foto cuando gustes."
+                                    data-steps="Configura la columna Foto en tu Excel e importa normalmente desde <strong>Mediciones > Importar Mediciones</strong>.">
+                                    <i class="bi bi-camera me-1" style="color: #6f42c1;"></i> Fotos en la importación masiva</a>
+                            </li>
                         </ul>
                     </div>
                 </div>

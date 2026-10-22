@@ -352,7 +352,7 @@ public function bulkImport(Request $request)
                 $sensorIdentifier = trim($this->getMappedValue($row, $fieldMapping, 'sensor'));
                 $valor = $this->getMappedValue($row, $fieldMapping, 'valor');
                 $fechaStr = $this->getMappedValue($row, $fieldMapping, 'fecha');
-                $foto = $this->getMappedValue($row, $fieldMapping, 'foto') ?? 'Sin Foto';
+                $foto = $this->normalizePhotoName($this->getMappedValue($row, $fieldMapping, 'foto'));
                 $observaciones = $this->getMappedValue($row, $fieldMapping, 'observaciones') ?? '';
 
                 Log::debug("Procesando fila {$index}", [
@@ -1274,6 +1274,38 @@ public function bulkImport(Request $request)
     }
 
     /**
+     * Normaliza el nombre o ruta de la foto para mediciones masivas.
+     * Si no tiene extensión, se le agrega .jpg por defecto.
+     * Se asegura de que apunte a /measurements/filename.
+     * Si está vacío, es 'Sin Foto', 'N/A' o similar, retorna 'Sin Foto'.
+     */
+    private function normalizePhotoName(?string $rawFoto): string
+    {
+        if ($rawFoto === null) {
+            return 'Sin Foto';
+        }
+
+        $cleanFoto = trim($rawFoto);
+
+        if ($cleanFoto === '' || in_array(strtolower($cleanFoto), ['sin foto', 'sin_foto', 'n/a', 'na', 'null', 'none', '-', 'no'])) {
+            return 'Sin Foto';
+        }
+
+        // Remover posibles prefijos previos para normalizar limpio
+        $cleanFoto = ltrim($cleanFoto, '/');
+        if (str_starts_with(strtolower($cleanFoto), 'measurements/')) {
+            $cleanFoto = substr($cleanFoto, strlen('measurements/'));
+        }
+
+        // Si no tiene extensión típica de imagen, agregar .jpg por defecto
+        if (!preg_match('/\.(jpg|jpeg|png|webp|gif)$/i', $cleanFoto)) {
+            $cleanFoto .= '.jpg';
+        }
+
+        return '/measurements/' . $cleanFoto;
+    }
+
+    /**
      * Descargar plantilla para importación de mediciones
      */
     public function downloadTemplate(Request $request)
@@ -1282,10 +1314,10 @@ public function bulkImport(Request $request)
             // ✅ Cambiar el formato de fecha a solo YYYY-MM-DD
             $headers = ['Sensor *', 'Valor *', 'Fecha (YYYY-MM-DD) *', 'Foto', 'Observaciones'];
             $sampleData = [
-                ['Sensor 1', '100.5', '2026-01-15', 'foto1.jpg', 'Medición inicial'],
-                ['Sensor 2', '150.2', '2026-01-15', 'foto2.jpg', 'Medición de Sensor 2'],
-                ['Sensor 1', '200.8', '2026-02-15', 'foto3.jpg', 'Medición con incremento'],
-                ['Sensor 3', '75.3', '2026-01-20', '', 'Sin foto'],
+                ['Sensor 1', '100.5', '2026-01-15', '100_17-06-2022', 'Medición inicial (nombre sin extensión -> .jpg)'],
+                ['Sensor 2', '150.2', '2026-01-15', 'foto2.jpg', 'Medición con archivo con extensión'],
+                ['Sensor 1', '200.8', '2026-02-15', '100_15-02-2026.png', 'Medición con archivo png'],
+                ['Sensor 3', '75.3', '2026-01-20', '', 'Sin foto (se sube luego desde la app)'],
                 ['Sensor 1', '300.1', '2026-03-15', 'foto4.jpg', 'Medición final']
             ];
 

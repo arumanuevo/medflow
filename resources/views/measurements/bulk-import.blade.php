@@ -257,6 +257,29 @@
                                 </ul>
                             </div>
 
+                            <!-- Guía sobre la columna Foto -->
+                            <div class="card border-0 bg-light mb-3">
+                                <div class="card-body p-3">
+                                    <h6 class="fw-bold text-dark d-flex align-items-center mb-2">
+                                        <i class="bi bi-camera text-primary me-2"></i> ¿Cómo funciona la columna "Foto" en la importación?
+                                    </h6>
+                                    <p class="small text-muted mb-2">
+                                        El archivo Excel/CSV <strong>sólo guarda el nombre o referencia del archivo</strong>, no el archivo de imagen en sí. Ten en cuenta las siguientes condiciones:
+                                    </p>
+                                    <ul class="small text-muted mb-0 ps-3">
+                                        <li><strong>Nombre con o sin extensión:</strong> Puedes indicar el nombre tal cual lo tienes (ej: <code>100_17-06-2022</code> o <code>100_17-06-2022.jpg</code>). Si omites la extensión, el sistema agregará <code>.jpg</code> automáticamente.</li>
+                                        <li><strong>Ruta estándar en el sistema:</strong> Se guardará vinculada a <code>/measurements/[nombre-de-archivo]</code>.</li>
+                                        <li><strong>Carga de las fotos físicas:</strong>
+                                            <ul class="mt-1">
+                                                <li><em>Opción A (Desde la App):</em> Una vez importadas las mediciones, en la pantalla de <strong>Mediciones</strong> podrás hacer clic en <strong>Ver / Reemplazar</strong> o <strong>Subir</strong> para adjuntar la foto correspondiente.</li>
+                                                <li><em>Opción B (Carga masiva en servidor):</em> Si tienes el lote de imágenes en tu computadora, puedes copiarlas por FTP/SSH directamente a la carpeta <code>public/measurements/</code> de tu servidor asegurándote de que coincidan los nombres.</li>
+                                            </ul>
+                                        </li>
+                                        <li><strong>Sin foto:</strong> Si dejas la celda vacía o con <em>"Sin Foto"</em> o <em>"N/A"</em>, el registro quedará guardado con el botón <strong>[+ Subir]</strong> disponible para cuando tomes la foto.</li>
+                                    </ul>
+                                </div>
+                            </div>
+
                             <div id="fieldMappingContainer" class="field-mapping">
                                 <!-- Los campos de mapeo se generarán dinámicamente -->
                             </div>
@@ -944,21 +967,22 @@
             }
 
             const measurementFields = [
-                { name: 'sensor', label: 'Identificador del Sensor *', required: true },
-                { name: 'valor', label: 'Valor *', required: true },
-                { name: 'fecha', label: 'Fecha *', required: true },
-                { name: 'foto', label: 'Foto', required: false },
-                { name: 'observaciones', label: 'Observaciones', required: false }
+                { name: 'sensor', label: 'Identificador del Sensor *', required: true, help: 'Código, nombre o ID que identifica al sensor.' },
+                { name: 'valor', label: 'Valor *', required: true, help: 'Lectura o valor numérico registrado.' },
+                { name: 'fecha', label: 'Fecha *', required: true, help: 'Fecha en formato YYYY-MM-DD o DD/MM/YYYY.' },
+                { name: 'foto', label: 'Foto', required: false, help: 'Nombre o referencia (ej: 100_17-06-2022 o foto.jpg). Se vinculará a /measurements/.' },
+                { name: 'observaciones', label: 'Observaciones', required: false, help: 'Notas o comentarios adicionales de la medición.' }
             ];
 
             measurementFields.forEach(field => {
                 const row = $(`
                 <div class="row mb-3 align-items-center">
-                    <div class="col-md-3">
-                        <label class="form-label fw-bold">${field.label}</label>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold mb-0">${field.label}</label>
                         ${field.required ? ' <span class="text-danger">*</span>' : ''}
+                        ${field.help ? `<div class="form-text small text-muted mt-1">${field.help}</div>` : ''}
                     </div>
-                    <div class="col-md-7">
+                    <div class="col-md-6">
                         <select class="form-select field-mapping-select" data-field="${field.name}">
                             <option value="">-- Seleccionar columna --</option>
                         </select>
@@ -1239,14 +1263,16 @@
                     '<span class="badge bg-success">Válido</span>' :
                     '<span class="badge bg-danger">Error</span>';
 
+                const fotoDisplay = normalizePhotoPreview(measurement.foto);
+
                 container.append(`
                 <tr class="${isValid ? '' : 'table-danger'}">
                     <td>${measurement.index}</td>
-                    <td><strong>${measurement.sensor || 'N/A'}</strong></td>
-                    <td>${measurement.valor || 'N/A'}</td>
-                    <td>${measurement.fecha || 'N/A'}</td>
-                    <td>${measurement.foto}</td>
-                    <td>${measurement.observaciones}</td>
+                    <td><strong>${$('<div>').text(measurement.sensor || 'N/A').html()}</strong></td>
+                    <td>${$('<div>').text(measurement.valor || 'N/A').html()}</td>
+                    <td>${$('<div>').text(measurement.fecha || 'N/A').html()}</td>
+                    <td>${fotoDisplay}</td>
+                    <td>${$('<div>').text(measurement.observaciones || '').html()}</td>
                     <td>${statusBadge}</td>
                 </tr>
             `);
@@ -1297,6 +1323,26 @@
 
             const strValue = String(value).trim();
             return strValue !== '' ? strValue : null;
+        }
+
+        function normalizePhotoPreview(rawFoto) {
+            if (!rawFoto || typeof rawFoto !== 'string') {
+                return '<span class="text-muted">Sin Foto</span>';
+            }
+            const clean = rawFoto.trim();
+            const lower = clean.toLowerCase();
+            if (!clean || ['sin foto', 'sin_foto', 'n/a', 'na', 'null', 'none', '-', 'no'].includes(lower)) {
+                return '<span class="text-muted">Sin Foto</span>';
+            }
+            let filename = clean.replace(/^\/+/, '');
+            if (filename.toLowerCase().startsWith('measurements/')) {
+                filename = filename.substring('measurements/'.length);
+            }
+            if (!/\.(jpg|jpeg|png|webp|gif)$/i.test(filename)) {
+                filename += '.jpg';
+            }
+            const safe = $('<div>').text('/measurements/' + filename).html();
+            return `<code>${safe}</code>`;
         }
 
         function renderErrors(errors) {
