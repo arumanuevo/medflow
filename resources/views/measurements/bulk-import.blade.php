@@ -295,7 +295,7 @@
                             <!-- Opción de sobrescritura -->
                             <div class="alert alert-info">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="overwriteDuplicates">
+                                    <input class="form-check-input" type="checkbox" id="overwriteDuplicates" checked>
                                     <label class="form-check-label" for="overwriteDuplicates">
                                         <strong>Permitir sobrescritura de duplicados</strong>
                                         <span class="text-muted d-block small">Si se encuentra un registro con la misma
@@ -323,13 +323,38 @@
                                 </table>
                             </div>
 
-                            <div id="importSummary" class="import-summary d-none">
+                            <div id="importSummary" class="import-summary d-none mt-3">
                                 <h5><i class="bi bi-info-circle"></i> Resumen de Importación</h5>
-                                <ul>
-                                    <li><strong>Total de registros:</strong> <span id="totalRecords">0</span></li>
-                                    <li><strong>Registros válidos:</strong> <span id="validRecords">0</span></li>
-                                    <li><strong>Registros con errores:</strong> <span id="errorRecords">0</span></li>
-                                </ul>
+                                <div class="row g-3 my-2">
+                                    <div class="col-md-3">
+                                        <div class="card bg-light border-0 text-center py-2">
+                                            <small class="text-muted fw-bold">TOTAL EN ARCHIVO</small>
+                                            <h4 class="mb-0 text-dark fw-bold" id="totalRecords">0</h4>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="card bg-light border-0 text-center py-2">
+                                            <small class="text-muted fw-bold">MUESTRA EN PANTALLA</small>
+                                            <h4 class="mb-0 text-primary fw-bold" id="sampleRecordsCount">0</h4>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="card bg-light border-0 text-center py-2">
+                                            <small class="text-muted fw-bold">MUESTRA VÁLIDA</small>
+                                            <h4 class="mb-0 text-success fw-bold" id="validRecords">0</h4>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="card bg-light border-0 text-center py-2">
+                                            <small class="text-muted fw-bold">MUESTRA CON ERROR</small>
+                                            <h4 class="mb-0 text-danger fw-bold" id="errorRecords">0</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="alert alert-info py-2 small d-flex align-items-center mb-0 mt-2">
+                                    <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+                                    <span>Se muestra una previsualización de las primeras filas. Al hacer clic en <strong>"Importar Mediciones"</strong>, el sistema procesará e insertará los <strong id="totalRecordsNote">0</strong> registros completos en la base de datos.</span>
+                                </div>
                             </div>
 
                             <div id="importErrors" class="error-container d-none">
@@ -482,6 +507,7 @@
         let excelHeaders = [];
         let sampleData = [];
         let allData = [];
+        let totalFileRows = 0;
         let fieldMapping = {};
         let currentStep = 1;
         let selectedGroupId = null;
@@ -872,9 +898,10 @@
 
                         allData = rawData.map(row => processRowData(row));
                         sampleData = allData.slice(0, 5);
+                        totalFileRows = response.data.total_rows !== undefined ? response.data.total_rows : (response.data.all_data ? response.data.all_data.length : allData.length);
 
                         console.log('📊 Headers procesados:', excelHeaders);
-                        console.log('📊 Total de filas:', allData.length);
+                        console.log('📊 Total de filas en archivo:', totalFileRows);
                         console.log('📊 Primera fila procesada:', allData.length > 0 ? allData[0] : 'No hay datos');
                         console.log('📊 Longitud de la primera fila:', allData.length > 0 ? allData[0].length : 0);
 
@@ -1278,9 +1305,12 @@
             `);
             });
 
-            $('#totalRecords').text(rowsToProcess.length);
+            const displayTotal = totalFileRows > 0 ? totalFileRows : rowsToProcess.length;
+            $('#totalRecords').text(displayTotal.toLocaleString());
+            $('#sampleRecordsCount').text(rowsToProcess.length);
             $('#validRecords').text(validRecords);
             $('#errorRecords').text(errorRecords);
+            $('#totalRecordsNote').text(displayTotal.toLocaleString());
 
             if (errorRecords > 0) {
                 $('#importErrors').removeClass('d-none');
@@ -1413,6 +1443,7 @@
             $.ajax({
                 url: '/api/measurements/bulk-import/import',
                 type: 'POST',
+                timeout: 300000,
                 headers: {
                     'Authorization': 'Bearer ' + localStorage.getItem('token'),
                     'Accept': 'application/json'
@@ -1421,8 +1452,8 @@
                 processData: false,
                 contentType: false,
                 beforeSend: function () {
-                    $('#progressText').text('Enviando datos al servidor...');
-                    $('#progressBar').css('width', '30%');
+                    $('#progressText').text('Procesando e importando mediciones en el servidor...');
+                    $('#progressBar').css('width', '50%');
                 },
                 success: function (response) {
                     if (response.success) {

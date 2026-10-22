@@ -11,6 +11,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 use Shuchkin\SimpleXLSX;
 use Carbon\Carbon;
 
@@ -112,6 +113,10 @@ class BulkMeasurementImportController extends Controller
      */
     public function analyzeFile(Request $request)
     {
+        @ini_set('max_execution_time', 300);
+        @set_time_limit(300);
+        @ini_set('memory_limit', '512M');
+
         try {
             $user = $request->user();
 
@@ -134,13 +139,33 @@ class BulkMeasurementImportController extends Controller
             }
 
             $tempPath = $file->getRealPath();
+            $totalRows = 0;
 
             if ($fileExtension === 'csv') {
                 $headers = $this->readCsvHeaders($tempPath);
                 $sampleData = $this->getCsvSampleData($tempPath, 5);
+
+                // Contar total de filas de forma rápida sin cargar todo en memoria
+                $handle = @fopen($tempPath, 'r');
+                if ($handle) {
+                    while (fgets($handle) !== false) {
+                        $totalRows++;
+                    }
+                    fclose($handle);
+                    $totalRows = max(0, $totalRows - 1); // Descontar fila de encabezados
+                }
             } else {
-                $headers = $this->readExcelHeaders($tempPath);
-                $sampleData = $this->getExcelSampleData($tempPath, 5);
+                if (!class_exists(SimpleXLSX::class)) {
+                    throw new \Exception('La librería SimpleXLSX no está disponible.');
+                }
+                $xlsx = SimpleXLSX::parse($tempPath);
+                if ($xlsx === false) {
+                    throw new \Exception('No se pudo leer el archivo Excel.');
+                }
+                $allRows = $xlsx->rows();
+                $headers = !empty($allRows) ? array_map('trim', $allRows[0]) : [];
+                $totalRows = max(0, count($allRows) - 1);
+                $sampleData = array_slice($allRows, 1, 5);
             }
 
             $headers = array_map('trim', $headers);
@@ -150,7 +175,8 @@ class BulkMeasurementImportController extends Controller
                 'message' => 'Archivo analizado correctamente',
                 'data' => [
                     'headers' => $headers,
-                    'sample_data' => $sampleData
+                    'sample_data' => $sampleData,
+                    'total_rows' => $totalRows
                 ]
             ]);
 
@@ -168,6 +194,10 @@ class BulkMeasurementImportController extends Controller
  */
 public function bulkImport(Request $request)
 {
+    @ini_set('max_execution_time', 300);
+    @set_time_limit(300);
+    @ini_set('memory_limit', '512M');
+
     try {
         $user = $request->user();
 
@@ -298,8 +328,10 @@ public function bulkImport(Request $request)
         $sensorMapByName = [];
         $sensorMapByIdentifier = [];
         $sensorMapById = [];
+        $sensorIds = [];
         
         foreach ($sensorsInGroup as $s) {
+            $sensorIds[] = $s->id;
             $sensorMapByName[strtolower(trim($s->name))] = $s;
             if ($s->identifier) {
                 $sensorMapByIdentifier[strtolower(trim($s->identifier))] = $s;
@@ -307,11 +339,26 @@ public function bulkImport(Request $request)
             $sensorMapById[$s->id] = $s;
         }
 
+        // Mapeo por metadata si aplica
+        $sensorMapByMetadata = [];
+        if ($identificationMethod && strpos($identificationMethod, 'metadata_') === 0) {
+            $metaKey = str_replace('metadata_', '', $identificationMethod);
+            $cleanMetaKey = strtolower(trim($metaKey));
+            foreach ($sensorsInGroup as $sensor) {
+                if ($sensor->metadata && is_array($sensor->metadata)) {
+                    foreach ($sensor->metadata as $k => $v) {
+                        if (strtolower(trim($k)) === $cleanMetaKey && $v !== null && $v !== '') {
+                            $sensorMapByMetadata[strtolower(trim($v))] = $sensor;
+                        }
+                    }
+                }
+            }
+        }
+
         // ✅ Procesar el archivo - leer según extensión
         $tempPath = $file->getRealPath();
 
         if ($extension === 'csv') {
-            // ✅ Para CSV, usar fgetcsv con detección de delimitador
             $allData = $this->readCsvAllData($tempPath);
         } else {
             $allData = $this->readExcelAllData($tempPath);
@@ -324,21 +371,41 @@ public function bulkImport(Request $request)
             ], 400);
         }
 
-        Log::info('Primeras filas del archivo', [
-            'headers' => $allData[0] ?? [],
-            'first_row' => $allData[1] ?? [],
-            'field_mapping' => $fieldMapping,
-            'identification_method' => $identificationMethod
-        ]);
+        // Tipo de plantilla y si es acumulativa
+        $templateType = $group->template->type ?? 'personalizado';
+        $isCumulative = in_array(strtolower($templateType), ['agua', 'gas', 'electricidad', 'caudal']);
 
-        // Procesar los datos
+        // ✅ Pre-cargar en memoria todo el historial de mediciones del grupo en 1 sola query
+        $sensorHistories = [];
+        foreach ($sensorIds as $sId) {
+            $sensorHistories[$sId] = [];
+        }
+
+        $allExisting = Measurement::whereIn('sensor_id', $sensorIds)
+            ->select('id', 'sensor_id', 'measured_at', 'data')
+            ->orderBy('measured_at', 'asc')
+            ->get();
+
+        foreach ($allExisting as $m) {
+            $val = isset($m->data['valor']) ? (float) $m->data['valor'] : 0.0;
+            $dateObj = $m->measured_at instanceof Carbon ? $m->measured_at : Carbon::parse($m->measured_at);
+            $sensorHistories[$m->sensor_id][] = [
+                'id' => $m->id,
+                'date_str' => $dateObj->format('Y-m-d'),
+                'timestamp' => $dateObj->timestamp,
+                'valor' => $val
+            ];
+        }
+
+        // Procesar los datos de forma optimizada
         $successCount = 0;
         $errorCount = 0;
         $errors = [];
         $measurementsToCreate = [];
-        $existingMeasurementsCache = [];
+        $measurementsToDelete = [];
         $overwrittenCount = 0;
-        $overwriteDuplicates = $request->input('overwrite_duplicates', false);
+        $overwriteDuplicates = filter_var($request->input('overwrite_duplicates', true), FILTER_VALIDATE_BOOLEAN);
+        $now = Carbon::now();
 
         foreach ($allData as $index => $row) {
             if ($index === 0) continue;
@@ -349,39 +416,21 @@ public function bulkImport(Request $request)
 
             try {
                 // Obtener valores mapeados
-                $sensorIdentifier = trim($this->getMappedValue($row, $fieldMapping, 'sensor'));
+                $sensorIdentifier = trim((string) $this->getMappedValue($row, $fieldMapping, 'sensor'));
                 $valor = $this->getMappedValue($row, $fieldMapping, 'valor');
                 $fechaStr = $this->getMappedValue($row, $fieldMapping, 'fecha');
                 $foto = $this->normalizePhotoName($this->getMappedValue($row, $fieldMapping, 'foto'));
                 $observaciones = $this->getMappedValue($row, $fieldMapping, 'observaciones') ?? '';
 
-                Log::debug("Procesando fila {$index}", [
-                    'sensorIdentifier' => $sensorIdentifier,
-                    'valor' => $valor,
-                    'fechaStr' => $fechaStr,
-                    'row_data' => $row
-                ]);
-
-                $reportRow = [
-                    'row_number' => $index + 1,
-                    'sensor' => $sensorIdentifier,
-                    'valor' => $valor,
-                    'fecha' => $fechaStr,
-                    'observaciones' => $observaciones,
-                    'status' => 'pending',
-                    'message' => ''
-                ];
-
                 $errorsForRow = [];
 
-                // ✅ VALIDAR SENSOR - Usar el método de identificación seleccionado
-                if (empty($sensorIdentifier)) {
+                // 1. Validar sensor
+                if ($sensorIdentifier === '') {
                     $errorsForRow[] = 'El campo "Sensor" es obligatorio';
                 } else {
+                    $sensorKey = strtolower($sensorIdentifier);
                     $foundSensor = null;
-                    $sensorKey = strtolower(trim($sensorIdentifier));
 
-                    // Buscar según el método seleccionado
                     switch ($identificationMethod) {
                         case 'id':
                             if (is_numeric($sensorKey)) {
@@ -392,62 +441,36 @@ public function bulkImport(Request $request)
                             $foundSensor = $sensorMapByIdentifier[$sensorKey] ?? null;
                             break;
                         case 'name':
-                        default:
                             $foundSensor = $sensorMapByName[$sensorKey] ?? null;
+                            break;
+                        default:
+                            if (!empty($sensorMapByMetadata)) {
+                                $foundSensor = $sensorMapByMetadata[$sensorKey] ?? null;
+                            }
                             break;
                     }
 
-                    // ✅ Si el método es 'metadata_*', buscar en metadata
-                    if (!$foundSensor && $identificationMethod && strpos($identificationMethod, 'metadata_') === 0) {
-                        $metaKey = str_replace('metadata_', '', $identificationMethod);
-                        foreach ($sensorsInGroup as $sensor) {
-                            if ($sensor->metadata && is_array($sensor->metadata)) {
-                                // Buscar en metadata (case-insensitive)
-                                foreach ($sensor->metadata as $key => $value) {
-                                    if (strtolower(trim($key)) === strtolower(trim($metaKey))) {
-                                        if (strtolower(trim($value)) === $sensorKey) {
-                                            $foundSensor = $sensor;
-                                            break 2;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // ✅ Fallback: intentar por cualquiera de los métodos
+                    // Fallbacks si no coincide por el método exacto
                     if (!$foundSensor) {
-                        $foundSensor = $sensorMapByName[$sensorKey] ?? null;
-                    }
-                    if (!$foundSensor) {
-                        $foundSensor = $sensorMapByIdentifier[$sensorKey] ?? null;
-                    }
-                    if (!$foundSensor && is_numeric($sensorKey)) {
-                        $foundSensor = $sensorMapById[(int) $sensorKey] ?? null;
+                        $foundSensor = $sensorMapByIdentifier[$sensorKey] ?? ($sensorMapByName[$sensorKey] ?? (is_numeric($sensorKey) ? ($sensorMapById[(int) $sensorKey] ?? null) : null));
                     }
 
                     if (!$foundSensor) {
-                        $availableNames = array_slice(array_keys($sensorMapByName), 0, 5);
-                        $moreText = count($sensorMapByName) > 5 ? " y " . (count($sensorMapByName) - 5) . " más" : "";
-                        $errorsForRow[] = "El sensor '{$sensorIdentifier}' no existe en el grupo. " .
-                                        "Sensores disponibles: " . implode(', ', $availableNames) . $moreText . ". " .
-                                        "Puedes identificarlos por: nombre, identificador (código) o ID.";
+                        $errorsForRow[] = "El sensor '{$sensorIdentifier}' no existe en el grupo.";
                     } else {
                         $sensorId = $foundSensor->id;
                     }
                 }
 
-                // ✅ Validar valor (permitiendo 0)
+                // 2. Validar valor numérico
                 if ($valor === null || $valor === '') {
                     $errorsForRow[] = 'El campo "Valor" es obligatorio';
-                } else if (!is_numeric($valor)) {
+                } elseif (!is_numeric($valor)) {
                     $errorsForRow[] = "El valor '{$valor}' no es un número válido";
-                } else if ((float) $valor < 0) {
-                    // ✅ Permitir valores negativos? Si no, validar
-                    // $errorsForRow[] = "El valor '{$valor}' no puede ser negativo";
                 }
 
-                // Validar y parsear fecha
+                // 3. Validar y parsear fecha
+                $fecha = null;
                 if ($fechaStr === null || $fechaStr === '') {
                     $errorsForRow[] = 'El campo "Fecha" es obligatorio';
                 } else {
@@ -465,47 +488,60 @@ public function bulkImport(Request $request)
                     }
                 }
 
-                if (empty($errorsForRow) && isset($sensorId)) {
+                // 4. Lógica de sensor: duplicados y coherencia temporal
+                if (empty($errorsForRow) && isset($sensorId) && $fecha !== null) {
+                    $fechaYmd = $fecha->format('Y-m-d');
+                    $timestamp = $fecha->timestamp;
                     $valorFloat = (float) $valor;
 
-                    // Obtener mediciones existentes del sensor
-                    if (!isset($existingMeasurementsCache[$sensorId])) {
-                        $existingMeasurementsCache[$sensorId] = Measurement::where('sensor_id', $sensorId)
-                            ->orderBy('measured_at', 'asc')
-                            ->get();
-                    }
-
-                    // Verificar duplicado exacto
-                    $duplicate = $existingMeasurementsCache[$sensorId]->first(function($m) use ($fecha, $valorFloat) {
-                        return $m->measured_at->format('Y-m-d') === $fecha->format('Y-m-d') && 
-                            ($m->data['valor'] ?? 0) == $valorFloat;
-                    });
-
-                    if ($duplicate) {
-                        if ($overwriteDuplicates) {
-                            Measurement::where('sensor_id', $sensorId)
-                                ->whereDate('measured_at', $fecha->format('Y-m-d'))
-                                ->where('data->valor', $valorFloat)
-                                ->delete();
-                            $overwrittenCount++;
-                            $reportRow['status'] = 'overwritten';
-                            $reportRow['message'] = 'Registro sobrescrito (duplicado eliminado)';
-                        } else {
-                            $errorsForRow[] = "Ya existe una medición con la misma fecha y valor";
+                    // Buscar duplicado exacto en el historial en memoria de este sensor
+                    $duplicateIndex = null;
+                    $duplicateRecord = null;
+                    if (isset($sensorHistories[$sensorId])) {
+                        foreach ($sensorHistories[$sensorId] as $idx => $histItem) {
+                            if ($histItem['date_str'] === $fechaYmd && abs($histItem['valor'] - $valorFloat) < 0.0001) {
+                                $duplicateIndex = $idx;
+                                $duplicateRecord = $histItem;
+                                break;
+                            }
                         }
                     }
 
-                    if (empty($errorsForRow) && !$duplicate) {
-                        $validationResult = $this->validateMeasurementSequence(
-                            $sensorId,
-                            $fecha,
-                            $valorFloat,
-                            $existingMeasurementsCache[$sensorId],
-                            $measurementsToCreate
-                        );
+                    if ($duplicateRecord !== null) {
+                        if ($overwriteDuplicates) {
+                            if (!empty($duplicateRecord['id'])) {
+                                $measurementsToDelete[] = $duplicateRecord['id'];
+                            }
+                            unset($sensorHistories[$sensorId][$duplicateIndex]);
+                            $sensorHistories[$sensorId] = array_values($sensorHistories[$sensorId]);
+                            $overwrittenCount++;
+                        } else {
+                            $errorsForRow[] = "Ya existe una medición para la fecha {$fechaYmd} con el valor {$valorFloat}";
+                        }
+                    }
 
-                        if (!$validationResult['valid']) {
-                            $errorsForRow[] = $validationResult['message'];
+                    // Validación de secuencia para medidores acumulativos
+                    if (empty($errorsForRow) && $isCumulative && !empty($sensorHistories[$sensorId])) {
+                        $prevItem = null;
+                        $nextItem = null;
+                        foreach ($sensorHistories[$sensorId] as $histItem) {
+                            if ($histItem['timestamp'] <= $timestamp) {
+                                if ($prevItem === null || $histItem['timestamp'] > $prevItem['timestamp']) {
+                                    $prevItem = $histItem;
+                                }
+                            }
+                            if ($histItem['timestamp'] >= $timestamp) {
+                                if ($nextItem === null || $histItem['timestamp'] < $nextItem['timestamp']) {
+                                    $nextItem = $histItem;
+                                }
+                            }
+                        }
+
+                        if ($prevItem && $valorFloat < $prevItem['valor']) {
+                            $errorsForRow[] = "El valor {$valorFloat} debe ser mayor o igual a la medición anterior ({$prevItem['valor']} del {$prevItem['date_str']})";
+                        }
+                        if ($nextItem && $valorFloat > $nextItem['valor']) {
+                            $errorsForRow[] = "El valor {$valorFloat} debe ser menor o igual a la medición siguiente ({$nextItem['valor']} del {$nextItem['date_str']})";
                         }
                     }
 
@@ -520,31 +556,29 @@ public function bulkImport(Request $request)
                                 'tipo' => $group->template->type ?? 'personalizado'
                             ]),
                             'created_by' => $user->id,
-                            'created_at' => Carbon::now(),
-                            'updated_at' => Carbon::now()
+                            'created_at' => $now,
+                            'updated_at' => $now
                         ];
 
-                        $existingMeasurementsCache[$sensorId]->push((object) [
-                            'measured_at' => $fecha,
-                            'data' => ['valor' => $valorFloat]
-                        ]);
+                        $sensorHistories[$sensorId][] = [
+                            'id' => null,
+                            'date_str' => $fechaYmd,
+                            'timestamp' => $timestamp,
+                            'valor' => $valorFloat
+                        ];
 
                         $successCount++;
-                        $reportRow['status'] = 'success';
-                        $reportRow['message'] = 'Importado correctamente';
                     }
                 }
 
                 if (!empty($errorsForRow)) {
                     $errorCount++;
-                    $reportRow['status'] = 'error';
-                    $reportRow['message'] = implode('; ', $errorsForRow);
                     $errors[] = [
                         'row' => $index + 1,
-                        'sensor' => $sensorIdentifier ?? 'N/A',
-                        'valor' => $valor ?? 'N/A',
-                        'fecha' => $fechaStr ?? 'N/A',
-                        'error' => $reportRow['message'],
+                        'sensor' => $sensorIdentifier ?: 'N/A',
+                        'valor' => $valor ?: 'N/A',
+                        'fecha' => $fechaStr ?: 'N/A',
+                        'error' => implode('; ', $errorsForRow),
                         'status' => 'error'
                     ];
                 }
@@ -559,15 +593,18 @@ public function bulkImport(Request $request)
                     'error' => $e->getMessage(),
                     'status' => 'error'
                 ];
-                Log::error('Error procesando fila', [
-                    'row' => $index + 1,
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
-                ]);
             }
         }
 
-        // Crear mediciones en transacción
+        // Eliminar duplicados sobrescritos en lotes de 500
+        if (!empty($measurementsToDelete)) {
+            $deleteChunks = array_chunk(array_unique($measurementsToDelete), 500);
+            foreach ($deleteChunks as $chunk) {
+                Measurement::whereIn('id', $chunk)->delete();
+            }
+        }
+
+        // Insertar nuevas mediciones en lotes de 500 dentro de una transacción
         if (!empty($measurementsToCreate)) {
             DB::beginTransaction();
             try {
@@ -575,8 +612,8 @@ public function bulkImport(Request $request)
                     return strcmp($a['measured_at'], $b['measured_at']);
                 });
 
-                $chunks = array_chunk($measurementsToCreate, 100);
-                foreach ($chunks as $chunk) {
+                $insertChunks = array_chunk($measurementsToCreate, 500);
+                foreach ($insertChunks as $chunk) {
                     Measurement::insert($chunk);
                 }
                 DB::commit();
@@ -584,15 +621,13 @@ public function bulkImport(Request $request)
                 Log::info('Mediciones importadas correctamente', [
                     'user_id' => $user->id,
                     'group_id' => $request->group_id,
-                    'count' => count($measurementsToCreate)
+                    'count' => count($measurementsToCreate),
+                    'overwritten' => $overwrittenCount
                 ]);
 
             } catch (\Exception $e) {
                 DB::rollBack();
-                Log::error('Error al importar mediciones en lote', [
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
-                ]);
+                Log::error('Error al importar mediciones en lote: ' . $e->getMessage());
                 throw $e;
             }
         }
@@ -600,10 +635,9 @@ public function bulkImport(Request $request)
         // Generar ID único para el informe
         $reportId = uniqid('import_', true);
         
-        // Guardar informe en sesión
         $reportData = [
             'id' => $reportId,
-            'rows' => [],
+            'rows' => array_slice($errors, 0, 500),
             'summary' => [
                 'total' => $successCount + $errorCount,
                 'success' => $successCount,
@@ -624,7 +658,8 @@ public function bulkImport(Request $request)
                 'success_count' => $successCount,
                 'error_count' => $errorCount,
                 'overwritten_count' => $overwrittenCount,
-                'errors' => $errors,
+                'errors' => array_slice($errors, 0, 100),
+                'total_errors' => count($errors),
                 'total_processed' => $successCount + $errorCount,
                 'group_id' => $group->id,
                 'group_name' => $group->name,
@@ -907,19 +942,31 @@ public function bulkImport(Request $request)
      */
     private function storeReport($reportId, $reportData)
     {
-        // Guardar en sesión por 24 horas
-        session()->put("import_report_{$reportId}", $reportData);
-        session()->put("import_report_{$reportId}_expires", now()->addHours(24));
+        // Guardar en caché y sesión por 24 horas
+        Cache::put("import_report_{$reportId}", $reportData, now()->addHours(24));
+        try {
+            session()->put("import_report_{$reportId}", $reportData);
+            session()->put("import_report_{$reportId}_expires", now()->addHours(24));
+        } catch (\Throwable $e) {
+            // Ignorar si la sesión no está disponible en peticiones API
+        }
     }
 
     /**
-     * Obtener informe de sesión
+     * Obtener informe de sesión o caché
      */
     private function getReport($reportId)
     {
-        if (session()->has("import_report_{$reportId}")) {
-            return session()->get("import_report_{$reportId}");
+        if (Cache::has("import_report_{$reportId}")) {
+            return Cache::get("import_report_{$reportId}");
         }
+
+        try {
+            if (session()->has("import_report_{$reportId}")) {
+                return session()->get("import_report_{$reportId}");
+            }
+        } catch (\Throwable $e) {}
+
         return null;
     }
 
