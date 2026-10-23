@@ -412,6 +412,31 @@ Permite a los administradores con plan **Premium** georreferenciar sus medidores
 ---
 
 
+### 4.9 Módulo Unificado de Mediciones y Consumos, Exportación Excel y Carga Masiva de Fotos
+
+1. **Módulo Unificado de Mediciones y Consumos (`/mediciones`):**
+   - Fusiona la inspección técnica de campo con la auditoría comercial en una única tabla de alto rendimiento con paginación nativa en MySQL.
+   - Cada fila visualiza: Lectura física del sensor, Fecha exacta, **Consumo diferencial calculado** ($V_2 - V_1$), **Días transcurridos** entre tomas, **Promedio diario**, **Costo monetario ($)** según la tarifa contable del grupo, estado de auditoría y foto.
+   - Herramientas integradas en barra superior y acciones de fila:
+     * **Radar Global de Anomalías:** Escanea todos los sensores analizando saltos en la tasa diaria y estancamiento.
+     * **Análisis Avanzado por Sensor:** Modal interactivo con gráfico de líneas evolutivo (`Chart.js`), selector de cotas de fechas y resumen de consumo del lote.
+     * **Exportar a Excel:** Descarga inmediata en `.xlsx` respetando el 100% de los filtros activos (grupo, fechas, comunidad, avisos de consumo).
+     * La ruta legacy `/consumptions` redirige automáticamente a `/mediciones`.
+
+2. **Asistente de Carga Masiva de Fotos (`/api/measurements/bulk-upload-photos`):**
+   - Disponible en el botón **Carga Masiva Fotos** de la pantalla de Mediciones.
+   - Admite un archivo comprimido **.ZIP** (recomendado para miles de fotos) o una selección múltiple de imágenes **.JPG / .PNG / .WEBP**.
+   - **Reglas estrictas de validación y seguridad:**
+     * **Regla de 365 días (1 año de retención):** Solo se procesan y almacenan fotos pertenecientes a mediciones tomadas en los últimos 365 días. Todo archivo correspondiente a tomas más antiguas se rechaza automáticamente.
+     * **Correlación estricta con la BD:** El nombre de la imagen debe coincidir con el campo `data.foto` de una medición existente del usuario. Fotos sin correspondencia se descartan inmediatamente sin ocupar almacenamiento en disco.
+     * Las imágenes validadas se guardan en `public/measurements/` y se vinculan automáticamente al registro en la base de datos.
+
+3. **Sobreescritura de Sensores en Importación sin Consumo de Cuota:**
+   - Al importar sensores masivamente en un grupo existente, el sistema compara por el `identifier` único del sensor.
+   - Si el sensor ya existe en el grupo, se actualizan sus atributos (datos, metadatos, plantilla) y **NO se consume cuota adicional de la suscripción**. Solo se descuenta cupo si el identificador es completamente nuevo.
+
+---
+
 ## 5. REFERENCIA RÁPIDA DE RUTAS Y MIDDLEWARES
 
 ### Rutas web clave (`routes/web.php`)

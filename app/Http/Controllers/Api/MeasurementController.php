@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers\Api;
 
+use Illuminate\Support\Facades\DB;
 use App\Models\Measurement;
 use App\Models\Sensor;
 use Illuminate\Http\Request;
@@ -31,15 +32,15 @@ class MeasurementController extends Controller
         $user = $request->user();
 
         // Validar parámetros de paginación
-        $perPage = $request->per_page ?? 10;
-        $page = $request->page ?? 1;
+        $perPage = (int) ($request->per_page ?? 10);
+        $page = (int) ($request->page ?? 1);
 
         // Obtener el campo y dirección de ordenamiento
         $sortField = $request->sort_field ?? 'measured_at';
         $sortDirection = $request->sort_direction ?? 'desc';
 
         // Validar que el campo de ordenamiento sea válido
-        $validSortFields = ['id', 'sensor_id', 'measured_at', 'created_at'];
+        $validSortFields = ['id', 'sensor_id', 'sensor', 'measured_at', 'created_at', 'valor'];
         if (!in_array($sortField, $validSortFields)) {
             $sortField = 'measured_at';
         }
@@ -57,57 +58,24 @@ class MeasurementController extends Controller
             $sortDirection
         );
 
-        // Calcular estadísticas de errores globalmente
+        // Calcular estadísticas de errores globalmente (con caché de 30s)
         $errorStats = $this->measurementService->calculateErrorStats($user);
 
-        // Obtener TODAS las mediciones del usuario para calcular consumo relativo por sensor
-        $allMeasurements = Measurement::with(['sensor', 'sensor.group', 'sensor.group.template'])
-            ->whereHas('sensor.group', function ($q) use ($user) {
-                $q->where('user_id', $user->id)
-                    ->orWhereHas('sharedAccess', function ($q2) use ($user) {
-                        $q2->where('shared_with', $user->id)
-                            ->whereIn('role', ['inspector', 'admin']);
-                    });
-            })
-            ->orderBy('sensor_id')
-            ->orderBy('measured_at', 'asc')
-            ->get();
-
-        $allMeasurementsBySensor = $allMeasurements->groupBy('sensor_id');
-
-        if ($request->has('error_type') && $request->error_type) {
-            // Si hay filtro por estado/error, debemos traer todos los coincidencias, mapear y filtrar en memoria
-            // porque el error_type no existe en la base de datos
-            $allFilteredQueryResults = $query->get();
-
-            $measurementsWithData = $allFilteredQueryResults->map(function ($measurement) use ($allMeasurementsBySensor) {
-                return $this->decorateMeasurementWithData($measurement, $allMeasurementsBySensor);
-            });
-
-            $filteredMeasurements = $measurementsWithData->filter(function ($measurement) use ($request) {
-                return $measurement->error_type === $request->error_type;
-            })->values();
-
-            $total = $filteredMeasurements->count();
-            $items = $filteredMeasurements->slice(($page - 1) * $perPage, $perPage)->values();
-
-            $measurements = new \Illuminate\Pagination\LengthAwarePaginator(
-                $items,
-                $total,
-                $perPage,
-                $page,
-                ['path' => $request->url(), 'query' => $request->query()]
-            );
-        } else {
-            // Paginación normal en SQL
-            $measurements = $query->paginate($perPage);
-
-            $measurementsWithData = $measurements->getCollection()->map(function ($measurement) use ($allMeasurementsBySensor) {
-                return $this->decorateMeasurementWithData($measurement, $allMeasurementsBySensor);
-            });
-
-            $measurements->setCollection($measurementsWithData);
+        // Si hay filtro por estado/error, filtrar por IDs de forma ultrarrápida
+        if ($request->filled('error_type')) {
+            $matchingIds = $this->measurementService->getMeasurementIdsByErrorType($user, $request->error_type, $request->group_id);
+            $query->whereIn('measurements.id', $matchingIds);
         }
+
+        // Paginación directa en MySQL
+        $measurements = $query->paginate($perPage);
+
+        // Decorar únicamente las mediciones de la página actual (10 o 25 elementos)
+        $measurementsWithData = $measurements->getCollection()->map(function ($measurement) {
+            return $this->decorateMeasurementWithData($measurement);
+        });
+
+        $measurements->setCollection($measurementsWithData);
 
         // Extraer campos personalizados de los sensores del grupo si hay filtro activo por grupo
         $groupExtraFields = [];
@@ -146,36 +114,45 @@ class MeasurementController extends Controller
     /**
      * Helper paramétrica extraída para enriquecer cada medición.
      */
-    private function decorateMeasurementWithData($measurement, $allMeasurementsBySensor)
+    private function decorateMeasurementWithData($measurement, $allMeasurementsBySensor = null)
     {
-        $sensorId = $measurement->sensor_id;
-        $sensorMeasurements = $allMeasurementsBySensor->get($sensorId, collect());
+        $sensor = $measurement->sensor;
+        $mainField = $this->measurementService->getMainFieldFromSensor($sensor);
 
-        // Obtener el campo principal de la plantilla
-        $mainField = $this->measurementService->getMainFieldFromSensor($measurement->sensor);
-
-        // Ordenar las mediciones del sensor por fecha (ascendente)
-        $sortedMeasurements = $sensorMeasurements->sortBy('measured_at');
-
-        // Encontrar el índice de la medición actual en el array ordenado
-        $currentIndex = $sortedMeasurements->search(function ($m) use ($measurement) {
-            return $m->id === $measurement->id;
-        });
-
-        // Obtener la medición anterior (en el tiempo)
-        $previousMeasurement = ($currentIndex > 0) ? $sortedMeasurements->get($currentIndex - 1) : null;
+        // Buscar únicamente la medición previa para este sensor específico
+        $previousMeasurement = Measurement::where('sensor_id', $measurement->sensor_id)
+            ->where('measured_at', '<', $measurement->measured_at)
+            ->orderBy('measured_at', 'desc')
+            ->first();
 
         $data = $measurement->data ?? [];
-        $valor = $data[$mainField] ?? 0;
+        $valor = $data[$mainField] ?? ($data['valor'] ?? 0);
 
         if ($previousMeasurement) {
-            $lastValue = $previousMeasurement->data[$mainField] ?? 0;
+            $lastData = $previousMeasurement->data ?? [];
+            $lastValue = $lastData[$mainField] ?? ($lastData['valor'] ?? 0);
             $consumption = $valor - $lastValue;
             $measurement->consumption = $consumption;
 
-            // Validar fecha
             $lastDate = Carbon::parse($previousMeasurement->measured_at);
             $currentDate = Carbon::parse($measurement->measured_at);
+
+            $daysBetween = max(1, $currentDate->diffInDays($lastDate));
+            $measurement->days_between = $daysBetween;
+            $measurement->daily_average = ($consumption >= 0 && $daysBetween > 0) ? round($consumption / $daysBetween, 2) : 0;
+
+            // Cálculo monetario según configuración tarifaria (billing_settings del grupo)
+            $cost = null;
+            $currency = null;
+            if ($sensor && $sensor->group && !empty($sensor->group->billing_settings) && ($sensor->group->billing_settings['is_enabled'] ?? false)) {
+                $billing = $sensor->group->billing_settings;
+                $fixedCharge = (float) ($billing['fixed_charge'] ?? 0);
+                $pricePerUnit = (float) ($billing['price_per_unit'] ?? 0);
+                $cost = round($fixedCharge + (max(0, $consumption) * $pricePerUnit), 2);
+                $currency = $billing['currency'] ?? 'ARS';
+            }
+            $measurement->cost = $cost;
+            $measurement->currency = $currency;
 
             if ($currentDate->lt($lastDate)) {
                 $measurement->error_type = 'inconsistent_date';
@@ -187,6 +164,10 @@ class MeasurementController extends Controller
         } else {
             // Primera medición
             $measurement->consumption = 0;
+            $measurement->days_between = 0;
+            $measurement->daily_average = 0;
+            $measurement->cost = null;
+            $measurement->currency = null;
             $measurement->error_type = 'first_measurement';
         }
 
@@ -1656,6 +1637,359 @@ class MeasurementController extends Controller
             'message' => "Se eliminaron {$deletedCount} mediciones correctamente.",
             'deleted_count' => $deletedCount,
             'unauthorized_count' => $unauthorizedCount
+        ]);
+    }
+
+    /**
+     * Exportar mediciones y consumos filtrados a Excel (.xlsx).
+     */
+    public function export(Request $request)
+    {
+        @set_time_limit(300);
+        $user = $request->user();
+
+        // 1. Construir la misma query base con todos los filtros activos
+        $query = $this->measurementService->buildMeasurementQuery($user, $request);
+
+        // 2. Si hay filtro por tipo de error, aplicar el conjunto de IDs
+        $errorType = $request->input('error_type');
+        if ($errorType) {
+            $matchingIds = $this->measurementService->getMeasurementIdsByErrorType(
+                $user,
+                $errorType,
+                $request->input('group_id')
+            );
+            $query->whereIn('measurements.id', $matchingIds);
+        }
+
+        // 3. Cargar mediciones con relaciones requeridas
+        $measurements = $query->with([
+            'sensor',
+            'sensor.group',
+            'sensor.group.template',
+            'sensor.group.user'
+        ])->get();
+
+        // 4. Crear el archivo Excel mediante PhpSpreadsheet
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Mediciones y Consumos');
+
+        // Encabezados
+        $headers = [
+            'A1' => 'ID',
+            'B1' => 'Sensor',
+            'C1' => 'Identificador',
+            'D1' => 'Grupo',
+            'E1' => 'Plantilla',
+            'F1' => 'Fecha Medición',
+            'G1' => 'Lectura (Valor)',
+            'H1' => 'Unidad',
+            'I1' => 'Lectura Anterior',
+            'J1' => 'Consumo Calculado',
+            'K1' => 'Días Transcurridos',
+            'L1' => 'Promedio Diario',
+            'M1' => 'Costo ($)',
+            'N1' => 'Moneda',
+            'O1' => 'Estado / Aviso',
+            'P1' => 'Foto',
+            'Q1' => 'Campos Personalizados / Observaciones'
+        ];
+
+        foreach ($headers as $cell => $header) {
+            $sheet->setCellValue($cell, $header);
+        }
+
+        $row = 2;
+        foreach ($measurements as $m) {
+            $this->decorateMeasurementWithData($m);
+            $sensor = $m->sensor;
+            $data = $m->data ?? [];
+            $mainField = $this->measurementService->getMainFieldFromSensor($sensor);
+            $val = $data[$mainField] ?? ($data['valor'] ?? 'N/A');
+
+            // Determinar unidad de medida
+            $unit = 'unidades';
+            if ($sensor && $sensor->group && $sensor->group->template) {
+                foreach ($sensor->group->template->schema['campos'] ?? [] as $c) {
+                    if (($c['tipo'] ?? '') === 'numero' && ($c['requerido'] ?? false)) {
+                        $unit = $c['unidad'] ?? 'unidades';
+                        break;
+                    }
+                }
+            }
+
+            // Datos dinámicos y atributos de sensor
+            $extraDataStr = [];
+            foreach ($data as $k => $v) {
+                if ($k !== $mainField && $k !== 'valor' && $k !== 'foto' && $k !== 'foto_evidencia') {
+                    $extraDataStr[] = "$k: $v";
+                }
+            }
+            if ($sensor && is_array($sensor->metadata)) {
+                foreach ($sensor->metadata as $mk => $mv) {
+                    if ($mv !== null && $mv !== '') {
+                        $extraDataStr[] = "[$mk: $mv]";
+                    }
+                }
+            }
+
+            $lastVal = '—';
+            if ($m->previous_measurement) {
+                $pData = $m->previous_measurement->data ?? [];
+                $lastVal = $pData[$mainField] ?? ($pData['valor'] ?? '—');
+            }
+
+            $sheet->setCellValue('A' . $row, $m->id);
+            $sheet->setCellValue('B' . $row, $sensor->name ?? 'N/A');
+            $sheet->setCellValue('C' . $row, $sensor->identifier ?? '—');
+            $sheet->setCellValue('D' . $row, $sensor->group->name ?? 'Sin grupo');
+            $sheet->setCellValue('E' . $row, $sensor->group->template->name ?? ($sensor->group->template->type ?? 'N/A'));
+            $sheet->setCellValue('F' . $row, $m->measured_at);
+            $sheet->setCellValue('G' . $row, $val);
+            $sheet->setCellValue('H' . $row, $unit);
+            $sheet->setCellValue('I' . $row, $lastVal);
+            $sheet->setCellValue('J' . $row, $m->consumption ?? 0);
+            $sheet->setCellValue('K' . $row, $m->days_between ?? 0);
+            $sheet->setCellValue('L' . $row, $m->daily_average ?? 0);
+            $sheet->setCellValue('M' . $row, $m->cost !== null ? $m->cost : '—');
+            $sheet->setCellValue('N' . $row, $m->currency ?? '—');
+            $sheet->setCellValue('O' . $row, $m->error_type ?? 'valid');
+            $sheet->setCellValue('P' . $row, $data['foto'] ?? 'Sin Foto');
+            $sheet->setCellValue('Q' . $row, implode(' | ', $extraDataStr));
+
+            $row++;
+        }
+
+        // Estilos cabecera
+        $sheet->getStyle('A1:Q1')->getFont()->setBold(true);
+        $sheet->getStyle('A1:Q1')->getFill()
+            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+            ->getStartColor()->setARGB('FFE9ECEF');
+
+        foreach (range('A', 'Q') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $filename = 'mediciones_consumos_' . date('Ymd_His') . '.xlsx';
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+
+        $writer->save('php://output');
+        exit;
+    }
+
+    /**
+     * Subida masiva de fotos con verificación estricta de correlación contra la BD
+     * y aplicación estricta de la regla de caducidad (máximo 365 días).
+     */
+    public function bulkUploadPhotos(Request $request)
+    {
+        @set_time_limit(300);
+        $user = auth()->user();
+
+        // 1. Obtener grupos del usuario y de workspaces colaborativos
+        $userGroups = DB::table('sensor_groups')
+            ->where('user_id', $user->id)
+            ->pluck('id');
+
+        $collabWorkspaceIds = DB::table('workspace_collaborators')
+            ->where('user_id', $user->id)
+            ->where('status', 'active')
+            ->pluck('workspace_id');
+
+        if ($collabWorkspaceIds->isNotEmpty()) {
+            $collabGroups = DB::table('sensor_groups')->whereIn('user_id', $collabWorkspaceIds)->pluck('id');
+            $userGroups = $userGroups->merge($collabGroups)->unique();
+        }
+
+        // 2. Pre-cargar el índice de fotos de las mediciones de estos grupos
+        $oneYearAgo = Carbon::now()->subDays(365)->startOfDay();
+
+        $measurements = DB::table('measurements')
+            ->join('sensors', 'measurements.sensor_id', '=', 'sensors.id')
+            ->whereIn('sensors.group_id', $userGroups)
+            ->select('measurements.id', 'measurements.measured_at', 'measurements.data')
+            ->get();
+
+        $validPhotoTargets = [];   // [ normalized_key => [measurement_id, original_foto_target] ]
+        $expiredPhotoTargets = []; // [ normalized_key => true ]
+
+        foreach ($measurements as $m) {
+            $data = is_array($m->data) ? $m->data : json_decode($m->data, true);
+            $foto = $data['foto'] ?? null;
+            if (!$foto || in_array(strtolower(trim($foto)), ['sin foto', 'sin_foto', 'n/a', 'na', 'null', 'none', '-', 'no', ''])) {
+                continue;
+            }
+
+            $rawBase = basename(str_replace('\\', '/', trim($foto)));
+            $cleanBaseLower = strtolower($rawBase);
+            $nameWithoutExt = strtolower(pathinfo($rawBase, PATHINFO_FILENAME));
+
+            $isExpired = Carbon::parse($m->measured_at)->lt($oneYearAgo);
+
+            if ($isExpired) {
+                $expiredPhotoTargets[$cleanBaseLower] = true;
+                $expiredPhotoTargets[$nameWithoutExt] = true;
+            } else {
+                $targetInfo = [
+                    'id' => $m->id,
+                    'raw_base' => $rawBase,
+                ];
+                $validPhotoTargets[$cleanBaseLower] = $targetInfo;
+                $validPhotoTargets[$nameWithoutExt] = $targetInfo;
+            }
+        }
+
+        $destDir = public_path('measurements');
+        if (!file_exists($destDir)) {
+            @mkdir($destDir, 0775, true);
+        }
+
+        $totalEvaluated = 0;
+        $linkedCount = 0;
+        $rejectedOlderThanYear = 0;
+        $skippedNoMatch = 0;
+        $rejectedInvalidFormat = 0;
+        $updatedMeasurementIds = [];
+
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
+
+        // ========================================================
+        // CASO A: Archivo ZIP
+        // ========================================================
+        if ($request->hasFile('zip_file')) {
+            $zipFile = $request->file('zip_file');
+            $zip = new \ZipArchive();
+            $openRes = $zip->open($zipFile->getRealPath());
+
+            if ($openRes !== true) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se pudo abrir el archivo ZIP. Verifique que sea un archivo comprimido válido.'
+                ], 422);
+            }
+
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $entryName = $zip->getNameIndex($i);
+                if (str_ends_with($entryName, '/') || str_ends_with($entryName, '\\') || str_contains($entryName, '__MACOSX')) {
+                    continue;
+                }
+
+                $cleanBase = basename(str_replace('\\', '/', $entryName));
+                if (str_starts_with($cleanBase, '.') || empty($cleanBase)) {
+                    continue;
+                }
+
+                $totalEvaluated++;
+                $ext = strtolower(pathinfo($cleanBase, PATHINFO_EXTENSION));
+
+                if (!in_array($ext, $allowedExtensions)) {
+                    $rejectedInvalidFormat++;
+                    continue;
+                }
+
+                $cleanBaseLower = strtolower($cleanBase);
+                $nameWithoutExt = strtolower(pathinfo($cleanBase, PATHINFO_FILENAME));
+
+                if (isset($expiredPhotoTargets[$cleanBaseLower]) || isset($expiredPhotoTargets[$nameWithoutExt])) {
+                    $rejectedOlderThanYear++;
+                    continue;
+                }
+
+                $target = $validPhotoTargets[$cleanBaseLower] ?? $validPhotoTargets[$nameWithoutExt] ?? null;
+                if (!$target) {
+                    $skippedNoMatch++;
+                    continue;
+                }
+
+                $destPath = $destDir . DIRECTORY_SEPARATOR . $cleanBase;
+                $stream = $zip->getStream($entryName);
+                if ($stream) {
+                    $out = fopen($destPath, 'wb');
+                    stream_copy_to_stream($stream, $out);
+                    fclose($out);
+                    fclose($stream);
+
+                    $measurementId = $target['id'];
+                    $photoRelative = '/measurements/' . $cleanBase;
+
+                    DB::table('measurements')
+                        ->where('id', $measurementId)
+                        ->update([
+                            'data' => DB::raw("JSON_SET(data, '$.foto', " . DB::getPdo()->quote($photoRelative) . ")")
+                        ]);
+
+                    $updatedMeasurementIds[] = $measurementId;
+                    $linkedCount++;
+                }
+            }
+
+            $zip->close();
+        }
+
+        // ========================================================
+        // CASO B: Lote de fotos individuales (Multi-file)
+        // ========================================================
+        if ($request->hasFile('photos')) {
+            $photos = $request->file('photos');
+            foreach ($photos as $photo) {
+                if (!$photo->isValid()) {
+                    $rejectedInvalidFormat++;
+                    continue;
+                }
+
+                $cleanBase = basename($photo->getClientOriginalName());
+                $ext = strtolower($photo->getClientOriginalExtension());
+                $totalEvaluated++;
+
+                if (!in_array($ext, $allowedExtensions)) {
+                    $rejectedInvalidFormat++;
+                    continue;
+                }
+
+                $cleanBaseLower = strtolower($cleanBase);
+                $nameWithoutExt = strtolower(pathinfo($cleanBase, PATHINFO_FILENAME));
+
+                if (isset($expiredPhotoTargets[$cleanBaseLower]) || isset($expiredPhotoTargets[$nameWithoutExt])) {
+                    $rejectedOlderThanYear++;
+                    continue;
+                }
+
+                $target = $validPhotoTargets[$cleanBaseLower] ?? $validPhotoTargets[$nameWithoutExt] ?? null;
+                if (!$target) {
+                    $skippedNoMatch++;
+                    continue;
+                }
+
+                $photo->move($destDir, $cleanBase);
+                $measurementId = $target['id'];
+                $photoRelative = '/measurements/' . $cleanBase;
+
+                DB::table('measurements')
+                    ->where('id', $measurementId)
+                    ->update([
+                        'data' => DB::raw("JSON_SET(data, '$.foto', " . DB::getPdo()->quote($photoRelative) . ")")
+                    ]);
+
+                $updatedMeasurementIds[] = $measurementId;
+                $linkedCount++;
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Procesamiento masivo de fotos completado con éxito.',
+            'summary' => [
+                'total_evaluated' => $totalEvaluated,
+                'linked_count' => $linkedCount,
+                'rejected_older_than_year' => $rejectedOlderThanYear,
+                'skipped_no_match' => $skippedNoMatch,
+                'rejected_invalid_format' => $rejectedInvalidFormat,
+            ]
         ]);
     }
 

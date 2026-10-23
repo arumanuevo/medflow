@@ -301,6 +301,13 @@
                 justify-content: center;
             }
 
+            .measurement-table-wrapper {
+                overflow-x: auto !important;
+                max-width: 100% !important;
+                width: 100% !important;
+                -webkit-overflow-scrolling: touch;
+            }
+
             .measurement-table-wrapper .table th,
             .measurement-table-wrapper .table td {
                 padding: 0.3rem 0.3rem;
@@ -323,18 +330,27 @@
                     <div class="card-header bg-primary text-white">
                         <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
                             <h4 class="mb-0 d-flex align-items-center gap-2">
-                                <i class="bi bi-graph-up"></i>
-                                <span>Listado de Mediciones</span>
+                                <i class="bi bi-graph-up-arrow"></i>
+                                <span>Mediciones y Consumos</span>
                                 <span id="totalCountBadge" class="badge bg-light text-dark ms-2"
                                     style="font-size: 0.7rem;">0</span>
                             </h4>
 
-                            <div class="card-header-tools">
-                                <button class="btn btn-warning" id="toggleErrors">
-                                    <i class="bi bi-exclamation-triangle me-1"></i> Mostrar/Ocultar Errores
+                            <div class="card-header-tools d-flex flex-wrap gap-2">
+                                <button class="btn btn-warning btn-sm" id="btnOpenGlobalRadar" title="Escanear anomalías en todos los sensores">
+                                    <i class="bi bi-radar me-1"></i> Radar Global
                                 </button>
-                                <a href="{{ route('sensor-groups.index') }}" class="btn btn-light">
-                                    <i class="bi bi-arrow-left me-1"></i> Volver a Grupos
+                                <button class="btn btn-info text-white btn-sm" id="btnBulkUploadPhotos" title="Subir lote de fotos o archivo .ZIP">
+                                    <i class="bi bi-cloud-arrow-up me-1"></i> Carga Masiva Fotos
+                                </button>
+                                <button class="btn btn-success btn-sm" id="btnExportExcel" title="Exportar registros filtrados a Excel">
+                                    <i class="bi bi-file-earmark-excel me-1"></i> Exportar a Excel
+                                </button>
+                                <button class="btn btn-outline-light btn-sm" id="toggleErrors" title="Mostrar u ocultar auditoría de errores">
+                                    <i class="bi bi-exclamation-triangle me-1"></i> Auditoría
+                                </button>
+                                <a href="{{ route('sensor-groups.index') }}" class="btn btn-light btn-sm">
+                                    <i class="bi bi-arrow-left me-1"></i> Grupos
                                 </a>
                             </div>
                         </div>
@@ -461,8 +477,8 @@
                         </div>
 
                         <!-- Tabla de Mediciones -->
-                        <div class="measurement-table-wrapper p-2">
-                            <table class="table table-bordered table-striped table-hover" id="measurementsTable">
+                        <div class="measurement-table-wrapper table-responsive p-2">
+                            <table class="table table-bordered table-striped table-hover mb-0" id="measurementsTable">
                                 <thead>
                                     <tr>
                                         <!-- Checkbox para eliminar varios -->
@@ -476,13 +492,16 @@
                                         <th>Identificador</th>
                                         <th>Grupo</th>
                                         <th>Plantilla</th>
-                                        <th>Valor</th>
-                                        <th>Datos Dinámicos (Medición)</th>
-                                        <th class="sortable" data-field="measured_at" style="cursor: pointer;">
-                                            Fecha <i class="bi bi-arrow-down-up text-muted ms-1"
+                                        <th class="sortable" data-field="valor" style="cursor: pointer;">
+                                            Valor <i class="bi bi-arrow-down-up text-muted ms-1"
                                                 style="font-size: 0.75rem;"></i>
                                         </th>
-                                        <th>Consumo</th>
+                                        <th>Datos Dinámicos (Medición)</th>
+                                        <th class="sortable" data-field="measured_at" style="cursor: pointer;">
+                                            Fecha <i class="bi bi-arrow-down text-primary ms-1"
+                                                style="font-size: 0.75rem;"></i>
+                                        </th>
+                                        <th>Consumo / Costo</th>
                                         <th>Estado</th>
                                         <th>Foto</th>
                                         <th>Acciones</th>
@@ -654,6 +673,297 @@
         </div>
     </div>
 
+    <!-- Modal para Carga Masiva de Fotos (ZIP o Multi-archivo) con Validación Estricta -->
+    <div class="modal fade" id="bulkUploadPhotosModal" tabindex="-1" aria-labelledby="bulkUploadPhotosModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content shadow-lg border-0 rounded-4">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="bulkUploadPhotosModalLabel">
+                        <i class="bi bi-cloud-arrow-up me-2"></i> Asistente de Carga Masiva de Fotos
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    {{-- Alerta informativa y reglas de seguridad --}}
+                    <div class="alert alert-info border-0 rounded-3 mb-3" style="background-color: #e8f4fd;">
+                        <h6 class="fw-bold text-primary mb-2">
+                            <i class="bi bi-shield-check me-1"></i> Políticas estrictas de almacenamiento y vinculación
+                        </h6>
+                        <ul class="mb-0 small text-dark" style="line-height: 1.5;">
+                            <li><strong>⏱️ Regla de Retención de 1 Año (365 días):</strong> Solo se aceptarán y guardarán fotos vinculadas a mediciones tomadas en los últimos 365 días. Toda foto con mayor antigüedad será rechazada para evitar sobrecargar el almacenamiento.</li>
+                            <li><strong>🔗 Coincidencia estricta con la Base de Datos:</strong> El nombre de cada archivo debe coincidir exactamente con el nombre de foto registrado en tus mediciones (con o sin extensión). Fotos huérfanas sin coincidencia serán descartadas automáticamente sin ocupar espacio.</li>
+                            <li><strong>📦 Formatos soportados:</strong> Puedes subir un archivo comprimido <strong>.ZIP</strong> (recomendado para lotes masivos de miles de fotos) o seleccionar <strong>múltiples imágenes</strong> (.jpg, .jpeg, .png, .webp).</li>
+                        </ul>
+                    </div>
+
+                    {{-- Zona de carga Drag and Drop --}}
+                    <div id="bulkDropZone" class="border border-2 border-dashed rounded-4 p-4 text-center bg-light" style="cursor: pointer; transition: all 0.2s ease;">
+                        <input type="file" id="bulkPhotoInput" class="d-none" multiple accept=".zip,.jpg,.jpeg,.png,.webp">
+                        <i class="bi bi-file-earmark-zip text-primary" style="font-size: 3rem;"></i>
+                        <h6 class="fw-bold mt-2">Arrastra aquí tu archivo .ZIP o tus fotos seleccionadas</h6>
+                        <p class="text-muted small mb-3">O haz clic para explorar los archivos de tu equipo</p>
+                        <button type="button" class="btn btn-outline-primary btn-sm px-3" onclick="$('#bulkPhotoInput').click()">
+                            <i class="bi bi-folder2-open me-1"></i> Seleccionar Archivos
+                        </button>
+                        <div id="selectedFilesSummary" class="mt-3 text-primary fw-semibold small d-none"></div>
+                    </div>
+
+                    {{-- Barra de Progreso --}}
+                    <div id="bulkUploadProgressContainer" class="mt-3 d-none">
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Subiendo y procesando fotos en el servidor...</span>
+                            <span id="bulkUploadPercent">0%</span>
+                        </div>
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" id="bulkUploadProgressBar" style="width: 0%;"></div>
+                        </div>
+                    </div>
+
+                    {{-- Resumen de Resultados tras la Carga --}}
+                    <div id="bulkUploadResults" class="mt-3 d-none">
+                        <h6 class="fw-bold mb-2"><i class="bi bi-clipboard-data me-1"></i> Resumen del Procesamiento:</h6>
+                        <div class="row g-2 text-center small">
+                            <div class="col-6 col-md-3">
+                                <div class="p-2 border rounded bg-white">
+                                    <div class="text-muted">Total Analizadas</div>
+                                    <div class="fs-5 fw-bold text-dark" id="statTotalEvaluated">0</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="p-2 border rounded bg-success-subtle text-success border-success">
+                                    <div>Vinculadas</div>
+                                    <div class="fs-5 fw-bold" id="statLinkedCount">0</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="p-2 border rounded bg-warning-subtle text-warning-emphasis border-warning">
+                                    <div>&gt; 1 Año (Rechazadas)</div>
+                                    <div class="fs-5 fw-bold" id="statRejectedOlder">0</div>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="p-2 border rounded bg-secondary-subtle text-secondary border-secondary">
+                                    <div>Sin Coincidencia (BD)</div>
+                                    <div class="fs-5 fw-bold" id="statSkippedNoMatch">0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary btn-sm px-3" id="btnSubmitBulkPhotos" disabled>
+                        <i class="bi bi-cloud-arrow-up me-1"></i> Iniciar Carga y Validación
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Radar Global de Anomalías -->
+    <div class="modal fade" id="globalRadarModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title"><i class="bi bi-radar"></i> Radar Global de Anomalías</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-secondary py-2 px-3 mb-3 pointer-events-none">
+                        <strong class="text-danger small"><i class="bi bi-shield-exclamation"></i> ¿Qué hace este Radar?</strong><br>
+                        <small class="text-muted" style="font-size: 0.8rem;">
+                            Escaneará <b>todos tus sensores</b> utilizando la tasa diaria de consumo y regresará un listado de los sensores que estén arrojando anomalías bajo la sensibilidad especificada.
+                        </small>
+                    </div>
+
+                    <!-- Configuración del escaneo -->
+                    <div class="row align-items-end mb-3 bg-light p-2 rounded mx-0 border">
+                        <div class="col-md-3">
+                            <label for="radarStartDate" class="form-label mb-1">Cota Inicial</label>
+                            <input type="date" class="form-control form-control-sm" id="radarStartDate">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="radarEndDate" class="form-label mb-1">Cota Final</label>
+                            <input type="date" class="form-control form-control-sm" id="radarEndDate">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="radarThreshold" class="form-label mb-1 text-danger" title="Salto en la tasa diaria">
+                                <i class="bi bi-exclamation-triangle"></i> Anomalía
+                            </label>
+                            <div class="input-group input-group-sm">
+                                <input type="number" class="form-control text-danger fw-bold" id="radarThreshold" value="50" min="1" step="5">
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="radarStagnation" class="form-label mb-1 text-secondary" title="Alerta si delta es 0 luego de X días">
+                                <i class="bi bi-hourglass-top"></i> Estancamiento
+                            </label>
+                            <div class="input-group input-group-sm">
+                                <input type="number" class="form-control text-secondary fw-bold" id="radarStagnation" value="15" min="1" step="1">
+                                <span class="input-group-text">Días</span>
+                            </div>
+                        </div>
+                        <div class="col-md-2 d-grid px-1">
+                            <button class="btn btn-warning btn-sm" id="btnScanGlobal" title="Iniciar Radar">
+                                <i class="bi bi-search"></i> Escanear
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="radarLoading" class="text-center d-none py-4">
+                        <div class="spinner-border text-warning" role="status"></div>
+                        <p class="mt-2 text-muted mb-0">Rastreando trazos matemáticos, por favor espere...</p>
+                    </div>
+
+                    <div id="radarResults" class="d-none">
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="text-danger fw-bold mb-0">
+                                <i class="bi bi-exclamation-octagon-fill"></i> Novedades Detectadas: <span id="radarCount">0</span>
+                            </h6>
+                            <div class="input-group input-group-sm w-50">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" class="form-control" id="radarSearch" placeholder="Buscar sensor o ID...">
+                            </div>
+                        </div>
+                        <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
+                            <table class="table table-sm table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Sensor</th>
+                                        <th>Incidencias</th>
+                                        <th>Acción Directa</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="radarTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Análisis Avanzado por Sensor con Gráfico -->
+    <div class="modal fade" id="analyzeSensorModal" tabindex="-1" aria-labelledby="analyzeSensorModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="analyzeSensorModalLabel">
+                        <i class="bi bi-bar-chart-fill"></i> Análisis Avanzado: <span id="analyzeSensorName"></span>
+                    </h5>
+                    <div class="d-flex align-items-center ms-auto">
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div id="metaLoadingStatus" class="text-center text-muted small mb-2 d-none">
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Sincronizando fechas disponibles...
+                    </div>
+
+                    <div id="metaAvailableDates" class="alert alert-info py-1 px-3 mb-3 d-none">
+                        <strong>Fechas disponibles:</strong> entre <span id="metaFirstDate"></span> y <span id="metaLastDate"></span>
+                    </div>
+
+                    <!-- Configuración del rango -->
+                    <div class="row align-items-end mb-3 bg-light p-2 rounded mx-0 border">
+                        <div class="col-md-3">
+                            <label for="analyzeStartDate" class="form-label mb-1">Inicio</label>
+                            <input type="date" class="form-control form-control-sm" id="analyzeStartDate">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="analyzeEndDate" class="form-label mb-1">Corte</label>
+                            <input type="date" class="form-control form-control-sm" id="analyzeEndDate">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="analyzeThreshold" class="form-label mb-1 text-danger small">
+                                <i class="bi bi-exclamation-triangle"></i> Anomalía
+                            </label>
+                            <div class="input-group input-group-sm">
+                                <input type="number" class="form-control text-danger fw-bold" id="analyzeThreshold" value="50" min="1" step="5">
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="analyzeStagnation" class="form-label mb-1 text-secondary small">
+                                <i class="bi bi-hourglass-top"></i> Estancamiento
+                            </label>
+                            <div class="input-group input-group-sm">
+                                <input type="number" class="form-control text-secondary fw-bold" id="analyzeStagnation" value="15" min="1" step="1">
+                                <span class="input-group-text">Días</span>
+                            </div>
+                        </div>
+                        <div class="col-md-1 d-grid px-1">
+                            <button class="btn btn-primary btn-sm" id="btnCalculateRange" title="Calcular Rango">
+                                <i class="bi bi-play-fill"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="analyzeSensorId" value="">
+
+                    <!-- Resultados del Dashboard Analítico -->
+                    <div id="analyzeResults" class="d-none">
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-12 mb-1">
+                                <div class="card border-dark shadow-sm" style="background-color: #f8f9fa;">
+                                    <div class="card-body text-center py-2">
+                                        <h6 class="text-muted mb-0"><i class="bi bi-cash-coin"></i> Facturación Total Estimada</h6>
+                                        <h3 class="text-dark my-1 fw-bold" id="resFinalBilledTotal">0</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100 border-info shadow-sm">
+                                    <div class="card-body text-center p-2">
+                                        <h6 class="text-muted mb-1" style="font-size: 0.8rem;"><i class="bi bi-speedometer2"></i> Consumo Lote</h6>
+                                        <h4 class="text-info my-1 fw-bold" id="resTotalDelta">0</h4>
+                                        <p class="mb-0 text-muted" style="font-size: 0.65rem;"><span id="resMeasurementsCount" class="fw-bold"></span> lect.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100 border-success shadow-sm" style="background-color: #f0fdf4;">
+                                    <div class="card-body text-center p-2">
+                                        <h6 class="text-success mb-1" style="font-size: 0.8rem;"><i class="bi bi-tree-fill"></i> Cargos Comunes</h6>
+                                        <h4 class="text-success my-1 fw-bold" id="resCommunityContribution">0</h4>
+                                        <p class="mb-0 text-muted" style="font-size: 0.65rem;">+ Prorrateado</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100 border-secondary shadow-sm">
+                                    <div class="card-body text-center p-2">
+                                        <h6 class="text-muted mb-1" style="font-size: 0.8rem;"><i class="bi bi-calendar3"></i> Prom. Diario</h6>
+                                        <h4 class="text-secondary my-1 fw-bold" id="resDailyAvg">0</h4>
+                                        <p class="mb-0 text-muted" style="font-size: 0.65rem;"><span id="resDaysBetween"></span> días</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Gráfico Chart.js -->
+                        <div class="card shadow-sm border-0 mb-2">
+                            <div class="card-body p-2" style="position: relative; height: 230px; width: 100%;">
+                                <canvas id="evolutionChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="analyzeLoading" class="text-center d-none py-4">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="mt-2 text-muted mb-0">Calculando analíticas y dibujando trazados...</p>
+                    </div>
+                </div>
+                <div class="modal-footer p-2">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Barra de acciones flotante (se muestra al seleccionar filas) -->
     <div id="bulkActionsBar"
         class="position-fixed bottom-0 start-50 translate-middle-x mb-4 shadow rounded px-4 py-3 bg-white"
@@ -669,6 +979,7 @@
 @endsection
 
 @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         $(document).ready(function () {
             let currentPage = 1;
@@ -805,12 +1116,22 @@
             // Renderizar dinámicamente los encabezados de la tabla
             function renderTableHeaders(groupExtraFields) {
                 activeGroupExtraFields = groupExtraFields || [];
+
+                const getSortIcon = (field) => {
+                    if (currentSortField === field) {
+                        return currentSortDirection === 'asc'
+                            ? '<i class="bi bi-arrow-up text-primary ms-1" style="font-size: 0.75rem;"></i>'
+                            : '<i class="bi bi-arrow-down text-primary ms-1" style="font-size: 0.75rem;"></i>';
+                    }
+                    return '<i class="bi bi-arrow-down-up text-muted ms-1" style="font-size: 0.75rem;"></i>';
+                };
+
                 let headersHtml = `
                     <th style="width: 40px; text-align: center;">
                         <input class="form-check-input" type="checkbox" id="selectAllMeasurements">
                     </th>
                     <th class="sortable" data-field="sensor_id" style="cursor: pointer;">
-                        Sensor <i class="bi bi-arrow-down-up text-muted ms-1" style="font-size: 0.75rem;"></i>
+                        Sensor ${getSortIcon('sensor_id')}
                     </th>
                     <th>Identificador</th>
                     <th>Grupo</th>
@@ -828,12 +1149,14 @@
 
                 headersHtml += `
                     <th>Plantilla</th>
-                    <th>Valor</th>
+                    <th class="sortable" data-field="valor" style="cursor: pointer;">
+                        Valor ${getSortIcon('valor')}
+                    </th>
                     <th>Datos Dinámicos (Medición)</th>
                     <th class="sortable" data-field="measured_at" style="cursor: pointer;">
-                        Fecha <i class="bi bi-arrow-down-up text-muted ms-1" style="font-size: 0.75rem;"></i>
+                        Fecha ${getSortIcon('measured_at')}
                     </th>
-                    <th>Consumo</th>
+                    <th>Consumo / Costo</th>
                     <th>Estado</th>
                     <th>Foto</th>
                     <th>Acciones</th>
@@ -897,6 +1220,20 @@
                     const statusBadge = getStatusBadge(status);
                     const consumption = measurement.consumption !== undefined ? measurement.consumption : 'N/A';
                     const consumptionClass = consumption < 0 ? 'text-danger fw-bold' : '';
+
+                    let consumptionCellHtml = '';
+                    if (consumption === 'N/A' || measurement.error_type === 'first_measurement') {
+                        consumptionCellHtml = '<span class="badge bg-secondary">Inicial (0)</span>';
+                    } else {
+                        const badgeColor = consumption < 0 ? 'danger' : 'success';
+                        consumptionCellHtml = `<span class="badge bg-${badgeColor}">${consumption > 0 ? '+' : ''}${consumption} ${unit}</span>`;
+                    }
+                    if (measurement.days_between) {
+                        consumptionCellHtml += `<div class="text-muted mt-1" style="font-size:0.68rem;"><i class="bi bi-clock-history"></i> ${measurement.days_between} días (prom: ${measurement.daily_average || 0}/d)</div>`;
+                    }
+                    if (measurement.cost !== null && measurement.cost !== undefined) {
+                        consumptionCellHtml += `<div class="text-success fw-bold mt-1" style="font-size:0.72rem;"><i class="bi bi-cash-stack"></i> $${Number(measurement.cost).toLocaleString('es-ES', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${escapeHtml(measurement.currency || 'ARS')}</div>`;
+                    }
 
                     // ✅ Datos del sensor desde campos explícitos del API
                     const sensor = measurement.sensor || {};
@@ -964,7 +1301,7 @@
                                                                                                 <td><strong>${value} ${unit}</strong></td>
                                                                                                 <td>${measurementDataDisplay}</td>
                                                                                                 <td>${date}</td>
-                                                                                                <td class="${consumptionClass}">${consumption}</td>
+                                                                                                <td class="${consumptionClass}">${consumptionCellHtml}</td>
                                                                                                 <td>${statusBadge}</td>
                                                                                                 <td>
                                                                                                     ${photoPath ?
@@ -977,6 +1314,12 @@
                                                                                                 </td>
                                                                                                 <td>
                                                                                                     <div class="table-actions">
+                                                                                                        <button class="btn btn-sm btn-outline-info analyzeSensorBtn" 
+                                                                                                                title="Análisis Avanzado y Gráfico de Consumo" 
+                                                                                                                data-sensor-id="${sensor.id || measurement.sensor_id}" 
+                                                                                                                data-sensor-name="${escapeHtml(sensorName)}">
+                                                                                                            <i class="bi bi-bar-chart-fill"></i>
+                                                                                                        </button>
                                                                                                         ${extraCount > 0 ? `
                                                                                                             <button class="btn btn-sm btn-outline-primary viewSensorMetaBtn" 
                                                                                                                     title="Ver atributos del sensor (${extraCount})" 
@@ -1895,6 +2238,436 @@
                     if (!isDraggingPhoto) return;
                     isDraggingPhoto = false;
                     if (photoEl) photoEl.style.transition = 'transform 0.08s ease-out';
+                });
+            }
+
+            // =========================================================
+            // 📊 EXPORTAR A EXCEL (MEDICIONES Y CONSUMOS FILTRADOS)
+            // =========================================================
+            $('#btnExportExcel').click(function () {
+                const params = {
+                    group_id: $('#groupFilter').val() || '',
+                    sensor_id: $('#sensorFilter').val() || '',
+                    date_from: $('#dateFrom').val() || '',
+                    date_to: $('#dateTo').val() || '',
+                    error_type: currentErrorType || '',
+                    is_community: filterOnlyCommunity ? 'true' : '',
+                    search: $('#searchInput').val() || '',
+                    sort_field: currentSortField,
+                    sort_direction: currentSortDirection
+                };
+
+                Object.keys(params).forEach(k => {
+                    if (!params[k]) delete params[k];
+                });
+
+                window.location.href = '/api/measurements/export?' + new URLSearchParams(params).toString();
+            });
+
+            // =========================================================
+            // 📦 ASISTENTE DE CARGA MASIVA DE FOTOS (ZIP / MULTI-ARCHIVO)
+            // =========================================================
+            let selectedBulkFiles = [];
+
+            $('#btnBulkUploadPhotos').click(function () {
+                selectedBulkFiles = [];
+                $('#bulkPhotoInput').val('');
+                $('#selectedFilesSummary').addClass('d-none').empty();
+                $('#bulkUploadProgressContainer').addClass('d-none');
+                $('#bulkUploadProgressBar').css('width', '0%');
+                $('#bulkUploadPercent').text('0%');
+                $('#bulkUploadResults').addClass('d-none');
+                $('#btnSubmitBulkPhotos').prop('disabled', true);
+                $('#bulkUploadPhotosModal').modal('show');
+            });
+
+            const dropZone = document.getElementById('bulkDropZone');
+            if (dropZone) {
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dropZone.classList.add('bg-primary-subtle', 'border-primary');
+                    }, false);
+                });
+
+                ['dragleave', 'drop'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dropZone.classList.remove('bg-primary-subtle', 'border-primary');
+                    }, false);
+                });
+
+                dropZone.addEventListener('drop', (e) => {
+                    const dt = e.dataTransfer;
+                    if (dt && dt.files && dt.files.length > 0) {
+                        handleSelectedBulkFiles(dt.files);
+                    }
+                }, false);
+            }
+
+            $('#bulkPhotoInput').on('change', function () {
+                if (this.files && this.files.length > 0) {
+                    handleSelectedBulkFiles(this.files);
+                }
+            });
+
+            function handleSelectedBulkFiles(files) {
+                selectedBulkFiles = Array.from(files);
+                if (selectedBulkFiles.length === 0) {
+                    $('#btnSubmitBulkPhotos').prop('disabled', true);
+                    return;
+                }
+
+                const isZip = selectedBulkFiles.length === 1 && selectedBulkFiles[0].name.toLowerCase().endsWith('.zip');
+                let summaryText = '';
+                if (isZip) {
+                    const sizeMb = (selectedBulkFiles[0].size / (1024 * 1024)).toFixed(2);
+                    summaryText = `<i class="bi bi-file-earmark-zip-fill me-1"></i> Archivo ZIP listo: <strong>${escapeHtml(selectedBulkFiles[0].name)}</strong> (${sizeMb} MB)`;
+                } else {
+                    summaryText = `<i class="bi bi-images me-1"></i> <strong>${selectedBulkFiles.length}</strong> fotos seleccionadas para carga.`;
+                }
+
+                $('#selectedFilesSummary').removeClass('d-none').html(summaryText);
+                $('#btnSubmitBulkPhotos').prop('disabled', false);
+                $('#bulkUploadResults').addClass('d-none');
+            }
+
+            $('#btnSubmitBulkPhotos').click(function () {
+                if (selectedBulkFiles.length === 0) return;
+
+                const formData = new FormData();
+                const isZip = selectedBulkFiles.length === 1 && selectedBulkFiles[0].name.toLowerCase().endsWith('.zip');
+
+                if (isZip) {
+                    formData.append('zip_file', selectedBulkFiles[0]);
+                } else {
+                    selectedBulkFiles.forEach(file => {
+                        formData.append('photos[]', file);
+                    });
+                }
+
+                $('#btnSubmitBulkPhotos').prop('disabled', true);
+                $('#bulkUploadProgressContainer').removeClass('d-none');
+                $('#bulkUploadProgressBar').css('width', '10%');
+                $('#bulkUploadPercent').text('10%');
+
+                $.ajax({
+                    url: '/api/measurements/bulk-upload-photos',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    xhr: function () {
+                        const xhr = new window.XMLHttpRequest();
+                        xhr.upload.addEventListener('progress', function (evt) {
+                            if (evt.lengthComputable) {
+                                const percentComplete = Math.round((evt.loaded / evt.total) * 90);
+                                $('#bulkUploadProgressBar').css('width', percentComplete + '%');
+                                $('#bulkUploadPercent').text(percentComplete + '%');
+                            }
+                        }, false);
+                        return xhr;
+                    },
+                    success: function (res) {
+                        $('#bulkUploadProgressBar').css('width', '100%');
+                        $('#bulkUploadPercent').text('100%');
+
+                        if (res.success && res.summary) {
+                            const s = res.summary;
+                            $('#statTotalEvaluated').text(s.total_evaluated);
+                            $('#statLinkedCount').text(s.linked_count);
+                            $('#statRejectedOlder').text(s.rejected_older_than_year);
+                            $('#statSkippedNoMatch').text(s.skipped_no_match);
+                            $('#bulkUploadResults').removeClass('d-none');
+
+                            // Recargar la tabla para mostrar las nuevas fotos inmediatamente
+                            loadMeasurements();
+                        } else {
+                            alert(res.message || 'Error en la subida.');
+                        }
+                    },
+                    error: function (xhr) {
+                        $('#bulkUploadProgressContainer').addClass('d-none');
+                        $('#btnSubmitBulkPhotos').prop('disabled', false);
+                        alert(xhr.responseJSON?.message || 'Error al procesar el lote de fotos en el servidor.');
+                    }
+                });
+            });
+
+            // =========================================================
+            // 📡 RADAR GLOBAL DE ANOMALÍAS
+            // =========================================================
+            $('#btnOpenGlobalRadar').click(function () {
+                if (!$('#radarStartDate').val()) {
+                    const now = new Date();
+                    const startStr = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().substring(0, 10);
+                    $('#radarStartDate').val(startStr);
+                }
+                if (!$('#radarEndDate').val()) {
+                    const now = new Date();
+                    const endStr = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().substring(0, 10);
+                    $('#radarEndDate').val(endStr);
+                }
+                $('#radarResults').addClass('d-none');
+                $('#radarLoading').addClass('d-none');
+                $('#globalRadarModal').modal('show');
+            });
+
+            $('#btnScanGlobal').click(function () {
+                const start = $('#radarStartDate').val();
+                const end = $('#radarEndDate').val();
+                const threshold = $('#radarThreshold').val() || 50;
+                const stagnation = $('#radarStagnation').val() || 15;
+
+                if (!start || !end) {
+                    alert('Selecciona cotas de inicio y fin.');
+                    return;
+                }
+
+                $('#radarResults').addClass('d-none');
+                $('#radarLoading').removeClass('d-none');
+
+                $.ajax({
+                    url: '/api/consumptions/global-anomalies',
+                    type: 'POST',
+                    data: {
+                        start_date: start,
+                        end_date: end,
+                        anomaly_threshold: threshold,
+                        stagnation_days: stagnation
+                    },
+                    success: function (res) {
+                        $('#radarLoading').addClass('d-none');
+                        if (res.success && res.data) {
+                            $('#radarCount').text(res.data.length);
+                            const tbody = $('#radarTableBody');
+                            tbody.empty();
+
+                            if (res.data.length === 0) {
+                                tbody.append('<tr><td colspan="3" class="text-center text-success py-3"><i class="bi bi-check-circle-fill"></i> Todos los sistemas bajo límites nominales. Cero anomalías temporales encontradas.</td></tr>');
+                            } else {
+                                res.data.forEach(function (item) {
+                                    let tagsHtml = '';
+                                    if (item.acceleration_count > 0) {
+                                        tagsHtml += '<span class="badge bg-danger shadow-sm me-1 mt-1"><i class="bi bi-graph-up-arrow"></i> ' + item.acceleration_count + ' picos</span>';
+                                    }
+                                    if (item.stagnation_count > 0) {
+                                        tagsHtml += '<span class="badge bg-secondary shadow-sm me-1 mt-1"><i class="bi bi-hourglass-bottom"></i> ' + item.stagnation_count + ' estancados</span>';
+                                    }
+
+                                    tbody.append(
+                                        '<tr>' +
+                                        '   <td><strong>' + escapeHtml(item.sensor_name) + '</strong><br><code class="small">' + escapeHtml(item.sensor_identifier) + '</code></td>' +
+                                        '   <td>' + tagsHtml + '</td>' +
+                                        '   <td>' +
+                                        '       <button class="btn btn-sm btn-primary zoomSensorBtn" data-sensor-id="' + item.sensor_id + '" data-sensor-name="' + escapeHtml(item.sensor_name) + '"><i class="bi bi-bar-chart-fill"></i> Zoom</button>' +
+                                        '   </td>' +
+                                        '</tr>'
+                                    );
+                                });
+                            }
+                            $('#radarResults').removeClass('d-none');
+                            $('#radarSearch').val('');
+                        } else {
+                            alert(res.message || 'Error en radar.');
+                        }
+                    },
+                    error: function (xhr) {
+                        $('#radarLoading').addClass('d-none');
+                        alert(xhr.responseJSON?.message || 'Error escaneando anomalías masivas.');
+                    }
+                });
+            });
+
+            $(document).on('click', '.zoomSensorBtn', function () {
+                const sId = $(this).data('sensor-id');
+                const sName = $(this).data('sensor-name');
+                const start = $('#radarStartDate').val();
+                const end = $('#radarEndDate').val();
+                $('#globalRadarModal').modal('hide');
+                setTimeout(() => {
+                    openAnalyticsModal(sId, sName, true, start, end);
+                }, 400);
+            });
+
+            $('#radarSearch').on('keyup', function () {
+                const value = $(this).val().toLowerCase();
+                $('#radarTableBody tr').filter(function () {
+                    if ($(this).find('.bi-check-circle-fill').length > 0) return;
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+                });
+            });
+
+            // =========================================================
+            // 📈 ANÁLISIS AVANZADO Y GRÁFICO POR SENSOR
+            // =========================================================
+            let evolutionChartInstance = null;
+
+            $(document).on('click', '.analyzeSensorBtn', function (e) {
+                e.preventDefault();
+                const sensorId = $(this).data('sensor-id');
+                const sensorName = $(this).data('sensor-name');
+                openAnalyticsModal(sensorId, sensorName, true);
+            });
+
+            function openAnalyticsModal(sensorId, sensorName, autoCalc = false, inheritStartDate = null, inheritEndDate = null) {
+                $('#analyzeSensorId').val(sensorId);
+                $('#analyzeSensorName').text(sensorName);
+
+                if (inheritStartDate) {
+                    $('#analyzeStartDate').val(inheritStartDate);
+                } else if (!$('#analyzeStartDate').val()) {
+                    const now = new Date();
+                    const startStr = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().substring(0, 10);
+                    $('#analyzeStartDate').val(startStr);
+                }
+
+                if (inheritEndDate) {
+                    $('#analyzeEndDate').val(inheritEndDate);
+                } else if (!$('#analyzeEndDate').val()) {
+                    const now = new Date();
+                    const endStr = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().substring(0, 10);
+                    $('#analyzeEndDate').val(endStr);
+                }
+
+                $('#analyzeResults').addClass('d-none');
+                $('#analyzeLoading').addClass('d-none');
+                $('#metaAvailableDates').addClass('d-none');
+                $('#metaLoadingStatus').removeClass('d-none');
+
+                $('#analyzeSensorModal').modal('show');
+
+                $.ajax({
+                    url: '/api/consumptions/sensor-meta/' + sensorId,
+                    type: 'GET',
+                    success: function (res) {
+                        $('#metaLoadingStatus').addClass('d-none');
+                        if (res.success && res.data && res.data.first_date && res.data.last_date) {
+                            $('#metaFirstDate').text(new Date(res.data.first_date).toLocaleDateString());
+                            $('#metaLastDate').text(new Date(res.data.last_date).toLocaleDateString());
+                            $('#metaAvailableDates').removeClass('d-none');
+                        }
+                    },
+                    error: function () {
+                        $('#metaLoadingStatus').addClass('d-none');
+                    },
+                    complete: function () {
+                        if (autoCalc) {
+                            $('#btnCalculateRange').click();
+                        }
+                    }
+                });
+            }
+
+            $('#btnCalculateRange').click(function () {
+                const sensorId = $('#analyzeSensorId').val();
+                const start = $('#analyzeStartDate').val();
+                const end = $('#analyzeEndDate').val();
+                const threshold = $('#analyzeThreshold').val() || 50;
+                const stagnation = $('#analyzeStagnation').val() || 15;
+
+                if (!start || !end) {
+                    alert('Por favor selecciona ambas fechas.');
+                    return;
+                }
+
+                $('#analyzeResults').addClass('d-none');
+                $('#analyzeLoading').removeClass('d-none');
+
+                $.ajax({
+                    url: '/api/consumptions/calculate-range',
+                    type: 'POST',
+                    data: {
+                        sensor_id: sensorId,
+                        start_date: start,
+                        end_date: end,
+                        anomaly_threshold: threshold,
+                        stagnation_days: stagnation
+                    },
+                    success: function (res) {
+                        $('#analyzeLoading').addClass('d-none');
+                        if (res.success && res.data) {
+                            const d = res.data;
+
+                            $('#resTotalDelta').text(d.total_consumption + ' ' + d.unit);
+                            $('#resCommunityContribution').text('+' + (d.community_contribution || 0).toFixed(2) + ' ' + d.unit);
+                            if (d.financial_cost !== null && d.financial_cost !== undefined) {
+                                $('#resFinalBilledTotal').text(d.currency + ' $' + Number(d.financial_cost).toLocaleString('es-ES', { minimumFractionDigits: 2 }));
+                                $('#resFinalBilledTotal').removeClass('text-dark').addClass('text-success');
+                            } else {
+                                $('#resFinalBilledTotal').text((d.final_billed_total || d.total_consumption).toFixed(2) + ' ' + d.unit);
+                                $('#resFinalBilledTotal').removeClass('text-success').addClass('text-dark');
+                            }
+                            $('#resDailyAvg').text(d.daily_average + ' ' + d.unit);
+                            $('#resDaysBetween').text(parseFloat(d.days_between).toFixed(0));
+                            $('#resMeasurementsCount').text(d.measurements_count);
+
+                            renderEvolutionChart(d.chart_data, d.unit);
+                            $('#analyzeResults').removeClass('d-none');
+                        } else {
+                            alert(res.message || 'Error en cálculo.');
+                        }
+                    },
+                    error: function (xhr) {
+                        $('#analyzeLoading').addClass('d-none');
+                        alert(xhr.responseJSON?.message || 'No hay mediciones suficientes para analizar en este rango.');
+                    }
+                });
+            });
+
+            function renderEvolutionChart(chartData, unit) {
+                const canvas = document.getElementById('evolutionChart');
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+
+                if (evolutionChartInstance) {
+                    evolutionChartInstance.destroy();
+                }
+
+                if (!chartData || chartData.length === 0) return;
+
+                const labels = chartData.map(c => c.date);
+                const dataValues = chartData.map(c => c.value);
+                const pointColors = chartData.map(c => c.anomaly ? 'rgba(220, 53, 69, 1)' : 'rgba(13, 110, 253, 1)');
+                const pointRadius = chartData.map(c => c.anomaly ? 6 : 3);
+
+                evolutionChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Consumo registrado',
+                            data: dataValues,
+                            borderColor: 'rgba(13, 110, 253, 0.4)',
+                            backgroundColor: 'rgba(13, 110, 253, 0.05)',
+                            borderWidth: 2,
+                            pointBackgroundColor: pointColors,
+                            pointBorderColor: pointColors,
+                            pointRadius: pointRadius,
+                            pointHoverRadius: 8,
+                            fill: true,
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                title: { display: true, text: unit || 'unidades', font: { size: 10 } },
+                                ticks: { font: { size: 10 } }
+                            },
+                            x: {
+                                ticks: { font: { size: 9 }, maxRotation: 45, minRotation: 45 }
+                            }
+                        }
+                    }
                 });
             }
 

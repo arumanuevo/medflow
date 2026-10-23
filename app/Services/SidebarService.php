@@ -103,15 +103,9 @@ class SidebarService
             ],
             [
                 'icon' => 'bi bi-graph-up',
-                'label' => 'Mediciones',
+                'label' => 'Mediciones y Consumos',
                 'url' => '/mediciones',
-                'active' => request()->is('mediciones'),
-            ],
-            [
-                'icon' => 'bi bi-bar-chart-line',
-                'label' => 'Consumos',
-                'url' => '/consumptions',
-                'active' => request()->is('consumptions*'),
+                'active' => request()->is('mediciones*') || request()->is('consumptions*'),
             ]
         ];
 

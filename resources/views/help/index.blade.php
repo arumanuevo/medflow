@@ -80,10 +80,22 @@
                                     data-steps="Accede a &lt;strong&gt;Mediciones > Carga Masiva&lt;/strong&gt; para ver la lista de los indicadores.">
                                     <i class="bi bi-hdd-network me-1 text-success"></i> La medición masiva en ruta</a></li>
                             <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
-                                    data-bs-toggle="modal" data-bs-target="#helpModal" data-title="Consumos y Resúmenes"
-                                    data-content="Mediante el apartado 'Consumos' podrás visualizar líneas y gráficos radiales que reflejan la temperatura de tus máquinas o espacios durante los últimos meses. Además, podrás exportar todo en un enlace público o PDF vía Email."
-                                    data-steps="Dirígete a &lt;strong&gt;Dashboard&lt;/strong&gt; o a la vista de detalle de cualquier &lt;strong&gt;Sensor&lt;/strong&gt; particular para observar sus gráficas.">
-                                    <i class="bi bi-hdd-network me-1 text-success"></i> Entender los gráficos de Consumo</a>
+                                    data-bs-toggle="modal" data-bs-target="#helpModal" data-title="Módulo Unificado: Mediciones y Consumos"
+                                    data-content="Las pantallas de Mediciones y Consumos ahora están integradas en una única vista inteligente y ultra-rápida. En ella puedes consultar la lectura física del medidor, el consumo diferencial en m³ o kWh, el intervalo de días entre tomas, el promedio diario y el costo monetario calculado en base a la tarifa del grupo. Además, incluye botones para el Radar Global de Anomalías, Análisis Avanzado con gráficos por sensor, y Exportación completa a Excel (.xlsx) respetando todos los filtros que tengas aplicados."
+                                    data-steps="Ingresa a &lt;strong&gt;Mediciones y Consumos&lt;/strong&gt; desde el menú lateral. Utiliza los filtros de grupo, fecha o estado, y haz clic en &lt;strong&gt;Exportar a Excel&lt;/strong&gt; o en el icono de gráfico de cualquier sensor.">
+                                    <i class="bi bi-graph-up-arrow me-1 text-primary"></i> Vista Unificada de Mediciones y Consumos</a>
+                            </li>
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal" data-title="Carga Masiva de Fotos y Política de Retención"
+                                    data-content="En el listado de 'Mediciones y Consumos' dispones del botón 'Carga Masiva Fotos'. Esta herramienta te permite arrastrar un archivo comprimido .ZIP (recomendado para miles de fotos) o un lote de imágenes .JPG / .PNG. El sistema ejecuta una verificación estricta: solo se guardan fotos que coincidan con mediciones registradas en el último año (máximo 365 días), descartando fotos huérfanas o vencidas para resguardar la capacidad de almacenamiento de tu servidor."
+                                    data-steps="Haz clic en &lt;strong&gt;Carga Masiva Fotos&lt;/strong&gt; en la barra superior de Mediciones, arrastra tu archivo .ZIP o tus imágenes y presiona &lt;strong&gt;Iniciar Carga y Validación&lt;/strong&gt;.">
+                                    <i class="bi bi-cloud-arrow-up me-1 text-info"></i> Asistente de Carga Masiva de Fotos</a>
+                            </li>
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal" data-title="Sobreescritura de Sensores sin Consumo de Cuota"
+                                    data-content="Al reimportar un lote de sensores en un grupo existente (por ejemplo, para actualizar campos personalizados o direcciones), el sistema detecta las coincidencias por el Identificador Único. Los sensores coincidentes se actualizan y sobreescriben en el lugar, garantizando que NO se consuman cupos adicionales de tu suscripción."
+                                    data-steps="Ve a &lt;strong&gt;Grupos > Importar Sensores&lt;/strong&gt; y sube tu Excel. El sistema verificará los identificadores preexistentes y solo contabilizará para la cuota los sensores genuinamente nuevos.">
+                                    <i class="bi bi-arrow-repeat me-1 text-success"></i> Sobreescritura de Sensores y Cuotas</a>
                             </li>
                             <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
                                     data-bs-toggle="modal" data-bs-target="#helpModal"

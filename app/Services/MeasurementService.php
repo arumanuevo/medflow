@@ -6,6 +6,8 @@ use App\Models\Measurement;
 use App\Models\Sensor;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class MeasurementService
 {
@@ -57,66 +59,161 @@ class MeasurementService
     }
 
     /**
-     * Calcula las estadísticas de error para un usuario (propietario o con acceso compartido)
+     * Calcula las estadísticas de error para un usuario de forma eficiente con caché
      */
     public function calculateErrorStats($user)
     {
-        $allMeasurements = Measurement::with(['sensor', 'sensor.group', 'sensor.group.template'])
-            ->whereHas('sensor.group', function ($q) use ($user) {
-                $q->where('user_id', $user->id)
-                    ->orWhereHas('sharedAccess', function ($q2) use ($user) {
-                        $q2->where('shared_with', $user->id)
-                            ->whereIn('role', ['inspector', 'admin']);
-                    });
-            })
-            ->orderBy('sensor_id')
-            ->orderBy('measured_at', 'asc')
+        return Cache::remember("user_{$user->id}_error_stats", 30, function () use ($user) {
+            $measurements = DB::table('measurements')
+                ->join('sensors', 'sensors.id', '=', 'measurements.sensor_id')
+                ->join('sensor_groups', 'sensor_groups.id', '=', 'sensors.group_id')
+                ->leftJoin('shared_sensor_groups', 'shared_sensor_groups.sensor_group_id', '=', 'sensor_groups.id')
+                ->where(function ($q) use ($user) {
+                    $q->where('sensor_groups.user_id', $user->id)
+                      ->orWhere(function ($q2) use ($user) {
+                          $q2->where('shared_sensor_groups.shared_with', $user->id)
+                             ->whereIn('shared_sensor_groups.role', ['inspector', 'admin']);
+                      });
+                })
+                ->select(
+                    'measurements.id',
+                    'measurements.sensor_id',
+                    'measurements.measured_at',
+                    'measurements.data'
+                )
+                ->distinct()
+                ->orderBy('measurements.sensor_id')
+                ->orderBy('measurements.measured_at', 'asc')
+                ->get();
+
+            $errorStats = [
+                'negative_consumption' => 0,
+                'inconsistent_date' => 0,
+                'first_measurement' => 0,
+                'valid' => 0
+            ];
+
+            $bySensor = [];
+            foreach ($measurements as $m) {
+                $bySensor[$m->sensor_id][] = $m;
+            }
+
+            foreach ($bySensor as $sensorId => $list) {
+                $count = count($list);
+                for ($i = 0; $i < $count; $i++) {
+                    if ($i === 0) {
+                        $errorStats['first_measurement']++;
+                        continue;
+                    }
+
+                    $prev = $list[$i - 1];
+                    $curr = $list[$i];
+
+                    $prevTime = strtotime($prev->measured_at);
+                    $currTime = strtotime($curr->measured_at);
+
+                    if ($currTime < $prevTime) {
+                        $errorStats['inconsistent_date']++;
+                        continue;
+                    }
+
+                    $prevData = json_decode($prev->data, true);
+                    $currData = json_decode($curr->data, true);
+
+                    $prevVal = (float) ($prevData['valor'] ?? 0);
+                    $currVal = (float) ($currData['valor'] ?? 0);
+
+                    if ($currVal < $prevVal) {
+                        $errorStats['negative_consumption']++;
+                    } else {
+                        $errorStats['valid']++;
+                    }
+                }
+            }
+
+            return $errorStats;
+        });
+    }
+
+    /**
+     * Obtener IDs de mediciones que coinciden con un tipo de error específico
+     */
+    public function getMeasurementIdsByErrorType($user, $errorType, $groupId = null)
+    {
+        $query = DB::table('measurements')
+            ->join('sensors', 'sensors.id', '=', 'measurements.sensor_id')
+            ->join('sensor_groups', 'sensor_groups.id', '=', 'sensors.group_id')
+            ->leftJoin('shared_sensor_groups', 'shared_sensor_groups.sensor_group_id', '=', 'sensor_groups.id')
+            ->where(function ($q) use ($user) {
+                $q->where('sensor_groups.user_id', $user->id)
+                  ->orWhere(function ($q2) use ($user) {
+                      $q2->where('shared_sensor_groups.shared_with', $user->id)
+                         ->whereIn('shared_sensor_groups.role', ['inspector', 'admin']);
+                  });
+            });
+
+        if (!empty($groupId)) {
+            $query->where('sensor_groups.id', $groupId);
+        }
+
+        $measurements = $query->select(
+                'measurements.id',
+                'measurements.sensor_id',
+                'measurements.measured_at',
+                'measurements.data'
+            )
+            ->distinct()
+            ->orderBy('measurements.sensor_id')
+            ->orderBy('measurements.measured_at', 'asc')
             ->get();
 
-        $errorStats = [
-            'negative_consumption' => 0,
-            'inconsistent_date' => 0,
-            'first_measurement' => 0,
-            'valid' => 0
-        ];
+        $bySensor = [];
+        foreach ($measurements as $m) {
+            $bySensor[$m->sensor_id][] = $m;
+        }
 
-        $allMeasurementsBySensor = $allMeasurements->groupBy('sensor_id');
+        $matchingIds = [];
 
-        foreach ($allMeasurementsBySensor as $sensorId => $sensorMeasurements) {
-            $sensor = $sensorMeasurements->first()->sensor;
-            $mainField = $this->getMainFieldFromSensor($sensor);
-
-            $sortedMeasurements = $sensorMeasurements->sortBy('measured_at');
-
-            foreach ($sortedMeasurements as $index => $measurement) {
-                $previousMeasurement = ($index > 0) ? $sortedMeasurements->get($index - 1) : null;
-
-                if (!$previousMeasurement) {
-                    $errorStats['first_measurement']++;
+        foreach ($bySensor as $sensorId => $list) {
+            $count = count($list);
+            for ($i = 0; $i < $count; $i++) {
+                if ($i === 0) {
+                    if ($errorType === 'first_measurement') {
+                        $matchingIds[] = $list[$i]->id;
+                    }
                     continue;
                 }
 
-                $lastDate = Carbon::parse($previousMeasurement->measured_at);
-                $currentDate = Carbon::parse($measurement->measured_at);
+                $prev = $list[$i - 1];
+                $curr = $list[$i];
 
-                if ($currentDate->lt($lastDate)) {
-                    $errorStats['inconsistent_date']++;
+                $prevTime = strtotime($prev->measured_at);
+                $currTime = strtotime($curr->measured_at);
+
+                if ($currTime < $prevTime) {
+                    if ($errorType === 'inconsistent_date') {
+                        $matchingIds[] = $curr->id;
+                    }
                     continue;
                 }
 
-                $lastValue = $previousMeasurement->data[$mainField] ?? 0;
-                $currentValue = $measurement->data[$mainField] ?? 0;
-                $consumption = $currentValue - $lastValue;
+                $prevData = json_decode($prev->data, true);
+                $currData = json_decode($curr->data, true);
 
-                if ($consumption < 0) {
-                    $errorStats['negative_consumption']++;
-                } else {
-                    $errorStats['valid']++;
+                $prevVal = (float) ($prevData['valor'] ?? 0);
+                $currVal = (float) ($currData['valor'] ?? 0);
+
+                if ($currVal < $prevVal) {
+                    if ($errorType === 'negative_consumption') {
+                        $matchingIds[] = $curr->id;
+                    }
+                } elseif ($errorType === 'valid') {
+                    $matchingIds[] = $curr->id;
                 }
             }
         }
 
-        return $errorStats;
+        return $matchingIds;
     }
 
     /**
@@ -204,10 +301,12 @@ class MeasurementService
             });
         }
 
-        if ($sortField === 'sensor') {
+        if ($sortField === 'sensor' || $sortField === 'sensor_id') {
             $query->orderBy('sensor_id', $sortDirection)->orderBy('measured_at', 'desc');
+        } elseif ($sortField === 'valor') {
+            $query->orderByRaw("CAST(JSON_UNQUOTE(JSON_EXTRACT(data, '$.valor')) AS DECIMAL(14,4)) {$sortDirection}");
         } else {
-            $query->orderBy($sortField, $sortDirection);
+            $query->orderBy('measurements.' . $sortField, $sortDirection);
         }
 
         return $query;

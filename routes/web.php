@@ -224,9 +224,9 @@ Route::middleware(['auth'])->group(function () {
         ->where('template', '[0-9]+');
 
     // =============================================
-    // CONSUMOS (vistas)
+    // CONSUMOS (Redirigido a la vista unificada de Mediciones y Consumos)
     // =============================================
-    Route::get('/consumptions', fn() => view('consumptions.index'))->name('consumptions.index');
+    Route::get('/consumptions', fn() => redirect()->route('measurements.index'))->name('consumptions.index');
     // =============================================
     // PERFIL
     // =============================================

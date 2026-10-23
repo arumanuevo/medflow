@@ -271,8 +271,8 @@
                                         <li><strong>Ruta estándar en el sistema:</strong> Se guardará vinculada a <code>/measurements/[nombre-de-archivo]</code>.</li>
                                         <li><strong>Carga de las fotos físicas:</strong>
                                             <ul class="mt-1">
-                                                <li><em>Opción A (Desde la App):</em> Una vez importadas las mediciones, en la pantalla de <strong>Mediciones</strong> podrás hacer clic en <strong>Ver / Reemplazar</strong> o <strong>Subir</strong> para adjuntar la foto correspondiente.</li>
-                                                <li><em>Opción B (Carga masiva en servidor):</em> Si tienes el lote de imágenes en tu computadora, puedes copiarlas por FTP/SSH directamente a la carpeta <code>public/measurements/</code> de tu servidor asegurándote de que coincidan los nombres.</li>
+                                                <li><em>Opción A (Desde la App fila a fila):</em> En la pantalla de <strong>Mediciones y Consumos</strong> podrás hacer clic en <strong>[+ Subir]</strong> o <strong>[Ver / Reemplazar]</strong> para adjuntar la foto individual de cada registro.</li>
+                                                <li><em>Opción B (Asistente de Carga Masiva de Fotos):</em> En el listado de <strong>Mediciones y Consumos</strong> tienes el botón <strong>[Carga Masiva Fotos]</strong> donde puedes arrastrar tu lote de imágenes o un archivo comprimido <strong>.ZIP</strong>. El sistema verificará de forma estricta que los nombres coincidan con la base de datos y que correspondan a mediciones tomadas en el último año (máximo 365 días), descartando automáticamente fotos huérfanas o vencidas para cuidar el espacio y rendimiento de tu servidor.</li>
                                             </ul>
                                         </li>
                                         <li><strong>Sin foto:</strong> Si dejas la celda vacía o con <em>"Sin Foto"</em> o <em>"N/A"</em>, el registro quedará guardado con el botón <strong>[+ Subir]</strong> disponible para cuando tomes la foto.</li>

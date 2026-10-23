@@ -93,6 +93,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/measurements/bulk-delete', [MeasurementController::class, 'bulkDelete'])
         ->name('api.measurements.bulk-delete');
 
+    Route::get('/measurements/export', [MeasurementController::class, 'export'])
+        ->name('api.measurements.export');
+
+    Route::post('/measurements/bulk-upload-photos', [MeasurementController::class, 'bulkUploadPhotos'])
+        ->name('api.measurements.bulk-upload-photos');
+
     Route::apiResource('/measurements', MeasurementController::class)
         ->except(['create', 'edit'])
         ->parameter('measurement', 'measurement');
