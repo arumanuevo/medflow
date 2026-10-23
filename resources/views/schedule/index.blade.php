@@ -235,22 +235,34 @@
                                     {{-- Desglose compacto por estado dentro del grupo --}}
                                     <div class="d-flex flex-wrap gap-1 mb-2">
                                         @if(($bd['overdue'] ?? 0) > 0)
-                                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle" style="font-size: 0.68rem;">
-                                                🔴 {{ $bd['overdue'] }} vencido(s)
+                                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger-subtle"
+                                                  style="font-size: 0.68rem; cursor: pointer;"
+                                                  title="Ver y seleccionar sensores vencidos en el popup"
+                                                  onclick="openDetailForAlertGroup({{ $alert['entity_id'] }}, 'overdue')">
+                                                🔴 {{ $bd['overdue'] }} vencido(s) <i class="bi bi-box-arrow-up-right ms-1"></i>
                                             </span>
                                         @endif
                                         @if(($bd['in_tolerance'] ?? 0) > 0)
-                                            <span class="badge bg-warning bg-opacity-10 text-orange border border-warning-subtle" style="font-size: 0.68rem;">
+                                            <span class="badge bg-warning bg-opacity-10 text-orange border border-warning-subtle"
+                                                  style="font-size: 0.68rem; cursor: pointer;"
+                                                  title="Ver sensores en tolerancia en el popup"
+                                                  onclick="openDetailForAlertGroup({{ $alert['entity_id'] }}, 'in_tolerance')">
                                                 🟠 {{ $bd['in_tolerance'] }} en tolerancia
                                             </span>
                                         @endif
                                         @if(($bd['in_window'] ?? 0) > 0)
-                                            <span class="badge bg-warning bg-opacity-25 text-dark border border-warning" style="font-size: 0.68rem;">
+                                            <span class="badge bg-warning bg-opacity-25 text-dark border border-warning"
+                                                  style="font-size: 0.68rem; cursor: pointer;"
+                                                  title="Ver sensores en ventana en el popup"
+                                                  onclick="openDetailForAlertGroup({{ $alert['entity_id'] }}, 'in_window')">
                                                 🟡 {{ $bd['in_window'] }} hoy / en ventana
                                             </span>
                                         @endif
                                         @if(($bd['completed'] ?? 0) > 0)
-                                            <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle" style="font-size: 0.68rem;">
+                                            <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle"
+                                                  style="font-size: 0.68rem; cursor: pointer;"
+                                                  title="Ver sensores medidos al día en el popup"
+                                                  onclick="openDetailForAlertGroup({{ $alert['entity_id'] }}, 'completed')">
                                                 🟢 {{ $bd['completed'] }} al día
                                             </span>
                                         @endif
@@ -891,8 +903,11 @@
                 </div>
 
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-                    <h6 class="fw-bold mb-0">
+                    <h6 class="fw-bold mb-0 d-flex align-items-center gap-2">
                         <i class="bi bi-list-check me-1"></i> Sensores en este Compromiso
+                        <span class="badge bg-primary rounded-pill small" id="detailSelectedCountBadge" title="Cantidad de sensores seleccionados">
+                            <span id="detailSelectedCount">0</span> selec.
+                        </span>
                     </h6>
                     <div class="d-flex flex-wrap gap-2">
                         <select class="form-select form-select-sm" id="detailSensorStatusFilter" style="width: auto;" onchange="resetAndRenderDetailSensors()">
@@ -912,10 +927,37 @@
                     </div>
                 </div>
 
+                {{-- Barra de Selección Rápida con Checkboxes --}}
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 py-1 px-2 mb-2 bg-light rounded-2 border small">
+                    <div class="d-flex align-items-center gap-1 flex-wrap">
+                        <span class="text-muted fw-semibold me-1" style="font-size: 0.74rem;">Selección rápida:</span>
+                        <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.72rem;" onclick="selectAllDetailSensors(true)">
+                            <i class="bi bi-check-all"></i> Todos
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size: 0.72rem;" onclick="selectOnlyOverdueSensors()">
+                            <i class="bi bi-exclamation-circle"></i> Solo Vencidos
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-warning text-dark py-0 px-2" style="font-size: 0.72rem;" onclick="selectOnlyPendingSensors()">
+                            <i class="bi bi-hourglass-split"></i> Solo Pendientes
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.72rem;" onclick="selectAllDetailSensors(false)">
+                            <i class="bi bi-x-circle"></i> Ninguno
+                        </button>
+                    </div>
+                    <span class="text-muted" style="font-size: 0.73rem;">
+                        <span id="detailSelectionSummaryText">0 seleccionados</span>
+                    </span>
+                </div>
+
                 <div class="table-responsive border rounded-3" style="max-height: 290px; overflow-y: auto;">
                     <table class="table table-sm table-hover align-middle mb-0">
                         <thead class="table-light sticky-top">
                             <tr>
+                                <th style="width: 38px;" class="text-center">
+                                    <input type="checkbox" class="form-check-input" id="checkAllDetailSensors"
+                                           title="Seleccionar / deseleccionar todos los visibles"
+                                           onchange="toggleAllVisibleDetailSensors(this.checked)">
+                                </th>
                                 <th>Sensor</th>
                                 <th>Identificador</th>
                                 <th>Estado en Ciclo</th>
@@ -946,13 +988,13 @@
                 <div class="d-flex flex-wrap gap-2">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                     <button type="button" class="btn btn-dark fw-semibold" id="btnMobileInviteFromDetail" onclick="openMobileInviteFromDetailModal()">
-                        <i class="bi bi-phone-fill text-info me-1"></i> Enviar a App Inspector (Token)
+                        <i class="bi bi-phone-fill text-info me-1"></i> Enviar a App (<span id="btnMobileInviteCount">0</span>)
                     </button>
-                    <form method="POST" action="{{ route('bulk-measurements.start') }}" id="formStartBulkFromCalendar">
+                    <form method="POST" action="{{ route('bulk-measurements.start') }}" id="formStartBulkFromCalendar" onsubmit="return validateBulkCalendarStart()">
                         @csrf
                         <input type="hidden" name="sensor_ids" id="inputBulkSensorIds" value="">
                         <button type="submit" class="btn btn-primary fw-bold" id="btnStartBulkFromCalendar">
-                            <i class="bi bi-laptop me-1"></i> Iniciar Toma Web
+                            <i class="bi bi-laptop me-1"></i> Medir Web (<span id="btnBulkWebCount">0</span>)
                         </button>
                     </form>
                 </div>
@@ -992,6 +1034,12 @@
                         1. ¿Qué sensores deseas incluir en el Token del Inspector?
                     </label>
                     <div class="d-flex flex-column gap-2" id="mobileInviteScopeRadios">
+                        <div class="form-check d-none" id="scopeCustomWrap">
+                            <input class="form-check-input" type="radio" name="mobile_invite_scope" id="scopeCustom" value="custom" onchange="updateMobileInviteScopeSelection()">
+                            <label class="form-check-label small text-primary fw-bold" for="scopeCustom">
+                                ☑️ <strong>Solo los sensores seleccionados en el popup</strong> (<span id="scopeCustomCount">0</span> sensores)
+                            </label>
+                        </div>
                         <div class="form-check" id="scopePendingWrap">
                             <input class="form-check-input" type="radio" name="mobile_invite_scope" id="scopePending" value="pending" checked onchange="updateMobileInviteScopeSelection()">
                             <label class="form-check-label small" for="scopePending">
@@ -1211,14 +1259,136 @@
         });
     }
 
+    let selectedDetailSensorIds = new Set();
+
+    function toggleDetailSensorSelection(sensorId, isChecked) {
+        sensorId = Number(sensorId);
+        if (isChecked) {
+            selectedDetailSensorIds.add(sensorId);
+        } else {
+            selectedDetailSensorIds.delete(sensorId);
+        }
+        updateDetailSelectionUI();
+    }
+
+    function toggleAllVisibleDetailSensors(checked) {
+        const filtered = getFilteredDetailSensors();
+        filtered.forEach(s => {
+            const sid = Number(s.sensor_id);
+            if (checked) {
+                selectedDetailSensorIds.add(sid);
+            } else {
+                selectedDetailSensorIds.delete(sid);
+            }
+        });
+        renderDetailSensorsTable();
+        updateDetailSelectionUI();
+    }
+
+    function selectAllDetailSensors(selectAll) {
+        if (!currentDetailEvent || !currentDetailEvent.sensors_detail) return;
+        if (selectAll) {
+            currentDetailEvent.sensors_detail.forEach(s => {
+                selectedDetailSensorIds.add(Number(s.sensor_id));
+            });
+        } else {
+            selectedDetailSensorIds.clear();
+        }
+        renderDetailSensorsTable();
+        updateDetailSelectionUI();
+    }
+
+    function selectOnlyOverdueSensors() {
+        if (!currentDetailEvent || !currentDetailEvent.sensors_detail) return;
+        selectedDetailSensorIds.clear();
+        currentDetailEvent.sensors_detail.forEach(s => {
+            if (!s.is_measured && s.status === 'overdue') {
+                selectedDetailSensorIds.add(Number(s.sensor_id));
+            }
+        });
+        document.getElementById('detailSensorStatusFilter').value = 'overdue';
+        resetAndRenderDetailSensors();
+        updateDetailSelectionUI();
+    }
+
+    function selectOnlyPendingSensors() {
+        if (!currentDetailEvent || !currentDetailEvent.sensors_detail) return;
+        selectedDetailSensorIds.clear();
+        currentDetailEvent.sensors_detail.forEach(s => {
+            if (!s.is_measured) {
+                selectedDetailSensorIds.add(Number(s.sensor_id));
+            }
+        });
+        document.getElementById('detailSensorStatusFilter').value = 'pending';
+        resetAndRenderDetailSensors();
+        updateDetailSelectionUI();
+    }
+
+    function updateDetailSelectionUI() {
+        const count = selectedDetailSensorIds.size;
+        const total = (currentDetailEvent && currentDetailEvent.sensors_detail) ? currentDetailEvent.sensors_detail.length : 0;
+
+        const countBadge = document.getElementById('detailSelectedCount');
+        if (countBadge) countBadge.innerText = count;
+
+        const summaryText = document.getElementById('detailSelectionSummaryText');
+        if (summaryText) summaryText.innerText = `${count} de ${total} seleccionado(s)`;
+
+        const inputBulk = document.getElementById('inputBulkSensorIds');
+        if (inputBulk) inputBulk.value = Array.from(selectedDetailSensorIds).join(',');
+
+        const btnWebCount = document.getElementById('btnBulkWebCount');
+        if (btnWebCount) btnWebCount.innerText = count;
+
+        const btnMobileInvite = document.getElementById('btnMobileInviteFromDetail');
+        if (btnMobileInvite) {
+            const btnMobileCount = document.getElementById('btnMobileInviteCount');
+            if (btnMobileCount) btnMobileCount.innerText = count;
+            btnMobileInvite.disabled = (count === 0);
+        }
+
+        const btnBulkWeb = document.getElementById('btnStartBulkFromCalendar');
+        if (btnBulkWeb) {
+            btnBulkWeb.disabled = (count === 0);
+        }
+
+        const filtered = getFilteredDetailSensors();
+        if (filtered.length > 0) {
+            const allChecked = filtered.every(s => selectedDetailSensorIds.has(Number(s.sensor_id)));
+            const someChecked = filtered.some(s => selectedDetailSensorIds.has(Number(s.sensor_id)));
+            const checkAllEl = document.getElementById('checkAllDetailSensors');
+            if (checkAllEl) {
+                checkAllEl.checked = allChecked;
+                checkAllEl.indeterminate = (!allChecked && someChecked);
+            }
+        } else {
+            const checkAllEl = document.getElementById('checkAllDetailSensors');
+            if (checkAllEl) {
+                checkAllEl.checked = false;
+                checkAllEl.indeterminate = false;
+            }
+        }
+    }
+
+    function validateBulkCalendarStart() {
+        if (selectedDetailSensorIds.size === 0) {
+            alert('Por favor selecciona al menos un sensor de la lista para medir por Web.');
+            return false;
+        }
+        document.getElementById('inputBulkSensorIds').value = Array.from(selectedDetailSensorIds).join(',');
+        return true;
+    }
+
     function resetAndRenderDetailSensors() {
         currentDetailPage = 1;
         renderDetailSensorsTable();
+        updateDetailSelectionUI();
     }
 
     function changeDetailPage(delta) {
         currentDetailPage += delta;
         renderDetailSensorsTable();
+        updateDetailSelectionUI();
     }
 
     function renderDetailSensorsTable() {
@@ -1235,15 +1405,21 @@
         const pageItems = filtered.slice(startIdx, startIdx + DETAIL_PAGE_SIZE);
 
         if (pageItems.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-3 small">No se encontraron sensores con ese filtro.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-3 small">No se encontraron sensores con ese filtro.</td></tr>`;
         } else {
             pageItems.forEach(s => {
                 const tr = document.createElement('tr');
+                const isChecked = selectedDetailSensorIds.has(Number(s.sensor_id));
                 const statusBadge = s.is_measured
                     ? `<span class="badge bg-success"><i class="bi bi-check-lg"></i> Medido (${s.measured_at})</span>`
                     : `<span class="badge ${s.badge_class}">${s.status_label}</span>`;
 
                 tr.innerHTML = `
+                    <td class="text-center">
+                        <input type="checkbox" class="form-check-input detail-sensor-check"
+                               data-sensor-id="${s.sensor_id}" ${isChecked ? 'checked' : ''}
+                               onchange="toggleDetailSensorSelection(${s.sensor_id}, this.checked)">
+                    </td>
                     <td class="fw-semibold">${s.sensor_name}</td>
                     <td><code class="text-dark">${s.sensor_identifier}</code></td>
                     <td>${statusBadge}</td>
@@ -1278,18 +1454,17 @@
         document.getElementById('eventDetailTargetDate').innerText = ev.target_date_formatted;
         document.getElementById('eventDetailToleranceEnd').innerText = `${ev.tolerance_end_formatted} (+${ev.tolerance_days}d)`;
 
+        // Inicializar selección: por defecto seleccionar los sensores pendientes / vencidos
+        selectedDetailSensorIds.clear();
+        const initialIds = (ev.pending_sensor_ids && ev.pending_sensor_ids.length > 0)
+            ? ev.pending_sensor_ids
+            : (ev.all_sensor_ids || []);
+        initialIds.forEach(id => selectedDetailSensorIds.add(Number(id)));
+
         document.getElementById('detailSensorSearch').value = '';
         document.getElementById('detailSensorStatusFilter').value = 'all';
         resetAndRenderDetailSensors();
-
-        const idsToMeasure = (ev.pending_sensor_ids && ev.pending_sensor_ids.length > 0)
-            ? ev.pending_sensor_ids
-            : ev.all_sensor_ids;
-
-        document.getElementById('inputBulkSensorIds').value = (idsToMeasure || []).join(',');
-        document.getElementById('btnStartBulkFromCalendar').innerHTML = (ev.pending_sensor_ids && ev.pending_sensor_ids.length > 0)
-            ? `<i class="bi bi-laptop me-1"></i> Medir Web (${ev.pending_sensor_ids.length})`
-            : `<i class="bi bi-arrow-repeat me-1"></i> Medir Web Nuevamente (${(ev.all_sensor_ids || []).length})`;
+        updateDetailSelectionUI();
 
         document.getElementById('btnEditFromDetail').onclick = function () {
             bootstrap.Modal.getInstance(document.getElementById('eventDetailModal')).hide();
@@ -1301,6 +1476,21 @@
         };
 
         new bootstrap.Modal(document.getElementById('eventDetailModal')).show();
+    }
+
+    function openDetailForAlertGroup(groupId, initialFilter = 'all') {
+        const ev = Object.values(calendarEventsMap).find(e => e.type === 'group' && Number(e.entity_id) === Number(groupId));
+        if (ev) {
+            openEventDetailModal(ev);
+            if (initialFilter === 'overdue') {
+                selectOnlyOverdueSensors();
+            } else if (['in_tolerance', 'in_window', 'completed'].includes(initialFilter)) {
+                document.getElementById('detailSensorStatusFilter').value = initialFilter;
+                resetAndRenderDetailSensors();
+            }
+        } else {
+            openMobileInviteForAlertGroup(groupId);
+        }
     }
 
     function openMobileInviteForAlertGroup(groupId) {
@@ -1318,6 +1508,11 @@
 
     function openMobileInviteFromDetailModal() {
         if (!currentDetailEvent) return;
+        if (selectedDetailSensorIds.size === 0) {
+            alert('Por favor selecciona al menos un sensor de la lista para enviar a la App.');
+            return;
+        }
+
         const detailModalEl = document.getElementById('eventDetailModal');
         const detailInstance = bootstrap.Modal.getInstance(detailModalEl);
         if (detailInstance) detailInstance.hide();
@@ -1326,13 +1521,15 @@
         const overdueIds = details.filter(s => !s.is_measured && s.status === 'overdue').map(s => s.sensor_id);
         const pendingIds = currentDetailEvent.pending_sensor_ids || [];
         const allIds = currentDetailEvent.all_sensor_ids || [];
+        const customIds = Array.from(selectedDetailSensorIds);
 
         openMobileInviteModalWithConfig({
             group_id: currentDetailEvent.group_id || (currentDetailEvent.type === 'group' ? currentDetailEvent.entity_id : 0),
             title: (currentDetailEvent.type === 'group' ? 'Grupo: ' : 'Compromiso: ') + currentDetailEvent.title,
             pending_ids: pendingIds,
             overdue_ids: overdueIds,
-            all_ids: allIds
+            all_ids: allIds,
+            custom_ids: customIds
         });
     }
 
@@ -1344,13 +1541,24 @@
         document.getElementById('scopeOverdueCount').innerText = (ctx.overdue_ids || []).length;
         document.getElementById('scopeAllCount').innerText = (ctx.all_ids || []).length;
 
+        const hasCustom = Boolean(ctx.custom_ids && ctx.custom_ids.length > 0);
+        const scopeCustomWrap = document.getElementById('scopeCustomWrap');
+        if (scopeCustomWrap) {
+            scopeCustomWrap.classList.toggle('d-none', !hasCustom);
+            if (hasCustom) {
+                document.getElementById('scopeCustomCount').innerText = ctx.custom_ids.length;
+            }
+        }
+
         const hasOverdue = (ctx.overdue_ids || []).length > 0;
         const hasPending = (ctx.pending_ids || []).length > 0;
 
         document.getElementById('scopeOverdueWrap').classList.toggle('d-none', !hasOverdue);
         document.getElementById('scopePendingWrap').classList.toggle('d-none', !hasPending);
 
-        if (hasPending) {
+        if (hasCustom) {
+            document.getElementById('scopeCustom').checked = true;
+        } else if (hasPending) {
             document.getElementById('scopePending').checked = true;
         } else if (hasOverdue) {
             document.getElementById('scopeOverdue').checked = true;
@@ -1374,7 +1582,9 @@
     function updateMobileInviteScopeSelection() {
         const selectedScope = document.querySelector('input[name="mobile_invite_scope"]:checked')?.value || 'pending';
         let chosenIds = [];
-        if (selectedScope === 'overdue') {
+        if (selectedScope === 'custom') {
+            chosenIds = currentMobileInviteContext.custom_ids || [];
+        } else if (selectedScope === 'overdue') {
             chosenIds = currentMobileInviteContext.overdue_ids || [];
         } else if (selectedScope === 'all') {
             chosenIds = currentMobileInviteContext.all_ids || [];

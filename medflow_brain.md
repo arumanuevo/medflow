@@ -388,6 +388,9 @@ Si programas un grupo para el **día 15 de cada mes** con **3 días de Pre-aviso
 4. **Recordatorios por Correo Electrónico:** El sistema también puede enviar un resumen por email cuando tienes tomas activas en ventana, en tolerancia o vencidas.
 
 #### ¿Cómo iniciar la toma de mediciones desde el Calendario o quitar una excepción?
+- **Medición Selectiva y Asignación Móvil con Checkboxes en el Popup:** Al hacer clic sobre cualquier evento en el **Calendario de Tomas** o en el badge de vencidos de una tarjeta de alerta, se abre el modal de detalle con la lista completa de sensores. Ahora cada sensor cuenta con un **checkbox individual**, selector de todos los visibles, y botones de **Selección Rápida** (*Todos*, *Solo Vencidos*, *Solo Pendientes*, *Ninguno*). Al seleccionar sensores, los botones de acción se actualizan dinámicamente:
+  - **Medir Web (X seleccionados)**: Inicia la toma masiva web (`bulk-measurements.start`) únicamente con los sensores elegidos.
+  - **Enviar a App (X seleccionados)**: Abre el modal de asignación para la App Móvil Flutter/Offline preseleccionando la opción *"Solo los sensores seleccionados en el popup"* para emitir un token Sanctum restringido a ese subconjunto.
 - **Medir en 1 clic:** Haz clic sobre el grupo agendado en cualquier día del **Calendario de Tomas** (o desde el **Dashboard**) y presiona el botón **Iniciar Toma de Pendientes**. El sistema te llevará directo a la pantalla de **Tomar Mediciones** con ese grupo preseleccionado.
 - **Quitar excepción de un sensor individual:** Si un sensor tenía una fecha especial y quieres que vuelva a seguir la regla de su grupo, ve al final de la pantalla **Calendario de Tomas** a la tabla **Excepciones por Sensor Individual** y haz clic en el botón de restablecer (o desactiva el interruptor **Usar programación individual para este sensor** dentro de **Sensores > Editar**).
 
