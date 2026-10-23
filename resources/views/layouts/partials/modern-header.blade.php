@@ -160,7 +160,7 @@
                 </div>
                 <div class="p-2" style="max-height: 320px; overflow-y: auto;">
                     @if($headerNegErrors > 0)
-                        <a href="{{ route('measurements.index') }}" class="dropdown-item p-2 mb-1 rounded border-start border-danger border-3 text-wrap" style="white-space: normal; background-color: #fff5f5;">
+                        <a href="{{ url('/mediciones?error_type=negative_consumption') }}" class="dropdown-item p-2 mb-1 rounded border-start border-danger border-3 text-wrap" style="white-space: normal; background-color: #fff5f5;">
                             <div class="d-flex justify-content-between align-items-center mb-1">
                                 <span class="fw-bold small text-danger"><i class="bi bi-graph-down me-1"></i> Consumos Negativos</span>
                                 <span class="badge bg-danger">{{ $headerNegErrors }}</span>
@@ -172,7 +172,7 @@
                     @endif
 
                     @if($headerDateErrors > 0)
-                        <a href="{{ route('measurements.index') }}" class="dropdown-item p-2 mb-1 rounded border-start border-warning border-3 text-wrap" style="white-space: normal; background-color: #fffdf5;">
+                        <a href="{{ url('/mediciones?error_type=inconsistent_date') }}" class="dropdown-item p-2 mb-1 rounded border-start border-warning border-3 text-wrap" style="white-space: normal; background-color: #fffdf5;">
                             <div class="d-flex justify-content-between align-items-center mb-1">
                                 <span class="fw-bold small text-warning-emphasis"><i class="bi bi-calendar-x me-1"></i> Fechas Desfasadas</span>
                                 <span class="badge bg-warning text-dark">{{ $headerDateErrors }}</span>
@@ -197,7 +197,7 @@
                     </div>
                 </div>
                 <div class="p-2 bg-light text-center border-top">
-                    <a href="{{ route('measurements.index') }}" class="btn btn-sm btn-primary w-100">
+                    <a href="{{ url('/mediciones') }}" class="btn btn-sm btn-primary w-100">
                         <i class="bi bi-speedometer me-1"></i> Ir a Mediciones y Consumos
                     </a>
                 </div>

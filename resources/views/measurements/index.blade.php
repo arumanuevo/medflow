@@ -3180,8 +3180,28 @@
                 });
             }
 
-            // Cargar mediciones al inicio
-            loadMeasurements();
+            // Leer parámetros de la URL para filtros o apertura automática de auditoría
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlErrorType = urlParams.get('error_type');
+            const openAudit = urlParams.get('open_audit');
+
+            if (urlErrorType) {
+                $('#errorFilter').val(urlErrorType);
+                currentErrorType = urlErrorType;
+                loadMeasurements();
+                // Abrir el modal de auditoría para este tipo específico
+                setTimeout(() => {
+                    showErrorDetailsModal(urlErrorType);
+                }, 500);
+            } else if (openAudit === '1') {
+                loadMeasurements();
+                setTimeout(() => {
+                    $('#auditDetailsModal').modal('show');
+                }, 500);
+            } else {
+                // Cargar mediciones al inicio de forma habitual
+                loadMeasurements();
+            }
         });
     </script>
 @endpush

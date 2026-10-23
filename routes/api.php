@@ -104,7 +104,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('/measurements', MeasurementController::class)
         ->except(['create', 'edit'])
-        ->parameter('measurement', 'measurement');
+        ->parameter('measurement', 'measurement')
+        ->names('api.measurements');
 
     Route::get('/sensors/{sensor}/measurements', [MeasurementController::class, 'index'])
         ->name('api.sensors.measurements.index')
