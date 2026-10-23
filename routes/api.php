@@ -96,6 +96,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/measurements/export', [MeasurementController::class, 'export'])
         ->name('api.measurements.export');
 
+    Route::post('/measurements/{measurement}/mark-reset', [MeasurementController::class, 'markReset'])
+        ->name('api.measurements.mark-reset');
+
     Route::post('/measurements/bulk-upload-photos', [MeasurementController::class, 'bulkUploadPhotos'])
         ->name('api.measurements.bulk-upload-photos');
 

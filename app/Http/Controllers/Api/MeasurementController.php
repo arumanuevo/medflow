@@ -127,8 +127,18 @@ class MeasurementController extends Controller
 
         $data = $measurement->data ?? [];
         $valor = $data[$mainField] ?? ($data['valor'] ?? 0);
+        $isReset = !empty($data['is_reset']);
 
-        if ($previousMeasurement) {
+        if ($isReset) {
+            $measurement->consumption = 0;
+            $measurement->days_between = $previousMeasurement ? max(1, Carbon::parse($measurement->measured_at)->diffInDays(Carbon::parse($previousMeasurement->measured_at))) : 0;
+            $measurement->daily_average = 0;
+            $measurement->cost = 0;
+            $measurement->currency = null;
+            $measurement->is_reset = true;
+            $measurement->reset_type = $data['reset_type'] ?? 'simple';
+            $measurement->error_type = 'valid';
+        } elseif ($previousMeasurement) {
             $lastData = $previousMeasurement->data ?? [];
             $lastValue = $lastData[$mainField] ?? ($lastData['valor'] ?? 0);
             $consumption = $valor - $lastValue;
@@ -848,6 +858,9 @@ class MeasurementController extends Controller
      * @param bool $returnArray Si es true, devuelve un array en lugar de JsonResponse
      * @return array|JsonResponse
      */
+    /**
+     * Obtener mediciones con un tipo de error específico (filtrado eficiente).
+     */
     public function getMeasurementsByErrorType(Request $request, $errorType, $returnArray = false)
     {
         $user = $request->user();
@@ -867,113 +880,31 @@ class MeasurementController extends Controller
             ], 400);
         }
 
-        // Obtener todas las mediciones del usuario
-        $measurements = Measurement::with(['sensor', 'sensor.group'])
-            ->whereHas('sensor.group', function ($q) use ($user) {
-                $q->where('user_id', $user->id)
-                    ->orWhereHas('sharedAccess', function ($q2) use ($user) {
-                        $q2->where('shared_with', $user->id)
-                            ->whereIn('role', ['inspector', 'admin']);
-                    });
-            })
-            ->orderBy('sensor_id')
-            ->orderBy('measured_at')
-            ->get();
+        // Obtener los IDs que coinciden exactamente con el tipo de error
+        $matchingIds = $this->measurementService->getMeasurementIdsByErrorType(
+            $user,
+            $errorType,
+            $request->input('group_id')
+        );
 
-        // Agrupar mediciones por sensor
-        $measurementsBySensor = $measurements->groupBy('sensor_id');
-        $errorMeasurements = collect();
-
-        foreach ($measurementsBySensor as $sensorId => $sensorMeasurements) {
-            // Ordenar las mediciones del sensor por fecha (ascendente)
-            $sortedMeasurements = $sensorMeasurements->sortBy('measured_at');
-
-            foreach ($sortedMeasurements as $index => $measurement) {
-                $previousMeasurement = ($index > 0) ? $sortedMeasurements->get($index - 1) : null;
-
-                if (!$previousMeasurement) {
-                    if ($errorType === 'first_measurement') {
-                        $errorMeasurements->push($measurement);
-                    }
-                    continue;
-                }
-
-                // Validar fecha
-                $lastDate = Carbon::parse($previousMeasurement->measured_at);
-                $currentDate = Carbon::parse($measurement->measured_at);
-
-                if ($currentDate->lt($lastDate) && $errorType === 'inconsistent_date') {
-                    // Agregar ambas mediciones involucradas
-                    if (!$errorMeasurements->contains('id', $measurement->id)) {
-                        $errorMeasurements->push($measurement);
-                    }
-                    if (!$errorMeasurements->contains('id', $previousMeasurement->id)) {
-                        $errorMeasurements->push($previousMeasurement);
-                    }
-                }
-
-                // Validar consumo
-                $lastValue = $previousMeasurement->data['valor'] ?? 0;
-                $currentValue = $measurement->data['valor'] ?? 0;
-                $consumption = $currentValue - $lastValue;
-
-                if ($consumption < 0 && $errorType === 'negative_consumption') {
-                    // Agregar ambas mediciones involucradas
-                    if (!$errorMeasurements->contains('id', $measurement->id)) {
-                        $errorMeasurements->push($measurement);
-                    }
-                    if (!$errorMeasurements->contains('id', $previousMeasurement->id)) {
-                        $errorMeasurements->push($previousMeasurement);
-                    }
-                }
-            }
+        if (empty($matchingIds)) {
+            $emptyResult = [
+                'success' => true,
+                'message' => 'No se encontraron mediciones con este tipo de error',
+                'data' => collect(),
+                'error_type' => $errorType,
+                'count' => 0
+            ];
+            return $returnArray ? $emptyResult : response()->json($emptyResult);
         }
 
-        // Ordenar las mediciones con errores por fecha (descendente)
-        $errorMeasurements = $errorMeasurements->sortByDesc('measured_at')->values();
+        $measurements = Measurement::with(['sensor', 'sensor.group', 'sensor.group.template'])
+            ->whereIn('id', $matchingIds)
+            ->orderBy('measured_at', 'desc')
+            ->get();
 
-        // Agregar datos de consumo y estado a cada medición
-        $measurementsWithData = $errorMeasurements->map(function ($measurement) use ($measurementsBySensor) {
-            $sensorId = $measurement->sensor_id;
-            $sensorMeasurements = $measurementsBySensor->get($sensorId, collect());
-
-            // Ordenar las mediciones del sensor por fecha (ascendente)
-            $sortedMeasurements = $sensorMeasurements->sortBy('measured_at');
-
-            // Encontrar el índice de la medición actual en el array ordenado
-            $currentIndex = $sortedMeasurements->search(function ($m) use ($measurement) {
-                return $m->id === $measurement->id;
-            });
-
-            // Obtener la medición anterior (en el tiempo)
-            $previousMeasurement = ($currentIndex > 0) ? $sortedMeasurements->get($currentIndex - 1) : null;
-
-            $data = $measurement->data ?? [];
-            $valor = $data['valor'] ?? 0;
-
-            if ($previousMeasurement) {
-                $lastValue = $previousMeasurement->data['valor'] ?? 0;
-                $consumption = $valor - $lastValue;
-                $measurement->consumption = $consumption;
-
-                // Validar fecha
-                $lastDate = Carbon::parse($previousMeasurement->measured_at);
-                $currentDate = Carbon::parse($measurement->measured_at);
-
-                if ($currentDate->lt($lastDate)) {
-                    $measurement->error_type = 'inconsistent_date';
-                } elseif ($consumption < 0) {
-                    $measurement->error_type = 'negative_consumption';
-                } else {
-                    $measurement->error_type = 'valid';
-                }
-            } else {
-                $measurement->consumption = null;
-                $measurement->error_type = 'first_measurement';
-            }
-
-            $measurement->previous_measurement = $previousMeasurement;
-            return $measurement;
+        $measurementsWithData = $measurements->map(function ($measurement) {
+            return $this->decorateMeasurementWithData($measurement);
         });
 
         if ($returnArray) {
@@ -996,8 +927,8 @@ class MeasurementController extends Controller
     }
 
     /**
-     * Obtener detalles de un error específico (para mostrar en el modal al hacer clic en una tarjeta).
-     * Incluye más detalles como número de registro, diferencias de valores, etc.
+     * Obtener detalles de un error específico para el modal de auditoría.
+     * Garantiza rigurosamente el orden cronológico y la relación medición actual vs anterior.
      */
     public function getErrorDetails(Request $request, $errorType)
     {
@@ -1013,58 +944,85 @@ class MeasurementController extends Controller
         }
 
         try {
-            // Obtener las mediciones con este tipo de error (como array)
-            $response = $this->getMeasurementsByErrorType($request, $errorType, true);
+            $matchingIds = $this->measurementService->getMeasurementIdsByErrorType(
+                $user,
+                $errorType,
+                $request->input('group_id')
+            );
 
-            if (!$response['success']) {
-                return response()->json($response, 400);
+            if (empty($matchingIds)) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'No se encontraron registros con este tipo de error',
+                    'data' => [],
+                    'error_type' => $errorType,
+                    'count' => 0
+                ]);
             }
 
-            $measurements = $response['data'];
-
-            // Agrupar las mediciones por sensor para mostrar pares relacionados
-            $groupedBySensor = $measurements->groupBy('sensor_id');
+            // Cargar mediciones erróneas ordenadas por sensor y fecha
+            $measurements = Measurement::with(['sensor', 'sensor.group', 'sensor.group.template'])
+                ->whereIn('id', $matchingIds)
+                ->orderBy('sensor_id')
+                ->orderBy('measured_at', 'asc')
+                ->get();
 
             $errorDetails = [];
+            $recordNumber = 1;
 
-            foreach ($groupedBySensor as $sensorId => $sensorMeasurements) {
-                // Ordenar por fecha
-                $sortedMeasurements = $sensorMeasurements->sortBy('measured_at');
+            foreach ($measurements as $current) {
+                $sensor = $current->sensor;
+                $mainField = $this->measurementService->getMainFieldFromSensor($sensor);
+                $currData = $current->data ?? [];
+                $currVal = $currData[$mainField] ?? ($currData['valor'] ?? 0);
 
-                // Agrupar en pares (medición actual + medición anterior)
-                for ($i = 0; $i < $sortedMeasurements->count(); $i++) {
-                    $current = $sortedMeasurements->get($i);
-                    $previous = ($i > 0) ? $sortedMeasurements->get($i - 1) : null;
+                // Obtener cronológicamente la medición anterior inmediata de este sensor
+                $previous = Measurement::where('sensor_id', $current->sensor_id)
+                    ->where('measured_at', '<', $current->measured_at)
+                    ->orderBy('measured_at', 'desc')
+                    ->first();
 
-                    $detail = [
-                        'sensor_id' => $sensorId,
-                        'sensor_name' => $current->sensor->name ?? 'N/A',
-                        'sensor_identifier' => $current->sensor->identifier ?? 'N/A',
-                        'group_name' => $current->sensor->group->name ?? 'Sin grupo',
-                        'current_measurement' => [
-                            'id' => $current->id,
-                            'value' => $current->data['valor'] ?? 0,
-                            'date' => $current->measured_at,
-                            'consumption' => $current->consumption
-                        ],
-                        'previous_measurement' => $previous ? [
-                            'id' => $previous->id,
-                            'value' => $previous->data['valor'] ?? 0,
-                            'date' => $previous->measured_at
-                        ] : null,
-                        'error_type' => $errorType,
-                        'error_message' => $this->measurementService->getErrorMessage($errorType, $current, $previous, 'valor'),
-                        'difference' => $previous ? [
-                            'value' => ($current->data['valor'] ?? 0) - ($previous->data['valor'] ?? 0),
-                            'days' => $previous ? Carbon::parse($current->measured_at)->diffInDays(Carbon::parse($previous->measured_at)) : null
-                        ] : null
+                $prevData = $previous ? ($previous->data ?? []) : [];
+                $prevVal = $previous ? ($prevData[$mainField] ?? ($prevData['valor'] ?? 0)) : null;
+
+                $consumption = null;
+                $difference = null;
+                if ($previous) {
+                    $consumption = (float) $currVal - (float) $prevVal;
+                    $diffDays = Carbon::parse($current->measured_at)->diffInDays(Carbon::parse($previous->measured_at));
+                    $difference = [
+                        'value' => $consumption,
+                        'days' => $diffDays
                     ];
-
-                    // Agregar número de registro (posición en el listado)
-                    $detail['record_number'] = $i + 1;
-
-                    $errorDetails[] = $detail;
                 }
+
+                $errorMessage = $this->measurementService->getErrorMessage($errorType, $current, $previous, $mainField);
+
+                $detail = [
+                    'sensor_id' => $current->sensor_id,
+                    'sensor_name' => $sensor->name ?? 'Sensor #' . $current->sensor_id,
+                    'sensor_identifier' => $sensor->identifier ?? 'N/A',
+                    'group_name' => $sensor->group->name ?? 'Sin grupo',
+                    'current_measurement' => [
+                        'id' => $current->id,
+                        'value' => $currVal,
+                        'date' => $current->measured_at,
+                        'consumption' => $consumption,
+                        'is_reset' => !empty($currData['is_reset']),
+                        'reset_type' => $currData['reset_type'] ?? null
+                    ],
+                    'previous_measurement' => $previous ? [
+                        'id' => $previous->id,
+                        'value' => $prevVal,
+                        'date' => $previous->measured_at
+                    ] : null,
+                    'error_type' => $errorType,
+                    'error_message' => $errorMessage,
+                    'difference' => $difference,
+                    'record_number' => $recordNumber++
+                ];
+
+                $errorDetails[] = $detail;
             }
 
             return response()->json([
@@ -1082,6 +1040,56 @@ class MeasurementController extends Controller
                 'error' => $e->getTraceAsString()
             ], 500);
         }
+    }
+
+    /**
+     * Marcar o desmarcar una medición como Cambio de Medidor (Reseteo de contador).
+     * Esto normaliza el consumo evitando anomalías negativas en reemplazos de hardware.
+     */
+    public function markReset(Request $request, Measurement $measurement)
+    {
+        $user = $request->user();
+
+        // Verificar permisos
+        $canUpdate = $user->hasRole('admin') ||
+            ($measurement->sensor->group && $measurement->sensor->group->user_id === $user->id) ||
+            ($measurement->sensor->group && $measurement->sensor->group->sharedAccess()
+                ->where('shared_with', $user->id)
+                ->whereIn('role', ['inspector', 'admin'])
+                ->exists());
+
+        if (!$canUpdate) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No tienes permiso para modificar esta medición.'
+            ], 403);
+        }
+
+        $data = $measurement->data ?? [];
+        $currentReset = !empty($data['is_reset']);
+        $newReset = $request->has('is_reset') ? (bool) $request->input('is_reset') : !$currentReset;
+
+        if ($newReset) {
+            $data['is_reset'] = true;
+            $data['reset_type'] = $request->input('reset_type', 'simple');
+            $data['reset_notes'] = $request->input('notes', 'Marcado como cambio de medidor / reseteo');
+            $message = 'Medición marcada como Cambio de Medidor (Reseteo) exitosamente.';
+        } else {
+            unset($data['is_reset'], $data['reset_type'], $data['reset_notes']);
+            $message = 'Se quitó la marca de Cambio de Medidor de la medición.';
+        }
+
+        $measurement->data = $data;
+        $measurement->save();
+
+        Cache::forget("user_{$user->id}_error_stats");
+
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'is_reset' => $newReset,
+            'data' => $measurement
+        ]);
     }
 
 
@@ -1641,15 +1649,27 @@ class MeasurementController extends Controller
     }
 
     /**
-     * Exportar mediciones y consumos filtrados a Excel (.xlsx).
+     * Exportar mediciones y consumos filtrados o seleccionados a Excel / CSV.
      */
     public function export(Request $request)
     {
         @set_time_limit(300);
         $user = $request->user();
 
-        // 1. Construir la misma query base con todos los filtros activos
-        $query = $this->measurementService->buildMeasurementQuery($user, $request);
+        // 1. Construir la consulta base con filtros
+        $filters = $request->all();
+        $sortField = $request->input('sort_field', 'measured_at');
+        $sortDirection = $request->input('sort_direction', 'desc');
+        $query = $this->measurementService->buildMeasurementQuery($user, $filters, $sortField, $sortDirection);
+
+        // 1b. Si se envían IDs específicos (exportar selección manual)
+        if ($request->filled('ids')) {
+            $ids = is_array($request->ids) ? $request->ids : explode(',', $request->ids);
+            $ids = array_filter(array_map('trim', $ids));
+            if (!empty($ids)) {
+                $query->whereIn('measurements.id', $ids);
+            }
+        }
 
         // 2. Si hay filtro por tipo de error, aplicar el conjunto de IDs
         $errorType = $request->input('error_type');
@@ -1670,37 +1690,128 @@ class MeasurementController extends Controller
             'sensor.group.user'
         ])->get();
 
-        // 4. Crear el archivo Excel mediante PhpSpreadsheet
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Mediciones y Consumos');
-
-        // Encabezados
         $headers = [
-            'A1' => 'ID',
-            'B1' => 'Sensor',
-            'C1' => 'Identificador',
-            'D1' => 'Grupo',
-            'E1' => 'Plantilla',
-            'F1' => 'Fecha Medición',
-            'G1' => 'Lectura (Valor)',
-            'H1' => 'Unidad',
-            'I1' => 'Lectura Anterior',
-            'J1' => 'Consumo Calculado',
-            'K1' => 'Días Transcurridos',
-            'L1' => 'Promedio Diario',
-            'M1' => 'Costo ($)',
-            'N1' => 'Moneda',
-            'O1' => 'Estado / Aviso',
-            'P1' => 'Foto',
-            'Q1' => 'Campos Personalizados / Observaciones'
+            'ID',
+            'Sensor',
+            'Identificador',
+            'Grupo',
+            'Plantilla',
+            'Fecha Medición',
+            'Lectura (Valor)',
+            'Unidad',
+            'Lectura Anterior',
+            'Consumo Calculado',
+            'Días Transcurridos',
+            'Promedio Diario',
+            'Costo ($)',
+            'Moneda',
+            'Estado / Aviso',
+            'Foto',
+            'Campos Personalizados / Observaciones'
         ];
 
-        foreach ($headers as $cell => $header) {
-            $sheet->setCellValue($cell, $header);
+        // 4. Si PhpSpreadsheet está disponible en el servidor, generar .xlsx
+        if (class_exists(\PhpOffice\PhpSpreadsheet\Spreadsheet::class)) {
+            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            $sheet->setTitle('Mediciones y Consumos');
+
+            $colIdx = 1;
+            foreach ($headers as $h) {
+                $sheet->setCellValueByColumnAndRow($colIdx++, 1, $h);
+            }
+
+            $row = 2;
+            foreach ($measurements as $m) {
+                $this->decorateMeasurementWithData($m);
+                $sensor = $m->sensor;
+                $data = $m->data ?? [];
+                $mainField = $this->measurementService->getMainFieldFromSensor($sensor);
+                $val = $data[$mainField] ?? ($data['valor'] ?? 'N/A');
+
+                $unit = 'unidades';
+                if ($sensor && $sensor->group && $sensor->group->template) {
+                    foreach ($sensor->group->template->schema['campos'] ?? [] as $c) {
+                        if (($c['tipo'] ?? '') === 'numero' && ($c['requerido'] ?? false)) {
+                            $unit = $c['unidad'] ?? 'unidades';
+                            break;
+                        }
+                    }
+                }
+
+                $extraDataStr = [];
+                foreach ($data as $k => $v) {
+                    if ($k !== $mainField && $k !== 'valor' && $k !== 'foto' && $k !== 'foto_evidencia') {
+                        $extraDataStr[] = "$k: $v";
+                    }
+                }
+                if ($sensor && is_array($sensor->metadata)) {
+                    foreach ($sensor->metadata as $mk => $mv) {
+                        if ($mv !== null && $mv !== '') {
+                            $extraDataStr[] = "[$mk: $mv]";
+                        }
+                    }
+                }
+
+                $lastVal = '—';
+                if ($m->previous_measurement) {
+                    $pData = $m->previous_measurement->data ?? [];
+                    $lastVal = $pData[$mainField] ?? ($pData['valor'] ?? '—');
+                }
+
+                $sheet->setCellValue('A' . $row, $m->id);
+                $sheet->setCellValue('B' . $row, $sensor->name ?? 'N/A');
+                $sheet->setCellValue('C' . $row, $sensor->identifier ?? '—');
+                $sheet->setCellValue('D' . $row, $sensor->group->name ?? 'Sin grupo');
+                $sheet->setCellValue('E' . $row, $sensor->group->template->name ?? ($sensor->group->template->type ?? 'N/A'));
+                $sheet->setCellValue('F' . $row, $m->measured_at ? Carbon::parse($m->measured_at)->format('d/m/Y H:i') : 'N/A');
+                $sheet->setCellValue('G' . $row, $val);
+                $sheet->setCellValue('H' . $row, $unit);
+                $sheet->setCellValue('I' . $row, $lastVal);
+                $sheet->setCellValue('J' . $row, $m->consumption ?? 0);
+                $sheet->setCellValue('K' . $row, $m->days_between ?? 0);
+                $sheet->setCellValue('L' . $row, $m->daily_average ?? 0);
+                $sheet->setCellValue('M' . $row, $m->cost !== null ? $m->cost : '—');
+                $sheet->setCellValue('N' . $row, $m->currency ?? '—');
+                $sheet->setCellValue('O' . $row, $m->error_type ?? 'valid');
+                $sheet->setCellValue('P' . $row, $data['foto'] ?? 'Sin Foto');
+                $sheet->setCellValue('Q' . $row, implode(' | ', $extraDataStr));
+
+                $row++;
+            }
+
+            $sheet->getStyle('A1:Q1')->getFont()->setBold(true);
+            $sheet->getStyle('A1:Q1')->getFill()
+                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                ->getStartColor()->setARGB('FFE9ECEF');
+
+            foreach (range('A', 'Q') as $col) {
+                $sheet->getColumnDimension($col)->setAutoSize(true);
+            }
+
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+            $filename = 'mediciones_consumos_' . date('Ymd_His') . '.xlsx';
+
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            header('Content-Disposition: attachment;filename="' . $filename . '"');
+            header('Cache-Control: max-age=0');
+            $writer->save('php://output');
+            exit;
         }
 
-        $row = 2;
+        // 5. Fallback nativo CSV con UTF-8 BOM para Excel (compatible con cualquier servidor compartido)
+        $filename = 'mediciones_consumos_' . date('Ymd_His') . '.csv';
+
+        header('Content-Type: text/csv; charset=UTF-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+        header('Pragma: public');
+
+        $out = fopen('php://output', 'w');
+        // Escribir UTF-8 BOM para que Microsoft Excel en Windows abra tildes automáticamente sin asistentes
+        fwrite($out, "\xEF\xBB\xBF");
+        fputcsv($out, $headers, ';');
+
         foreach ($measurements as $m) {
             $this->decorateMeasurementWithData($m);
             $sensor = $m->sensor;
@@ -1708,7 +1819,6 @@ class MeasurementController extends Controller
             $mainField = $this->measurementService->getMainFieldFromSensor($sensor);
             $val = $data[$mainField] ?? ($data['valor'] ?? 'N/A');
 
-            // Determinar unidad de medida
             $unit = 'unidades';
             if ($sensor && $sensor->group && $sensor->group->template) {
                 foreach ($sensor->group->template->schema['campos'] ?? [] as $c) {
@@ -1719,7 +1829,6 @@ class MeasurementController extends Controller
                 }
             }
 
-            // Datos dinámicos y atributos de sensor
             $extraDataStr = [];
             foreach ($data as $k => $v) {
                 if ($k !== $mainField && $k !== 'valor' && $k !== 'foto' && $k !== 'foto_evidencia') {
@@ -1740,45 +1849,30 @@ class MeasurementController extends Controller
                 $lastVal = $pData[$mainField] ?? ($pData['valor'] ?? '—');
             }
 
-            $sheet->setCellValue('A' . $row, $m->id);
-            $sheet->setCellValue('B' . $row, $sensor->name ?? 'N/A');
-            $sheet->setCellValue('C' . $row, $sensor->identifier ?? '—');
-            $sheet->setCellValue('D' . $row, $sensor->group->name ?? 'Sin grupo');
-            $sheet->setCellValue('E' . $row, $sensor->group->template->name ?? ($sensor->group->template->type ?? 'N/A'));
-            $sheet->setCellValue('F' . $row, $m->measured_at);
-            $sheet->setCellValue('G' . $row, $val);
-            $sheet->setCellValue('H' . $row, $unit);
-            $sheet->setCellValue('I' . $row, $lastVal);
-            $sheet->setCellValue('J' . $row, $m->consumption ?? 0);
-            $sheet->setCellValue('K' . $row, $m->days_between ?? 0);
-            $sheet->setCellValue('L' . $row, $m->daily_average ?? 0);
-            $sheet->setCellValue('M' . $row, $m->cost !== null ? $m->cost : '—');
-            $sheet->setCellValue('N' . $row, $m->currency ?? '—');
-            $sheet->setCellValue('O' . $row, $m->error_type ?? 'valid');
-            $sheet->setCellValue('P' . $row, $data['foto'] ?? 'Sin Foto');
-            $sheet->setCellValue('Q' . $row, implode(' | ', $extraDataStr));
+            $csvRow = [
+                $m->id,
+                $sensor->name ?? 'N/A',
+                $sensor->identifier ?? '—',
+                $sensor->group->name ?? 'Sin grupo',
+                $sensor->group->template->name ?? ($sensor->group->template->type ?? 'N/A'),
+                $m->measured_at ? Carbon::parse($m->measured_at)->format('d/m/Y H:i') : 'N/A',
+                $val,
+                $unit,
+                $lastVal,
+                $m->consumption ?? 0,
+                $m->days_between ?? 0,
+                $m->daily_average ?? 0,
+                $m->cost !== null ? $m->cost : '—',
+                $m->currency ?? '—',
+                $m->error_type ?? 'valid',
+                $data['foto'] ?? 'Sin Foto',
+                implode(' | ', $extraDataStr)
+            ];
 
-            $row++;
+            fputcsv($out, $csvRow, ';');
         }
 
-        // Estilos cabecera
-        $sheet->getStyle('A1:Q1')->getFont()->setBold(true);
-        $sheet->getStyle('A1:Q1')->getFill()
-            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-            ->getStartColor()->setARGB('FFE9ECEF');
-
-        foreach (range('A', 'Q') as $col) {
-            $sheet->getColumnDimension($col)->setAutoSize(true);
-        }
-
-        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-        $filename = 'mediciones_consumos_' . date('Ymd_His') . '.xlsx';
-
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="' . $filename . '"');
-        header('Cache-Control: max-age=0');
-
-        $writer->save('php://output');
+        fclose($out);
         exit;
     }
 

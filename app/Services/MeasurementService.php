@@ -139,6 +139,12 @@ class MeasurementService
                     $prevData = json_decode($prev->data, true);
                     $currData = json_decode($curr->data, true);
 
+                    // Si la medición actual está marcada como cambio de medidor / reseteo, no es error
+                    if (!empty($currData['is_reset'])) {
+                        $errorStats['valid']++;
+                        continue;
+                    }
+
                     $prevVal = (float) ($prevData['valor'] ?? 0);
                     $currVal = (float) ($currData['valor'] ?? 0);
 
@@ -216,6 +222,14 @@ class MeasurementService
                 $prevData = json_decode($prev->data, true);
                 $currData = json_decode($curr->data, true);
 
+                // Si la medición actual está marcada como cambio de medidor / reseteo
+                if (!empty($currData['is_reset'])) {
+                    if ($errorType === 'valid') {
+                        $matchingIds[] = $curr->id;
+                    }
+                    continue;
+                }
+
                 $prevVal = (float) ($prevData['valor'] ?? 0);
                 $currVal = (float) ($currData['valor'] ?? 0);
 
@@ -252,7 +266,7 @@ class MeasurementService
                 return "Fecha inconsistente: Esta medición ($currentDate) es anterior a la medición previa ($previousDate).";
             case 'negative_consumption':
                 $diff = $currentValue - $previousValue;
-                return "Consumo negativo ($diff detectado). El valor actual ($currentValue) es menor que el anterior ($previousValue).";
+                return "Consumo negativo ($diff detectado). La lectura actual ($currentValue el $currentDate) es menor que la anterior ($previousValue el $previousDate).";
             default:
                 return "Error desconocido en la medición.";
         }

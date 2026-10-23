@@ -145,6 +145,10 @@ Disponible en el formulario **Tomar Mediciones** marcando el checkbox **¿Se ree
   2. Período nuevo: arranca limpio cruzando contra el cero (`15 − 0 = 15`).
 - El historial queda intacto; no se regala el consumo mensual.
 - Validación anti-negativo en backend (`MeasurementController` y `MeasurementService::calculateErrorStats`): si `consumption < 0` se marca `error_type = 'negative_consumption'`; si la fecha es anterior a la previa, `inconsistent_date`.
+- **Resolución desde Auditoría de Mediciones**: Desde la vista unificada `/mediciones`, al abrir el modal de detalles de **Consumos Negativos**, el administrador dispone de botones de acción inmediata por fila:
+  - **Cambio de Medidor (Reseteo)**: Marca `is_reset = 1` en la medición seleccionada mediante `POST /mediciones/{id}/mark-reset`. Invalida la alarma y establece el nuevo contador como línea de base.
+  - **Corregir**: Modal interactivo para enmendar errores de tipeo en el valor o fechas trocadas del archivo Excel original con soporte de `force = true`.
+  - **Eliminar**: Permite purgar registros duplicados o corruptos.
 
 #### Coordinación con la App Móvil (crítico)
 - La app móvil bloquea el guardado si el operario ingresa un valor **MENOR** a la última medición conocida (validación estricta en Flutter, `measurement_screen.dart`).

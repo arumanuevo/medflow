@@ -349,8 +349,8 @@
                                 <button class="btn btn-outline-light btn-sm" id="toggleErrors" title="Mostrar u ocultar auditoría de errores">
                                     <i class="bi bi-exclamation-triangle me-1"></i> Auditoría
                                 </button>
-                                <a href="{{ route('sensor-groups.index') }}" class="btn btn-light btn-sm">
-                                    <i class="bi bi-arrow-left me-1"></i> Grupos
+                                <a href="{{ route('sensor-groups.index') }}" class="btn btn-light btn-sm" title="Ir al listado y gestión de Grupos de Sensores">
+                                    <i class="bi bi-folder2-open me-1"></i> Ver Grupos
                                 </a>
                             </div>
                         </div>
@@ -614,10 +614,10 @@
     <!-- Modal para detalles de error -->
     <div class="modal fade" id="errorDetailsModal" tabindex="-1" aria-labelledby="errorDetailsModalLabel"
         aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header bg-warning">
-                    <h5 class="modal-title" id="errorDetailsModalLabel">
+                    <h5 class="modal-title fw-bold" id="errorDetailsModalLabel">
                         <i class="bi bi-exclamation-triangle-fill"></i> Detalles del Error
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -627,6 +627,83 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Edición Rápida de Medición (Corrección de Tipeo / Fecha) -->
+    <div class="modal fade" id="quickEditMeasurementModal" tabindex="-1" aria-labelledby="quickEditMeasurementModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title fw-bold" id="quickEditMeasurementModalLabel">
+                        <i class="bi bi-pencil-square me-2"></i> Corregir Medición
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="quickEditMeasurementForm" onsubmit="return false;">
+                        <input type="hidden" id="quickEditMeasurementId">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">ID Medición</label>
+                            <input type="text" class="form-control" id="quickEditDisplayId" readonly disabled>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Lectura (Valor) <span class="text-danger">*</span></label>
+                            <input type="number" step="any" class="form-control" id="quickEditValue" required>
+                            <div class="form-text">Si hubo un error de tipeo en el Excel, ingresa el valor correcto.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Fecha y Hora <span class="text-danger">*</span></label>
+                            <input type="datetime-local" class="form-control" id="quickEditDate" required>
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="quickEditForce" checked>
+                            <label class="form-check-label" for="quickEditForce">Forzar corrección histórica (omite validación restrictiva)</label>
+                        </div>
+                        <div id="quickEditAlert" class="alert alert-danger d-none mb-0"></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btnSaveQuickEdit">
+                        <i class="bi bi-check-lg me-1"></i> Guardar Corrección
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Confirmación de Cambio de Medidor (Reseteo / Muro Cortafuegos) -->
+    <div class="modal fade" id="confirmResetModal" tabindex="-1" aria-labelledby="confirmResetModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title fw-bold" id="confirmResetModalLabel">
+                        <i class="bi bi-arrow-repeat me-2"></i> Registrar Cambio de Medidor (Reseteo)
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Deseas registrar esta medición como un <strong>Reemplazo de Medidor Físico</strong> o <strong>Reseteo de Contador</strong>?</p>
+                    <div class="card bg-light p-3 mb-3 border-0">
+                        <div><strong>Medición ID:</strong> <span id="resetModalDisplayId"></span></div>
+                        <div><strong>Sensor:</strong> <span id="resetModalDisplaySensor"></span></div>
+                        <div><strong>Lectura Inicial (Nuevo Medidor):</strong> <span id="resetModalDisplayValue" class="badge bg-primary"></span></div>
+                        <div><strong>Fecha:</strong> <span id="resetModalDisplayDate"></span></div>
+                    </div>
+                    <div class="alert alert-info py-2 small mb-0">
+                        <i class="bi bi-shield-check me-1"></i>
+                        <strong>Muro Cortafuegos:</strong> El sistema establecerá esta lectura como nueva línea de base. El cálculo de consumo no será negativo y las mediciones posteriores continuarán normalmente a partir de este nuevo medidor.
+                    </div>
+                    <input type="hidden" id="resetModalMeasurementId">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-warning fw-bold" id="btnConfirmReset">
+                        <i class="bi bi-check-circle me-1"></i> Confirmar Cambio de Medidor
+                    </button>
                 </div>
             </div>
         </div>
@@ -970,6 +1047,9 @@
         style="display: none; z-index: 1050; border: 1px solid #dee2e6;">
         <div class="d-flex align-items-center gap-3">
             <span class="fw-bold" id="selectedCount">0 seleccionados</span>
+            <button class="btn btn-success btn-sm" id="btnBulkExportExcel" title="Exportar únicamente los registros seleccionados">
+                <i class="bi bi-file-earmark-excel me-1"></i> Exportar Seleccionados
+            </button>
             <button class="btn btn-danger btn-sm" id="btnBulkDelete">
                 <i class="bi bi-trash"></i> Eliminar Selección
             </button>
@@ -1587,7 +1667,8 @@
                                                                                                                         <th>Medición Anterior</th>
                                                                                                                         <th>Diferencia</th>
                                                                                                                         <th>Días</th>
-                                                                                                                        <th>Error</th>
+                                                                                                                        <th>Diagnóstico</th>
+                                                                                                                        <th class="text-center">Acciones</th>
                                                                                                                     </tr>
                                                                                                                 </thead>
                                                                                                                 <tbody>
@@ -1607,19 +1688,46 @@
                                                                                                 <tr>
                                                                                                     <td>${detail.record_number}</td>
                                                                                                     <td>
-                                                                                                        <strong>ID:</strong> ${detail.current_measurement.id}<br>
+                                                                                                        <strong>ID:</strong> #${detail.current_measurement.id}<br>
                                                                                                         <strong>Valor:</strong> ${detail.current_measurement.value}<br>
                                                                                                         <strong>Fecha:</strong> ${currentDate}
+                                                                                                        ${detail.current_measurement.is_reset ? '<br><span class="badge bg-info mt-1"><i class="bi bi-arrow-repeat"></i> Cambio Medidor</span>' : ''}
                                                                                                     </td>
                                                                                                     <td>
                                                                                                         ${detail.previous_measurement ?
-                                `<strong>ID:</strong> ${detail.previous_measurement.id}<br>
+                                `<strong>ID:</strong> #${detail.previous_measurement.id}<br>
                                                                                                             <strong>Valor:</strong> ${detail.previous_measurement.value}<br>
-                                                                                                            <strong>Fecha:</strong> ${previousDate}` : 'N/A'}
+                                                                                                            <strong>Fecha:</strong> ${previousDate}` : '<span class="text-muted fst-italic">Primera medición</span>'}
                                                                                                     </td>
                                                                                                     <td class="${consumptionClass}">${difference}</td>
-                                                                                                    <td>${daysDifference !== 'N/A' ? daysDifference + ' días' : 'N/A'}</td>
-                                                                                                    <td>${detail.error_message}</td>
+                                                                                                    <td>${daysDifference !== 'N/A' ? daysDifference + ' días' : '—'}</td>
+                                                                                                    <td><small>${detail.error_message}</small></td>
+                                                                                                    <td class="text-nowrap text-center">
+                                                                                                        <div class="d-inline-flex flex-column gap-1">
+                                                                                                            ${detail.error_type === 'negative_consumption' ? `
+                                                                                                                <button class="btn btn-warning btn-sm py-1 px-2 fw-semibold btn-mark-reset"
+                                                                                                                    data-id="${detail.current_measurement.id}"
+                                                                                                                    data-sensor="${escapeHtml(sensorName)}"
+                                                                                                                    data-value="${detail.current_measurement.value}"
+                                                                                                                    data-date="${currentDate}"
+                                                                                                                    title="Registrar reemplazo físico de medidor / reseteo">
+                                                                                                                    <i class="bi bi-arrow-repeat me-1"></i> Cambio Medidor
+                                                                                                                </button>
+                                                                                                            ` : ''}
+                                                                                                            <button class="btn btn-outline-primary btn-sm py-1 px-2 btn-quick-edit"
+                                                                                                                data-id="${detail.current_measurement.id}"
+                                                                                                                data-value="${detail.current_measurement.value}"
+                                                                                                                data-date="${detail.current_measurement.date}"
+                                                                                                                title="Corregir valor o fecha por error de tipeo">
+                                                                                                                <i class="bi bi-pencil me-1"></i> Corregir
+                                                                                                            </button>
+                                                                                                            <button class="btn btn-outline-danger btn-sm py-1 px-2 btn-quick-delete"
+                                                                                                                data-id="${detail.current_measurement.id}"
+                                                                                                                title="Eliminar esta medición">
+                                                                                                                <i class="bi bi-trash"></i>
+                                                                                                            </button>
+                                                                                                        </div>
+                                                                                                    </td>
                                                                                                 </tr>
                                                                                             `;
                     });
@@ -2242,9 +2350,14 @@
             }
 
             // =========================================================
-            // 📊 EXPORTAR A EXCEL (MEDICIONES Y CONSUMOS FILTRADOS)
+            // 📊 EXPORTAR A EXCEL / CSV (MEDICIONES Y CONSUMOS)
             // =========================================================
             $('#btnExportExcel').click(function () {
+                const selectedIds = [];
+                $('.measurement-checkbox:checked').each(function () {
+                    selectedIds.push($(this).val());
+                });
+
                 const params = {
                     group_id: $('#groupFilter').val() || '',
                     sensor_id: $('#sensorFilter').val() || '',
@@ -2257,11 +2370,167 @@
                     sort_direction: currentSortDirection
                 };
 
+                if (selectedIds.length > 0) {
+                    if (confirm(`Tienes ${selectedIds.length} mediciones seleccionadas con casillas.\n\n¿Deseas exportar únicamente las seleccionadas?\n• Haz clic en [Aceptar] para exportar solo las ${selectedIds.length} seleccionadas.\n• Haz clic en [Cancelar] para exportar todos los registros filtrados.`)) {
+                        params.ids = selectedIds.join(',');
+                    }
+                }
+
                 Object.keys(params).forEach(k => {
                     if (!params[k]) delete params[k];
                 });
 
-                window.location.href = '/api/measurements/export?' + new URLSearchParams(params).toString();
+                window.location.href = '/mediciones/export?' + new URLSearchParams(params).toString();
+            });
+
+            $('#btnBulkExportExcel').click(function () {
+                const selectedIds = [];
+                $('.measurement-checkbox:checked').each(function () {
+                    selectedIds.push($(this).val());
+                });
+
+                if (selectedIds.length === 0) {
+                    alert('Por favor selecciona al menos una medición para exportar.');
+                    return;
+                }
+
+                window.location.href = '/mediciones/export?ids=' + selectedIds.join(',');
+            });
+
+            // =========================================================
+            // 🔄 AUDITORÍA: CAMBIO DE MEDIDOR, CORRECCIÓN Y ELIMINACIÓN
+            // =========================================================
+            $(document).on('click', '.btn-mark-reset', function () {
+                const id = $(this).data('id');
+                const sensor = $(this).data('sensor');
+                const val = $(this).data('value');
+                const date = $(this).data('date');
+
+                $('#resetModalMeasurementId').val(id);
+                $('#resetModalDisplayId').text('#' + id);
+                $('#resetModalDisplaySensor').text(sensor);
+                $('#resetModalDisplayValue').text(val);
+                $('#resetModalDisplayDate').text(date);
+
+                $('#confirmResetModal').modal('show');
+            });
+
+            $('#btnConfirmReset').click(function () {
+                const id = $('#resetModalMeasurementId').val();
+                if (!id) return;
+
+                const btn = $(this);
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Guardando...');
+
+                $.ajax({
+                    url: `/mediciones/${id}/mark-reset`,
+                    type: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                        'Accept': 'application/json'
+                    },
+                    data: {
+                        is_reset: 1,
+                        reset_type: 'simple'
+                    },
+                    success: function (resp) {
+                        btn.prop('disabled', false).html('<i class="bi bi-check-circle me-1"></i> Confirmar Cambio de Medidor');
+                        $('#confirmResetModal').modal('hide');
+                        showErrorDetailsModal(currentErrorType);
+                        loadMeasurements();
+                    },
+                    error: function (xhr) {
+                        btn.prop('disabled', false).html('<i class="bi bi-check-circle me-1"></i> Confirmar Cambio de Medidor');
+                        alert(xhr.responseJSON?.message || 'Error al registrar cambio de medidor.');
+                    }
+                });
+            });
+
+            $(document).on('click', '.btn-quick-edit', function () {
+                const id = $(this).data('id');
+                const val = $(this).data('value');
+                const rawDate = $(this).data('date');
+
+                $('#quickEditMeasurementId').val(id);
+                $('#quickEditDisplayId').val('#' + id);
+                $('#quickEditValue').val(val);
+
+                let dateVal = '';
+                if (rawDate) {
+                    const d = new Date(rawDate);
+                    if (!isNaN(d.getTime())) {
+                        const pad = num => String(num).padStart(2, '0');
+                        dateVal = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+                    }
+                }
+                $('#quickEditDate').val(dateVal);
+                $('#quickEditAlert').addClass('d-none').text('');
+                $('#quickEditMeasurementModal').modal('show');
+            });
+
+            $('#btnSaveQuickEdit').click(function () {
+                const id = $('#quickEditMeasurementId').val();
+                const val = $('#quickEditValue').val();
+                const date = $('#quickEditDate').val();
+                const force = $('#quickEditForce').is(':checked');
+
+                if (val === '' || !date) {
+                    $('#quickEditAlert').removeClass('d-none').text('Por favor complete la lectura y la fecha.');
+                    return;
+                }
+
+                const btn = $(this);
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Guardando...');
+
+                $.ajax({
+                    url: `/api/measurements/${id}`,
+                    type: 'PUT',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                        'Accept': 'application/json'
+                    },
+                    data: {
+                        'data': { 'valor': parseFloat(val) },
+                        'measured_at': date,
+                        'force': force ? 1 : 0
+                    },
+                    success: function (resp) {
+                        btn.prop('disabled', false).html('<i class="bi bi-check-lg me-1"></i> Guardar Corrección');
+                        $('#quickEditMeasurementModal').modal('hide');
+                        showErrorDetailsModal(currentErrorType);
+                        loadMeasurements();
+                    },
+                    error: function (xhr) {
+                        btn.prop('disabled', false).html('<i class="bi bi-check-lg me-1"></i> Guardar Corrección');
+                        const msg = xhr.responseJSON?.message || 'Error al actualizar la medición.';
+                        $('#quickEditAlert').removeClass('d-none').text(msg);
+                    }
+                });
+            });
+
+            $(document).on('click', '.btn-quick-delete', function () {
+                const id = $(this).data('id');
+                if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente la medición #${id}?`)) {
+                    return;
+                }
+
+                $.ajax({
+                    url: `/api/measurements/${id}`,
+                    type: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                        'Authorization': 'Bearer ' + localStorage.getItem('token'),
+                        'Accept': 'application/json'
+                    },
+                    success: function (resp) {
+                        showErrorDetailsModal(currentErrorType);
+                        loadMeasurements();
+                    },
+                    error: function (xhr) {
+                        alert(xhr.responseJSON?.message || 'Error al eliminar la medición.');
+                    }
+                });
             });
 
             // =========================================================

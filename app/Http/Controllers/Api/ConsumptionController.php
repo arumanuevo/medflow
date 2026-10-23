@@ -608,51 +608,82 @@ class ConsumptionController extends Controller
             return $consumptionArray;
         });
 
-        // Crear el archivo Excel
-        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
+        if (class_exists(\PhpOffice\PhpSpreadsheet\Spreadsheet::class)) {
+            // Crear el archivo Excel mediante PhpSpreadsheet
+            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
 
-        // Encabezados
-        $sheet->setCellValue('A1', 'ID');
-        $sheet->setCellValue('B1', 'Sensor');
-        $sheet->setCellValue('C1', 'Grupo');
-        $sheet->setCellValue('D1', 'Consumo');
-        $sheet->setCellValue('E1', 'Unidad');
-        $sheet->setCellValue('F1', 'Inicio');
-        $sheet->setCellValue('G1', 'Fin');
-        $sheet->setCellValue('H1', 'Días');
-        $sheet->setCellValue('I1', 'Promedio Diario');
+            // Encabezados
+            $sheet->setCellValue('A1', 'ID');
+            $sheet->setCellValue('B1', 'Sensor');
+            $sheet->setCellValue('C1', 'Grupo');
+            $sheet->setCellValue('D1', 'Consumo');
+            $sheet->setCellValue('E1', 'Unidad');
+            $sheet->setCellValue('F1', 'Inicio');
+            $sheet->setCellValue('G1', 'Fin');
+            $sheet->setCellValue('H1', 'Días');
+            $sheet->setCellValue('I1', 'Promedio Diario');
 
-        // Datos
-        $row = 2;
-        foreach ($consumptions as $consumption) {
-            $sheet->setCellValue('A' . $row, $consumption['id']);
-            $sheet->setCellValue('B' . $row, $consumption['sensor']['name'] ?? 'N/A');
-            $sheet->setCellValue('C' . $row, $consumption['sensor']['group']['name'] ?? 'N/A');
-            $sheet->setCellValue('D' . $row, $consumption['value']);
-            $sheet->setCellValue('E' . $row, $consumption['unit']);
-            $sheet->setCellValue('F' . $row, $consumption['period_start']);
-            $sheet->setCellValue('G' . $row, $consumption['period_end']);
-            $sheet->setCellValue('H' . $row, $consumption['days_between']);
-            $sheet->setCellValue('I' . $row, $consumption['daily_average'] ?? 0);
-            $row++;
+            // Datos
+            $row = 2;
+            foreach ($consumptions as $consumption) {
+                $sheet->setCellValue('A' . $row, $consumption['id']);
+                $sheet->setCellValue('B' . $row, $consumption['sensor']['name'] ?? 'N/A');
+                $sheet->setCellValue('C' . $row, $consumption['sensor']['group']['name'] ?? 'N/A');
+                $sheet->setCellValue('D' . $row, $consumption['value']);
+                $sheet->setCellValue('E' . $row, $consumption['unit']);
+                $sheet->setCellValue('F' . $row, $consumption['period_start']);
+                $sheet->setCellValue('G' . $row, $consumption['period_end']);
+                $sheet->setCellValue('H' . $row, $consumption['days_between']);
+                $sheet->setCellValue('I' . $row, $consumption['daily_average'] ?? 0);
+                $row++;
+            }
+
+            // Estilos
+            $sheet->getStyle('A1:I1')->getFont()->setBold(true);
+            $sheet->getStyle('A1:I1')->getFill()
+                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                ->getStartColor()->setARGB('FFDDDDDD');
+
+            // Descargar el archivo
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+            $filename = 'consumos_' . date('Ymd_His') . '.xlsx';
+
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            header('Content-Disposition: attachment;filename="' . $filename . '"');
+            header('Cache-Control: max-age=0');
+
+            $writer->save('php://output');
+            exit;
         }
 
-        // Estilos
-        $sheet->getStyle('A1:I1')->getFont()->setBold(true);
-        $sheet->getStyle('A1:I1')->getFill()
-            ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
-            ->getStartColor()->setARGB('FFDDDDDD');
+        // Fallback nativo CSV con UTF-8 BOM
+        $filename = 'consumos_' . date('Ymd_His') . '.csv';
 
-        // Descargar el archivo
-        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-        $filename = 'consumos_' . date('Ymd_His') . '.xlsx';
-
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Content-Type: text/csv; charset=UTF-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
         header('Cache-Control: max-age=0');
+        header('Pragma: public');
 
-        $writer->save('php://output');
+        $out = fopen('php://output', 'w');
+        fwrite($out, "\xEF\xBB\xBF");
+        fputcsv($out, ['ID', 'Sensor', 'Grupo', 'Consumo', 'Unidad', 'Inicio', 'Fin', 'Días', 'Promedio Diario'], ';');
+
+        foreach ($consumptions as $consumption) {
+            fputcsv($out, [
+                $consumption['id'],
+                $consumption['sensor']['name'] ?? 'N/A',
+                $consumption['sensor']['group']['name'] ?? 'N/A',
+                $consumption['value'],
+                $consumption['unit'],
+                $consumption['period_start'],
+                $consumption['period_end'],
+                $consumption['days_between'],
+                $consumption['daily_average'] ?? 0
+            ], ';');
+        }
+
+        fclose($out);
         exit;
     }
 

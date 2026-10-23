@@ -100,6 +100,8 @@ Route::middleware(['auth'])->group(function () {
     // MEDICIONES (vistas)
     // =============================================
     Route::get('/mediciones', [MeasurementViewController::class, 'index'])->name('measurements.index');
+    Route::get('/mediciones/export', [\App\Http\Controllers\Api\MeasurementController::class, 'export'])->name('measurements.export');
+    Route::post('/mediciones/{measurement}/mark-reset', [\App\Http\Controllers\Api\MeasurementController::class, 'markReset'])->name('measurements.mark-reset');
     Route::get('/mediciones/select-sensor', [MeasurementViewController::class, 'selectSensor'])->name('measurements.select-sensor');
 
     // ✅ NUEVA RUTA: Vista específica para inspector colaborador
