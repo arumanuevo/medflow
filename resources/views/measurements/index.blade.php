@@ -290,12 +290,21 @@
         /* ============================================
                                                                                    RESPONSIVE
                                                                                    ============================================ */
-        @media (max-width: 992px) {
-            .card-header-tools {
-                flex-direction: column;
-                align-items: stretch;
-            }
+        .card-header-tools .btn {
+            font-size: 0.78rem;
+            padding: 0.22rem 0.55rem;
+            white-space: nowrap;
+            line-height: 1.35;
+        }
 
+        @media (max-width: 576px) {
+            .card-header-tools {
+                width: 100%;
+                justify-content: flex-start;
+            }
+        }
+
+        @media (max-width: 992px) {
             .search-wrapper {
                 max-width: 100%;
             }
@@ -338,16 +347,16 @@
         <div class="row justify-content-center">
             <div class="col-md-12">
                 <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
-                            <h4 class="mb-0 d-flex align-items-center gap-2">
+                    <div class="card-header bg-primary text-white py-2 px-3">
+                        <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap flex-xl-nowrap">
+                            <h5 class="mb-0 fw-bold d-flex align-items-center gap-2" style="font-size: 1.05rem; white-space: nowrap;">
                                 <i class="bi bi-graph-up-arrow"></i>
                                 <span>Mediciones y Consumos</span>
-                                <span id="totalCountBadge" class="badge bg-light text-dark ms-2"
-                                    style="font-size: 0.7rem;">0</span>
-                            </h4>
+                                <span id="totalCountBadge" class="badge bg-light text-dark ms-1"
+                                    style="font-size: 0.72rem; padding: 0.25em 0.55em;">0</span>
+                            </h5>
 
-                            <div class="card-header-tools d-flex flex-wrap gap-2">
+                            <div class="card-header-tools d-flex align-items-center flex-wrap gap-1 gap-md-2 justify-content-end">
                                 <button class="btn btn-warning btn-sm" id="btnOpenGlobalRadar" title="Escanear anomalías en todos los sensores">
                                     <i class="bi bi-radar me-1"></i> Radar Global
                                 </button>
@@ -360,7 +369,7 @@
                                 <button class="btn btn-outline-light btn-sm d-inline-flex align-items-center" id="toggleErrors" title="Mostrar u ocultar auditoría de errores">
                                     <i class="bi bi-shield-exclamation me-1" id="toggleErrorsIcon"></i>
                                     <span id="toggleErrorsText">Auditoría</span>
-                                    <span id="auditBadge" class="badge rounded-pill ms-2 d-none"></span>
+                                    <span id="auditBadge" class="badge rounded-pill ms-1 d-none" style="font-size: 0.65rem;"></span>
                                 </button>
                                 <a href="{{ route('sensor-groups.index') }}" class="btn btn-light btn-sm" title="Ir al listado y gestión de Grupos de Sensores">
                                     <i class="bi bi-folder2-open me-1"></i> Ver Grupos
