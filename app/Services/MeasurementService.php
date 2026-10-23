@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 
 class MeasurementService
 {
@@ -34,6 +35,34 @@ class MeasurementService
     }
 
     /**
+     * Obtiene los IDs de propietarios de grupos accesibles para el usuario
+     * (el propio usuario + workspaces colaborativos activos).
+     */
+    public function getAllowedOwnerIds($user): array
+    {
+        $allowedOwnerIds = [$user->id];
+
+        try {
+            if (Schema::hasTable('workspace_collaborators')) {
+                $collabIds = DB::table('workspace_collaborators')
+                    ->where('user_id', $user->id)
+                    ->where('status', 'active')
+                    ->where('is_paused', 0)
+                    ->pluck('workspace_id')
+                    ->all();
+
+                if (!empty($collabIds)) {
+                    $allowedOwnerIds = array_values(array_unique(array_merge($allowedOwnerIds, $collabIds)));
+                }
+            }
+        } catch (\Throwable $e) {
+            // Silencioso: mantener al menos el propio usuario si la tabla no está disponible
+        }
+
+        return $allowedOwnerIds;
+    }
+
+    /**
      * Verificar si el usuario puede acceder a un sensor
      */
     public function canAccessSensor($user, $sensor)
@@ -42,20 +71,12 @@ class MeasurementService
             return false;
         }
 
-        if ($user->hasRole('admin')) {
+        if ($user->hasRole('admin') || $user->hasRole('superadmin')) {
             return true;
         }
 
-        if ($sensor->group->user_id === $user->id) {
-            return true;
-        }
-
-        $sharedAccess = $sensor->group->sharedAccess()
-            ->where('shared_with', $user->id)
-            ->whereIn('role', ['inspector', 'admin'])
-            ->exists();
-
-        return $sharedAccess;
+        $allowedOwnerIds = $this->getAllowedOwnerIds($user);
+        return in_array($sensor->group->user_id, $allowedOwnerIds);
     }
 
     /**
@@ -64,18 +85,16 @@ class MeasurementService
     public function calculateErrorStats($user)
     {
         return Cache::remember("user_{$user->id}_error_stats", 30, function () use ($user) {
-            $measurements = DB::table('measurements')
+            $query = DB::table('measurements')
                 ->join('sensors', 'sensors.id', '=', 'measurements.sensor_id')
-                ->join('sensor_groups', 'sensor_groups.id', '=', 'sensors.group_id')
-                ->leftJoin('shared_sensor_groups', 'shared_sensor_groups.sensor_group_id', '=', 'sensor_groups.id')
-                ->where(function ($q) use ($user) {
-                    $q->where('sensor_groups.user_id', $user->id)
-                      ->orWhere(function ($q2) use ($user) {
-                          $q2->where('shared_sensor_groups.shared_with', $user->id)
-                             ->whereIn('shared_sensor_groups.role', ['inspector', 'admin']);
-                      });
-                })
-                ->select(
+                ->join('sensor_groups', 'sensor_groups.id', '=', 'sensors.group_id');
+
+            if (!$user->hasRole('admin') && !$user->hasRole('superadmin')) {
+                $allowedOwnerIds = $this->getAllowedOwnerIds($user);
+                $query->whereIn('sensor_groups.user_id', $allowedOwnerIds);
+            }
+
+            $measurements = $query->select(
                     'measurements.id',
                     'measurements.sensor_id',
                     'measurements.measured_at',
@@ -142,15 +161,12 @@ class MeasurementService
     {
         $query = DB::table('measurements')
             ->join('sensors', 'sensors.id', '=', 'measurements.sensor_id')
-            ->join('sensor_groups', 'sensor_groups.id', '=', 'sensors.group_id')
-            ->leftJoin('shared_sensor_groups', 'shared_sensor_groups.sensor_group_id', '=', 'sensor_groups.id')
-            ->where(function ($q) use ($user) {
-                $q->where('sensor_groups.user_id', $user->id)
-                  ->orWhere(function ($q2) use ($user) {
-                      $q2->where('shared_sensor_groups.shared_with', $user->id)
-                         ->whereIn('shared_sensor_groups.role', ['inspector', 'admin']);
-                  });
-            });
+            ->join('sensor_groups', 'sensor_groups.id', '=', 'sensors.group_id');
+
+        if (!$user->hasRole('admin') && !$user->hasRole('superadmin')) {
+            $allowedOwnerIds = $this->getAllowedOwnerIds($user);
+            $query->whereIn('sensor_groups.user_id', $allowedOwnerIds);
+        }
 
         if (!empty($groupId)) {
             $query->where('sensor_groups.id', $groupId);
@@ -246,14 +262,14 @@ class MeasurementService
      */
     public function buildMeasurementQuery($user, $filters, $sortField = 'measured_at', $sortDirection = 'desc')
     {
-        $query = Measurement::with(['sensor', 'sensor.group', 'sensor.group.template'])
-            ->whereHas('sensor.group', function ($q) use ($user) {
-                $q->where('user_id', $user->id)
-                    ->orWhereHas('sharedAccess', function ($q2) use ($user) {
-                        $q2->where('shared_with', $user->id)
-                            ->whereIn('role', ['inspector', 'admin']);
-                    });
+        $query = Measurement::with(['sensor', 'sensor.group', 'sensor.group.template']);
+
+        if (!$user->hasRole('admin') && !$user->hasRole('superadmin')) {
+            $allowedOwnerIds = $this->getAllowedOwnerIds($user);
+            $query->whereHas('sensor.group', function ($q) use ($allowedOwnerIds) {
+                $q->whereIn('user_id', $allowedOwnerIds);
             });
+        }
 
         if (!empty($filters['sensor_id'])) {
             $query->where('sensor_id', $filters['sensor_id']);
