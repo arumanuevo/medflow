@@ -458,15 +458,20 @@
                                             @foreach($sensors as $sensor)
                                                 <option value="{{ $sensor->id }}"
                                                     title="{{ $sensor->name }} ({{ $sensor->identifier }})">
-                                                    {{ Str::limit($sensor->name, 22) }}
+                                                    {{ $sensor->identifier ? $sensor->identifier . ' - ' : '' }}{{ Str::limit($sensor->name, 22) }}
                                                 </option>
                                             @endforeach
                                         </select>
                                     </div>
                                     <div class="col-xl-2 col-md-4 col-sm-6">
-                                        <label for="identifierFilter" class="form-label small fw-semibold text-muted mb-1">Identificador</label>
-                                        <input type="text" class="form-control form-control-sm" id="identifierFilter"
-                                            placeholder="Ej: SN-1234, 144, 178">
+                                        <label for="identifierFilter" class="form-label small fw-semibold text-muted mb-1">Buscar ID / Sensor / Foto</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" class="form-control form-control-sm" id="identifierFilter"
+                                                placeholder="Ej: 53651, A16F090716, 101, foto...">
+                                            <button class="btn btn-outline-secondary" type="button" id="btnClearIdentifier" title="Limpiar este campo">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                     <div class="col-xl-2 col-md-4 col-sm-6">
                                         <label for="groupFilter" class="form-label small fw-semibold text-muted mb-1">Grupo</label>
@@ -1344,10 +1349,10 @@
                     parts.push(`del medidor <strong>${escapeHtml(sensorText)}</strong>`);
                 }
 
-                // Identificador
+                // Identificador / Sensor / ID / Foto
                 const identifier = $('#identifierFilter').val() ? $('#identifierFilter').val().trim() : '';
                 if (identifier) {
-                    parts.push(`cuyo identificador contiene <strong>"${escapeHtml(identifier)}"</strong>`);
+                    parts.push(`que coincida con ID / Sensor / Foto <strong>"${escapeHtml(identifier)}"</strong>`);
                 }
 
                 // Campo Dinámico
@@ -2513,6 +2518,13 @@
 
             $('#btnToggleAdvancedHelp').click(function () {
                 $('#advancedHelpText').toggleClass('d-none');
+            });
+
+            $('#btnClearIdentifier').click(function () {
+                $('#identifierFilter').val('');
+                updateSemanticQueryTranslation();
+                currentPage = 1;
+                loadMeasurements();
             });
 
             $('#btnClearCustomValues').click(function () {

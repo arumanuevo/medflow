@@ -428,56 +428,52 @@ class MeasurementService
             $query->where('measured_at', '<=', $filters['date_to'] . ' 23:59:59');
         }
 
-        // Búsqueda por Identificador (admite múltiples separados por coma, ej: "MED-01, MED-02, 144")
+        // Búsqueda por Identificador / Nombre de Sensor / ID de Medición / Nombre de Foto (admite múltiples separados por coma)
         if (!empty($filters['identifier'])) {
             $rawId = $filters['identifier'];
             $idParts = array_values(array_filter(array_map('trim', explode(',', $rawId)), fn($x) => $x !== ''));
-            if (count($idParts) > 1) {
-                $query->whereHas('sensor', function ($q) use ($idParts) {
-                    $q->where(function ($q2) use ($idParts) {
-                        foreach ($idParts as $part) {
-                            $q2->orWhere('identifier', 'like', "%{$part}%");
+            $query->where(function ($q) use ($idParts) {
+                foreach ($idParts as $part) {
+                    $q->orWhere(function ($q2) use ($part) {
+                        // 1. Si es numérico, buscar por ID directo de la medición
+                        if (is_numeric($part)) {
+                            $q2->orWhere('measurements.id', (int) $part);
                         }
+                        // 2. Buscar por Sensor (Identificador o Nombre del medidor)
+                        $q2->orWhereHas('sensor', function ($q3) use ($part) {
+                            $q3->where('identifier', 'like', "%{$part}%")
+                               ->orWhere('name', 'like', "%{$part}%")
+                               ->orWhere('metadata', 'like', "%{$part}%");
+                        });
+                        // 3. Buscar por Nombre de Foto
+                        $q2->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(measurements.data, '$.foto')) LIKE ?", ["%{$part}%"]);
                     });
-                });
-            } else {
-                $query->whereHas('sensor', function ($q) use ($rawId) {
-                    $q->where('identifier', 'like', "%{$rawId}%");
-                });
-            }
+                }
+            });
         }
 
         // Búsqueda General (admite operadores OR con comas o 'OR', ej: "144, 178" o "Lote 14 OR Lote 15")
         if (!empty($filters['search'])) {
             $rawSearch = $filters['search'];
-            $normalizedSearch = str_ireplace(' OR ', ',', $rawSearch);
+            $normalizedSearch = str_ireplace([' OR ', ' Y ', ' AND '], ',', $rawSearch);
             $terms = array_values(array_filter(array_map('trim', explode(',', $normalizedSearch)), fn($v) => $v !== ''));
-            if (count($terms) > 1) {
-                $query->where(function ($q) use ($terms) {
-                    foreach ($terms as $t) {
-                        $q->orWhere(function ($q2) use ($t) {
-                            $q2->whereHas('sensor', function ($q3) use ($t) {
-                                $q3->where('name', 'like', "%{$t}%")
-                                    ->orWhere('identifier', 'like', "%{$t}%")
-                                    ->orWhere('metadata', 'like', "%{$t}%");
-                            })
-                            ->orWhere('data->valor', 'like', "%{$t}%")
-                            ->orWhere('data->tipo', 'like', "%{$t}%");
-                        });
-                    }
-                });
-            } else {
-                $search = $rawSearch;
-                $query->where(function ($q) use ($search) {
-                    $q->whereHas('sensor', function ($q2) use ($search) {
-                        $q2->where('name', 'like', "%{$search}%")
-                            ->orWhere('identifier', 'like', "%{$search}%")
-                            ->orWhere('metadata', 'like', "%{$search}%");
-                    })
-                        ->orWhere('data->valor', 'like', "%{$search}%")
-                        ->orWhere('data->tipo', 'like', "%{$search}%");
-                });
-            }
+            $query->where(function ($q) use ($terms) {
+                foreach ($terms as $t) {
+                    $q->orWhere(function ($q2) use ($t) {
+                        if (is_numeric($t)) {
+                            $q2->orWhere('measurements.id', (int) $t);
+                        }
+                        $q2->orWhereHas('sensor', function ($q3) use ($t) {
+                            $q3->where('name', 'like', "%{$t}%")
+                                ->orWhere('identifier', 'like', "%{$t}%")
+                                ->orWhere('metadata', 'like', "%{$t}%");
+                        })
+                        ->orWhere('data->valor', 'like', "%{$t}%")
+                        ->orWhere('data->tipo', 'like', "%{$t}%")
+                        ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(measurements.data, '$.foto')) LIKE ?", ["%{$t}%"]);
+                    });
+                }
+            });
         }
 
         // ✅ FILTRADO POTENTE EN CAMPOS DINÁMICOS / PERSONALIZADOS (METADATA)
