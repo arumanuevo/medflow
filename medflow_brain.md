@@ -557,6 +557,14 @@ Permite a los administradores con plan **Premium** georreferenciar sus medidores
 
 ### 7.5 Deber de Respaldo Contable (Art. 320 CCCN)
 - El Administrador tiene la obligación legal de conservar la documentación respaldatoria de sus cierres contables y asambleas. MedFlow provee botones para **Exportar a Excel** y descargar evidencias.
+
+### 7.6 Órgano de Contralor Neutral, Prohibición de Adulteración Dolosa y Error Humano
+- **Instrumento de Contralor y Fiscalización Bilateral:** MedFlow fue concebido como un testigo técnico y ordenador objetivo para todas las partes:
+  * *Para el Administrador:* Fiscaliza que los inspectores realmente midieron en terreno con foto y fecha real, evitando tomas inventadas.
+  * *Para los Vecinos:* Permite auditar la foto física de su medidor mediante el **Visor Público (Token / QR)** para cotejarla contra su liquidación.
+  * *Neutralidad:* Fórmulas fijas e inalterables ($Consumo = Lectura_{Actual} - Lectura_{Anterior}$).
+- **Prohibición Penal de Trucaje o Falsificación:** Queda terminantemente prohibido falsear fotos, trucar fechas o inventar valores. Configura delitos penales exclusivos del autor (Arts. 172 y 292 Código Penal). MedFlow registra metadatos inmutables (IPs, usuario, `created_at`, `updated_at`) para peritajes judiciales.
+- **Régimen del Error Humano:** Las alertas (Consumo Negativo, Fechas Desfasadas, etc.) asisten preventivamente, pero la omisión de la administración en auditar antes de facturar no genera ninguna responsabilidad para MedFlow.
 - Marco Legal completo disponible en: `/terminos-legales`.
 
 

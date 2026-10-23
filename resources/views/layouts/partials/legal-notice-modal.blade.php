@@ -83,6 +83,17 @@
                     </div>
                 </div>
 
+                <!-- Contralor, Adulteración y Error Humano -->
+                <div class="mt-3 p-3 bg-white rounded-3 border shadow-sm border-start border-info border-3">
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <i class="bi bi-eye text-info fs-5"></i>
+                        <span class="fw-bold text-dark">5. Órgano de Contralor Neutral, Prohibición de Trucaje y Error Humano</span>
+                    </div>
+                    <p class="small text-muted mb-0">
+                        MedFlow opera como un <strong>instrumento objetivo de ordenamiento y fiscalización bilateral</strong> (permite al Administrador auditar a sus inspectores y al Vecino contrastar la foto real de su medidor vía Visor Público QR). <strong>Queda terminantemente prohibido falsear o trucar fotos, fechas o mediciones</strong> (Arts. 172 y 292 Cód. Penal); cualquier manipulación deliberada o error humano de tipeo es exclusiva responsabilidad civil y penal del operador que la ejecute.
+                    </p>
+                </div>
+
                 <div class="mt-3 p-2 px-3 bg-light rounded border text-muted small text-center" style="font-size: 0.76rem;">
                     <i class="bi bi-info-circle me-1"></i> Obligación de resguardo contable: Se recomienda al Administrador descargar y archivar periódicamente los reportes en Excel de las mediciones para sus libros y balances (Arts. 320 CCCN).
                 </div>

@@ -154,7 +154,8 @@
                             <a href="#art6">6. Backups y Libros Contables</a>
                             <a href="#art7">7. Inspectores y Delegación</a>
                             <a href="#art8">8. Límite de Responsabilidad</a>
-                            <a href="#art9">9. Jurisdicción y Ley Aplicable</a>
+                            <a href="#art9">9. Contralor, Adulteración y Error Humano</a>
+                            <a href="#art10">10. Jurisdicción y Ley Aplicable</a>
                         </nav>
                         <div class="border-top pt-3 mt-3 text-center">
                             <span class="badge bg-light text-muted border py-2 px-3 w-100" style="font-size: 0.72rem;">
@@ -333,7 +334,57 @@
 
                 <div class="legal-card" id="art9">
                     <h2 class="legal-section-title">
-                        <i class="bi bi-bank"></i> 9. Legislación Aplicable y Jurisdicción Exclusiva
+                        <i class="bi bi-shield-check"></i> 9. Función de Contralor Neutral, Prohibición de Adulteración Dolosa y Régimen del Error Humano
+                    </h2>
+                    
+                    <h5 class="fw-bold text-dark mt-3">9.1. MedFlow como Instrumento de Contralor y Transparencia Bilateral</h5>
+                    <p>
+                        La plataforma ha sido concebida con un propósito de <strong>ordenamiento, transparencia y contralor técnico objetivo</strong> para todas las partes intervinientes:
+                    </p>
+                    <ul>
+                        <li>
+                            <strong>Para la Entidad Administradora:</strong> Permite supervisar y fiscalizar en tiempo real el desempeño de sus inspectores en campo, corroborando que las tomas cuenten con respaldo fotográfico real, fecha y hora de captura, evitando la invención de lecturas desde el escritorio.
+                        </li>
+                        <li>
+                            <strong>Para los Vecinos, Consorcistas y Abonados:</strong> El sistema provee un canal de transparencia mediante el <strong>Visor Público de Mediciones (Token / QR)</strong>, permitiendo que cada usuario final audite por sí mismo la fotografía física del visor de su medidor y la compare contra la liquidación aplicada en su expensa o factura.
+                        </li>
+                        <li>
+                            <strong>Neutralidad Algorítmica Absoluta:</strong> MedFlow no favorece ni altera cálculos en beneficio de ninguna de las partes. El cómputo responde invariablemente a la fórmula matemática objetiva de consumo diferencial entre lecturas sucesivas.
+                        </li>
+                    </ul>
+
+                    <h5 class="fw-bold text-dark mt-4">9.2. Prohibición Terminante de Falsificación, Trucaje o Manipulación Dolosa</h5>
+                    <div class="danger-box">
+                        <strong>PROHIBICIÓN PENAL DE FALSEAMIENTO:</strong> Queda terminantemente prohibido a cualquier administrador, operador o inspector introducir datos deliberadamente falsos, trucar o editar fotografías, utilizar fotos apócrifas o de medidores ajenos, o alterar retroactivamente fechas con el propósito de perjudicar a vecinos, generar sobrefacturaciones o disimular desvíos.
+                    </div>
+                    <p>
+                        Dichas conductas configuran delitos de acción pública tipificados en los <strong>Arts. 172, 173 y 292 del Código Penal de la Nación Argentina</strong> (Defraudación, Administración Fraudulenta y Falsificación de Documentos). 
+                        El Administrador o la persona física que ejecute la maniobra es el <strong>único y exclusivo responsable penal, civil y disciplinario</strong>. MedFlow queda totalmente desvinculada de tales actos, no pudiendo imputársele complicidad, negligencia ni defecto de software.
+                    </p>
+                    <p class="small text-muted">
+                        <strong>Trazabilidad y Colaboración Judicial:</strong> MedFlow registra metadatos inmutables de auditoría (direcciones IP de conexión, usuario autenticado, timestamps inalterables de creación <code>created_at</code> y modificación <code>updated_at</code>). Ante requerimiento fundado de autoridades judiciales, fiscalías o juzgados en el marco de una investigación penal por fraude, MedFlow aportará la información técnica forense disponible para individualizar al autor de la adulteración.
+                    </p>
+
+                    <h5 class="fw-bold text-dark mt-4">9.3. Régimen del Error Humano Involuntario</h5>
+                    <p>
+                        Se reconoce que la tarea de lectura en terreno está expuesta a la falibilidad humana natural (confusión involuntaria de dígitos bajo reflejos solares, tipeo numérico erróneo, desgaste del visor mecánico del medidor o inversión de lotes contiguos).
+                    </p>
+                    <ul>
+                        <li>
+                            MedFlow proporciona <strong>herramientas de fiscalización preventiva</strong> (alertas automáticas de Consumo Negativo, detección de Fechas Desfasadas, Zoom HD de contraste fotográfico y picos de consumo en el Mapa GIS).
+                        </li>
+                        <li>
+                            <strong>Deber de Diligencia Previa:</strong> Estas alertas actúan como asistentes de apoyo y <strong>no eximen a la Administración de su deber de revisar y auditar las lecturas</strong> antes de emitir cobros a los vecinos.
+                        </li>
+                        <li>
+                            Si un operador comete un error de tipeo y la administración no lo subsana en su bandeja de auditoría antes de liquidar, dicho error no es imputable al software ni da derecho a reclamación alguna contra MedFlow.
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="legal-card" id="art10">
+                    <h2 class="legal-section-title">
+                        <i class="bi bi-bank"></i> 10. Legislación Aplicable y Jurisdicción Exclusiva
                     </h2>
                     <p>
                         El presente acuerdo y cualquier relación contractual entre el usuario y MedFlow se regirá e interpretará íntegramente de acuerdo con las leyes de la <strong>República Argentina</strong>.

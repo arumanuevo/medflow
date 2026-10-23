@@ -511,6 +511,20 @@
                                     data-steps="Desde &lt;strong&gt;Mediciones y Consumos&lt;/strong&gt; haz clic en el botón superior &lt;strong&gt;Exportar a Excel&lt;/strong&gt;.">
                                     <i class="bi bi-file-earmark-spreadsheet me-1 text-primary"></i> Resguardos Contables y Exportación Excel</a>
                             </li>
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal"
+                                    data-title="¿El sistema sirve de contralor y fiscalización tanto para el Administrador como para los Vecinos?"
+                                    data-content="<strong>Sí, absolutamente.</strong> MedFlow actúa como un <strong>órgano de contralor digital objetivo e inalterable</strong> para todas las partes:<br><br><strong>• Para el Administrador:</strong> Controla que sus inspectores realmente hayan ido al lugar, ya que exige foto física con fecha/hora de captura, evitando mediciones dibujadas o inventadas.<br><strong>• Para los Vecinos y Abonados:</strong> A través del <em>Visor Público (Token / QR)</em>, cualquier vecino puede ver la foto real del visor de su medidor y contrastar la lectura matemática aplicada en su expensa o factura.<br><strong>• Neutralidad:</strong> Las fórmulas de cálculo son automáticas y universales; el sistema no altera números en beneficio de ninguna parte."
+                                    data-steps="Revisa el Artículo 9 del documento &lt;a href='/terminos-legales' target='_blank'&gt;Términos Legales&lt;/a&gt;.">
+                                    <i class="bi bi-eye me-1 text-primary"></i> Contralor y Fiscalización Bilateral (Vecinos y Administración)</a>
+                            </li>
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal"
+                                    data-title="¿Qué ocurre ante un error humano o si se intentan falsear/trucar fotos o fechas?"
+                                    data-content="<strong>• Errores humanos involuntarios:</strong> El sistema provee alertas preventivas de anomalías (Consumo Negativo, Fechas Desfasadas, Zoom HD de contraste). Es deber de la administración revisar su bandeja antes de facturar.<br><br><strong>• Falsificación o trucaje de fotos/fechas:</strong> Está terminantemente prohibido y constituye un delito tipificado en los Arts. 172 y 292 del Código Penal (Defraudación y Falsificación). El administrador u operador que falsee datos es el <strong>único y exclusivo responsable penal y civil</strong>. MedFlow registra metadatos inmutables de auditoría (IPs, usuario, timestamps de creación y modificación) para aportar a la Justicia ante cualquier peritaje."
+                                    data-steps="Consulta el Artículo 9.2 de los &lt;a href='/terminos-legales' target='_blank'&gt;Términos Legales&lt;/a&gt;.">
+                                    <i class="bi bi-shield-slash me-1 text-primary"></i> Prohibición de Adulteración y Manejo del Error Humano</a>
+                            </li>
                             <li class="mb-2">
                                 <a href="{{ route('legal.terms') }}" target="_blank" class="text-primary fw-semibold text-decoration-none">
                                     <i class="bi bi-box-arrow-up-right me-1"></i> Ver Marco Legal Completo y Artículos &raquo;
