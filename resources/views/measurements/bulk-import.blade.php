@@ -292,14 +292,20 @@
                             <p class="text-muted">Revisa los datos antes de importar. Todas las validaciones se aplicarán en
                                 el servidor.</p>
 
-                            <!-- Opción de sobrescritura -->
+                            <!-- Opciones avanzadas de importación -->
                             <div class="alert alert-info">
-                                <div class="form-check">
+                                <div class="form-check mb-3">
                                     <input class="form-check-input" type="checkbox" id="overwriteDuplicates" checked>
                                     <label class="form-check-label" for="overwriteDuplicates">
                                         <strong>Permitir sobrescritura de duplicados</strong>
-                                        <span class="text-muted d-block small">Si se encuentra un registro con la misma
-                                            fecha y valor, se eliminará el existente y se importará el nuevo.</span>
+                                        <span class="text-muted d-block small">Si se encuentra un registro con la misma fecha y valor, se reemplazará por el nuevo.</span>
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="allowNegativeConsumption" checked>
+                                    <label class="form-check-label" for="allowNegativeConsumption">
+                                        <strong>Permitir importación de lecturas con consumo decreciente (Consumo Negativo)</strong>
+                                        <span class="text-muted d-block small">Si una medición histórica tiene un valor inferior a la anterior (ej: por cambio o reseteo de medidor en el pasado, o error humano antiguo), se importará igualmente y quedará señalizada en rojo como <em>"Consumo Negativo"</em> en el listado de Mediciones para su posterior auditoría o corrección.</span>
                                     </label>
                                 </div>
                             </div>
@@ -407,6 +413,17 @@
                                         </div>
                                     </div>
 
+                                    <!-- Alerta si hubo consumos negativos importados -->
+                                    <div id="negativeConsumptionAlert" class="alert alert-warning d-none d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                                        <div>
+                                            <i class="bi bi-graph-down me-2 fs-5"></i>
+                                            <span>Se importaron <strong id="negativeCountText">0</strong> mediciones con valor menor a su lectura previa. Puedes revisarlas y corregirlas en el listado de Mediciones marcadas como <em>"Consumo Negativo"</em>.</span>
+                                        </div>
+                                        <a href="{{ url('/mediciones') }}" class="btn btn-sm btn-dark text-nowrap">
+                                            <i class="bi bi-sliders me-1"></i> Auditar en Mediciones
+                                        </a>
+                                    </div>
+
                                     <!-- Detalle de resultados -->
                                     <div class="table-responsive">
                                         <table class="table table-bordered table-striped">
@@ -427,15 +444,18 @@
                                     </div>
 
                                     <!-- Botones de acción -->
-                                    <div class="d-flex gap-2 mt-3 flex-wrap">
+                                    <div class="d-flex gap-2 mt-3 flex-wrap align-items-center">
+                                        <a href="{{ url('/mediciones') }}" class="btn btn-primary">
+                                            <i class="bi bi-speedometer2 me-1"></i> Ir a Mediciones
+                                        </a>
                                         <button class="btn btn-success" id="downloadReportBtn">
-                                            <i class="bi bi-download"></i> Descargar Informe (CSV)
+                                            <i class="bi bi-download me-1"></i> Descargar Informe (CSV)
                                         </button>
-                                        <button class="btn btn-primary" id="viewSensorsBtn">
-                                            <i class="bi bi-eye"></i> Ver Sensores
+                                        <button class="btn btn-outline-primary" id="viewSensorsBtn">
+                                            <i class="bi bi-eye me-1"></i> Ver Sensores del Grupo
                                         </button>
                                         <button class="btn btn-secondary" id="newImportBtn">
-                                            <i class="bi bi-plus-circle"></i> Nueva Importación
+                                            <i class="bi bi-plus-circle me-1"></i> Nueva Importación
                                         </button>
                                     </div>
                                 </div>
@@ -1409,6 +1429,7 @@
             }
 
             const overwriteDuplicates = $('#overwriteDuplicates').is(':checked');
+            const allowNegativeConsumption = $('#allowNegativeConsumption').is(':checked');
             const identificationMethod = $('#identificationMethod').val();
 
             console.log('Field Mapping:', fieldMapping);
@@ -1431,6 +1452,8 @@
             }
 
             $('#progressContainer').removeClass('d-none');
+            $('#progressBar').css('width', '50%').addClass('progress-bar-animated');
+            $('#progressText').text('Procesando e importando mediciones en el servidor...');
             $('#importBtn').prop('disabled', true);
 
             const formData = new FormData();
@@ -1439,6 +1462,7 @@
             formData.append('field_mapping', JSON.stringify(fieldMapping));
             formData.append('identification_method', identificationMethod);
             formData.append('overwrite_duplicates', overwriteDuplicates);
+            formData.append('allow_negative_consumption', allowNegativeConsumption);
 
             $.ajax({
                 url: '/api/measurements/bulk-import/import',
@@ -1457,12 +1481,15 @@
                 },
                 success: function (response) {
                     if (response.success) {
-                        $('#progressBar').css('width', '100%');
-                        $('#progressText').text('Importación completada');
+                        $('#progressBar').css('width', '100%').removeClass('progress-bar-animated');
+                        $('#progressText').html('<span class="text-success fw-bold"><i class="bi bi-check-circle-fill"></i> ¡Importación completada con éxito!</span>');
 
-                        currentReportId = response.data.report_id;
-
-                        showResults(response.data);
+                        setTimeout(function () {
+                            $('#progressContainer').addClass('d-none');
+                            $('#prevStepBtn, #nextStepBtn, #importBtn, #cancelBtn').hide();
+                            currentReportId = response.data.report_id;
+                            showResults(response.data);
+                        }, 700);
 
                         const message = `Importación completada: ${response.data.success_count} mediciones creadas, ${response.data.error_count} con errores`;
                         showAlert(message, 'success');
@@ -1497,13 +1524,22 @@
         }
 
         function showResults(data) {
+            $('#progressContainer').addClass('d-none');
+            $('#prevStepBtn, #nextStepBtn, #importBtn, #cancelBtn').hide();
             $('.step').addClass('d-none');
             $('#step4').removeClass('d-none');
 
-            $('#resultTotal').text(data.total_processed || 0);
-            $('#resultSuccess').text(data.success_count || 0);
-            $('#resultErrors').text(data.error_count || 0);
-            $('#resultOverwritten').text(data.overwritten_count || 0);
+            $('#resultTotal').text((data.total_processed || 0).toLocaleString());
+            $('#resultSuccess').text((data.success_count || 0).toLocaleString());
+            $('#resultErrors').text((data.error_count || 0).toLocaleString());
+            $('#resultOverwritten').text((data.overwritten_count || 0).toLocaleString());
+
+            if (data.negative_consumption_count && data.negative_consumption_count > 0) {
+                $('#negativeCountText').text(data.negative_consumption_count.toLocaleString());
+                $('#negativeConsumptionAlert').removeClass('d-none');
+            } else {
+                $('#negativeConsumptionAlert').addClass('d-none');
+            }
 
             const tbody = $('#resultTableBody');
             tbody.empty();
@@ -1562,7 +1598,9 @@
 
             $('#fileInput').val('');
             $('#groupSelect').val('');
-            $('#overwriteDuplicates').prop('checked', false);
+            $('#overwriteDuplicates').prop('checked', true);
+            $('#allowNegativeConsumption').prop('checked', true);
+            $('#negativeConsumptionAlert').addClass('d-none');
             $('#alertContainer').empty();
             $('#dropZone').html(`
             <i class="bi bi-file-earmark-excel"></i>

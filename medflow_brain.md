@@ -223,6 +223,7 @@ Stack: Flutter (`mobile-app/`). Backend: `app/Http/Controllers/Api/MobileOffline
   - Se fuerza `setTime(0, 0, 0)`.
   - Fecha inválida → error de fila: *"Usa formato YYYY-MM-DD o DD/MM/YYYY"*.
 - Duplicados exactos (misma fecha + mismo valor) se omiten o sobrescriben según flag `overwriteDuplicates`.
+- Consumos decrecientes/negativos históricos: con la casilla `allowNegativeConsumption = true` (activa por defecto), las lecturas con valor inferior a la anterior se importan sin descartarse y quedan señalizadas con badge rojo de `Consumo Negativo` en `/mediciones` para permitir auditoría y edición administrativa.
 
 #### Columna Foto en Importación Masiva (Referencias e Imágenes Físicas)
 - El archivo Excel/CSV **solo transporta el nombre o referencia** del archivo (ej: `100_17-06-2022` o `foto1.jpg`), nunca los bytes binarios de la imagen.

@@ -405,6 +405,8 @@ public function bulkImport(Request $request)
         $measurementsToDelete = [];
         $overwrittenCount = 0;
         $overwriteDuplicates = filter_var($request->input('overwrite_duplicates', true), FILTER_VALIDATE_BOOLEAN);
+        $allowNegativeConsumption = filter_var($request->input('allow_negative_consumption', true), FILTER_VALIDATE_BOOLEAN);
+        $negativeConsumptionCount = 0;
         $now = Carbon::now();
 
         foreach ($allData as $index => $row) {
@@ -538,10 +540,16 @@ public function bulkImport(Request $request)
                         }
 
                         if ($prevItem && $valorFloat < $prevItem['valor']) {
-                            $errorsForRow[] = "El valor {$valorFloat} debe ser mayor o igual a la medición anterior ({$prevItem['valor']} del {$prevItem['date_str']})";
+                            if ($allowNegativeConsumption) {
+                                $negativeConsumptionCount++;
+                            } else {
+                                $errorsForRow[] = "El valor {$valorFloat} debe ser mayor o igual a la medición anterior ({$prevItem['valor']} del {$prevItem['date_str']})";
+                            }
                         }
                         if ($nextItem && $valorFloat > $nextItem['valor']) {
-                            $errorsForRow[] = "El valor {$valorFloat} debe ser menor o igual a la medición siguiente ({$nextItem['valor']} del {$nextItem['date_str']})";
+                            if (!$allowNegativeConsumption) {
+                                $errorsForRow[] = "El valor {$valorFloat} debe ser menor o igual a la medición siguiente ({$nextItem['valor']} del {$nextItem['date_str']})";
+                            }
                         }
                     }
 
@@ -658,6 +666,7 @@ public function bulkImport(Request $request)
                 'success_count' => $successCount,
                 'error_count' => $errorCount,
                 'overwritten_count' => $overwrittenCount,
+                'negative_consumption_count' => $negativeConsumptionCount,
                 'errors' => array_slice($errors, 0, 100),
                 'total_errors' => count($errors),
                 'total_processed' => $successCount + $errorCount,
