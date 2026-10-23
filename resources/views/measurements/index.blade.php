@@ -975,31 +975,85 @@
 
                     {{-- Resumen de Resultados tras la Carga --}}
                     <div id="bulkUploadResults" class="mt-3 d-none">
-                        <h6 class="fw-bold mb-2"><i class="bi bi-clipboard-data me-1"></i> Resumen del Procesamiento:</h6>
-                        <div class="row g-2 text-center small">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-clipboard-data me-1 text-primary"></i> Resumen del Procesamiento:</h6>
+                            <span class="badge bg-light text-muted border small" id="bulkUploadTimestamp"></span>
+                        </div>
+                        <div class="row g-2 text-center small mb-3">
                             <div class="col-6 col-md-3">
-                                <div class="p-2 border rounded bg-white">
+                                <div class="p-2 border rounded bg-white shadow-sm">
                                     <div class="text-muted">Total Analizadas</div>
                                     <div class="fs-5 fw-bold text-dark" id="statTotalEvaluated">0</div>
                                 </div>
                             </div>
                             <div class="col-6 col-md-3">
-                                <div class="p-2 border rounded bg-success-subtle text-success border-success">
+                                <div class="p-2 border rounded bg-success-subtle text-success border-success shadow-sm">
                                     <div>Vinculadas</div>
                                     <div class="fs-5 fw-bold" id="statLinkedCount">0</div>
                                 </div>
                             </div>
                             <div class="col-6 col-md-3">
-                                <div class="p-2 border rounded bg-warning-subtle text-warning-emphasis border-warning">
+                                <div class="p-2 border rounded bg-warning-subtle text-warning-emphasis border-warning shadow-sm">
                                     <div>&gt; 1 Año (Rechazadas)</div>
                                     <div class="fs-5 fw-bold" id="statRejectedOlder">0</div>
                                 </div>
                             </div>
                             <div class="col-6 col-md-3">
-                                <div class="p-2 border rounded bg-secondary-subtle text-secondary border-secondary">
+                                <div class="p-2 border rounded bg-secondary-subtle text-secondary border-secondary shadow-sm">
                                     <div>Sin Coincidencia (BD)</div>
                                     <div class="fs-5 fw-bold" id="statSkippedNoMatch">0</div>
                                 </div>
+                            </div>
+                        </div>
+
+                        {{-- Barra de Acciones del Informe --}}
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-2 bg-light rounded-3 border mb-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="btnToggleBulkPhotoAudit">
+                                    <i class="bi bi-list-check me-1"></i> Ver Detalle y Supervisión (<span id="bulkPhotoAuditCount">0</span>)
+                                </button>
+                                <span class="small text-muted d-none d-md-inline">Revisa el motivo exacto de cada foto</span>
+                            </div>
+                            <div>
+                                <button type="button" class="btn btn-sm btn-success text-white shadow-sm fw-semibold" id="btnDownloadBulkPhotoReport" title="Descargar informe completo en formato Excel / CSV">
+                                    <i class="bi bi-file-earmark-spreadsheet-fill me-1"></i> Descargar Informe Detallado (CSV / Excel)
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- Panel de Supervisión y Auditoría Detallada --}}
+                        <div id="bulkPhotoAuditSection" class="d-none border rounded-3 p-2 p-md-3 bg-white shadow-sm mb-2">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2 pb-2 border-bottom">
+                                <div class="btn-group btn-group-sm" role="group" id="bulkPhotoFilterTabs">
+                                    <button type="button" class="btn btn-primary active" data-filter="all">Todas (<span id="tabCountAll">0</span>)</button>
+                                    <button type="button" class="btn btn-outline-success" data-filter="linked">Vinculadas (<span id="tabCountLinked">0</span>)</button>
+                                    <button type="button" class="btn btn-outline-danger" data-filter="issues">No Vinculadas / Con Problemas (<span id="tabCountIssues">0</span>)</button>
+                                </div>
+                                <div class="input-group input-group-sm" style="max-width: 220px;">
+                                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                                    <input type="text" class="form-control" id="bulkPhotoSearchInput" placeholder="Buscar archivo o sensor...">
+                                </div>
+                            </div>
+
+                            <div class="table-responsive" style="max-height: 240px; overflow-y: auto;">
+                                <table class="table table-sm table-hover align-middle mb-0" style="font-size: 0.77rem;" id="bulkPhotoAuditTable">
+                                    <thead class="table-light sticky-top">
+                                        <tr>
+                                            <th>Archivo</th>
+                                            <th>Estado</th>
+                                            <th>Diagnóstico / Motivo</th>
+                                            <th>Medidor / Sensor</th>
+                                            <th>Fecha</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="bulkPhotoAuditTableBody">
+                                        <!-- Renderizado dinámico -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="small text-muted mt-2 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                                <span id="bulkPhotoTableFooter"></span>
+                                <span class="badge bg-light text-muted border">El informe descargable incluye el 100% de los registros</span>
                             </div>
                         </div>
                     </div>
@@ -3059,15 +3113,21 @@
             // 📦 ASISTENTE DE CARGA MASIVA DE FOTOS (ZIP / MULTI-ARCHIVO)
             // =========================================================
             let selectedBulkFiles = [];
+            let currentBulkPhotoItems = [];
+            let currentBulkPhotoFilter = 'all';
 
             $('#btnBulkUploadPhotos').click(function () {
                 selectedBulkFiles = [];
+                currentBulkPhotoItems = [];
+                currentBulkPhotoFilter = 'all';
                 $('#bulkPhotoInput').val('');
                 $('#selectedFilesSummary').addClass('d-none').empty();
                 $('#bulkUploadProgressContainer').addClass('d-none');
                 $('#bulkUploadProgressBar').css('width', '0%');
                 $('#bulkUploadPercent').text('0%');
                 $('#bulkUploadResults').addClass('d-none');
+                $('#bulkPhotoAuditSection').addClass('d-none');
+                $('#bulkPhotoSearchInput').val('');
                 $('#btnSubmitBulkPhotos').prop('disabled', true);
                 $('#bulkUploadPhotosModal').modal('show');
             });
@@ -3125,6 +3185,159 @@
                 $('#bulkUploadResults').addClass('d-none');
             }
 
+            function renderBulkPhotoAuditTable() {
+                const search = ($('#bulkPhotoSearchInput').val() || '').toLowerCase().trim();
+                let filtered = currentBulkPhotoItems;
+
+                if (currentBulkPhotoFilter === 'linked') {
+                    filtered = filtered.filter(item => item.status === 'linked');
+                } else if (currentBulkPhotoFilter === 'issues') {
+                    filtered = filtered.filter(item => item.status !== 'linked');
+                }
+
+                if (search) {
+                    filtered = filtered.filter(item => {
+                        return (item.file && item.file.toLowerCase().includes(search)) ||
+                               (item.reason && item.reason.toLowerCase().includes(search)) ||
+                               (item.sensor && item.sensor.toLowerCase().includes(search)) ||
+                               (item.identifier && item.identifier.toLowerCase().includes(search)) ||
+                               (item.group && item.group.toLowerCase().includes(search));
+                    });
+                }
+
+                const totalFiltered = filtered.length;
+                const limit = 250;
+                const toShow = filtered.slice(0, limit);
+
+                if (toShow.length === 0) {
+                    $('#bulkPhotoAuditTableBody').html(`
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-3">
+                                <i class="bi bi-info-circle me-1"></i> No se encontraron archivos con los criterios seleccionados.
+                            </td>
+                        </tr>
+                    `);
+                    $('#bulkPhotoTableFooter').text('0 archivos mostrados');
+                    return;
+                }
+
+                let html = '';
+                toShow.forEach((item) => {
+                    let badgeClass = 'bg-secondary';
+                    if (item.status === 'linked') {
+                        badgeClass = 'bg-success';
+                    } else if (item.status === 'expired') {
+                        badgeClass = 'bg-warning text-dark';
+                    } else if (item.status === 'invalid_format') {
+                        badgeClass = 'bg-danger';
+                    }
+
+                    const sensorInfo = item.sensor && item.sensor !== '-' ? `${escapeHtml(item.sensor)} <small class="text-muted">(${escapeHtml(item.identifier || '')})</small>` : '<span class="text-muted">-</span>';
+                    const dateInfo = item.date && item.date !== '-' ? escapeHtml(item.date) : '<span class="text-muted">-</span>';
+
+                    html += `
+                        <tr>
+                            <td class="fw-semibold text-break" style="max-width: 170px;">
+                                <i class="bi bi-file-earmark-image me-1 text-primary"></i>${escapeHtml(item.file)}
+                            </td>
+                            <td>
+                                <span class="badge ${badgeClass}" style="font-size: 0.72rem;">${escapeHtml(item.status_label || item.status)}</span>
+                            </td>
+                            <td class="text-break" style="max-width: 250px;">
+                                ${escapeHtml(item.reason || '')}
+                            </td>
+                            <td>
+                                ${sensorInfo}
+                            </td>
+                            <td>
+                                ${dateInfo}
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                $('#bulkPhotoAuditTableBody').html(html);
+
+                if (totalFiltered > limit) {
+                    $('#bulkPhotoTableFooter').html(`Mostrando primeros <strong>${limit}</strong> de <strong>${totalFiltered}</strong> registros filtrados en pantalla.`);
+                } else {
+                    $('#bulkPhotoTableFooter').html(`Mostrando <strong>${totalFiltered}</strong> registros.`);
+                }
+            }
+
+            function downloadBulkPhotoReport() {
+                if (!currentBulkPhotoItems || currentBulkPhotoItems.length === 0) {
+                    alert('No hay registros de fotos procesadas para descargar.');
+                    return;
+                }
+
+                const headers = ['Nombre_Archivo', 'Estado', 'Motivo_Diagnostico', 'Medidor_Sensor', 'Identificador', 'Grupo', 'Fecha_Medicion', 'ID_Medicion'];
+                const escapeCsv = (str) => {
+                    if (str === null || str === undefined) return '""';
+                    const s = String(str).replace(/"/g, '""');
+                    return `"${s}"`;
+                };
+
+                let csv = '\uFEFF'; // BOM UTF-8 para apertura directa en Microsoft Excel
+                csv += headers.map(escapeCsv).join(';') + '\r\n';
+
+                currentBulkPhotoItems.forEach(item => {
+                    const row = [
+                        item.file || '',
+                        item.status_label || item.status || '',
+                        item.reason || '',
+                        item.sensor || '',
+                        item.identifier || '',
+                        item.group || '',
+                        item.date || '',
+                        item.measurement_id || ''
+                    ];
+                    csv += row.map(escapeCsv).join(';') + '\r\n';
+                });
+
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                const now = new Date();
+                const pad = (n) => String(n).padStart(2, '0');
+                const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+                a.href = url;
+                a.download = `informe_procesamiento_fotos_${timestamp}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            $('#btnToggleBulkPhotoAudit').click(function () {
+                $('#bulkPhotoAuditSection').toggleClass('d-none');
+            });
+
+            $('#bulkPhotoFilterTabs button').click(function () {
+                $('#bulkPhotoFilterTabs button').removeClass('active btn-primary btn-success btn-danger').addClass('btn-outline-secondary');
+                $(this).removeClass('btn-outline-secondary').addClass('active');
+
+                const filter = $(this).data('filter');
+                if (filter === 'all') {
+                    $(this).addClass('btn-primary');
+                } else if (filter === 'linked') {
+                    $(this).addClass('btn-success');
+                } else if (filter === 'issues') {
+                    $(this).addClass('btn-danger');
+                }
+
+                currentBulkPhotoFilter = filter;
+                renderBulkPhotoAuditTable();
+            });
+
+            $('#bulkPhotoSearchInput').on('input', function () {
+                renderBulkPhotoAuditTable();
+            });
+
+            $('#btnDownloadBulkPhotoReport').click(function () {
+                downloadBulkPhotoReport();
+            });
+
             $('#btnSubmitBulkPhotos').click(function () {
                 if (selectedBulkFiles.length === 0) return;
 
@@ -3171,6 +3384,18 @@
                             $('#statLinkedCount').text(s.linked_count);
                             $('#statRejectedOlder').text(s.rejected_older_than_year);
                             $('#statSkippedNoMatch').text(s.skipped_no_match);
+
+                            currentBulkPhotoItems = s.items || [];
+                            $('#bulkPhotoAuditCount').text(currentBulkPhotoItems.length);
+                            $('#bulkUploadTimestamp').text(new Date().toLocaleTimeString());
+
+                            const linkedCount = currentBulkPhotoItems.filter(x => x.status === 'linked').length;
+                            const issuesCount = currentBulkPhotoItems.filter(x => x.status !== 'linked').length;
+                            $('#tabCountAll').text(currentBulkPhotoItems.length);
+                            $('#tabCountLinked').text(linkedCount);
+                            $('#tabCountIssues').text(issuesCount);
+
+                            renderBulkPhotoAuditTable();
                             $('#bulkUploadResults').removeClass('d-none');
 
                             // Recargar la tabla para mostrar las nuevas fotos inmediatamente

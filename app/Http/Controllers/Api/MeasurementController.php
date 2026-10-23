@@ -1959,12 +1959,20 @@ class MeasurementController extends Controller
 
         $measurements = DB::table('measurements')
             ->join('sensors', 'measurements.sensor_id', '=', 'sensors.id')
+            ->leftJoin('sensor_groups', 'sensors.group_id', '=', 'sensor_groups.id')
             ->whereIn('sensors.group_id', $userGroups)
-            ->select('measurements.id', 'measurements.measured_at', 'measurements.data')
+            ->select(
+                'measurements.id',
+                'measurements.measured_at',
+                'measurements.data',
+                'sensors.name as sensor_name',
+                'sensors.identifier as sensor_identifier',
+                'sensor_groups.name as group_name'
+            )
             ->get();
 
-        $validPhotoTargets = [];   // [ normalized_key => [measurement_id, original_foto_target] ]
-        $expiredPhotoTargets = []; // [ normalized_key => true ]
+        $validPhotoTargets = [];   // [ normalized_key => [measurement_id, original_foto_target, ...] ]
+        $expiredPhotoTargets = []; // [ normalized_key => [measurement_id, ...] ]
 
         foreach ($measurements as $m) {
             $data = is_array($m->data) ? $m->data : json_decode($m->data, true);
@@ -1979,14 +1987,19 @@ class MeasurementController extends Controller
 
             $isExpired = Carbon::parse($m->measured_at)->lt($oneYearAgo);
 
+            $targetInfo = [
+                'id' => $m->id,
+                'raw_base' => $rawBase,
+                'measured_at' => $m->measured_at,
+                'sensor_name' => $m->sensor_name ?? 'N/A',
+                'sensor_identifier' => $m->sensor_identifier ?? 'N/A',
+                'group_name' => $m->group_name ?? 'N/A',
+            ];
+
             if ($isExpired) {
-                $expiredPhotoTargets[$cleanBaseLower] = true;
-                $expiredPhotoTargets[$nameWithoutExt] = true;
+                $expiredPhotoTargets[$cleanBaseLower] = $targetInfo;
+                $expiredPhotoTargets[$nameWithoutExt] = $targetInfo;
             } else {
-                $targetInfo = [
-                    'id' => $m->id,
-                    'raw_base' => $rawBase,
-                ];
                 $validPhotoTargets[$cleanBaseLower] = $targetInfo;
                 $validPhotoTargets[$nameWithoutExt] = $targetInfo;
             }
@@ -2003,6 +2016,7 @@ class MeasurementController extends Controller
         $skippedNoMatch = 0;
         $rejectedInvalidFormat = 0;
         $updatedMeasurementIds = [];
+        $processingItems = [];
 
         $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
 
@@ -2037,6 +2051,17 @@ class MeasurementController extends Controller
 
                 if (!in_array($ext, $allowedExtensions)) {
                     $rejectedInvalidFormat++;
+                    $processingItems[] = [
+                        'file' => $cleanBase,
+                        'status' => 'invalid_format',
+                        'status_label' => 'Formato no permitido',
+                        'reason' => "Extensión (.{$ext}) no permitida. Solo se admiten JPG, JPEG, PNG y WEBP.",
+                        'sensor' => '-',
+                        'identifier' => '-',
+                        'group' => '-',
+                        'date' => '-',
+                        'measurement_id' => '-'
+                    ];
                     continue;
                 }
 
@@ -2045,12 +2070,36 @@ class MeasurementController extends Controller
 
                 if (isset($expiredPhotoTargets[$cleanBaseLower]) || isset($expiredPhotoTargets[$nameWithoutExt])) {
                     $rejectedOlderThanYear++;
+                    $exp = $expiredPhotoTargets[$cleanBaseLower] ?? $expiredPhotoTargets[$nameWithoutExt] ?? null;
+                    $expDate = ($exp && !empty($exp['measured_at'])) ? Carbon::parse($exp['measured_at'])->format('d/m/Y') : '> 365 días';
+                    $processingItems[] = [
+                        'file' => $cleanBase,
+                        'status' => 'expired',
+                        'status_label' => 'Rechazada (> 1 año)',
+                        'reason' => "Toma del {$expDate} supera los 365 días de antigüedad máxima permitida.",
+                        'sensor' => $exp['sensor_name'] ?? '-',
+                        'identifier' => $exp['sensor_identifier'] ?? '-',
+                        'group' => $exp['group_name'] ?? '-',
+                        'date' => $expDate,
+                        'measurement_id' => $exp['id'] ?? '-'
+                    ];
                     continue;
                 }
 
                 $target = $validPhotoTargets[$cleanBaseLower] ?? $validPhotoTargets[$nameWithoutExt] ?? null;
                 if (!$target) {
                     $skippedNoMatch++;
+                    $processingItems[] = [
+                        'file' => $cleanBase,
+                        'status' => 'no_match',
+                        'status_label' => 'Sin coincidencia (BD)',
+                        'reason' => "No existe ninguna medición en tus grupos que requiera este archivo.",
+                        'sensor' => '-',
+                        'identifier' => '-',
+                        'group' => '-',
+                        'date' => '-',
+                        'measurement_id' => '-'
+                    ];
                     continue;
                 }
 
@@ -2073,6 +2122,19 @@ class MeasurementController extends Controller
 
                     $updatedMeasurementIds[] = $measurementId;
                     $linkedCount++;
+
+                    $mDate = Carbon::parse($target['measured_at'])->format('d/m/Y');
+                    $processingItems[] = [
+                        'file' => $cleanBase,
+                        'status' => 'linked',
+                        'status_label' => 'Vinculada con éxito',
+                        'reason' => "Guardada y vinculada a la medición #{$measurementId}.",
+                        'sensor' => $target['sensor_name'] ?? '-',
+                        'identifier' => $target['sensor_identifier'] ?? '-',
+                        'group' => $target['group_name'] ?? '-',
+                        'date' => $mDate,
+                        'measurement_id' => $measurementId
+                    ];
                 }
             }
 
@@ -2096,6 +2158,17 @@ class MeasurementController extends Controller
 
                 if (!in_array($ext, $allowedExtensions)) {
                     $rejectedInvalidFormat++;
+                    $processingItems[] = [
+                        'file' => $cleanBase,
+                        'status' => 'invalid_format',
+                        'status_label' => 'Formato no permitido',
+                        'reason' => "Extensión (.{$ext}) no permitida. Solo se admiten JPG, JPEG, PNG y WEBP.",
+                        'sensor' => '-',
+                        'identifier' => '-',
+                        'group' => '-',
+                        'date' => '-',
+                        'measurement_id' => '-'
+                    ];
                     continue;
                 }
 
@@ -2104,12 +2177,36 @@ class MeasurementController extends Controller
 
                 if (isset($expiredPhotoTargets[$cleanBaseLower]) || isset($expiredPhotoTargets[$nameWithoutExt])) {
                     $rejectedOlderThanYear++;
+                    $exp = $expiredPhotoTargets[$cleanBaseLower] ?? $expiredPhotoTargets[$nameWithoutExt] ?? null;
+                    $expDate = ($exp && !empty($exp['measured_at'])) ? Carbon::parse($exp['measured_at'])->format('d/m/Y') : '> 365 días';
+                    $processingItems[] = [
+                        'file' => $cleanBase,
+                        'status' => 'expired',
+                        'status_label' => 'Rechazada (> 1 año)',
+                        'reason' => "Toma del {$expDate} supera los 365 días de antigüedad máxima permitida.",
+                        'sensor' => $exp['sensor_name'] ?? '-',
+                        'identifier' => $exp['sensor_identifier'] ?? '-',
+                        'group' => $exp['group_name'] ?? '-',
+                        'date' => $expDate,
+                        'measurement_id' => $exp['id'] ?? '-'
+                    ];
                     continue;
                 }
 
                 $target = $validPhotoTargets[$cleanBaseLower] ?? $validPhotoTargets[$nameWithoutExt] ?? null;
                 if (!$target) {
                     $skippedNoMatch++;
+                    $processingItems[] = [
+                        'file' => $cleanBase,
+                        'status' => 'no_match',
+                        'status_label' => 'Sin coincidencia (BD)',
+                        'reason' => "No existe ninguna medición en tus grupos que requiera este archivo.",
+                        'sensor' => '-',
+                        'identifier' => '-',
+                        'group' => '-',
+                        'date' => '-',
+                        'measurement_id' => '-'
+                    ];
                     continue;
                 }
 
@@ -2125,6 +2222,19 @@ class MeasurementController extends Controller
 
                 $updatedMeasurementIds[] = $measurementId;
                 $linkedCount++;
+
+                $mDate = Carbon::parse($target['measured_at'])->format('d/m/Y');
+                $processingItems[] = [
+                    'file' => $cleanBase,
+                    'status' => 'linked',
+                    'status_label' => 'Vinculada con éxito',
+                    'reason' => "Guardada y vinculada a la medición #{$measurementId}.",
+                    'sensor' => $target['sensor_name'] ?? '-',
+                    'identifier' => $target['sensor_identifier'] ?? '-',
+                    'group' => $target['group_name'] ?? '-',
+                    'date' => $mDate,
+                    'measurement_id' => $measurementId
+                ];
             }
         }
 
@@ -2137,6 +2247,7 @@ class MeasurementController extends Controller
                 'rejected_older_than_year' => $rejectedOlderThanYear,
                 'skipped_no_match' => $skippedNoMatch,
                 'rejected_invalid_format' => $rejectedInvalidFormat,
+                'items' => $processingItems,
             ]
         ]);
     }

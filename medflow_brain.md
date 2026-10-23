@@ -471,6 +471,10 @@ Permite a los administradores con plan **Premium** georreferenciar sus medidores
      * **Regla de 365 días (1 año de retención):** Solo se procesan y almacenan fotos pertenecientes a mediciones tomadas en los últimos 365 días. Todo archivo correspondiente a tomas más antiguas se rechaza automáticamente.
      * **Correlación estricta con la BD:** El nombre de la imagen debe coincidir con el campo `data.foto` de una medición existente del usuario. Fotos sin correspondencia se descartan inmediatamente sin ocupar almacenamiento en disco.
      * Las imágenes validadas se guardan en `public/measurements/` y se vinculan automáticamente al registro en la base de datos.
+   - **Informe Descargable de Supervisión y Diagnóstico:**
+     * Al concluir la validación, el asistente ofrece una auditoría completa de cada archivo analizado.
+     * **Descarga a Excel / CSV:** Botón para exportar un archivo `.csv` (con BOM UTF-8 para apertura directa en Microsoft Excel) que lista: *Nombre de Archivo, Estado, Motivo/Diagnóstico específico, Medidor/Sensor, Identificador, Grupo, Fecha de Toma e ID de Medición*.
+     * **Panel de Supervisión en Pantalla:** Permite filtrar interactivamente entre *Todas*, *Vinculadas con éxito* o *No vinculadas / Con Problemas*, con un buscador en tiempo real para rastrear cualquier foto o medidor al instante.
 
 3. **Sobreescritura de Sensores en Importación sin Consumo de Cuota:**
    - Al importar sensores masivamente en un grupo existente, el sistema compara por el `identifier` único del sensor.
