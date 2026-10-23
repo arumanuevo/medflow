@@ -376,28 +376,7 @@
                             </div>
                         @endif
 
-                        <!-- Banner Inteligente de Auditoría (Notificación elegante y llamativa si hay anomalías) -->
-                        <div id="auditAlertNotice" class="alert alert-danger border-danger-subtle d-flex flex-wrap align-items-center justify-content-between p-3 rounded-3 shadow-sm mb-4 d-none" style="background-color: #fff5f5;">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="bg-danger text-white rounded-circle p-2 d-flex align-items-center justify-content-center shadow-sm" style="width: 44px; height: 44px; flex-shrink: 0;">
-                                    <i class="bi bi-exclamation-triangle-fill fs-5"></i>
-                                </div>
-                                <div>
-                                    <h6 class="alert-heading mb-1 fw-bold text-danger">
-                                        Se detectaron anomalías en las mediciones
-                                    </h6>
-                                    <div class="small text-dark" id="auditAlertDescription">
-                                        <!-- Se rellena dinámicamente con las estadísticas de error -->
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center gap-2 mt-2 mt-md-0">
-                                <button type="button" class="btn btn-danger btn-sm fw-bold px-3 shadow-sm" id="btnAuditFromNotice">
-                                    <i class="bi bi-shield-exclamation me-1"></i> Ver y Resolver Anomalías
-                                </button>
-                                <button type="button" class="btn-close" id="btnCloseAuditNotice" aria-label="Cerrar"></button>
-                            </div>
-                        </div>
+
 
                         <!-- Estadísticas de errores (tarjetas clickeables) -->
                         <div class="row mb-4 d-none" id="errorStatsContainer">
@@ -1300,23 +1279,6 @@
                         .addClass('bg-success text-white fw-semibold shadow-sm')
                         .html('<i class="bi bi-check-lg"></i> OK')
                         .removeClass('d-none');
-                }
-
-                // Banner Inteligente de Advertencia (aparece automáticamente si existen problemas)
-                if (negCount > 0 || dateCount > 0) {
-                    let descHtml = '';
-                    if (negCount > 0 && dateCount > 0) {
-                        descHtml = `Se identificaron <strong class="text-danger">${negCount} consumo(s) negativo(s)</strong> (posibles cambios de medidor o errores de carga) y <strong class="text-warning-emphasis">${dateCount} fecha(s) desfasada(s)</strong>. Puedes auditarlos, contrastar con la foto del medidor y corregirlos en un clic.`;
-                    } else if (negCount > 0) {
-                        descHtml = `Se identificaron <strong class="text-danger">${negCount} consumo(s) negativo(s)</strong> donde el valor actual es menor al anterior. Puedes revisar las fotografías originales y registrar el <strong>Cambio de Medidor</strong> o <strong>Corregir</strong> el número.`;
-                    } else {
-                        descHtml = `Se identificaron <strong class="text-warning-emphasis">${dateCount} medición(es) con fechas inconsistentes</strong> con respecto al orden cronológico del sensor.`;
-                    }
-
-                    $('#auditAlertDescription').html(descHtml);
-                    $('#auditAlertNotice').removeClass('d-none');
-                } else {
-                    $('#auditAlertNotice').addClass('d-none');
                 }
             }
 
@@ -2224,27 +2186,6 @@
                     $('#toggleErrorsText').text('Auditoría');
                     $('#errorStatsContainer').addClass('d-none');
                 }
-            });
-
-            // Acción desde el Banner Inteligente de Advertencia
-            $('#btnAuditFromNotice').click(function () {
-                showErrors = true;
-                $('#toggleErrorsText').text('Ocultar');
-                $('#errorStatsContainer').removeClass('d-none');
-
-                if (errorStats && errorStats.negative_consumption > 0) {
-                    showErrorDetailsModal('negative_consumption');
-                } else if (errorStats && errorStats.inconsistent_date > 0) {
-                    showErrorDetailsModal('inconsistent_date');
-                } else {
-                    $('html, body').animate({
-                        scrollTop: $('#errorStatsContainer').offset().top - 70
-                    }, 300);
-                }
-            });
-
-            $('#btnCloseAuditNotice').click(function () {
-                $('#auditAlertNotice').fadeOut(200);
             });
 
             // ==========================================
