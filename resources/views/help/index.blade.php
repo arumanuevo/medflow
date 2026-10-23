@@ -468,6 +468,59 @@
                 </div>
             </div>
 
+            <!-- Módulo 11: Marco Legal, Responsabilidad del Administrador e Indemnidad (SaaS Argentina) -->
+            <div class="col help-card">
+                <div class="card h-100 border-0 shadow-sm rounded-4" style="border-left: 4px solid #0284c7 !important;">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center me-3"
+                                style="width: 45px; height: 45px;">
+                                <i class="bi bi-shield-check fs-5"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-0">Marco Legal & Responsabilidad</h5>
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle mt-1" style="font-size: 0.68rem;">SaaS · Argentina</span>
+                            </div>
+                        </div>
+                        <ul class="list-unstyled text-muted mb-0">
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal"
+                                    data-title="¿Cuál es la responsabilidad del Administrador sobre los datos y cobros a vecinos?"
+                                    data-content="La entidad administradora (Barrio Privado / Club de Campo bajo CCCN art. 2073, Consorcio de Propiedad Horizontal art. 2037, Cooperativa Ley 20.337 o Municipio) es la <strong>única, exclusiva e indelegable responsable</strong> civil, administrativa y contable por los datos cargados en MedFlow, por las fotos tomadas por sus inspectores y por las liquidaciones de cobro, tasas o expensas emitidas a sus respectivos vecinos o socios.<br><br>MedFlow y sus desarrolladores quedan expresamente eximidos y mantenidos <strong>totalmente indemnes</strong> de cualquier reclamo judicial o controversia vecinal."
+                                    data-steps="Consulta el &lt;a href='/terminos-legales' target='_blank' class='fw-bold text-primary'&gt;Marco Legal y Cláusulas de Indemnidad&lt;/a&gt;.">
+                                    <i class="bi bi-building-check me-1 text-primary"></i> Responsabilidad de la Entidad y Reclamos Vecinales</a>
+                            </li>
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal"
+                                    data-title="¿MedFlow es una empresa de servicios públicos o certifica medidores?"
+                                    data-content="<strong>No.</strong> MedFlow es exclusivamente una herramienta de software instrumental (SaaS) para digitalización fotográfica y cálculo aritmético entre lecturas sucesivas.<br><br>MedFlow <strong>NO es empresa distribuidora de servicios públicos ni realiza certificaciones de metrología legal (Ley 19.511)</strong> de medidores mecánicos o caudalímetros. El estado de calibración física y mantenimiento de las redes es responsabilidad de la entidad administradora."
+                                    data-steps="Detallado en el Artículo 2 del &lt;a href='/terminos-legales' target='_blank' class='fw-bold text-primary'&gt;Marco Legal&lt;/a&gt;.">
+                                    <i class="bi bi-rulers me-1 text-primary"></i> Deslinde de Metrología y Servicios Públicos</a>
+                            </li>
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal"
+                                    data-title="Protección de Datos Personales (Ley 25.326): ¿Quién es el Responsable?"
+                                    data-content="Bajo la Ley de Protección de Datos Personales N° 25.326 de la República Argentina:<br><br>• <strong>La Entidad Administradora</strong> es el <em>Responsable del Tratamiento y de la Base de Datos</em> (Art. 2), teniendo la relación legal directa con los vecinos.<br>• <strong>MedFlow</strong> actúa estrictamente como <em>Encargado del Tratamiento</em> (Art. 25), procesando datos en la nube por cuenta y orden técnica del Administrador.<br><br>MedFlow <strong>no vende, no alquila ni comercializa datos</strong> bajo ninguna modalidad."
+                                    data-steps="Revisa el Artículo 5 del documento &lt;a href='/terminos-legales' target='_blank'&gt;Términos Legales&lt;/a&gt;.">
+                                    <i class="bi bi-lock me-1 text-primary"></i> Régimen de Datos Personales (Ley 25.326)</a>
+                            </li>
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal"
+                                    data-title="Deber de Respaldo Contable: ¿Cómo descargar mis libros de mediciones?"
+                                    data-content="De acuerdo con los arts. 320 y concordantes del Código Civil y Comercial de la Nación, es deber legal de la administración llevar y conservar documentación respaldatoria.<br><br>MedFlow provee botones para <strong>Exportar a Excel</strong> las mediciones con todas sus columnas de auditoría y fechas. Recomendamos a toda administración descargar periódicamente estos archivos para sus balances y asambleas anuales."
+                                    data-steps="Desde &lt;strong&gt;Mediciones y Consumos&lt;/strong&gt; haz clic en el botón superior &lt;strong&gt;Exportar a Excel&lt;/strong&gt;.">
+                                    <i class="bi bi-file-earmark-spreadsheet me-1 text-primary"></i> Resguardos Contables y Exportación Excel</a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="{{ route('legal.terms') }}" target="_blank" class="text-primary fw-semibold text-decoration-none">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i> Ver Marco Legal Completo y Artículos &raquo;
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <!-- Contenedor Visual de Contenido (Modal Genérico) -->

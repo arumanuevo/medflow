@@ -323,24 +323,25 @@
     <!-- Legal Section -->
     <footer class="legal-section">
         <div class="container text-center">
-            <h5 class="text-white mb-3"><i class="bi bi-shield-check"></i> Privacidad y Condiciones Legales Estatales
+            <h5 class="text-white mb-3"><i class="bi bi-shield-check"></i> Marco Legal, Privacidad e Indemnidad (SaaS Argentina)
             </h5>
             <p style="max-width: 800px; margin: 0 auto; line-height: 1.8;">
                 <strong>Exención de Responsabilidad y Privacidad (SaaS):</strong> El software "MedFlow" y sus
                 desarrolladores proporcionan la plataforma exclusivamente como una herramienta informática (SaaS)
-                destinada a facilitar la recolección y logística de medidores. Los administradores, usuarios y empresas
-                registradas son los únicos dueños, creadores y responsables absolutos de los datos cargados en el
-                sistema.
+                destinada a facilitar la recolección y logística de medidores. Los administradores, usuarios y entidades
+                registradas (Barrios Privados, Consorcios, Cooperativas, Municipios) son los únicos dueños, creadores y
+                responsables absolutos de los datos cargados y liquidaciones de cobro, manteniendo a MedFlow totalmente indemne de cualquier reclamo vecinal.
                 <br><br>
-                <strong>Protección Criptográfica de la Identidad:</strong> MedFlow <b>no recopila, no alquila, ni
+                <strong>Protección de Datos (Ley 25.326):</strong> MedFlow <b>no recopila, no alquila, ni
                     comercia</b> con direcciones de correo electrónico, fotos subidas, métricas ni metadatos de los
-                clientes finales bajo ninguna circunstancia. El software no efectúa ningún uso no autorizado ni venta de
-                información a terceros. Al utilizar esta herramienta o registrarse, el usuario exime formalmente a los
-                desarrolladores del software por los daños directos e indirectos causados por el mal uso de la
-                plataforma por parte de los operadores inspectores corporativos.
+                clientes finales bajo ninguna circunstancia.
+                <br><br>
+                <a href="{{ route('legal.terms') }}" target="_blank" class="btn btn-sm btn-outline-light rounded-pill px-3">
+                    <i class="bi bi-box-arrow-up-right me-1"></i> Ver Términos Legales Completos
+                </a>
             </p>
             <div class="mt-4 pt-4 border-top" style="border-color: var(--glass-border) !important;">
-                <p>&copy; {{ date('Y') }} MedFlow Systems. Todos los derechos reservados.</p>
+                <p>&copy; {{ date('Y') }} MedFlow Systems. Todos los derechos reservados. | <a href="{{ route('legal.terms') }}" class="text-white text-decoration-none">Marco Legal</a></p>
             </div>
         </div>
     </footer>

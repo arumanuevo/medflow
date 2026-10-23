@@ -31,7 +31,6 @@
     <a href="/dashboard" class="sidebar-brand">
         <span class="sidebar-brand-icon"><i class="bi bi-droplet"></i></span>
         <span class="sidebar-brand-text">Med<span class="light">Flow</span></span>
-        
     </a>
 
     {{-- User Panel --}}
@@ -114,6 +113,14 @@
 
     {{-- Footer --}}
     <div class="sidebar-footer">
+        <a href="{{ route('legal.terms') }}" 
+           target="_blank"
+           class="sidebar-menu-link" 
+           title="Marco Legal, Términos y Responsabilidad (Argentina)"
+           style="color: #94a3b8; font-size: 0.82rem;">
+            <i class="bi bi-shield-check"></i>
+            <span class="sidebar-menu-text">Marco Legal SaaS</span>
+        </a>
         <a href="{{ route('logout') }}" 
            class="sidebar-menu-link" 
            onclick="event.preventDefault(); document.getElementById('logout-form').submit();"

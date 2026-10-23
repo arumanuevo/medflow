@@ -1,15 +1,18 @@
 @extends('layouts.app')
 
-@section('title', 'Registrarse - MeasureFlow')
+@section('title', 'Registrarse - MedFlow')
 
 @section('content')
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-8">
-                <div class="card">
-                    <div class="card-header">{{ __('Register') }}</div>
+                <div class="card shadow-sm border-0 rounded-4">
+                    <div class="card-header bg-white border-0 pt-4 pb-2 text-center">
+                        <h4 class="fw-bold mb-1"><i class="bi bi-activity text-primary me-2"></i>Crear Cuenta en MedFlow</h4>
+                        <p class="text-muted small">Plataforma SaaS de Medición y Gestión de Sensores</p>
+                    </div>
 
-                    <div class="card-body">
+                    <div class="card-body p-4 pt-2">
                         <form method="POST" action="{{ route('register') }}">
                             @csrf
 
@@ -71,31 +74,26 @@
                                 </div>
                             </div>
 
-                            <!-- Términos Legales -->
+                            <!-- Términos Legales y Delimitación de Responsabilidad (SaaS Argentina) -->
                             <div class="row mb-4">
-                                <div class="col-md-8 offset-md-2">
-                                    <div class="p-3 border rounded mb-3 bg-light"
-                                        style="max-height: 150px; overflow-y: auto; font-size: 0.8rem; color: #6c757d;">
-                                        <strong>Acuerdo de Exención de Responsabilidad y Privacidad (SaaS)</strong><br><br>
-                                        El software "MedFlow" se proporciona exclusivamente como una herramienta tecnológica
-                                        (SaaS) facilitadora de recolección y logística. Usted, como administrador o usuario,
-                                        es el único propietario y responsable de los datos que ingresa al sistema y de la
-                                        actividad de los inspectores que opera.
-                                        <br><br>
-                                        MedFlow no recopila, no comercializa y no utiliza su información personal (ni fotos,
-                                        ni correos, ni métricas) para beneficio de terceros bajo ninguna circunstancia. Al
-                                        registrarse, usted acepta formalmente eximir de cualquier daño legal, directo o
-                                        indirecto, derivado del mal uso o vulnerabilidad del servicio, a los desarrolladores
-                                        del sistema. Usted asume la responsabilidad total sobre la administración de sus
-                                        espacios de trabajo y rutas creadas.
+                                <div class="col-md-10 offset-md-1">
+                                    <div class="p-3 border rounded-3 mb-2 bg-light"
+                                        style="max-height: 180px; overflow-y: auto; font-size: 0.8rem; color: #475569; line-height: 1.6;">
+                                        <strong class="text-dark"><i class="bi bi-shield-check text-primary me-1"></i> Acuerdo de Exención de Responsabilidad, Indemnidad y Privacidad (SaaS Argentina)</strong><br><br>
+                                        <strong>1. Naturaleza Instrumental y Metrología:</strong> El software "MedFlow" se provee bajo modalidad SaaS exclusivamente como una herramienta tecnológica informática para digitalización de fotos y cálculo aritmético de diferencias entre lecturas. MedFlow <strong>no es empresa distribuidora de servicios públicos ni certifica metrología legal (Ley 19.511)</strong> de medidores o caudalímetros físicos.<br><br>
+                                        <strong>2. Responsabilidad de la Entidad:</strong> La persona humana o jurídica administradora (Barrio Privado / Club de Campo bajo CCCN art. 2073, Consorcio de Propiedad Horizontal art. 2037 CCCN, Cooperativa Ley 20.337, Municipio o Empresa) es la <strong>única, exclusiva e indelegable responsable</strong> de los datos que ingresa, de la veracidad de las fotos, de la calibración de los sensores y de las liquidaciones de cobro o expensas que emita a sus residentes o abonados.<br><br>
+                                        <strong>3. Indemnidad Total (Hold Harmless):</strong> El Administrador se compromete formalmente a mantener plenamente indemne a MedFlow y a sus desarrolladores ante cualquier reclamo judicial o administrativo incoado por vecinos, copropietarios o entes de Defensa del Consumidor (Ley 24.240) derivado de facturaciones, lecturas o averías de red.<br><br>
+                                        <strong>4. Datos Personales (Ley 25.326):</strong> El Administrador actúa como Responsable de la Base de Datos y MedFlow como Encargado del Tratamiento. MedFlow no vende ni cede datos a terceros.<br><br>
+                                        <a href="{{ route('legal.terms') }}" target="_blank" class="fw-bold text-primary text-decoration-none">
+                                            <i class="bi bi-box-arrow-up-right me-1"></i> Leer el Marco Legal y Artículos Completos &raquo;
+                                        </a>
                                     </div>
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" name="terms" id="termsAccepted"
                                             required>
                                         <label class="form-check-label text-muted" for="termsAccepted"
-                                            style="font-size: 0.9rem;">
-                                            He leído, comprendido y <strong>acepto los términos de uso, políticas de
-                                                privacidad y exención de responsabilidad</strong>.
+                                            style="font-size: 0.85rem;">
+                                            He leído, comprendido y <strong>acepto los términos de uso, condiciones legales, régimen de protección de datos (Ley 25.326) y exención de responsabilidad</strong>.
                                         </label>
                                     </div>
                                 </div>
@@ -103,8 +101,8 @@
 
                             <div class="row mb-0">
                                 <div class="col-md-6 offset-md-4">
-                                    <button type="submit" class="btn btn-primary" id="registerBtn">
-                                        <i class="bi bi-person-plus"></i> Crear Cuenta
+                                    <button type="submit" class="btn btn-primary px-4 rounded-pill fw-semibold" id="registerBtn">
+                                        <i class="bi bi-person-plus me-1"></i> Crear Cuenta
                                     </button>
                                 </div>
                             </div>

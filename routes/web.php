@@ -32,6 +32,9 @@ Route::get('/visor/{token}', [\App\Http\Controllers\PublicViewerController::clas
 Route::get('/notificaciones/baja/{token}', [\App\Http\Controllers\Api\SESWebhookController::class, 'unsubscribe'])->name('notifications.unsubscribe');
 // Landing pública
 Route::get('/', [LandingController::class, 'index'])->name('landing');
+Route::get('/terminos-legales', [LandingController::class, 'terms'])->name('legal.terms');
+Route::get('/legal', [LandingController::class, 'terms']);
+Route::get('/privacidad-responsabilidad', [LandingController::class, 'terms']);
 Route::post('/registro', [LandingController::class, 'register'])->name('landing.register');
 Route::post('/contacto', [LandingController::class, 'contact'])->name('landing.contact');
 

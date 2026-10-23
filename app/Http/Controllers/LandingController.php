@@ -10,6 +10,11 @@ class LandingController extends Controller
     {
         return view('landing');
     }
+
+    public function terms()
+    {
+        return view('legal.terms');
+    }
     public function contact(Request $request)
     {
         $request->validate([

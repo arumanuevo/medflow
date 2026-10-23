@@ -598,15 +598,18 @@
 
                             <!-- Términos Legales -->
                             <div class="mb-3">
-                                <div class="p-3 border rounded mb-3 bg-light" style="max-height: 150px; overflow-y: auto; font-size: 0.8rem; color: #6c757d;">
-                                    <strong>Acuerdo de Exención de Responsabilidad y Privacidad (SaaS)</strong><br><br>
-                                    MedFlow se proporciona como herramienta (SaaS). Usted es responsable de sus datos e inspectores.<br><br>
-                                    No recopilamos ni comercializamos datos, fotos o métricas finales. Al registrarse, exime a los desarrolladores formales por daños derivados del mal uso del servicio por parte de inspectores invitados. Usted asume responsabilidad por las actividades del sistema que provee a sus inspectores.
+                                <div class="p-3 border rounded-3 mb-2 bg-light" style="max-height: 160px; overflow-y: auto; font-size: 0.8rem; color: #475569; line-height: 1.5;">
+                                    <strong class="text-dark"><i class="bi bi-shield-check text-primary me-1"></i> Acuerdo de Exención de Responsabilidad e Indemnidad (SaaS Argentina)</strong><br><br>
+                                    MedFlow se suministra bajo modalidad SaaS estrictamente como una herramienta tecnológica informática para digitalización de lecturas y cálculo diferencial de consumos. MedFlow <strong>no es empresa de servicios públicos ni certifica metrología legal (Ley 19.511)</strong> de medidores físicos.<br><br>
+                                    La entidad administradora (Barrio Privado, Consorcio, Municipio o Cooperativa) es la <strong>única y exclusiva responsable</strong> de los datos cargados, de la calibración de los medidores y de los cobros o expensas liquidadas a sus respectivos vecinos o abonados, comprometiéndose expresamente a <strong>mantener plenamente indemne a MedFlow</strong> ante cualquier controversia vecinal, litigio judicial o reclamo ante Defensa del Consumidor (Ley 24.240).<br><br>
+                                    <a href="{{ route('legal.terms') }}" target="_blank" class="fw-bold text-primary text-decoration-none">
+                                        <i class="bi bi-box-arrow-up-right me-1"></i> Ver Marco Legal y Artículos Completos &raquo;
+                                    </a>
                                 </div>
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" name="terms" id="termsAccepted" required>
-                                    <label class="form-check-label text-muted" for="termsAccepted" style="font-size: 0.85rem;">
-                                        He leído y <strong>acepto los términos de uso y exención de responsabilidad</strong>.
+                                    <label class="form-check-label text-muted" for="termsAccepted" style="font-size: 0.82rem;">
+                                        He leído, comprendido y <strong>acepto los términos de uso, protección de datos (Ley 25.326) y pacto de indemnidad</strong>.
                                     </label>
                                 </div>
                             </div>
@@ -804,23 +807,17 @@
                 <div class="col-12">
                     <div class="bg-light p-4 rounded-3 border text-start"
                         style="font-size: 0.85rem; color: #4a5568 !important;">
-                        <h5 class="mb-3 text-dark"><i class="bi bi-shield-check text-primary"></i> Privacidad y
-                            Condiciones Legales Estatales</h5>
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                            <h5 class="mb-0 text-dark"><i class="bi bi-shield-check text-primary me-2"></i>Marco Legal, Protección de Datos e Indemnidad (SaaS Argentina)</h5>
+                            <a href="{{ route('legal.terms') }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                <i class="bi bi-file-earmark-text me-1"></i> Ver Términos Legales Completos
+                            </a>
+                        </div>
                         <p class="mb-3" style="line-height: 1.6;">
-                            <strong>Exención de Responsabilidad y Privacidad (SaaS):</strong> El software "MedFlow" y
-                            sus desarrolladores proporcionan la plataforma exclusivamente como una herramienta
-                            informática (SaaS) destinada a facilitar la recolección y logística de medidores. Los
-                            administradores, usuarios y empresas registradas son los únicos dueños, creadores y
-                            responsables absolutos de los datos cargados en el sistema.
+                            <strong>Exención de Responsabilidad y Naturaleza Instrumental:</strong> El software "MedFlow" se suministra exclusivamente como una herramienta informática en la nube (SaaS) destinada a la logística de tomas fotográficas y cálculo aritmético de consumos. MedFlow <strong>no es prestadora de servicios públicos ni certifica metrología legal (Ley 19.511)</strong> de instrumentos físicos de medición. Las entidades administradoras (Barrios Privados, Clubes de Campo, Consorcios, Municipios y Cooperativas) son las únicas y absolutas responsables de la veracidad de los datos, de la calibración de los medidores y de las liquidaciones de cobro o expensas efectuadas a sus respectivos residentes o usuarios finales, obligándose a <strong>mantener a MedFlow plenamente indemne</strong> frente a cualquier reclamo o litigio vecinal (Ley 24.240 y concordantes).
                         </p>
                         <p class="mb-0" style="line-height: 1.6;">
-                            <strong>Protección Criptográfica de la Identidad:</strong> MedFlow <b>no recopila, no
-                                alquila, ni comercia</b> con direcciones de correo electrónico, fotos subidas, métricas
-                            ni metadatos de los clientes finales bajo ninguna circunstancia. El software no efectúa
-                            ningún uso no autorizado ni venta de información a terceros. Al utilizar esta herramienta o
-                            registrarse, el usuario exime formalmente a los desarrolladores del software por los daños
-                            directos e indirectos causados por el mal uso de la plataforma por parte de los operadores
-                            inspectores corporativos.
+                            <strong>Protección de Datos Personales (Ley 25.326):</strong> La entidad administradora reviste la condición exclusiva de "Responsable de la Base de Datos" y MedFlow actúa como "Encargado de Tratamiento". MedFlow <b>no vende, no alquila, no cede ni comercializa</b> datos, fotos ni métricas a terceros bajo ninguna circunstancia.
                         </p>
                     </div>
                 </div>
@@ -834,7 +831,9 @@
                     <p class="small text-muted mb-4">
                         &copy; {{ date('Y') }} MedFlow. Todos los derechos reservados.
                         <span class="mx-2">|</span>
-                        <a href="#" class="text-muted text-decoration-none">Soporte Técnico</a>
+                        <a href="{{ route('legal.terms') }}" class="text-primary text-decoration-none fw-semibold">Términos Legales & Responsabilidad</a>
+                        <span class="mx-2">|</span>
+                        <a href="#contacto" class="text-muted text-decoration-none">Soporte Técnico</a>
                     </p>
                 </div>
             </div>

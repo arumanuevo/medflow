@@ -533,4 +533,30 @@ Permite a los administradores con plan **Premium** georreferenciar sus medidores
 - Ante "¿existe la función Y?": solo confirmar si está en este documento; si no, declarar no documentada.
 - Nunca inventar endpoints, campos, ni tarifas. Las tarifas provienen de `pricing.json` .
 - Recordar siempre el blindaje del Workspace, la idempotencia por `mobile_uuid` y el reseteo admin-previo para cambios de hardware.
+- Ante consultas sobre reclamos vecinales, controversias legales o responsabilidad sobre los datos: recordar con contundencia que MedFlow es una herramienta puramente tecnológica SaaS, que la Entidad Administradora es la única responsable civil y comercial sobre las mediciones y cobros ante sus vecinos, y que MedFlow cuenta con un pacto expreso de indemnidad y deslinde de metrología bajo la legislación de la República Argentina (ver `/terminos-legales`).
+
+---
+
+## 7. MARCO LEGAL, ALCANCE TÉCNICO Y DELIMITACIÓN DE RESPONSABILIDAD (SaaS Argentina)
+
+### 7.1 Calificación Jurídica y Naturaleza Instrumental
+- MedFlow es un software informático bajo la modalidad Software as a Service (SaaS). Provee infraestructura en la nube para la digitalización fotográfica, trazabilidad secuencial y cálculo algebraico de diferencias entre lecturas.
+- **No es empresa de servicios públicos:** MedFlow no distribuye agua, energía ni gas, ni es concesionaria de saneamiento.
+- **Deslinde de Metrología Legal (Ley Nacional 19.511):** MedFlow **NO certifica ni homologa** la calibración técnica, aforo o precisión de medidores físicos o caudalímetros. El mantenimiento y calibración de los instrumentos físicos es deber indelegable de la administración propietaria de la red.
+
+### 7.2 Responsabilidad Exclusiva de la Entidad Administradora
+- Aplicable a **Barrios Privados / Clubes de Campo** (Arts. 2073 y ss. CCCN), **Consorcios de Propiedad Horizontal** (Art. 2037 CCCN), **Cooperativas de Provisión de Servicios Públicos** (Ley 20.337), **Municipios** y **Empresas**:
+- La Entidad Administradora es la **única y exclusiva titular y responsable** por la veracidad, integridad y exactitud de los datos volcados al sistema, de supervisar las anomalías detectadas en auditoría (consumos negativos, desfasajes de fechas), y de emitir las liquidaciones de cobro, tasas o expensas a sus vecinos o abonados.
+
+### 7.3 Cláusula de Indemnidad Total (Hold Harmless)
+- La Entidad Administradora asume en forma íntegra y exclusiva la relación con sus vecinos, propietarios o socios, obligándose formalmente a **mantener plenamente indemne a MedFlow y sus creadores** ante cualquier reclamo judicial o administrativo, mediación obligatoria, denuncia ante la Dirección de Defensa del Consumidor (Ley 24.240), entes reguladores de servicios públicos (ADA, ENRE, etc.) o fiscalías.
+
+### 7.4 Protección de Datos Personales (Ley 25.326 - República Argentina)
+- **Roles legales:** La Entidad Administradora reviste la calidad de **Responsable del Tratamiento y de la Base de Datos** (Art. 2 Ley 25.326); MedFlow reviste únicamente la calidad técnica de **Encargado del Tratamiento** (Art. 25 Ley 25.326).
+- **Garantía absoluta de no comercialización:** MedFlow **no vende, no alquila, no cede ni comercializa** datos de los residentes, correos electrónicos, fotos de tomas ni lecturas bajo ninguna modalidad.
+
+### 7.5 Deber de Respaldo Contable (Art. 320 CCCN)
+- El Administrador tiene la obligación legal de conservar la documentación respaldatoria de sus cierres contables y asambleas. MedFlow provee botones para **Exportar a Excel** y descargar evidencias.
+- Marco Legal completo disponible en: `/terminos-legales`.
+
 
