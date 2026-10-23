@@ -213,7 +213,7 @@ class MeasurementService
                 $currTime = strtotime($curr->measured_at);
 
                 if ($currTime < $prevTime) {
-                    if ($errorType === 'inconsistent_date') {
+                    if ($errorType === 'inconsistent_date' || $errorType === 'any_error') {
                         $matchingIds[] = $curr->id;
                     }
                     continue;
@@ -234,7 +234,7 @@ class MeasurementService
                 $currVal = (float) ($currData['valor'] ?? 0);
 
                 if ($currVal < $prevVal) {
-                    if ($errorType === 'negative_consumption') {
+                    if ($errorType === 'negative_consumption' || $errorType === 'any_error') {
                         $matchingIds[] = $curr->id;
                     }
                 } elseif ($errorType === 'valid') {
@@ -311,32 +311,156 @@ class MeasurementService
             $query->where('measured_at', '<=', $filters['date_to'] . ' 23:59:59');
         }
 
+        // Búsqueda por Identificador (admite múltiples separados por coma, ej: "MED-01, MED-02, 144")
         if (!empty($filters['identifier'])) {
-            $identifier = $filters['identifier'];
-            $query->whereHas('sensor', function ($q) use ($identifier) {
-                $q->where('identifier', 'like', "%{$identifier}%");
-            });
+            $rawId = $filters['identifier'];
+            $idParts = array_values(array_filter(array_map('trim', explode(',', $rawId)), fn($x) => $x !== ''));
+            if (count($idParts) > 1) {
+                $query->whereHas('sensor', function ($q) use ($idParts) {
+                    $q->where(function ($q2) use ($idParts) {
+                        foreach ($idParts as $part) {
+                            $q2->orWhere('identifier', 'like', "%{$part}%");
+                        }
+                    });
+                });
+            } else {
+                $query->whereHas('sensor', function ($q) use ($rawId) {
+                    $q->where('identifier', 'like', "%{$rawId}%");
+                });
+            }
         }
 
+        // Búsqueda General (admite operadores OR con comas o 'OR', ej: "144, 178" o "Lote 14 OR Lote 15")
         if (!empty($filters['search'])) {
-            $search = $filters['search'];
-            $query->where(function ($q) use ($search, $user) {
-                $q->whereHas('sensor', function ($q2) use ($search, $user) {
-                    $q2->where('name', 'like', "%{$search}%")
-                        ->orWhere('identifier', 'like', "%{$search}%")
-                        ->orWhere('metadata', 'like', "%{$search}%");
-                })
-                    ->orWhere('data->valor', 'like', "%{$search}%")
-                    ->orWhere('data->tipo', 'like', "%{$search}%");
-            });
+            $rawSearch = $filters['search'];
+            $normalizedSearch = str_ireplace(' OR ', ',', $rawSearch);
+            $terms = array_values(array_filter(array_map('trim', explode(',', $normalizedSearch)), fn($v) => $v !== ''));
+            if (count($terms) > 1) {
+                $query->where(function ($q) use ($terms) {
+                    foreach ($terms as $t) {
+                        $q->orWhere(function ($q2) use ($t) {
+                            $q2->whereHas('sensor', function ($q3) use ($t) {
+                                $q3->where('name', 'like', "%{$t}%")
+                                    ->orWhere('identifier', 'like', "%{$t}%")
+                                    ->orWhere('metadata', 'like', "%{$t}%");
+                            })
+                            ->orWhere('data->valor', 'like', "%{$t}%")
+                            ->orWhere('data->tipo', 'like', "%{$t}%");
+                        });
+                    }
+                });
+            } else {
+                $search = $rawSearch;
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('sensor', function ($q2) use ($search) {
+                        $q2->where('name', 'like', "%{$search}%")
+                            ->orWhere('identifier', 'like', "%{$search}%")
+                            ->orWhere('metadata', 'like', "%{$search}%");
+                    })
+                        ->orWhere('data->valor', 'like', "%{$search}%")
+                        ->orWhere('data->tipo', 'like', "%{$search}%");
+                });
+            }
         }
 
-        if ($sortField === 'sensor' || $sortField === 'sensor_id') {
-            $query->orderBy('sensor_id', $sortDirection)->orderBy('measured_at', 'desc');
+        // ✅ FILTRADO POTENTE EN CAMPOS DINÁMICOS / PERSONALIZADOS (METADATA)
+        // Soporta AND, OR, exacto y no contiene (ej: campo "lote" con valores "144, 178")
+        if (!empty($filters['custom_values'])) {
+            $customField = trim($filters['custom_field'] ?? '');
+            $customOp = $filters['custom_operator'] ?? 'or'; // 'or', 'and', 'exact', 'not'
+            $rawCustom = $filters['custom_values'];
+            $cleanCustom = str_ireplace(' OR ', ',', $rawCustom);
+            $customTokens = array_values(array_filter(array_map('trim', explode(',', $cleanCustom)), fn($v) => $v !== ''));
+
+            if (!empty($customTokens)) {
+                $query->whereHas('sensor', function ($q) use ($customField, $customTokens, $customOp) {
+                    if ($customOp === 'and') {
+                        // Cumplir con todos los tokens buscados
+                        foreach ($customTokens as $token) {
+                            $q->where(function ($q2) use ($customField, $token) {
+                                if (empty($customField) || $customField === 'any') {
+                                    $q2->where('metadata', 'LIKE', "%{$token}%");
+                                } else {
+                                    $q2->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(metadata, ?)) LIKE ?", ["$.{$customField}", "%{$token}%"])
+                                       ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(metadata, ?)) = ?", ["$.{$customField}", $token]);
+                                }
+                            });
+                        }
+                    } elseif ($customOp === 'not') {
+                        // Excluir tokens
+                        foreach ($customTokens as $token) {
+                            $q->where(function ($q2) use ($customField, $token) {
+                                if (empty($customField) || $customField === 'any') {
+                                    $q2->where('metadata', 'NOT LIKE', "%{$token}%");
+                                } else {
+                                    $q2->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(metadata, ?)) NOT LIKE ?", ["$.{$customField}", "%{$token}%"])
+                                       ->orWhereRaw("JSON_EXTRACT(metadata, ?) IS NULL", ["$.{$customField}"]);
+                                }
+                            });
+                        }
+                    } elseif ($customOp === 'exact') {
+                        // Coincidencia exacta con alguno de los tokens
+                        $q->where(function ($q2) use ($customField, $customTokens) {
+                            foreach ($customTokens as $token) {
+                                if (empty($customField) || $customField === 'any') {
+                                    $q2->orWhereRaw("metadata LIKE ?", ["%\"{$token}\"%"]);
+                                } else {
+                                    $q2->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(metadata, ?)) = ?", ["$.{$customField}", $token]);
+                                }
+                            }
+                        });
+                    } else {
+                        // Por defecto 'or': Coincide con cualquiera de los tokens (ej: 144 o 178)
+                        $q->where(function ($q2) use ($customField, $customTokens) {
+                            foreach ($customTokens as $token) {
+                                if (empty($customField) || $customField === 'any') {
+                                    $q2->orWhere('metadata', 'LIKE', "%{$token}%");
+                                } else {
+                                    $q2->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(metadata, ?)) LIKE ?", ["$.{$customField}", "%{$token}%"])
+                                       ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(metadata, ?)) = ?", ["$.{$customField}", $token]);
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        }
+
+        // ✅ ORDENAMIENTO COMPLETO Y FLEXIBLE EN CUALQUIER COLUMNA
+        $query->select('measurements.*');
+        $direction = strtolower($sortDirection) === 'asc' ? 'asc' : 'desc';
+
+        if ($sortField === 'sensor' || $sortField === 'sensor_name') {
+            $query->join('sensors', 'sensors.id', '=', 'measurements.sensor_id')
+                  ->orderBy('sensors.name', $direction)
+                  ->orderBy('measurements.measured_at', 'desc');
+        } elseif ($sortField === 'sensor_id') {
+            $query->orderBy('measurements.sensor_id', $direction)
+                  ->orderBy('measurements.measured_at', 'desc');
+        } elseif ($sortField === 'identifier') {
+            $query->join('sensors', 'sensors.id', '=', 'measurements.sensor_id')
+                  ->orderBy('sensors.identifier', $direction)
+                  ->orderBy('measurements.measured_at', 'desc');
+        } elseif ($sortField === 'group' || $sortField === 'group_name') {
+            $query->join('sensors', 'sensors.id', '=', 'measurements.sensor_id')
+                  ->leftJoin('sensor_groups', 'sensor_groups.id', '=', 'sensors.group_id')
+                  ->orderBy('sensor_groups.name', $direction)
+                  ->orderBy('measurements.measured_at', 'desc');
         } elseif ($sortField === 'valor') {
-            $query->orderByRaw("CAST(JSON_UNQUOTE(JSON_EXTRACT(data, '$.valor')) AS DECIMAL(14,4)) {$sortDirection}");
+            $query->orderByRaw("CAST(JSON_UNQUOTE(JSON_EXTRACT(measurements.data, '$.valor')) AS DECIMAL(14,4)) {$direction}");
+        } elseif ($sortField === 'measured_at') {
+            $query->orderBy('measurements.measured_at', $direction);
+        } elseif (str_starts_with($sortField, 'extra:') || str_starts_with($sortField, 'dyn:')) {
+            // Ordenamiento natural para campos dinámicos (números de lote ordenados numéricamente y alfanuméricamente)
+            $extraKey = preg_replace('/^(extra:|dyn:)/', '', $sortField);
+            $query->join('sensors', 'sensors.id', '=', 'measurements.sensor_id')
+                  ->orderByRaw("(JSON_UNQUOTE(JSON_EXTRACT(sensors.metadata, '$.{$extraKey}')) + 0) {$direction}, JSON_UNQUOTE(JSON_EXTRACT(sensors.metadata, '$.{$extraKey}')) {$direction}")
+                  ->orderBy('measurements.measured_at', 'desc');
         } else {
-            $query->orderBy('measurements.' . $sortField, $sortDirection);
+            // Fallback genérico: si coincide con columna directa o campo dinámico
+            $query->join('sensors', 'sensors.id', '=', 'measurements.sensor_id')
+                  ->orderByRaw("(JSON_UNQUOTE(JSON_EXTRACT(sensors.metadata, '$.{$sortField}')) + 0) {$direction}, JSON_UNQUOTE(JSON_EXTRACT(sensors.metadata, '$.{$sortField}')) {$direction}")
+                  ->orderBy('measurements.measured_at', 'desc');
         }
 
         return $query;

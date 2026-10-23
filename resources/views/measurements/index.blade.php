@@ -447,10 +447,9 @@
                                 </select>
                             </div>
                             <div class="col-md-2">
-                                <label for="identifierFilter" class="form-label">Identificador <span
-                                        class="text-danger">*</span></label>
+                                <label for="identifierFilter" class="form-label">Identificador</label>
                                 <input type="text" class="form-control form-control-sm" id="identifierFilter"
-                                    placeholder="Ej: SN-1234">
+                                    placeholder="Ej: SN-1234, 144, 178">
                             </div>
                             <div class="col-md-2">
                                 <label for="groupFilter" class="form-label">Grupo</label>
@@ -466,10 +465,12 @@
                             <div class="col-md-2">
                                 <label for="errorFilter" class="form-label">Estado</label>
                                 <select class="form-select form-select-sm" id="errorFilter">
-                                    <option value="" selected>Todos</option>
-                                    <option value="negative_consumption">Aviso Consumo</option>
-                                    <option value="inconsistent_date">Aviso Fecha</option>
+                                    <option value="" selected>Todos los estados</option>
                                     <option value="first_measurement">1ra Medición</option>
+                                    <option value="negative_consumption">Aviso Consumo (Negativo)</option>
+                                    <option value="inconsistent_date">Aviso Fecha (Desfasada)</option>
+                                    <option value="valid">Válidas (Sin anomalías)</option>
+                                    <option value="any_error">Cualquier anomalía</option>
                                 </select>
                             </div>
                             <div class="col-md-2">
@@ -482,9 +483,71 @@
                             </div>
                         </div>
 
+                        <!-- Motor de Búsqueda Avanzado en Campos Dinámicos (JSON Metadata) -->
+                        <div class="card mb-3 border-primary-subtle shadow-sm" style="background-color: #f8fbff;">
+                            <div class="card-body p-2 p-md-3">
+                                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2 pb-1 border-bottom border-primary-subtle">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-primary"><i class="bi bi-funnel-fill"></i> Motor de Búsqueda Avanzado</span>
+                                        <span class="small fw-bold text-primary">Filtrado en Campos Personalizados y Atributos Dinámicos (Lote, Manzana, etc.)</span>
+                                        <span class="badge rounded-pill bg-info text-dark d-none" id="activeAdvancedFiltersBadge">0 filtros</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 text-muted" id="btnToggleAdvancedHelp" title="Ver ayuda sobre cómo buscar con AND y OR">
+                                            <i class="bi bi-question-circle"></i> ¿Cómo funciona el cruce?
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-md-3">
+                                        <label for="customFieldSelect" class="form-label small fw-semibold text-muted mb-1">
+                                            Campo Dinámico
+                                        </label>
+                                        <select class="form-select form-select-sm" id="customFieldSelect">
+                                            <option value="">-- Cualquier campo dinámico --</option>
+                                            @if(isset($availableExtraFields))
+                                                @foreach($availableExtraFields as $ef)
+                                                    <option value="{{ $ef }}">{{ ucfirst(str_replace('_', ' ', $ef)) }}</option>
+                                                @endforeach
+                                            @endif
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label for="customOperatorSelect" class="form-label small fw-semibold text-muted mb-1">
+                                            Condición / Operador
+                                        </label>
+                                        <select class="form-select form-select-sm" id="customOperatorSelect">
+                                            <option value="or" selected>Coincide con alguno (OR / Lista)</option>
+                                            <option value="and">Contiene todos los valores (AND)</option>
+                                            <option value="exact">Valor exacto</option>
+                                            <option value="not">Excluir / No contiene</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="customValuesInput" class="form-label small fw-semibold text-muted mb-1">
+                                            Valores a buscar <span class="text-muted fw-normal">(separa con comas o 'OR' para múltiples valores)</span>
+                                        </label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" class="form-control form-control-sm" id="customValuesInput"
+                                                placeholder="Ej: 144, 178 (busca mediciones cuyo lote sea 144 o 178)">
+                                            <button class="btn btn-outline-secondary" type="button" id="btnClearCustomValues" title="Limpiar este campo">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-2 small text-muted d-none" id="advancedHelpText" style="font-size: 0.76rem; background: #fff; padding: 0.5rem; border-radius: 6px; border: 1px dashed #cbd5e1;">
+                                    <i class="bi bi-info-circle text-primary me-1"></i>
+                                    <strong>Ejemplo de cruce AND / OR:</strong> Si seleccionas el campo <em>Lote</em>, operador <em>Coincide con alguno (OR)</em> y escribes <code>144, 178</code>, el sistema cruzará este filtro con el rango de fechas y el estado que hayas configurado arriba (por ejemplo <em>1ra Medición</em>), mostrando únicamente las mediciones que cumplan <strong>todas</strong> esas condiciones simultáneamente.
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="row mb-4 align-items-end">
                             <div class="col-md-5 text-muted small">
-                                <em>Completa los filtros deseados (Ej: el identificador) para afinar tu búsqueda.</em>
+                                <em>Completa los filtros deseados (Ej: el identificador o valores de lote) para afinar tu búsqueda.</em>
                             </div>
                             <div class="col-md-7 text-end d-flex gap-2 justify-content-end flex-wrap">
                                 <button class="btn btn-outline-success" id="toggleCommunityFilterBtn"
@@ -513,8 +576,14 @@
                                             Sensor <i class="bi bi-arrow-down-up text-muted ms-1"
                                                 style="font-size: 0.75rem;"></i>
                                         </th>
-                                        <th>Identificador</th>
-                                        <th>Grupo</th>
+                                        <th class="sortable" data-field="identifier" style="cursor: pointer;">
+                                            Identificador <i class="bi bi-arrow-down-up text-muted ms-1"
+                                                style="font-size: 0.75rem;"></i>
+                                        </th>
+                                        <th class="sortable" data-field="group_name" style="cursor: pointer;">
+                                            Grupo <i class="bi bi-arrow-down-up text-muted ms-1"
+                                                style="font-size: 0.75rem;"></i>
+                                        </th>
                                         <th>Plantilla</th>
                                         <th class="sortable" data-field="valor" style="cursor: pointer;">
                                             Valor <i class="bi bi-arrow-down-up text-muted ms-1"
@@ -1148,6 +1217,9 @@
                 const dateFrom = $('#dateFrom').val();
                 const dateTo = $('#dateTo').val();
                 const search = $('#searchInput').val();
+                const customField = $('#customFieldSelect').val();
+                const customOperator = $('#customOperatorSelect').val();
+                const customValues = $('#customValuesInput').val();
 
                 const params = {
                     page: currentPage,
@@ -1165,6 +1237,16 @@
                 if (search) params.search = search;
                 if (filterOnlyCommunity) params.is_community = 1;
 
+                if (customValues) {
+                    params.custom_values = customValues;
+                    params.custom_field = customField || '';
+                    params.custom_operator = customOperator || 'or';
+                    const fieldLabel = customField ? customField.replace(/_/g, ' ') : 'Cualquier campo';
+                    $('#activeAdvancedFiltersBadge').text(`${fieldLabel} (${customOperator.toUpperCase()}): "${customValues}"`).removeClass('d-none');
+                } else {
+                    $('#activeAdvancedFiltersBadge').addClass('d-none');
+                }
+
                 $.ajax({
                     url: '/api/measurements',
                     type: 'GET',
@@ -1175,14 +1257,14 @@
                     data: params,
                     beforeSend: function () {
                         $('#measurementsTableBody').html(`
-                                                                                                <tr>
-                                                                                                    <td colspan="12" class="text-center">
-                                                                                                        <div class="spinner-border text-primary" role="status">
-                                                                                                            <span class="visually-hidden">Cargando...</span>
-                                                                                                        </div> Cargando mediciones...
-                                                                                                    </td>
-                                                                                                </tr>
-                                                                                            `);
+                            <tr>
+                                <td colspan="12" class="text-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Cargando...</span>
+                                    </div> Cargando mediciones...
+                                </td>
+                            </tr>
+                        `);
                     },
                     success: function (response) {
                         if (response.success) {
@@ -1190,6 +1272,18 @@
                                 errorStats = response.error_stats;
                                 updateErrorStats(errorStats);
                             }
+
+                            // Actualizar opciones de campos dinámicos si están disponibles
+                            if (response.available_extra_fields && response.available_extra_fields.length > 0) {
+                                const currentCustomField = $('#customFieldSelect').val();
+                                let extraOpts = '<option value="">-- Cualquier campo dinámico --</option>';
+                                response.available_extra_fields.forEach(f => {
+                                    const lbl = f.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                    extraOpts += `<option value="${escapeHtml(f)}" ${currentCustomField === f ? 'selected' : ''}>${escapeHtml(lbl)}</option>`;
+                                });
+                                $('#customFieldSelect').html(extraOpts);
+                            }
+
                             const groupExtraFields = response.group_extra_fields || [];
                             renderTableHeaders(groupExtraFields);
                             renderMeasurements(response.data, groupExtraFields);
@@ -1323,16 +1417,21 @@
                     <th class="sortable" data-field="sensor_id" style="cursor: pointer;">
                         Sensor ${getSortIcon('sensor_id')}
                     </th>
-                    <th>Identificador</th>
-                    <th>Grupo</th>
+                    <th class="sortable" data-field="identifier" style="cursor: pointer;">
+                        Identificador ${getSortIcon('identifier')}
+                    </th>
+                    <th class="sortable" data-field="group_name" style="cursor: pointer;">
+                        Grupo ${getSortIcon('group_name')}
+                    </th>
                 `;
 
-                // Columnas dinámicas contextuales si se filtró por un grupo específico
+                // Columnas dinámicas contextuales si se filtró por un grupo específico (ahora ordenables)
                 activeGroupExtraFields.forEach(field => {
                     const label = field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    const sortKey = 'extra:' + field;
                     headersHtml += `
-                        <th class="bg-primary-subtle text-primary border-primary text-nowrap" title="Campo personalizado de este grupo">
-                            <i class="bi bi-tag-fill me-1" style="font-size: 0.72rem;"></i>${escapeHtml(label)}
+                        <th class="sortable bg-primary-subtle text-primary border-primary text-nowrap" data-field="${sortKey}" style="cursor: pointer;" title="Hacer clic para ordenar naturalmente por ${escapeHtml(label)}">
+                            <i class="bi bi-tag-fill me-1" style="font-size: 0.72rem;"></i>${escapeHtml(label)} ${getSortIcon(sortKey)}
                         </th>
                     `;
                 });
@@ -2166,6 +2265,29 @@
                 }
             });
 
+            $('#btnToggleAdvancedHelp').click(function () {
+                $('#advancedHelpText').toggleClass('d-none');
+            });
+
+            $('#btnClearCustomValues').click(function () {
+                $('#customValuesInput').val('');
+                currentPage = 1;
+                loadMeasurements();
+            });
+
+            $('#customValuesInput').keypress(function (e) {
+                if (e.which === 13) {
+                    $('#applyFilters').click();
+                }
+            });
+
+            $('#customFieldSelect, #customOperatorSelect').change(function () {
+                if ($('#customValuesInput').val()) {
+                    currentPage = 1;
+                    loadMeasurements();
+                }
+            });
+
             $('#resetFilters').click(function () {
                 $('#sensorFilter').val('');
                 $('#identifierFilter').val('');
@@ -2174,6 +2296,10 @@
                 $('#dateFrom').val('');
                 $('#dateTo').val('');
                 $('#searchInput').val('');
+                $('#customFieldSelect').val('');
+                $('#customOperatorSelect').val('or');
+                $('#customValuesInput').val('');
+                $('#activeAdvancedFiltersBadge').addClass('d-none');
 
                 filterOnlyCommunity = false;
                 $('#toggleCommunityFilterBtn').removeClass('btn-success').addClass('btn-outline-success').html('<i class="bi bi-tree-fill"></i> Áreas Comunes');
@@ -2479,11 +2605,15 @@
                 const params = {
                     group_id: $('#groupFilter').val() || '',
                     sensor_id: $('#sensorFilter').val() || '',
+                    identifier: $('#identifierFilter').val() || '',
                     date_from: $('#dateFrom').val() || '',
                     date_to: $('#dateTo').val() || '',
                     error_type: currentErrorType || '',
                     is_community: filterOnlyCommunity ? 'true' : '',
                     search: $('#searchInput').val() || '',
+                    custom_field: $('#customFieldSelect').val() || '',
+                    custom_operator: $('#customOperatorSelect').val() || 'or',
+                    custom_values: $('#customValuesInput').val() || '',
                     sort_field: currentSortField,
                     sort_direction: currentSortDirection
                 };

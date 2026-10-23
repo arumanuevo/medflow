@@ -93,6 +93,25 @@ class MeasurementController extends Controller
             $groupExtraFields = array_keys($keysSet);
         }
 
+        // Extraer campos dinámicos globales para el selector avanzado
+        $allExtraKeys = [];
+        $sampleSensors = Sensor::whereHas('group', function ($q) use ($user) {
+            $q->where('user_id', $user->id)
+                ->orWhereHas('sharedAccess', function ($q2) use ($user) {
+                    $q2->where('shared_with', $user->id);
+                });
+        })->get(['metadata']);
+        foreach ($sampleSensors as $s) {
+            $meta = is_array($s->metadata) ? $s->metadata : json_decode($s->metadata, true);
+            if (!empty($meta) && is_array($meta)) {
+                foreach (array_keys($meta) as $k) {
+                    $allExtraKeys[$k] = true;
+                }
+            }
+        }
+        $availableExtraFields = array_keys($allExtraKeys);
+        sort($availableExtraFields);
+
         // Formatear la respuesta
         return response()->json([
             'success' => true,
@@ -100,6 +119,7 @@ class MeasurementController extends Controller
             'data' => $measurements->items(),
             'error_stats' => $errorStats,
             'group_extra_fields' => $groupExtraFields,
+            'available_extra_fields' => $availableExtraFields,
             'meta' => [
                 'current_page' => $measurements->currentPage(),
                 'from' => $measurements->firstItem(),

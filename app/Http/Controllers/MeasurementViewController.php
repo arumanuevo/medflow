@@ -35,7 +35,19 @@ class MeasurementViewController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('measurements.index', compact('sensors', 'groups'));
+        $availableExtraFields = [];
+        foreach ($sensors as $sensor) {
+            $meta = is_array($sensor->metadata) ? $sensor->metadata : json_decode($sensor->metadata, true);
+            if (!empty($meta) && is_array($meta)) {
+                foreach (array_keys($meta) as $k) {
+                    $availableExtraFields[$k] = true;
+                }
+            }
+        }
+        $availableExtraFields = array_keys($availableExtraFields);
+        sort($availableExtraFields);
+
+        return view('measurements.index', compact('sensors', 'groups', 'availableExtraFields'));
     }
 
     /**

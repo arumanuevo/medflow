@@ -435,10 +435,17 @@ Permite a los administradores con plan **Premium** georreferenciar sus medidores
 1. **Módulo Unificado de Mediciones y Consumos (`/mediciones`):**
    - Fusiona la inspección técnica de campo con la auditoría comercial en una única tabla de alto rendimiento con paginación nativa en MySQL.
    - Cada fila visualiza: Lectura física del sensor, Fecha exacta, **Consumo diferencial calculado** ($V_2 - V_1$), **Días transcurridos** entre tomas, **Promedio diario**, **Costo monetario ($)** según la tarifa contable del grupo, estado de auditoría y foto.
+   - **Motor de Búsqueda Avanzado y Cruce en Campos Dinámicos (JSON Metadata):**
+     * Permite filtrar por campos personalizados del sensor (ej: `lote`, `numero_lote`, `manzana`, `sector`, etc.) usando operadores `OR` (lista con comas o 'OR'), `AND` (contiene todos), `Valor Exacto` o `Excluir`.
+     * Cruce multicondicional: Permite buscar, por ejemplo: *"todos los registros cuyo campo dinámico lote sea 144 o 178, en un rango de fechas y con estado 1ra Medición"*.
+     * Búsqueda por identificador múltiple (ej: `MED-01, MED-02, 144`).
+   - **Ordenamiento Completo y Ordenamiento Natural:**
+     * Ahora todas las columnas son ordenables: Sensor, Identificador, Grupo, Plantilla, Valor y Fecha.
+     * Los campos dinámicos personalizados (ej: `Lote`) cuentan con **ordenamiento natural** en MySQL (los valores numéricos como 5, 20, 144, 178 se ordenan por su magnitud matemática aunque la columna contenga letras o sea alfanumérica).
    - Herramientas integradas en barra superior y acciones de fila:
      * **Radar Global de Anomalías:** Escanea todos los sensores analizando saltos en la tasa diaria y estancamiento.
      * **Análisis Avanzado por Sensor:** Modal interactivo con gráfico de líneas evolutivo (`Chart.js`), selector de cotas de fechas y resumen de consumo del lote.
-     * **Exportar a Excel:** Descarga inmediata en `.xlsx` respetando el 100% de los filtros activos (grupo, fechas, comunidad, avisos de consumo).
+     * **Exportar a Excel:** Descarga inmediata en `.xlsx` respetando el 100% de los filtros activos (grupo, fechas, comunidad, avisos de consumo, campos dinámicos).
      * La ruta legacy `/consumptions` redirige automáticamente a `/mediciones`.
 
 2. **Asistente de Carga Masiva de Fotos (`/api/measurements/bulk-upload-photos`):**
