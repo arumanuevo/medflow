@@ -47,7 +47,9 @@ class MeasurementViewController extends Controller
         $availableExtraFields = array_keys($availableExtraFields);
         sort($availableExtraFields);
 
-        return view('measurements.index', compact('sensors', 'groups', 'availableExtraFields'));
+        $templates = \App\Models\Template::orderBy('name')->get();
+
+        return view('measurements.index', compact('sensors', 'groups', 'availableExtraFields', 'templates'));
     }
 
     /**

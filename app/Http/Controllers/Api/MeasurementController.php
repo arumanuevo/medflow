@@ -40,8 +40,8 @@ class MeasurementController extends Controller
         $sortDirection = $request->sort_direction ?? 'desc';
 
         // Validar que el campo de ordenamiento sea válido
-        $validSortFields = ['id', 'sensor_id', 'sensor', 'measured_at', 'created_at', 'valor'];
-        if (!in_array($sortField, $validSortFields)) {
+        $validSortFields = ['id', 'sensor_id', 'sensor', 'measured_at', 'created_at', 'valor', 'identifier', 'group_name', 'sensor_name'];
+        if (!in_array($sortField, $validSortFields) && !str_starts_with($sortField, 'extra:')) {
             $sortField = 'measured_at';
         }
 

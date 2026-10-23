@@ -247,6 +247,82 @@ class MeasurementService
     }
 
     /**
+     * Obtener IDs de mediciones según el tipo de consumo calculado.
+     */
+    public function getMeasurementIdsByConsumptionType($user, $consumptionType, $groupId = null)
+    {
+        $query = DB::table('measurements')
+            ->join('sensors', 'sensors.id', '=', 'measurements.sensor_id')
+            ->join('sensor_groups', 'sensor_groups.id', '=', 'sensors.group_id');
+
+        if (!$user->hasRole('admin') && !$user->hasRole('superadmin')) {
+            $allowedOwnerIds = $this->getAllowedOwnerIds($user);
+            $query->whereIn('sensor_groups.user_id', $allowedOwnerIds);
+        }
+
+        if (!empty($groupId)) {
+            $query->where('sensor_groups.id', $groupId);
+        }
+
+        $measurements = $query->select(
+                'measurements.id',
+                'measurements.sensor_id',
+                'measurements.measured_at',
+                'measurements.data'
+            )
+            ->distinct()
+            ->orderBy('measurements.sensor_id')
+            ->orderBy('measurements.measured_at', 'asc')
+            ->get();
+
+        $bySensor = [];
+        foreach ($measurements as $m) {
+            $bySensor[$m->sensor_id][] = $m;
+        }
+
+        $matchingIds = [];
+
+        foreach ($bySensor as $sensorId => $list) {
+            $count = count($list);
+            for ($i = 0; $i < $count; $i++) {
+                if ($i === 0) {
+                    if ($consumptionType === 'zero') {
+                        $matchingIds[] = $list[$i]->id;
+                    }
+                    continue;
+                }
+
+                $prev = $list[$i - 1];
+                $curr = $list[$i];
+
+                $prevData = json_decode($prev->data, true);
+                $currData = json_decode($curr->data, true);
+
+                if (!empty($currData['is_reset'])) {
+                    if ($consumptionType === 'zero') {
+                        $matchingIds[] = $curr->id;
+                    }
+                    continue;
+                }
+
+                $prevVal = (float) ($prevData['valor'] ?? 0);
+                $currVal = (float) ($currData['valor'] ?? 0);
+                $diff = $currVal - $prevVal;
+
+                if ($consumptionType === 'positive' && $diff > 0) {
+                    $matchingIds[] = $curr->id;
+                } elseif ($consumptionType === 'zero' && $diff == 0) {
+                    $matchingIds[] = $curr->id;
+                } elseif ($consumptionType === 'negative' && $diff < 0) {
+                    $matchingIds[] = $curr->id;
+                }
+            }
+        }
+
+        return $matchingIds;
+    }
+
+    /**
      * Obtener mensaje de error personalizado.
      */
     public function getErrorMessage($errorType, $current, $previous, $mainField)
@@ -301,6 +377,47 @@ class MeasurementService
             $query->whereHas('sensor', function ($q) use ($isCommunity) {
                 $q->where('is_community', $isCommunity);
             });
+        }
+
+        // Filtro por Plantilla de Grupo
+        if (!empty($filters['template_id'])) {
+            $templateId = $filters['template_id'];
+            $query->whereHas('sensor.group', function ($q) use ($templateId) {
+                $q->where('template_id', $templateId);
+            });
+        }
+
+        // Filtro por Fotografía (con o sin foto adjunta)
+        if (!empty($filters['has_photo'])) {
+            if ($filters['has_photo'] === 'with_photo') {
+                $query->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(measurements.data, '$.foto')) IS NOT NULL AND JSON_UNQUOTE(JSON_EXTRACT(measurements.data, '$.foto')) != '' AND JSON_UNQUOTE(JSON_EXTRACT(measurements.data, '$.foto')) != 'Sin Foto'");
+            } elseif ($filters['has_photo'] === 'without_photo') {
+                $query->where(function ($q) {
+                    $q->whereNull('measurements.data->foto')
+                      ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(measurements.data, '$.foto')) = ''")
+                      ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(measurements.data, '$.foto')) = 'Sin Foto'");
+                });
+            }
+        }
+
+        // Filtro por Consumo / Costo tarifario
+        if (!empty($filters['consumption_type'])) {
+            $cType = $filters['consumption_type'];
+            if ($cType === 'with_cost') {
+                $query->whereHas('sensor.group', function ($q) {
+                    $q->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(billing_settings, '$.is_enabled')) = 'true'")
+                      ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(billing_settings, '$.is_enabled')) = '1'");
+                });
+            } elseif ($cType === 'without_cost') {
+                $query->whereHas('sensor.group', function ($q) {
+                    $q->whereNull('billing_settings')
+                      ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(billing_settings, '$.is_enabled')) = 'false'")
+                      ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(billing_settings, '$.is_enabled')) = '0'");
+                });
+            } elseif (in_array($cType, ['positive', 'zero', 'negative'])) {
+                $cMatchingIds = $this->getMeasurementIdsByConsumptionType($user, $cType, $filters['group_id'] ?? null);
+                $query->whereIn('measurements.id', $cMatchingIds);
+            }
         }
 
         if (!empty($filters['date_from'])) {

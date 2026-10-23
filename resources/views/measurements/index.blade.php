@@ -432,78 +432,110 @@
                             </div>
                         </div>
 
-                        <!-- Filtros -->
-                        <div class="row mb-3">
-                            <div class="col-md-2">
-                                <label for="sensorFilter" class="form-label">Sensor</label>
-                                <select class="form-select form-select-sm" id="sensorFilter">
-                                    <option value="" selected>Todos</option>
-                                    @foreach($sensors as $sensor)
-                                        <option value="{{ $sensor->id }}"
-                                            title="{{ $sensor->name }} ({{ $sensor->identifier }})">
-                                            {{ Str::limit($sensor->name, 20) }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label for="identifierFilter" class="form-label">Identificador</label>
-                                <input type="text" class="form-control form-control-sm" id="identifierFilter"
-                                    placeholder="Ej: SN-1234, 144, 178">
-                            </div>
-                            <div class="col-md-2">
-                                <label for="groupFilter" class="form-label">Grupo</label>
-                                <select class="form-select form-select-sm" id="groupFilter">
-                                    <option value="" selected>Todos</option>
-                                    @foreach($groups as $group)
-                                        <option value="{{ $group->id }}" title="{{ $group->name }}">
-                                            {{ Str::limit($group->name, 20) }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label for="errorFilter" class="form-label">Estado</label>
-                                <select class="form-select form-select-sm" id="errorFilter">
-                                    <option value="" selected>Todos los estados</option>
-                                    <option value="first_measurement">1ra Medición</option>
-                                    <option value="negative_consumption">Aviso Consumo (Negativo)</option>
-                                    <option value="inconsistent_date">Aviso Fecha (Desfasada)</option>
-                                    <option value="valid">Válidas (Sin anomalías)</option>
-                                    <option value="any_error">Cualquier anomalía</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label for="dateFrom" class="form-label">Fecha desde</label>
-                                <input type="date" class="form-control form-control-sm" id="dateFrom">
-                            </div>
-                            <div class="col-md-2">
-                                <label for="dateTo" class="form-label">Fecha hasta</label>
-                                <input type="date" class="form-control form-control-sm" id="dateTo">
-                            </div>
-                        </div>
-
-                        <!-- Motor de Búsqueda Avanzado en Campos Dinámicos (JSON Metadata) -->
-                        <div class="card mb-3 border-primary-subtle shadow-sm" style="background-color: #f8fbff;">
+                        <!-- Panel Unificado de Filtros y Búsqueda -->
+                        <div class="card mb-3 border-primary-subtle shadow-sm" id="unifiedFilterContainer" style="background-color: #f8fbff; border-radius: 10px;">
                             <div class="card-body p-2 p-md-3">
-                                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2 pb-1 border-bottom border-primary-subtle">
+                                <!-- Cabecera del Panel de Filtros -->
+                                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2 pb-2 border-bottom border-primary-subtle">
                                     <div class="d-flex align-items-center gap-2">
-                                        <span class="badge bg-primary"><i class="bi bi-funnel-fill"></i> Motor de Búsqueda Avanzado</span>
-                                        <span class="small fw-bold text-primary">Filtrado en Campos Personalizados y Atributos Dinámicos (Lote, Manzana, etc.)</span>
+                                        <span class="badge bg-primary px-2 py-1"><i class="bi bi-funnel-fill"></i> Panel de Filtros y Búsqueda</span>
+                                        <span class="small fw-semibold text-primary">Criterios fijos, plantillas, auditoría y atributos dinámicos</span>
                                         <span class="badge rounded-pill bg-info text-dark d-none" id="activeAdvancedFiltersBadge">0 filtros</span>
                                     </div>
                                     <div class="d-flex align-items-center gap-1">
-                                        <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 text-muted" id="btnToggleAdvancedHelp" title="Ver ayuda sobre cómo buscar con AND y OR">
-                                            <i class="bi bi-question-circle"></i> ¿Cómo funciona el cruce?
+                                        <button type="button" class="btn btn-link btn-sm text-decoration-none p-0 text-muted" id="btnToggleAdvancedHelp" title="Ver ayuda sobre cómo buscar y cruzar criterios">
+                                            <i class="bi bi-question-circle"></i> Ayuda de consulta
                                         </button>
                                     </div>
                                 </div>
 
-                                <div class="row g-2 align-items-center">
-                                    <div class="col-md-3">
-                                        <label for="customFieldSelect" class="form-label small fw-semibold text-muted mb-1">
-                                            Campo Dinámico
-                                        </label>
+                                <!-- Fila 1: Filtros de Entidad / Medidor / Plantilla / Auditoría -->
+                                <div class="row g-2 mb-2">
+                                    <div class="col-xl-2 col-md-4 col-sm-6">
+                                        <label for="sensorFilter" class="form-label small fw-semibold text-muted mb-1">Medidor / Sensor</label>
+                                        <select class="form-select form-select-sm" id="sensorFilter">
+                                            <option value="" selected>Todos los sensores</option>
+                                            @foreach($sensors as $sensor)
+                                                <option value="{{ $sensor->id }}"
+                                                    title="{{ $sensor->name }} ({{ $sensor->identifier }})">
+                                                    {{ Str::limit($sensor->name, 22) }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-xl-2 col-md-4 col-sm-6">
+                                        <label for="identifierFilter" class="form-label small fw-semibold text-muted mb-1">Identificador</label>
+                                        <input type="text" class="form-control form-control-sm" id="identifierFilter"
+                                            placeholder="Ej: SN-1234, 144, 178">
+                                    </div>
+                                    <div class="col-xl-2 col-md-4 col-sm-6">
+                                        <label for="groupFilter" class="form-label small fw-semibold text-muted mb-1">Grupo</label>
+                                        <select class="form-select form-select-sm" id="groupFilter">
+                                            <option value="" selected>Todos los grupos</option>
+                                            @foreach($groups as $group)
+                                                <option value="{{ $group->id }}" title="{{ $group->name }}">
+                                                    {{ Str::limit($group->name, 22) }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-xl-2 col-md-4 col-sm-6">
+                                        <label for="templateFilter" class="form-label small fw-semibold text-muted mb-1">Tipo de Plantilla</label>
+                                        <select class="form-select form-select-sm" id="templateFilter">
+                                            <option value="" selected>Todas las plantillas</option>
+                                            @if(isset($templates))
+                                                @foreach($templates as $tmpl)
+                                                    <option value="{{ $tmpl->id }}" title="{{ $tmpl->name }}">
+                                                        {{ Str::limit($tmpl->name, 22) }}
+                                                    </option>
+                                                @endforeach
+                                            @endif
+                                        </select>
+                                    </div>
+                                    <div class="col-xl-2 col-md-4 col-sm-6">
+                                        <label for="errorFilter" class="form-label small fw-semibold text-muted mb-1">Estado de Auditoría</label>
+                                        <select class="form-select form-select-sm" id="errorFilter">
+                                            <option value="" selected>Todos los estados</option>
+                                            <option value="first_measurement">1ra Medición</option>
+                                            <option value="negative_consumption">Aviso Consumo (Negativo)</option>
+                                            <option value="inconsistent_date">Aviso Fecha (Desfasada)</option>
+                                            <option value="valid">Válidas (Sin anomalías)</option>
+                                            <option value="any_error">Cualquier anomalía</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-xl-2 col-md-4 col-sm-6">
+                                        <label for="photoFilter" class="form-label small fw-semibold text-muted mb-1">Fotografía</label>
+                                        <select class="form-select form-select-sm" id="photoFilter">
+                                            <option value="" selected>Todas (con/sin foto)</option>
+                                            <option value="with_photo">Con foto adjunta</option>
+                                            <option value="without_photo">Sin foto adjunta</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Fila 2: Consumo / Fechas / Motor de Atributos Dinámicos -->
+                                <div class="row g-2 mb-3">
+                                    <div class="col-xl-2 col-md-4 col-sm-6">
+                                        <label for="consumptionFilter" class="form-label small fw-semibold text-muted mb-1">Consumo / Costo</label>
+                                        <select class="form-select form-select-sm" id="consumptionFilter">
+                                            <option value="" selected>Todos los consumos</option>
+                                            <option value="positive">Consumo positivo (&gt; 0)</option>
+                                            <option value="zero">Consumo en cero (= 0)</option>
+                                            <option value="negative">Consumo negativo (&lt; 0)</option>
+                                            <option value="with_cost">Con tarifa de costo activa</option>
+                                            <option value="without_cost">Sin tarifa de costo</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-xl-2 col-md-4 col-sm-6">
+                                        <label for="dateFrom" class="form-label small fw-semibold text-muted mb-1">Fecha desde</label>
+                                        <input type="date" class="form-control form-control-sm" id="dateFrom">
+                                    </div>
+                                    <div class="col-xl-2 col-md-4 col-sm-6">
+                                        <label for="dateTo" class="form-label small fw-semibold text-muted mb-1">Fecha hasta</label>
+                                        <input type="date" class="form-control form-control-sm" id="dateTo">
+                                    </div>
+                                    <div class="col-xl-2 col-md-4 col-sm-6">
+                                        <label for="customFieldSelect" class="form-label small fw-semibold text-muted mb-1">Campo Personalizado</label>
                                         <select class="form-select form-select-sm" id="customFieldSelect">
                                             <option value="">-- Cualquier campo dinámico --</option>
                                             @if(isset($availableExtraFields))
@@ -513,10 +545,8 @@
                                             @endif
                                         </select>
                                     </div>
-                                    <div class="col-md-3">
-                                        <label for="customOperatorSelect" class="form-label small fw-semibold text-muted mb-1">
-                                            Condición / Operador
-                                        </label>
+                                    <div class="col-xl-2 col-md-4 col-sm-6">
+                                        <label for="customOperatorSelect" class="form-label small fw-semibold text-muted mb-1">Condición / Cruce</label>
                                         <select class="form-select form-select-sm" id="customOperatorSelect">
                                             <option value="or" selected>Coincide con alguno (OR / Lista)</option>
                                             <option value="and">Contiene todos los valores (AND)</option>
@@ -524,13 +554,11 @@
                                             <option value="not">Excluir / No contiene</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label for="customValuesInput" class="form-label small fw-semibold text-muted mb-1">
-                                            Valores a buscar <span class="text-muted fw-normal">(separa con comas o 'OR' para múltiples valores)</span>
-                                        </label>
+                                    <div class="col-xl-2 col-md-4 col-sm-6">
+                                        <label for="customValuesInput" class="form-label small fw-semibold text-muted mb-1">Valores a buscar</label>
                                         <div class="input-group input-group-sm">
                                             <input type="text" class="form-control form-control-sm" id="customValuesInput"
-                                                placeholder="Ej: 144, 178 (busca mediciones cuyo lote sea 144 o 178)">
+                                                placeholder="Ej: 144, 178">
                                             <button class="btn btn-outline-secondary" type="button" id="btnClearCustomValues" title="Limpiar este campo">
                                                 <i class="bi bi-x-lg"></i>
                                             </button>
@@ -538,28 +566,40 @@
                                     </div>
                                 </div>
 
-                                <div class="mt-2 small text-muted d-none" id="advancedHelpText" style="font-size: 0.76rem; background: #fff; padding: 0.5rem; border-radius: 6px; border: 1px dashed #cbd5e1;">
-                                    <i class="bi bi-info-circle text-primary me-1"></i>
-                                    <strong>Ejemplo de cruce AND / OR:</strong> Si seleccionas el campo <em>Lote</em>, operador <em>Coincide con alguno (OR)</em> y escribes <code>144, 178</code>, el sistema cruzará este filtro con el rango de fechas y el estado que hayas configurado arriba (por ejemplo <em>1ra Medición</em>), mostrando únicamente las mediciones que cumplan <strong>todas</strong> esas condiciones simultáneamente.
+                                <!-- Traducción Semántica en Lenguaje Natural -->
+                                <div class="p-2 px-3 rounded-2 mb-2 border border-primary-subtle d-flex align-items-center gap-2" style="background-color: #ffffff;" id="semanticQueryContainer">
+                                    <span class="badge bg-primary text-white flex-shrink-0" style="font-size: 0.72rem; padding: 0.35rem 0.55rem;">
+                                        <i class="bi bi-chat-left-quote-fill me-1"></i> Interpretación:
+                                    </span>
+                                    <div class="text-dark small flex-grow-1" id="semanticQueryText" style="font-size: 0.82rem; line-height: 1.4;">
+                                        Mostrando todas las mediciones registradas en el sistema (sin filtros aplicados).
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <div class="row mb-4 align-items-end">
-                            <div class="col-md-5 text-muted small">
-                                <em>Completa los filtros deseados (Ej: el identificador o valores de lote) para afinar tu búsqueda.</em>
-                            </div>
-                            <div class="col-md-7 text-end d-flex gap-2 justify-content-end flex-wrap">
-                                <button class="btn btn-outline-success" id="toggleCommunityFilterBtn"
-                                    style="white-space:nowrap;">
-                                    <i class="bi bi-tree-fill"></i> Áreas Comunes
-                                </button>
-                                <button class="btn btn-secondary" id="resetFilters">
-                                    <i class="bi bi-arrow-clockwise"></i> Limpiar Filtros
-                                </button>
-                                <button class="btn btn-primary" id="applyFilters">
-                                    <i class="bi bi-funnel"></i> Filtrar Resultados
-                                </button>
+                                <!-- Ayuda contextual desplegable -->
+                                <div class="mb-2 small text-muted d-none" id="advancedHelpText" style="font-size: 0.78rem; background: #ffffff; padding: 0.6rem; border-radius: 6px; border: 1px dashed #cbd5e1;">
+                                    <i class="bi bi-info-circle text-primary me-1"></i>
+                                    <strong>¿Cómo combinar filtros?</strong> Todos los criterios seleccionados se cruzan simultáneamente. Por ejemplo, al elegir el Grupo <em>Barrio Norte</em>, Plantilla <em>Agua</em>, Campo Personalizado <em>Lote</em> con valores <code>144, 178</code> (OR) y Estado <em>1ra Medición</em>, el sistema recuperará únicamente las mediciones que cumplan <strong>todas</strong> esas condiciones a la vez.
+                                </div>
+
+                                <!-- Barra de Acciones del Panel de Filtros -->
+                                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 pt-1 border-top border-light-subtle">
+                                    <div class="text-muted small">
+                                        <i class="bi bi-info-circle me-1"></i><em>Presiona 'Filtrar' o pulsa Enter para actualizar los resultados.</em>
+                                    </div>
+                                    <div class="d-flex gap-2 align-items-center flex-wrap">
+                                        <button class="btn btn-sm btn-outline-success" id="toggleCommunityFilterBtn"
+                                            style="white-space:nowrap;">
+                                            <i class="bi bi-tree-fill"></i> Áreas Comunes
+                                        </button>
+                                        <button class="btn btn-sm btn-secondary" id="resetFilters">
+                                            <i class="bi bi-arrow-clockwise"></i> Limpiar Filtros
+                                        </button>
+                                        <button class="btn btn-sm btn-primary" id="applyFilters">
+                                            <i class="bi bi-funnel"></i> Filtrar Resultados
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -1208,12 +1248,142 @@
             let currentSortField = 'measured_at';
             let currentSortDirection = 'desc';
 
+            // Helpers para interpretación semántica en lenguaje natural
+            function escapeHtml(text) {
+                if (!text) return '';
+                return text.toString()
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            function formatDateHuman(d) {
+                if (!d) return '';
+                const parts = d.split('-');
+                if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                return d;
+            }
+
+            function updateSemanticQueryTranslation() {
+                const parts = [];
+
+                // Grupo
+                const groupVal = $('#groupFilter').val();
+                if (groupVal) {
+                    const groupText = $('#groupFilter option:selected').text().trim();
+                    parts.push(`del grupo <strong>${escapeHtml(groupText)}</strong>`);
+                }
+
+                // Plantilla
+                const tmplVal = $('#templateFilter').val();
+                if (tmplVal) {
+                    const tmplText = $('#templateFilter option:selected').text().trim();
+                    parts.push(`con plantilla <strong>${escapeHtml(tmplText)}</strong>`);
+                }
+
+                // Sensor
+                const sensorVal = $('#sensorFilter').val();
+                if (sensorVal) {
+                    const sensorText = $('#sensorFilter option:selected').text().trim();
+                    parts.push(`del medidor <strong>${escapeHtml(sensorText)}</strong>`);
+                }
+
+                // Identificador
+                const identifier = $('#identifierFilter').val() ? $('#identifierFilter').val().trim() : '';
+                if (identifier) {
+                    parts.push(`cuyo identificador contiene <strong>"${escapeHtml(identifier)}"</strong>`);
+                }
+
+                // Campo Dinámico
+                const customVal = $('#customValuesInput').val() ? $('#customValuesInput').val().trim() : '';
+                if (customVal) {
+                    const customField = $('#customFieldSelect').val();
+                    const customFieldText = customField ? $('#customFieldSelect option:selected').text().trim() : 'atributo dinámico';
+                    const customOp = $('#customOperatorSelect').val();
+                    let opDesc = '';
+                    if (customOp === 'or') {
+                        opDesc = `donde <strong>${escapeHtml(customFieldText)}</strong> coincida con alguno de: <em>"${escapeHtml(customVal)}"</em>`;
+                    } else if (customOp === 'and') {
+                        opDesc = `donde <strong>${escapeHtml(customFieldText)}</strong> contenga todos los valores: <em>"${escapeHtml(customVal)}"</em>`;
+                    } else if (customOp === 'exact') {
+                        opDesc = `donde <strong>${escapeHtml(customFieldText)}</strong> sea exactamente: <em>"${escapeHtml(customVal)}"</em>`;
+                    } else if (customOp === 'not') {
+                        opDesc = `donde <strong>${escapeHtml(customFieldText)}</strong> excluya: <em>"${escapeHtml(customVal)}"</em>`;
+                    }
+                    parts.push(opDesc);
+                }
+
+                // Estado de auditoría
+                const errorType = $('#errorFilter').val();
+                if (errorType) {
+                    const errorLabels = {
+                        'first_measurement': '1ra Medición (inicial)',
+                        'negative_consumption': 'Aviso de Consumo Negativo',
+                        'inconsistent_date': 'Aviso de Fecha Desfasada',
+                        'valid': 'Válidas (sin anomalías)',
+                        'any_error': 'cualquier anomalía'
+                    };
+                    parts.push(`con estado de auditoría <strong>${errorLabels[errorType] || errorType}</strong>`);
+                }
+
+                // Foto
+                const photo = $('#photoFilter').val();
+                if (photo === 'with_photo') {
+                    parts.push(`que <strong>tienen fotografía adjunta</strong>`);
+                } else if (photo === 'without_photo') {
+                    parts.push(`que <strong>no tienen fotografía</strong>`);
+                }
+
+                // Consumo / Costo
+                const consumption = $('#consumptionFilter').val();
+                if (consumption) {
+                    const consumptionLabels = {
+                        'positive': 'con consumo positivo (&gt; 0)',
+                        'zero': 'con consumo nulo (= 0)',
+                        'negative': 'con consumo negativo (&lt; 0)',
+                        'with_cost': 'con tarifa de costo configurada',
+                        'without_cost': 'sin tarifa de costo'
+                    };
+                    parts.push(`<strong>${consumptionLabels[consumption] || consumption}</strong>`);
+                }
+
+                // Fechas
+                const dateFrom = $('#dateFrom').val();
+                const dateTo = $('#dateTo').val();
+                if (dateFrom && dateTo) {
+                    parts.push(`registradas entre el <strong>${formatDateHuman(dateFrom)}</strong> y el <strong>${formatDateHuman(dateTo)}</strong>`);
+                } else if (dateFrom) {
+                    parts.push(`registradas desde el <strong>${formatDateHuman(dateFrom)}</strong>`);
+                } else if (dateTo) {
+                    parts.push(`registradas hasta el <strong>${formatDateHuman(dateTo)}</strong>`);
+                }
+
+                // Áreas Comunes
+                if (filterOnlyCommunity) {
+                    parts.push(`exclusivamente de <strong>Áreas Comunes</strong>`);
+                }
+
+                let message = '';
+                if (parts.length === 0) {
+                    message = 'Mostrando <strong>todas las mediciones</strong> registradas en el sistema (sin restricciones).';
+                } else {
+                    message = 'Buscando mediciones ' + parts.join(', ') + '.';
+                }
+
+                $('#semanticQueryText').html(message);
+            }
+
             // Función para cargar mediciones desde la API
             function loadMeasurements() {
                 const sensorId = $('#sensorFilter').val();
                 const identifier = $('#identifierFilter').val();
                 const groupId = $('#groupFilter').val();
+                const templateId = $('#templateFilter').val();
                 const errorType = $('#errorFilter').val();
+                const hasPhoto = $('#photoFilter').val();
+                const consumptionType = $('#consumptionFilter').val();
                 const dateFrom = $('#dateFrom').val();
                 const dateTo = $('#dateTo').val();
                 const search = $('#searchInput').val();
@@ -1231,7 +1401,10 @@
                 if (sensorId) params.sensor_id = sensorId;
                 if (identifier) params.identifier = identifier;
                 if (groupId) params.group_id = groupId;
+                if (templateId) params.template_id = templateId;
                 if (errorType) params.error_type = errorType;
+                if (hasPhoto) params.has_photo = hasPhoto;
+                if (consumptionType) params.consumption_type = consumptionType;
                 if (dateFrom) params.date_from = dateFrom;
                 if (dateTo) params.date_to = dateTo;
                 if (search) params.search = search;
@@ -1246,6 +1419,8 @@
                 } else {
                     $('#activeAdvancedFiltersBadge').addClass('d-none');
                 }
+
+                updateSemanticQueryTranslation();
 
                 $.ajax({
                     url: '/api/measurements',
@@ -2235,10 +2410,22 @@
 
             }
 
-            // Eventos para filtros
-            $('#sensorFilter, #groupFilter, #errorFilter').change(function () {
+            // Eventos para filtros desplegables
+            $('#sensorFilter, #groupFilter, #templateFilter, #errorFilter, #photoFilter, #consumptionFilter').change(function () {
+                updateSemanticQueryTranslation();
                 currentPage = 1;
                 loadMeasurements();
+            });
+
+            // Eventos en tiempo real para interpretación semántica en lenguaje natural
+            $('#identifierFilter, #customValuesInput, #dateFrom, #dateTo').on('input change', function () {
+                updateSemanticQueryTranslation();
+            });
+
+            $('#identifierFilter').keypress(function (e) {
+                if (e.which === 13) {
+                    $('#applyFilters').click();
+                }
             });
 
             $('#toggleCommunityFilterBtn').click(function () {
@@ -2250,6 +2437,7 @@
                     $(this).removeClass('btn-success').addClass('btn-outline-success');
                     $(this).html('<i class="bi bi-tree-fill"></i> Áreas Comunes');
                 }
+                updateSemanticQueryTranslation();
                 currentPage = 1;
                 loadMeasurements();
             });
@@ -2271,6 +2459,7 @@
 
             $('#btnClearCustomValues').click(function () {
                 $('#customValuesInput').val('');
+                updateSemanticQueryTranslation();
                 currentPage = 1;
                 loadMeasurements();
             });
@@ -2282,6 +2471,7 @@
             });
 
             $('#customFieldSelect, #customOperatorSelect').change(function () {
+                updateSemanticQueryTranslation();
                 if ($('#customValuesInput').val()) {
                     currentPage = 1;
                     loadMeasurements();
@@ -2292,7 +2482,10 @@
                 $('#sensorFilter').val('');
                 $('#identifierFilter').val('');
                 $('#groupFilter').val('');
+                $('#templateFilter').val('');
                 $('#errorFilter').val('');
+                $('#photoFilter').val('');
+                $('#consumptionFilter').val('');
                 $('#dateFrom').val('');
                 $('#dateTo').val('');
                 $('#searchInput').val('');
@@ -2303,6 +2496,8 @@
 
                 filterOnlyCommunity = false;
                 $('#toggleCommunityFilterBtn').removeClass('btn-success').addClass('btn-outline-success').html('<i class="bi bi-tree-fill"></i> Áreas Comunes');
+
+                updateSemanticQueryTranslation();
 
                 currentPage = 1;
                 loadMeasurements();
@@ -2604,11 +2799,14 @@
 
                 const params = {
                     group_id: $('#groupFilter').val() || '',
+                    template_id: $('#templateFilter').val() || '',
                     sensor_id: $('#sensorFilter').val() || '',
                     identifier: $('#identifierFilter').val() || '',
                     date_from: $('#dateFrom').val() || '',
                     date_to: $('#dateTo').val() || '',
                     error_type: currentErrorType || '',
+                    has_photo: $('#photoFilter').val() || '',
+                    consumption_type: $('#consumptionFilter').val() || '',
                     is_community: filterOnlyCommunity ? 'true' : '',
                     search: $('#searchInput').val() || '',
                     custom_field: $('#customFieldSelect').val() || '',
