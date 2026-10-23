@@ -589,6 +589,8 @@ class MeasurementController extends Controller
         // Actualizar la medición
         $measurement->update($updateData);
 
+        Cache::forget("user_{$user->id}_error_stats");
+
         return response()->json([
             'success' => true,
             'message' => 'Medición actualizada correctamente',
@@ -672,6 +674,8 @@ class MeasurementController extends Controller
         }
 
         $measurement->delete();
+
+        Cache::forget("user_{$user->id}_error_stats");
 
         return response()->json([
             'success' => true,
@@ -985,6 +989,24 @@ class MeasurementController extends Controller
                 $prevData = $previous ? ($previous->data ?? []) : [];
                 $prevVal = $previous ? ($prevData[$mainField] ?? ($prevData['valor'] ?? 0)) : null;
 
+                // Obtener cronológicamente la medición siguiente inmediata (para análisis secuencial)
+                $next = Measurement::where('sensor_id', $current->sensor_id)
+                    ->where('measured_at', '>', $current->measured_at)
+                    ->orderBy('measured_at', 'asc')
+                    ->first();
+                $nextData = $next ? ($next->data ?? []) : [];
+                $nextVal = $next ? ($nextData[$mainField] ?? ($nextData['valor'] ?? null)) : null;
+
+                $currPhoto = !empty($currData['foto']) && $currData['foto'] !== 'Sin Foto' && $currData['foto'] !== 'Expirada'
+                    ? (str_starts_with($currData['foto'], '/') ? $currData['foto'] : '/' . $currData['foto'])
+                    : null;
+                $prevPhoto = !empty($prevData['foto']) && $prevData['foto'] !== 'Sin Foto' && $prevData['foto'] !== 'Expirada'
+                    ? (str_starts_with($prevData['foto'], '/') ? $prevData['foto'] : '/' . $prevData['foto'])
+                    : null;
+                $nextPhoto = !empty($nextData['foto']) && $nextData['foto'] !== 'Sin Foto' && $nextData['foto'] !== 'Expirada'
+                    ? (str_starts_with($nextData['foto'], '/') ? $nextData['foto'] : '/' . $nextData['foto'])
+                    : null;
+
                 $consumption = null;
                 $difference = null;
                 if ($previous) {
@@ -1009,12 +1031,20 @@ class MeasurementController extends Controller
                         'date' => $current->measured_at,
                         'consumption' => $consumption,
                         'is_reset' => !empty($currData['is_reset']),
-                        'reset_type' => $currData['reset_type'] ?? null
+                        'reset_type' => $currData['reset_type'] ?? null,
+                        'photo' => $currPhoto
                     ],
                     'previous_measurement' => $previous ? [
                         'id' => $previous->id,
                         'value' => $prevVal,
-                        'date' => $previous->measured_at
+                        'date' => $previous->measured_at,
+                        'photo' => $prevPhoto
+                    ] : null,
+                    'next_measurement' => $next ? [
+                        'id' => $next->id,
+                        'value' => $nextVal,
+                        'date' => $next->measured_at,
+                        'photo' => $nextPhoto
                     ] : null,
                     'error_type' => $errorType,
                     'error_message' => $errorMessage,
@@ -1638,6 +1668,10 @@ class MeasurementController extends Controller
             } else {
                 $unauthorizedCount++;
             }
+        }
+
+        if ($deletedCount > 0) {
+            Cache::forget("user_{$user->id}_error_stats");
         }
 
         return response()->json([

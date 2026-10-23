@@ -99,6 +99,13 @@
                             </li>
                             <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
                                     data-bs-toggle="modal" data-bs-target="#helpModal"
+                                    data-title="Auditoría de Consumos Negativos y Corrección Histórica"
+                                    data-content="Si detectas consumos negativos causados por errores de tipeo o por medidores reemplazados sin precargar el reseteo previo, puedes resolverlos directamente desde el panel de Auditoría. Al hacer clic en la tarjeta de 'Consumos Negativos', verás el detalle cronológico de cada caso. Dispones del botón 'Ver Foto' para contrastar los números reales del aparato, 'Cambio Medidor' para normalizarlo en 1 clic como nuevo contador base, o 'Corregir' para modificar el valor o fecha. Al corregir, el sistema te muestra el rango seguro entre la lectura anterior y la posterior, y el interruptor 'Forzar corrección histórica' te permite omitir el bloqueo secuencial si la medición siguiente también requiriese ajustes."
+                                    data-steps="Pasos: &lt;br&gt;1. Ve a &lt;strong&gt;Mediciones y Consumos&lt;/strong&gt; y haz clic en &lt;strong&gt;Auditoría&lt;/strong&gt;.&lt;br&gt;2. Presiona sobre la tarjeta roja de &lt;strong&gt;Consumos Negativos&lt;/strong&gt;.&lt;br&gt;3. Revisa la foto del medidor y elige &lt;strong&gt;Cambio Medidor&lt;/strong&gt; (si el aparato era nuevo) o &lt;strong&gt;Corregir&lt;/strong&gt; (si fue un error de carga).">
+                                    <i class="bi bi-shield-check me-1 text-danger"></i> Auditoría de Consumos Negativos y Fotos</a>
+                            </li>
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal"
                                     data-title="Tomar Mediciones Manuales"
                                     data-content="Al registrar lecturas individuales desde 'Tomar Mediciones', podrás subir valores. ¿Por qué es vital exigir o adjuntar la foto del medidor? La fotografía funciona como 'seguro anti-reclamos' y como auditoría de calidad. Si un inspector ingresa un número defectuoso equivocado (ej: 1000 en vez de 100), el administrador siempre tendrá la chance de corregir consultando la imagen fuente resguardada en el registro."
                                     data-steps="Ingresa a &lt;strong&gt;Tomar Mediciones (Menú Izquierdo)&lt;/strong&gt; y elige el sensor o lote a registrar.">

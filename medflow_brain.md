@@ -146,9 +146,19 @@ Disponible en el formulario **Tomar Mediciones** marcando el checkbox **¿Se ree
 - El historial queda intacto; no se regala el consumo mensual.
 - Validación anti-negativo en backend (`MeasurementController` y `MeasurementService::calculateErrorStats`): si `consumption < 0` se marca `error_type = 'negative_consumption'`; si la fecha es anterior a la previa, `inconsistent_date`.
 - **Resolución desde Auditoría de Mediciones**: Desde la vista unificada `/mediciones`, al abrir el modal de detalles de **Consumos Negativos**, el administrador dispone de botones de acción inmediata por fila:
+  - **Ver Foto (Evidencia Fotográfica)**: Acceso directo al visor fotográfico interactivo (Zoom, Paneo, Rotación, Contraste) tanto de la medición actual como de la anterior para verificar visualmente los dígitos reales del medidor.
   - **Cambio de Medidor (Reseteo)**: Marca `is_reset = 1` en la medición seleccionada mediante `POST /mediciones/{id}/mark-reset`. Invalida la alarma y establece el nuevo contador como línea de base.
-  - **Corregir**: Modal interactivo para enmendar errores de tipeo en el valor o fechas trocadas del archivo Excel original con soporte de `force = true`.
+  - **Corregir**: Modal interactivo para enmendar errores de tipeo en el valor o fechas trocadas del archivo Excel original. Muestra la foto del medidor, el contexto secuencial (Lectura Anterior, Siguiente y rango seguro recomendado) y el switch de **Forzar corrección histórica**.
   - **Eliminar**: Permite purgar registros duplicados o corruptos.
+
+#### Propagación Secuencial y Parámetro "Forzar Corrección Histórica"
+- **Cálculo dinámico en tiempo real**: Los consumos no se guardan fijos en tablas estáticas, sino que se computan al vuelo (`valor_actual - valor_anterior`). Por ende, corregir una medición histórica actualiza **automáticamente e inmediatamente** dos consumos a la vez:
+  1. El consumo de la medición corregida (frente a la anterior).
+  2. El consumo de la medición subsiguiente (que ahora toma como base la medición corregida).
+- **Parámetro `force` (Forzar corrección histórica)**:
+  - **Desactivado (Estricto - Recomendado)**: Exige que el valor cumpla `anterior <= nuevo <= siguiente`. Si el nuevo número supera a la medición siguiente, el backend (`MeasurementController::update`) rechaza el cambio (`422`) para evitar que la medición futura sufra un nuevo consumo negativo accidental.
+  - **Activado (`force = true`)**: Omite la validación restrictiva con la medición siguiente. Diseñado para cuando la medición siguiente **también contiene un error de tipeo** y se va a corregir en cadena, o en importaciones históricas masivas desfasadas.
+- **Invalidación de Caché**: Cada actualización, reseteo o eliminación borra automáticamente la clave `user_{id}_error_stats`, recalculando los contadores y badges al instante.
 
 #### Coordinación con la App Móvil (crítico)
 - La app móvil bloquea el guardado si el operario ingresa un valor **MENOR** a la última medición conocida (validación estricta en Flutter, `measurement_screen.dart`).

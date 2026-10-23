@@ -643,6 +643,37 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
+                    <!-- Foto de evidencia asociada -->
+                    <div id="quickEditPhotoContainer" class="p-2 mb-3 bg-light border rounded d-flex align-items-center justify-content-between d-none">
+                        <div class="d-flex align-items-center gap-2">
+                            <img id="quickEditPhotoThumb" src="" alt="Foto Medidor" style="width: 50px; height: 50px; object-fit: cover; border-radius: 6px; cursor: pointer;" class="border btn-inspect-quick-photo" title="Clic para ampliar foto">
+                            <div>
+                                <strong class="d-block small text-dark"><i class="bi bi-camera me-1"></i> Foto de evidencia disponible</strong>
+                                <small class="text-muted">Verifica los números reales del medidor.</small>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary btn-sm btn-inspect-quick-photo" id="btnQuickEditOpenPhoto">
+                            <i class="bi bi-zoom-in me-1"></i> Ver Foto
+                        </button>
+                    </div>
+                    <div id="quickEditNoPhotoNotice" class="text-muted small mb-3 d-none">
+                        <i class="bi bi-image text-secondary me-1"></i> Esta medición no posee foto adjunta.
+                    </div>
+
+                    <!-- Contexto secuencial (anterior y siguiente) -->
+                    <div class="card bg-light border-0 p-2 mb-3 small">
+                        <div class="fw-bold mb-1 text-secondary"><i class="bi bi-clock-history me-1"></i> Línea de tiempo secuencial:</div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted">• Lectura Anterior:</span>
+                            <strong id="quickEditPrevInfo" class="text-dark">—</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted">• Lectura Siguiente:</span>
+                            <strong id="quickEditNextInfo" class="text-dark">—</strong>
+                        </div>
+                        <div id="quickEditSafeRangeNotice" class="text-primary fw-semibold border-top pt-1 mt-1 small"></div>
+                    </div>
+
                     <form id="quickEditMeasurementForm" onsubmit="return false;">
                         <input type="hidden" id="quickEditMeasurementId">
                         <div class="mb-3">
@@ -651,16 +682,29 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Lectura (Valor) <span class="text-danger">*</span></label>
-                            <input type="number" step="any" class="form-control" id="quickEditValue" required>
-                            <div class="form-text">Si hubo un error de tipeo en el Excel, ingresa el valor correcto.</div>
+                            <input type="number" step="any" class="form-control" id="quickEditValue" required placeholder="Ej: 1450.5">
+                            <div class="form-text">Ingresa la lectura correcta visualizada en la foto o planilla.</div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Fecha y Hora <span class="text-danger">*</span></label>
                             <input type="datetime-local" class="form-control" id="quickEditDate" required>
                         </div>
-                        <div class="form-check form-switch mb-3">
-                            <input class="form-check-input" type="checkbox" id="quickEditForce" checked>
-                            <label class="form-check-label" for="quickEditForce">Forzar corrección histórica (omite validación restrictiva)</label>
+                        <div class="mb-3">
+                            <div class="form-check form-switch mb-1">
+                                <input class="form-check-input" type="checkbox" id="quickEditForce" checked>
+                                <label class="form-check-label fw-bold text-dark" for="quickEditForce">
+                                    Forzar corrección histórica
+                                </label>
+                            </div>
+                            <div class="alert alert-warning py-2 px-3 small mb-0 border-0 shadow-sm" style="background-color: #fff8e1;">
+                                <div class="fw-semibold text-warning-emphasis mb-1">
+                                    <i class="bi bi-info-circle-fill me-1"></i> ¿Qué significa este parámetro?
+                                </div>
+                                <ul class="mb-0 ps-3 text-secondary" style="font-size: 0.8rem; line-height: 1.35;">
+                                    <li><strong>Desactivado (Estricto):</strong> El sistema valida rigurosamente que el nuevo valor no supere la lectura siguiente ni sea menor a la anterior. Si supera la siguiente, lo bloquea para que la medición posterior no quede con consumo negativo.</li>
+                                    <li><strong>Activado (Forzar):</strong> Omite el bloqueo si la medición siguiente tiene un valor menor. Úsalo si la siguiente medición <em>también</em> tenía un error de tipeo y planeas corregirla luego, o si estás arreglando una serie histórica en lote.</li>
+                                </ul>
+                            </div>
                         </div>
                         <div id="quickEditAlert" class="alert alert-danger d-none mb-0"></div>
                     </form>
@@ -1684,6 +1728,9 @@
                         const difference = detail.difference ? detail.difference.value : 'N/A';
                         const daysDifference = detail.difference ? detail.difference.days : 'N/A';
 
+                        const nextDate = detail.next_measurement ?
+                            new Date(detail.next_measurement.date).toLocaleString('es-ES') : '';
+
                         html += `
                                                                                                 <tr>
                                                                                                     <td>${detail.record_number}</td>
@@ -1692,12 +1739,14 @@
                                                                                                         <strong>Valor:</strong> ${detail.current_measurement.value}<br>
                                                                                                         <strong>Fecha:</strong> ${currentDate}
                                                                                                         ${detail.current_measurement.is_reset ? '<br><span class="badge bg-info mt-1"><i class="bi bi-arrow-repeat"></i> Cambio Medidor</span>' : ''}
+                                                                                                        ${detail.current_measurement.photo ? `<br><button type="button" class="btn btn-outline-info btn-sm py-0 px-1 mt-1 btn-view-photo-modal" data-photo-path="${detail.current_measurement.photo}" data-id="${detail.current_measurement.id}" title="Chequear foto del medidor"><i class="bi bi-camera me-1"></i> Ver Foto</button>` : ''}
                                                                                                     </td>
                                                                                                     <td>
                                                                                                         ${detail.previous_measurement ?
                                 `<strong>ID:</strong> #${detail.previous_measurement.id}<br>
                                                                                                             <strong>Valor:</strong> ${detail.previous_measurement.value}<br>
-                                                                                                            <strong>Fecha:</strong> ${previousDate}` : '<span class="text-muted fst-italic">Primera medición</span>'}
+                                                                                                            <strong>Fecha:</strong> ${previousDate}
+                                                                                                            ${detail.previous_measurement.photo ? `<br><button type="button" class="btn btn-outline-secondary btn-sm py-0 px-1 mt-1 btn-view-photo-modal" data-photo-path="${detail.previous_measurement.photo}" data-id="${detail.previous_measurement.id}" title="Ver foto previa"><i class="bi bi-camera me-1"></i> Foto Previa</button>` : ''}` : '<span class="text-muted fst-italic">Primera medición</span>'}
                                                                                                     </td>
                                                                                                     <td class="${consumptionClass}">${difference}</td>
                                                                                                     <td>${daysDifference !== 'N/A' ? daysDifference + ' días' : '—'}</td>
@@ -1718,6 +1767,11 @@
                                                                                                                 data-id="${detail.current_measurement.id}"
                                                                                                                 data-value="${detail.current_measurement.value}"
                                                                                                                 data-date="${detail.current_measurement.date}"
+                                                                                                                data-photo="${detail.current_measurement.photo || ''}"
+                                                                                                                data-prev-val="${detail.previous_measurement ? detail.previous_measurement.value : ''}"
+                                                                                                                data-prev-date="${previousDate !== 'N/A' ? previousDate : ''}"
+                                                                                                                data-next-val="${detail.next_measurement && detail.next_measurement.value !== null ? detail.next_measurement.value : ''}"
+                                                                                                                data-next-date="${nextDate}"
                                                                                                                 title="Corregir valor o fecha por error de tipeo">
                                                                                                                 <i class="bi bi-pencil me-1"></i> Corregir
                                                                                                             </button>
@@ -2446,10 +2500,56 @@
                 });
             });
 
+            // Visualizador directo de fotos desde el modal de auditoría
+            $(document).on('click', '.btn-view-photo-modal', function (e) {
+                e.stopPropagation();
+                const photoPath = $(this).data('photo-path');
+                const mId = $(this).data('id');
+                if (!photoPath) return;
+
+                $('#modalPhoto').attr('src', photoPath).show();
+                $('#photoZoomToolbar').removeClass('d-none').addClass('d-flex');
+                $('#photoViewerViewport').removeClass('d-none').addClass('d-flex');
+                if (typeof resetPhotoZoomState === 'function') {
+                    resetPhotoZoomState();
+                }
+                $('#downloadPhoto').attr('href', photoPath).show();
+                $('#uploadPhotoMeasurementsId').val(mId);
+                $('#photoModalLabel').text(`Foto de Medición #${mId}`);
+                $('#photoUploadContainer').hide();
+                $('#uploadResult').hide();
+                $('#photoModal').modal('show');
+            });
+
+            // Inspeccionar foto desde el modal de edición rápida
+            $(document).on('click', '.btn-inspect-quick-photo', function () {
+                const photoPath = $('#btnQuickEditOpenPhoto').data('photo-path');
+                const mId = $('#btnQuickEditOpenPhoto').data('id');
+                if (!photoPath) return;
+
+                $('#modalPhoto').attr('src', photoPath).show();
+                $('#photoZoomToolbar').removeClass('d-none').addClass('d-flex');
+                $('#photoViewerViewport').removeClass('d-none').addClass('d-flex');
+                if (typeof resetPhotoZoomState === 'function') {
+                    resetPhotoZoomState();
+                }
+                $('#downloadPhoto').attr('href', photoPath).show();
+                $('#uploadPhotoMeasurementsId').val(mId);
+                $('#photoModalLabel').text(`Evidencia Fotográfica - Medición #${mId}`);
+                $('#photoUploadContainer').hide();
+                $('#uploadResult').hide();
+                $('#photoModal').modal('show');
+            });
+
             $(document).on('click', '.btn-quick-edit', function () {
                 const id = $(this).data('id');
                 const val = $(this).data('value');
                 const rawDate = $(this).data('date');
+                const photo = $(this).data('photo');
+                const prevVal = $(this).data('prev-val');
+                const prevDate = $(this).data('prev-date');
+                const nextVal = $(this).data('next-val');
+                const nextDate = $(this).data('next-date');
 
                 $('#quickEditMeasurementId').val(id);
                 $('#quickEditDisplayId').val('#' + id);
@@ -2464,6 +2564,32 @@
                     }
                 }
                 $('#quickEditDate').val(dateVal);
+
+                // Configurar foto de evidencia
+                if (photo) {
+                    $('#quickEditPhotoThumb').attr('src', photo);
+                    $('#btnQuickEditOpenPhoto').data('photo-path', photo).data('id', id);
+                    $('#quickEditPhotoContainer').removeClass('d-none');
+                    $('#quickEditNoPhotoNotice').addClass('d-none');
+                } else {
+                    $('#quickEditPhotoContainer').addClass('d-none');
+                    $('#quickEditNoPhotoNotice').removeClass('d-none');
+                }
+
+                // Configurar contexto secuencial
+                $('#quickEditPrevInfo').text(prevVal !== '' ? `${prevVal} (${prevDate})` : 'Ninguna (Primera medición)');
+                $('#quickEditNextInfo').text(nextVal !== '' ? `${nextVal} (${nextDate})` : 'Ninguna (Última medición)');
+
+                let safeRangeMsg = '';
+                if (prevVal !== '' && nextVal !== '') {
+                    safeRangeMsg = `<i class="bi bi-shield-check me-1"></i> Rango recomendado sin generar consumos negativos: entre <strong>${prevVal}</strong> y <strong>${nextVal}</strong>`;
+                } else if (prevVal !== '') {
+                    safeRangeMsg = `<i class="bi bi-shield-check me-1"></i> Mínimo recomendado sin consumo negativo: &ge; <strong>${prevVal}</strong>`;
+                } else if (nextVal !== '') {
+                    safeRangeMsg = `<i class="bi bi-shield-check me-1"></i> Máximo recomendado: &le; <strong>${nextVal}</strong>`;
+                }
+                $('#quickEditSafeRangeNotice').html(safeRangeMsg);
+
                 $('#quickEditAlert').addClass('d-none').text('');
                 $('#quickEditMeasurementModal').modal('show');
             });
