@@ -435,18 +435,34 @@ Permite a los administradores con plan **Premium** georreferenciar sus medidores
 1. **Módulo Unificado de Mediciones y Consumos (`/mediciones`):**
    - Fusiona la inspección técnica de campo con la auditoría comercial en una única tabla de alto rendimiento con paginación nativa en MySQL.
    - Cada fila visualiza: Lectura física del sensor, Fecha exacta, **Consumo diferencial calculado** ($V_2 - V_1$), **Días transcurridos** entre tomas, **Promedio diario**, **Costo monetario ($)** según la tarifa contable del grupo, estado de auditoría y foto.
-   - **Motor de Búsqueda Avanzado y Cruce en Campos Dinámicos (JSON Metadata):**
-     * Permite filtrar por campos personalizados del sensor (ej: `lote`, `numero_lote`, `manzana`, `sector`, etc.) usando operadores `OR` (lista con comas o 'OR'), `AND` (contiene todos), `Valor Exacto` o `Excluir`.
-     * Cruce multicondicional: Permite buscar, por ejemplo: *"todos los registros cuyo campo dinámico lote sea 144 o 178, en un rango de fechas y con estado 1ra Medición"*.
-     * Búsqueda por identificador múltiple (ej: `MED-01, MED-02, 144`).
-   - **Ordenamiento Completo y Ordenamiento Natural:**
-     * Ahora todas las columnas son ordenables: Sensor, Identificador, Grupo, Plantilla, Valor y Fecha.
-     * Los campos dinámicos personalizados (ej: `Lote`) cuentan con **ordenamiento natural** en MySQL (los valores numéricos como 5, 20, 144, 178 se ordenan por su magnitud matemática aunque la columna contenga letras o sea alfanumérica).
-   - Herramientas integradas en barra superior y acciones de fila:
-     * **Radar Global de Anomalías:** Escanea todos los sensores analizando saltos en la tasa diaria y estancamiento.
-     * **Análisis Avanzado por Sensor:** Modal interactivo con gráfico de líneas evolutivo (`Chart.js`), selector de cotas de fechas y resumen de consumo del lote.
-     * **Exportar a Excel:** Descarga inmediata en `.xlsx` respetando el 100% de los filtros activos (grupo, fechas, comunidad, avisos de consumo, campos dinámicos).
-     * La ruta legacy `/consumptions` redirige automáticamente a `/mediciones`.
+   - **Panel Unificado de Filtros y Búsqueda Multicondicional:**
+     * Concentra en una tarjeta única y compacta todos los filtros fijos, métricos y dinámicos:
+       - **Medidor / Sensor:** Filtro por sensor específico.
+       - **Identificador:** Búsqueda exacta o múltiple separada por comas (ej: `SN-1234, 144, 178`).
+       - **Grupo:** Filtrado por grupo de sensores.
+       - **Tipo de Plantilla:** Filtra mediciones pertenecientes a grupos con una plantilla determinada.
+       - **Estado de Auditoría:** Todas, 1ra Medición (inicial), Aviso Consumo Negativo, Aviso Fecha Desfasada, Válidas (sin anomalías) o Cualquier anomalía.
+       - **Fotografía:** Todas, Con foto adjunta (`with_photo`) o Sin foto adjunta (`without_photo`).
+       - **Consumo / Costo:** Todos, Consumo positivo (> 0), Consumo en cero (= 0), Consumo negativo (< 0), Con tarifa de costo activa o Sin tarifa de costo.
+       - **Rango de Fechas:** Fecha desde y Fecha hasta.
+       - **Áreas Comunes:** Botón de alternancia rápida para aislar sensores comunitarios.
+     * **Motor de Búsqueda Avanzado en Atributos Dinámicos (JSON Metadata):**
+       - Permite seleccionar cualquier campo dinámico (ej: `lote`, `numero_lote`, `manzana`, `sector`, etc.) y cruzarlo con los demás filtros.
+       - Operadores soportados:
+         * **Coincide con alguno (Lista: ej. 100, 144):** Operador `OR`. Indispensable para buscar listas de lotes o identificadores (`100, 144, 178`). Trae todas las mediciones que pertenezcan a cualquiera de esos valores.
+         * **Contiene todas las palabras en el mismo campo (AND):** Requiere que el mismo registro contenga todas las palabras especificadas. *(Atención: un sensor solo tiene un número de lote a la vez; si se busca `100, 144` con AND el resultado será vacío porque ningún medidor tiene dos lotes a la vez).*
+         * **Valor exacto:** Coincidencia 100% estricta con el valor ingresado.
+         * **Excluir / No contiene:** Descarta registros que contengan los términos indicados.
+     * **Traducción Semántica en Lenguaje Natural (en vivo):**
+       - Debajo de los filtros se despliega un bloque de interpretación automática en lenguaje coloquial que explica exactamente qué está buscando la consulta (ej: *"Buscando mediciones del grupo San Gabriel, donde Lote sea cualquiera de: '100, 144' (trae ambos lotes), con estado 1ra Medición"*).
+    - **Ordenamiento Completo y Ordenamiento Natural:**
+      * Todas las columnas son ordenables: Sensor, Identificador, Grupo, Plantilla, Valor y Fecha.
+      * Los campos dinámicos personalizados (ej: `Lote`) cuentan con **ordenamiento natural** en MySQL (los valores numéricos como 5, 20, 144, 178 se ordenan por su magnitud matemática aunque la columna contenga letras o sea alfanumérica).
+    - Herramientas integradas en barra superior y acciones de fila:
+      * **Radar Global de Anomalías:** Escanea todos los sensores analizando saltos en la tasa diaria y estancamiento.
+      * **Análisis Avanzado por Sensor:** Modal interactivo con gráfico de líneas evolutivo (`Chart.js`), selector de cotas de fechas y resumen de consumo del lote.
+      * **Exportar a Excel:** Descarga inmediata en `.xlsx` respetando el 100% de los filtros activos (grupo, plantilla, foto, consumo/costo, fechas, comunidad, avisos de auditoría y campos dinámicos).
+      * La ruta legacy `/consumptions` redirige automáticamente a `/mediciones`.
 
 2. **Asistente de Carga Masiva de Fotos (`/api/measurements/bulk-upload-photos`):**
    - Disponible en el botón **Carga Masiva Fotos** de la pantalla de Mediciones.

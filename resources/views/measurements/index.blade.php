@@ -548,8 +548,8 @@
                                     <div class="col-xl-2 col-md-4 col-sm-6">
                                         <label for="customOperatorSelect" class="form-label small fw-semibold text-muted mb-1">Condición / Cruce</label>
                                         <select class="form-select form-select-sm" id="customOperatorSelect">
-                                            <option value="or" selected>Coincide con alguno (OR / Lista)</option>
-                                            <option value="and">Contiene todos los valores (AND)</option>
+                                            <option value="or" selected>Coincide con alguno (Lista: ej. 100, 144)</option>
+                                            <option value="and">Contiene todas las palabras en el mismo campo (AND)</option>
                                             <option value="exact">Valor exacto</option>
                                             <option value="not">Excluir / No contiene</option>
                                         </select>
@@ -1304,9 +1304,13 @@
                     const customOp = $('#customOperatorSelect').val();
                     let opDesc = '';
                     if (customOp === 'or') {
-                        opDesc = `donde <strong>${escapeHtml(customFieldText)}</strong> coincida con alguno de: <em>"${escapeHtml(customVal)}"</em>`;
+                        opDesc = `donde <strong>${escapeHtml(customFieldText)}</strong> sea cualquiera de: <em>"${escapeHtml(customVal)}"</em> (trae ambos lotes/valores)`;
                     } else if (customOp === 'and') {
-                        opDesc = `donde <strong>${escapeHtml(customFieldText)}</strong> contenga todos los valores: <em>"${escapeHtml(customVal)}"</em>`;
+                        const hasMultiple = customVal.includes(',') || customVal.toLowerCase().includes(' or ') || customVal.toLowerCase().includes(' and ') || customVal.toLowerCase().includes(' y ');
+                        opDesc = `donde el <strong>mismo</strong> campo <strong>${escapeHtml(customFieldText)}</strong> contenga simultáneamente todas las palabras: <em>"${escapeHtml(customVal)}"</em>`;
+                        if (hasMultiple && customField) {
+                            opDesc += ` <span class="badge bg-warning text-dark"><i class="bi bi-info-circle"></i> Si buscas traer varios lotes a la vez, usa "Coincide con alguno (Lista)"</span>`;
+                        }
                     } else if (customOp === 'exact') {
                         opDesc = `donde <strong>${escapeHtml(customFieldText)}</strong> sea exactamente: <em>"${escapeHtml(customVal)}"</em>`;
                     } else if (customOp === 'not') {

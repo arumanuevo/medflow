@@ -486,7 +486,7 @@ class MeasurementService
             $customField = trim($filters['custom_field'] ?? '');
             $customOp = $filters['custom_operator'] ?? 'or'; // 'or', 'and', 'exact', 'not'
             $rawCustom = $filters['custom_values'];
-            $cleanCustom = str_ireplace(' OR ', ',', $rawCustom);
+            $cleanCustom = str_ireplace([' OR ', ' Y ', ' AND ', ' E ', ';'], ',', $rawCustom);
             $customTokens = array_values(array_filter(array_map('trim', explode(',', $cleanCustom)), fn($v) => $v !== ''));
 
             if (!empty($customTokens)) {
@@ -498,8 +498,10 @@ class MeasurementService
                                 if (empty($customField) || $customField === 'any') {
                                     $q2->where('metadata', 'LIKE', "%{$token}%");
                                 } else {
-                                    $q2->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(metadata, ?)) LIKE ?", ["$.{$customField}", "%{$token}%"])
-                                       ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(metadata, ?)) = ?", ["$.{$customField}", $token]);
+                                    $q2->where(function ($q3) use ($customField, $token) {
+                                        $q3->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(metadata, ?)) LIKE ?", ["$.{$customField}", "%{$token}%"])
+                                           ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(metadata, ?)) = ?", ["$.{$customField}", $token]);
+                                    });
                                 }
                             });
                         }
@@ -533,8 +535,10 @@ class MeasurementService
                                 if (empty($customField) || $customField === 'any') {
                                     $q2->orWhere('metadata', 'LIKE', "%{$token}%");
                                 } else {
-                                    $q2->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(metadata, ?)) LIKE ?", ["$.{$customField}", "%{$token}%"])
-                                       ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(metadata, ?)) = ?", ["$.{$customField}", $token]);
+                                    $q2->orWhere(function ($q3) use ($customField, $token) {
+                                        $q3->whereRaw("JSON_UNQUOTE(JSON_EXTRACT(metadata, ?)) LIKE ?", ["$.{$customField}", "%{$token}%"])
+                                           ->orWhereRaw("JSON_UNQUOTE(JSON_EXTRACT(metadata, ?)) = ?", ["$.{$customField}", $token]);
+                                    });
                                 }
                             }
                         });
