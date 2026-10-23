@@ -13,11 +13,18 @@
     // Consultar tareas (Jobs) en segundo plano para notificar visualmente
     $pendingJobs = \DB::table('jobs')->count();
     $headerScheduleAlerts = ['items' => [], 'total_actionable' => 0, 'counts' => ['overdue' => 0, 'in_tolerance' => 0, 'in_window' => 0]];
+    $headerMeasurementErrors = ['negative_consumption' => 0, 'inconsistent_date' => 0, 'first_measurement' => 0, 'valid' => 0];
 
     if (auth()->check()) {
         try {
             $activeWorkspaceId = session('active_workspace', $user->id);
             $headerScheduleAlerts = app(\App\Services\MeasurementScheduleService::class)->getActiveAlerts($user, $activeWorkspaceId);
+        } catch (\Exception $e) {
+            // Ignorar silenciosamente errores en el header
+        }
+
+        try {
+            $headerMeasurementErrors = app(\App\Services\MeasurementService::class)->calculateErrorStats($user);
         } catch (\Exception $e) {
             // Ignorar silenciosamente errores en el header
         }
@@ -116,6 +123,82 @@
                 <div class="p-2 bg-light text-center border-top">
                     <a href="{{ route('schedule.index') }}" class="btn btn-sm btn-primary w-100">
                         <i class="bi bi-calendar-event me-1"></i> Abrir Calendario de Tomas
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {{-- ✅ ÍCONO DE SANIDAD Y AUDITORÍA DE MEDICIONES (ANOMALÍAS / CONSUMOS NEGATIVOS) --}}
+        @php
+            $headerNegErrors = $headerMeasurementErrors['negative_consumption'] ?? 0;
+            $headerDateErrors = $headerMeasurementErrors['inconsistent_date'] ?? 0;
+            $totalMeasurementAnomalies = $headerNegErrors + $headerDateErrors;
+            $hasCriticalAnomalies = $headerNegErrors > 0;
+        @endphp
+        <div class="dropdown me-1">
+            <button class="btn btn-sm position-relative d-flex align-items-center justify-content-center"
+                type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                title="Sanidad de Mediciones y Auditoría de Anomalías"
+                style="width: 36px; height: 36px; border-radius: 50%; background: {{ $totalMeasurementAnomalies > 0 ? ($hasCriticalAnomalies ? '#f8d7da' : '#fff3cd') : '#f8f9fa' }}; border: 1px solid {{ $totalMeasurementAnomalies > 0 ? ($hasCriticalAnomalies ? '#f5c2c7' : '#ffecb5') : '#dee2e6' }}; color: {{ $totalMeasurementAnomalies > 0 ? ($hasCriticalAnomalies ? '#dc3545' : '#856404') : '#6c757d' }};">
+                <i class="bi bi-shield-{{ $hasCriticalAnomalies ? 'exclamation' : ($totalMeasurementAnomalies > 0 ? 'exclamation' : 'check') }} fs-6"></i>
+                @if($totalMeasurementAnomalies > 0)
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill {{ $hasCriticalAnomalies ? 'bg-danger' : 'bg-warning text-dark' }}"
+                        style="font-size: 0.62rem;">
+                        {{ $totalMeasurementAnomalies > 99 ? '99+' : $totalMeasurementAnomalies }}
+                    </span>
+                @endif
+            </button>
+            <div class="dropdown-menu dropdown-menu-end shadow border-0 p-0" style="width: 350px; max-width: 92vw; border-radius: 12px; overflow: hidden; z-index: 1055;">
+                <div class="p-3 {{ $hasCriticalAnomalies ? 'bg-danger' : ($totalMeasurementAnomalies > 0 ? 'bg-warning text-dark' : 'bg-primary') }} text-white d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0 fw-bold text-white"><i class="bi bi-shield-shaded me-1"></i> Sanidad de Mediciones</h6>
+                        <small class="text-white-50">Auditoría del Parque de Sensores</small>
+                    </div>
+                    <span class="badge bg-white {{ $hasCriticalAnomalies ? 'text-danger' : ($totalMeasurementAnomalies > 0 ? 'text-dark' : 'text-primary') }} rounded-pill">
+                        {{ $totalMeasurementAnomalies > 0 ? $totalMeasurementAnomalies . ' anomalía(s)' : '100% Óptimo' }}
+                    </span>
+                </div>
+                <div class="p-2" style="max-height: 320px; overflow-y: auto;">
+                    @if($headerNegErrors > 0)
+                        <a href="{{ route('measurements.index') }}" class="dropdown-item p-2 mb-1 rounded border-start border-danger border-3 text-wrap" style="white-space: normal; background-color: #fff5f5;">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-bold small text-danger"><i class="bi bi-graph-down me-1"></i> Consumos Negativos</span>
+                                <span class="badge bg-danger">{{ $headerNegErrors }}</span>
+                            </div>
+                            <div class="small text-muted" style="font-size: 0.74rem;">
+                                Lecturas con valor menor a la anterior. Posibles reemplazos de medidor sin reseteo o errores de tipeo.
+                            </div>
+                        </a>
+                    @endif
+
+                    @if($headerDateErrors > 0)
+                        <a href="{{ route('measurements.index') }}" class="dropdown-item p-2 mb-1 rounded border-start border-warning border-3 text-wrap" style="white-space: normal; background-color: #fffdf5;">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-bold small text-warning-emphasis"><i class="bi bi-calendar-x me-1"></i> Fechas Desfasadas</span>
+                                <span class="badge bg-warning text-dark">{{ $headerDateErrors }}</span>
+                            </div>
+                            <div class="small text-muted" style="font-size: 0.74rem;">
+                                Mediciones con fecha anterior a registros ya tomados en ese sensor.
+                            </div>
+                        </a>
+                    @endif
+
+                    @if($totalMeasurementAnomalies === 0)
+                        <div class="p-4 text-center text-muted">
+                            <i class="bi bi-shield-check fs-2 text-success d-block mb-1"></i>
+                            <div class="small fw-semibold text-dark">¡Base de Mediciones Sana!</div>
+                            <div style="font-size: 0.75rem;">No se detectaron consumos negativos ni desfasajes en el parque de sensores.</div>
+                        </div>
+                    @endif
+
+                    <div class="px-2 py-1 text-muted small border-top mt-1 d-flex justify-content-between" style="font-size: 0.72rem;">
+                        <span><i class="bi bi-check-circle text-success me-1"></i>{{ $headerMeasurementErrors['valid'] ?? 0 }} válidas</span>
+                        <span><i class="bi bi-clock-history text-info me-1"></i>{{ $headerMeasurementErrors['first_measurement'] ?? 0 }} iniciales</span>
+                    </div>
+                </div>
+                <div class="p-2 bg-light text-center border-top">
+                    <a href="{{ route('measurements.index') }}" class="btn btn-sm btn-primary w-100">
+                        <i class="bi bi-speedometer me-1"></i> Ir a Mediciones y Consumos
                     </a>
                 </div>
             </div>

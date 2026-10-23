@@ -159,6 +159,7 @@ Disponible en el formulario **Tomar Mediciones** marcando el checkbox **¿Se ree
   - **Desactivado (Estricto - Recomendado)**: Exige que el valor cumpla `anterior <= nuevo <= siguiente`. Si el nuevo número supera a la medición siguiente, el backend (`MeasurementController::update`) rechaza el cambio (`422`) para evitar que la medición futura sufra un nuevo consumo negativo accidental.
   - **Activado (`force = true`)**: Omite la validación restrictiva con la medición siguiente. Diseñado para cuando la medición siguiente **también contiene un error de tipeo** y se va a corregir en cadena, o en importaciones históricas masivas desfasadas.
 - **Invalidación de Caché**: Cada actualización, reseteo o eliminación borra automáticamente la clave `user_{id}_error_stats`, recalculando los contadores y badges al instante.
+- **Indicador Global en Navbar (`modern-header.blade.php`)**: Botón circular con ícono de escudo (`bi-shield-exclamation`) ubicado junto a la campana del calendario de tomas. Si existen consumos negativos, se tiñe de rojo con badge numérico y dropdown de diagnóstico directo a `/mediciones`; si existen fechas desfasadas, se muestra en amarillo; si la base está sana, permanece en estado neutral/verde de confirmación.
 
 #### Coordinación con la App Móvil (crítico)
 - La app móvil bloquea el guardado si el operario ingresa un valor **MENOR** a la última medición conocida (validación estricta en Flutter, `measurement_screen.dart`).

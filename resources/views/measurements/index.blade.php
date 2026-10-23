@@ -212,6 +212,17 @@
             height: 100%;
         }
 
+        @keyframes pulse-subtle {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.6); }
+            50% { transform: scale(1.03); box-shadow: 0 0 0 8px rgba(220, 53, 69, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+        }
+
+        .pulse-audit-btn {
+            animation: pulse-subtle 2.5s infinite ease-in-out;
+            font-weight: 600 !important;
+        }
+
         .error-card {
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
@@ -346,8 +357,10 @@
                                 <button class="btn btn-success btn-sm" id="btnExportExcel" title="Exportar registros filtrados a Excel">
                                     <i class="bi bi-file-earmark-excel me-1"></i> Exportar a Excel
                                 </button>
-                                <button class="btn btn-outline-light btn-sm" id="toggleErrors" title="Mostrar u ocultar auditoría de errores">
-                                    <i class="bi bi-exclamation-triangle me-1"></i> Auditoría
+                                <button class="btn btn-outline-light btn-sm d-inline-flex align-items-center" id="toggleErrors" title="Mostrar u ocultar auditoría de errores">
+                                    <i class="bi bi-shield-exclamation me-1" id="toggleErrorsIcon"></i>
+                                    <span id="toggleErrorsText">Auditoría</span>
+                                    <span id="auditBadge" class="badge rounded-pill ms-2 d-none"></span>
                                 </button>
                                 <a href="{{ route('sensor-groups.index') }}" class="btn btn-light btn-sm" title="Ir al listado y gestión de Grupos de Sensores">
                                     <i class="bi bi-folder2-open me-1"></i> Ver Grupos
@@ -362,6 +375,29 @@
                                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                             </div>
                         @endif
+
+                        <!-- Banner Inteligente de Auditoría (Notificación elegante y llamativa si hay anomalías) -->
+                        <div id="auditAlertNotice" class="alert alert-danger border-danger-subtle d-flex flex-wrap align-items-center justify-content-between p-3 rounded-3 shadow-sm mb-4 d-none" style="background-color: #fff5f5;">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-danger text-white rounded-circle p-2 d-flex align-items-center justify-content-center shadow-sm" style="width: 44px; height: 44px; flex-shrink: 0;">
+                                    <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                                </div>
+                                <div>
+                                    <h6 class="alert-heading mb-1 fw-bold text-danger">
+                                        Se detectaron anomalías en las mediciones
+                                    </h6>
+                                    <div class="small text-dark" id="auditAlertDescription">
+                                        <!-- Se rellena dinámicamente con las estadísticas de error -->
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 mt-2 mt-md-0">
+                                <button type="button" class="btn btn-danger btn-sm fw-bold px-3 shadow-sm" id="btnAuditFromNotice">
+                                    <i class="bi bi-shield-exclamation me-1"></i> Ver y Resolver Anomalías
+                                </button>
+                                <button type="button" class="btn-close" id="btnCloseAuditNotice" aria-label="Cerrar"></button>
+                            </div>
+                        </div>
 
                         <!-- Estadísticas de errores (tarjetas clickeables) -->
                         <div class="row mb-4 d-none" id="errorStatsContainer">
@@ -1164,13 +1200,11 @@
                         if (response.success) {
                             if (response.error_stats) {
                                 errorStats = response.error_stats;
+                                updateErrorStats(errorStats);
                             }
                             const groupExtraFields = response.group_extra_fields || [];
                             renderTableHeaders(groupExtraFields);
                             renderMeasurements(response.data, groupExtraFields);
-                            if (!$('#errorStatsContainer').hasClass('d-none') && errorStats) {
-                                updateErrorStats(errorStats);
-                            }
                             renderPagination(response.meta);
 
                             // Restablecer checkboxes al cargar nueva tabla
@@ -1217,12 +1251,73 @@
                 `);
             }
 
-            // Función para actualizar estadísticas de errores
+            // Función para actualizar estadísticas de errores y alertas visuales
             function updateErrorStats(stats) {
-                $('#negativeConsumptionCount').text(stats.negative_consumption || 0);
-                $('#inconsistentDateCount').text(stats.inconsistent_date || 0);
-                $('#noPreviousCount').text(stats.first_measurement || 0);
-                $('#validMeasurementsCount').text(stats.valid || 0);
+                const negCount = parseInt(stats.negative_consumption) || 0;
+                const dateCount = parseInt(stats.inconsistent_date) || 0;
+                const firstCount = parseInt(stats.first_measurement) || 0;
+                const validCount = parseInt(stats.valid) || 0;
+
+                $('#negativeConsumptionCount').text(negCount);
+                $('#inconsistentDateCount').text(dateCount);
+                $('#noPreviousCount').text(firstCount);
+                $('#validMeasurementsCount').text(validCount);
+
+                // Actualizar textos en el desplegable de filtro de Estado
+                $('#errorFilter option[value="negative_consumption"]').text(`Aviso Consumo (${negCount})`);
+                $('#errorFilter option[value="inconsistent_date"]').text(`Aviso Fecha (${dateCount})`);
+                $('#errorFilter option[value="first_measurement"]').text(`1ra Medición (${firstCount})`);
+
+                // Actualizar botón de Auditoría en la barra superior con diseño llamativo pero elegante
+                if (negCount > 0) {
+                    $('#toggleErrors')
+                        .removeClass('btn-outline-light btn-warning text-dark')
+                        .addClass('btn-danger text-white pulse-audit-btn')
+                        .attr('title', `Atención: Hay ${negCount} consumo(s) negativo(s) pendientes de revisión`);
+                    $('#toggleErrorsIcon').removeClass('bi-exclamation-triangle bi-shield-check').addClass('bi-exclamation-octagon-fill');
+                    $('#auditBadge')
+                        .removeClass('d-none bg-dark text-white bg-success text-white')
+                        .addClass('bg-white text-danger fw-bold shadow-sm')
+                        .html(`<i class="bi bi-exclamation-circle-fill me-1"></i>${negCount} crítico(s)`);
+                } else if (dateCount > 0) {
+                    $('#toggleErrors')
+                        .removeClass('btn-outline-light btn-danger text-white pulse-audit-btn')
+                        .addClass('btn-warning text-dark')
+                        .attr('title', `Aviso: Hay ${dateCount} fecha(s) desfasada(s)`);
+                    $('#toggleErrorsIcon').removeClass('bi-exclamation-octagon-fill bi-shield-check').addClass('bi-exclamation-triangle-fill');
+                    $('#auditBadge')
+                        .removeClass('d-none bg-white text-danger bg-success text-white')
+                        .addClass('bg-dark text-white fw-bold shadow-sm')
+                        .text(`${dateCount} aviso(s)`);
+                } else {
+                    $('#toggleErrors')
+                        .removeClass('btn-danger text-white btn-warning text-dark pulse-audit-btn')
+                        .addClass('btn-outline-light text-white')
+                        .attr('title', 'Todas las mediciones son consistentes y válidas');
+                    $('#toggleErrorsIcon').removeClass('bi-exclamation-octagon-fill bi-exclamation-triangle-fill').addClass('bi-shield-check');
+                    $('#auditBadge')
+                        .removeClass('bg-white text-danger bg-dark text-white')
+                        .addClass('bg-success text-white fw-semibold shadow-sm')
+                        .html('<i class="bi bi-check-lg"></i> OK')
+                        .removeClass('d-none');
+                }
+
+                // Banner Inteligente de Advertencia (aparece automáticamente si existen problemas)
+                if (negCount > 0 || dateCount > 0) {
+                    let descHtml = '';
+                    if (negCount > 0 && dateCount > 0) {
+                        descHtml = `Se identificaron <strong class="text-danger">${negCount} consumo(s) negativo(s)</strong> (posibles cambios de medidor o errores de carga) y <strong class="text-warning-emphasis">${dateCount} fecha(s) desfasada(s)</strong>. Puedes auditarlos, contrastar con la foto del medidor y corregirlos en un clic.`;
+                    } else if (negCount > 0) {
+                        descHtml = `Se identificaron <strong class="text-danger">${negCount} consumo(s) negativo(s)</strong> donde el valor actual es menor al anterior. Puedes revisar las fotografías originales y registrar el <strong>Cambio de Medidor</strong> o <strong>Corregir</strong> el número.`;
+                    } else {
+                        descHtml = `Se identificaron <strong class="text-warning-emphasis">${dateCount} medición(es) con fechas inconsistentes</strong> con respecto al orden cronológico del sensor.`;
+                    }
+
+                    $('#auditAlertDescription').html(descHtml);
+                    $('#auditAlertNotice').removeClass('d-none');
+                } else {
+                    $('#auditAlertNotice').addClass('d-none');
+                }
             }
 
             // Función para obtener campos dinámicos del sensor
@@ -2116,21 +2211,40 @@
                 loadMeasurements();
             });
 
-            // Evento para mostrar/ocultar errores
+            // Evento para mostrar/ocultar tarjetas de auditoría
             $('#toggleErrors').click(function () {
                 showErrors = !showErrors;
                 if (showErrors) {
-                    $(this).html('<i class="bi bi-exclamation-triangle"></i> Ocultar Errores');
+                    $('#toggleErrorsText').text('Ocultar');
                     $('#errorStatsContainer').removeClass('d-none');
                     if (errorStats) {
                         updateErrorStats(errorStats);
-                    } else {
-                        loadMeasurements();
                     }
                 } else {
-                    $(this).html('<i class="bi bi-exclamation-triangle"></i> Mostrar Errores');
+                    $('#toggleErrorsText').text('Auditoría');
                     $('#errorStatsContainer').addClass('d-none');
                 }
+            });
+
+            // Acción desde el Banner Inteligente de Advertencia
+            $('#btnAuditFromNotice').click(function () {
+                showErrors = true;
+                $('#toggleErrorsText').text('Ocultar');
+                $('#errorStatsContainer').removeClass('d-none');
+
+                if (errorStats && errorStats.negative_consumption > 0) {
+                    showErrorDetailsModal('negative_consumption');
+                } else if (errorStats && errorStats.inconsistent_date > 0) {
+                    showErrorDetailsModal('inconsistent_date');
+                } else {
+                    $('html, body').animate({
+                        scrollTop: $('#errorStatsContainer').offset().top - 70
+                    }, 300);
+                }
+            });
+
+            $('#btnCloseAuditNotice').click(function () {
+                $('#auditAlertNotice').fadeOut(200);
             });
 
             // ==========================================
