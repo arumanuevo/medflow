@@ -22,15 +22,27 @@ class AIChatController extends Controller
         $userMessage = $request->input('message');
 
         try {
-            $rootBrainPath = base_path('medflow_brain.md');
-            $brainPath = storage_path('app/ai/medflow_brain.md');
-            if (file_exists($rootBrainPath)) {
-                $systemContent = file_get_contents($rootBrainPath);
-            } elseif (file_exists($brainPath)) {
-                $systemContent = file_get_contents($brainPath);
+            $brainApp = app_path('ai/medflow_brain.md');
+            $brainRoot = base_path('medflow_brain.md');
+            $brainStorage = storage_path('app/ai/medflow_brain.md');
+
+            if (file_exists($brainApp)) {
+                $systemContent = file_get_contents($brainApp);
+            } elseif (file_exists($brainRoot)) {
+                $systemContent = file_get_contents($brainRoot);
+            } elseif (file_exists($brainStorage)) {
+                $systemContent = file_get_contents($brainStorage);
             } else {
                 $systemContent = 'Eres Flowy, asistente automatizado. Debes responder brevemente.';
             }
+
+            // Mantener sincronizado storage automáticamente
+            try {
+                if (!empty($systemContent) && (!file_exists($brainStorage) || filemtime($brainApp) > filemtime($brainStorage))) {
+                    @mkdir(storage_path('app/ai'), 0755, true);
+                    @file_put_contents($brainStorage, $systemContent);
+                }
+            } catch (\Throwable $syncEx) {}
 
             // Inyectar contexto en vivo del Calendario de Tomas y Tolerancias del usuario actual
             try {

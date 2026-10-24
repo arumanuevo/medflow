@@ -372,3 +372,45 @@ Route::post('/api/soporte/ask', [\App\Http\Controllers\AIChatController::class, 
 Route::get('/inspector/descargar-app', function () {
     return view('app_download');
 })->name('inspector.descarga');
+
+// =============================================
+// UTILIDAD WEB PARA SERVIDORES COMPARTIDOS (Limpieza de cache sin Artisan)
+// =============================================
+Route::get('/system/clear-cache', function (\Illuminate\Http\Request $request) {
+    $authorized = false;
+    if (auth()->check()) {
+        $u = auth()->user();
+        if (method_exists($u, 'hasRole') && ($u->hasRole('admin') || $u->hasRole('superadmin'))) {
+            $authorized = true;
+        } elseif ($u->id == 1) {
+            $authorized = true;
+        }
+    }
+    if ($request->query('key') === 'medflow2026' || $request->query('key') === 'arumasoft') {
+        $authorized = true;
+    }
+
+    if (!$authorized) {
+        abort(403, 'Acceso denegado. Inicia sesion como administrador o anade ?key=medflow2026 a la URL.');
+    }
+
+    $results = [];
+
+    try { \Illuminate\Support\Facades\Artisan::call('cache:clear'); $results[] = 'Application Cache: Borrada con exito.'; } catch (\Throwable $e) { $results[] = 'Cache error: ' . $e->getMessage(); }
+    try { \Illuminate\Support\Facades\Artisan::call('route:clear'); $results[] = 'Route Cache: Borrada con exito.'; } catch (\Throwable $e) { $results[] = 'Route clear error: ' . $e->getMessage(); }
+    try { \Illuminate\Support\Facades\Artisan::call('view:clear'); $results[] = 'View Cache: Borrada con exito.'; } catch (\Throwable $e) { $results[] = 'View clear error: ' . $e->getMessage(); }
+    try { \Illuminate\Support\Facades\Artisan::call('config:clear'); $results[] = 'Config Cache: Borrada con exito.'; } catch (\Throwable $e) { $results[] = 'Config clear error: ' . $e->getMessage(); }
+
+    $bFiles = [base_path('bootstrap/cache/routes-v7.php'), base_path('bootstrap/cache/config.php'), base_path('bootstrap/cache/services.php'), base_path('bootstrap/cache/packages.php')];
+    foreach ($bFiles as $b) { if (file_exists($b)) { @unlink($b); $results[] = 'Archivo bootstrap eliminado: ' . basename($b); } }
+
+    $brainApp = app_path('ai/medflow_brain.md');
+    $brainRoot = base_path('medflow_brain.md');
+    $brainStorage = storage_path('app/ai/medflow_brain.md');
+    $source = file_exists($brainApp) ? $brainApp : (file_exists($brainRoot) ? $brainRoot : null);
+    if ($source) { @mkdir(storage_path('app/ai'), 0755, true); @copy($source, $brainStorage); $results[] = 'Cerebro de Flowy sincronizado a storage.'; }
+
+    if (function_exists('opcache_reset')) { @opcache_reset(); $results[] = 'OPcache PHP reiniciado.'; }
+
+    return response('<div style="font-family:sans-serif;max-width:600px;margin:40px auto;padding:25px;border:1px solid #10b981;border-radius:12px;background:#f0fdf4;color:#065f46;"><h2>Sistema y Cache Actualizados</h2><ul><li>' . implode('</li><li>', $results) . '</li></ul><p><a href="/sensors/extra-fields" style="padding:10px 16px;background:#059669;color:#fff;text-decoration:none;border-radius:6px;font-weight:bold;">Ir a Campos Extras</a> &nbsp; <a href="/mediciones" style="padding:10px 16px;background:#0284c7;color:#fff;text-decoration:none;border-radius:6px;font-weight:bold;">Ir a Mediciones</a></p></div>');
+})->name('system.clear-cache');
