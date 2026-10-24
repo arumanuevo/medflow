@@ -22,12 +22,12 @@ class AIChatController extends Controller
         $userMessage = $request->input('message');
 
         try {
-            $brainPath = storage_path('app/ai/medflow_brain.md');
             $rootBrainPath = base_path('medflow_brain.md');
-            if (file_exists($brainPath)) {
-                $systemContent = file_get_contents($brainPath);
-            } elseif (file_exists($rootBrainPath)) {
+            $brainPath = storage_path('app/ai/medflow_brain.md');
+            if (file_exists($rootBrainPath)) {
                 $systemContent = file_get_contents($rootBrainPath);
+            } elseif (file_exists($brainPath)) {
+                $systemContent = file_get_contents($brainPath);
             } else {
                 $systemContent = 'Eres Flowy, asistente automatizado. Debes responder brevemente.';
             }

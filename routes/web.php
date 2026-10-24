@@ -95,9 +95,9 @@ Route::middleware(['auth'])->group(function () {
     // =============================================
     Route::get('/sensors', [SensorViewController::class, 'index'])->name('sensors.index');
     Route::get('/sensors/create', [SensorViewController::class, 'create'])->name('sensors.create');
-    Route::get('/sensors/{sensor}/edit', [SensorViewController::class, 'edit'])->name('sensors.edit');
-    Route::get('/sensors/{sensor}', [SensorViewController::class, 'show'])->name('sensors.show');
     Route::get('/sensors/extra-fields', [SensorExtraFieldController::class, 'index'])->name('sensors.extra-fields');
+    Route::get('/sensors/{sensor}/edit', [SensorViewController::class, 'edit'])->name('sensors.edit')->where('sensor', '[0-9]+');
+    Route::get('/sensors/{sensor}', [SensorViewController::class, 'show'])->name('sensors.show')->where('sensor', '[0-9]+');
 
     // =============================================
     // MEDICIONES (vistas)
