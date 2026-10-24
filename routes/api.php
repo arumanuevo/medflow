@@ -53,6 +53,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // =====================================================
     Route::prefix('sensors/extra-fields')->group(function () {
         Route::get('/', [SensorExtraFieldController::class, 'getFields'])->name('api.sensors.extra-fields.get');
+        Route::get('/groups-list', [SensorExtraFieldController::class, 'getGroupsList'])->name('api.sensors.extra-fields.groups-list');
+        Route::post('/add-to-group', [SensorExtraFieldController::class, 'addFieldToGroup'])->name('api.sensors.extra-fields.add-to-group');
+        Route::post('/sensors/{sensor}/phone', [SensorExtraFieldController::class, 'updateSensorPhone'])->name('api.sensors.extra-fields.update-phone');
         Route::delete('/', [SensorExtraFieldController::class, 'deleteField'])->name('api.sensors.extra-fields.delete');
         Route::put('/rename', [SensorExtraFieldController::class, 'renameField'])->name('api.sensors.extra-fields.rename');
     });

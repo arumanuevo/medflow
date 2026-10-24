@@ -567,4 +567,20 @@ Permite a los administradores con plan **Premium** georreferenciar sus medidores
 - **Régimen del Error Humano:** Las alertas (Consumo Negativo, Fechas Desfasadas, etc.) asisten preventivamente, pero la omisión de la administración en auditar antes de facturar no genera ninguna responsabilidad para MedFlow.
 - Marco Legal completo disponible en: `/terminos-legales`.
 
+---
+
+## 8. GESTIÓN DE CAMPOS EXTRAS Y COMUNICACIÓN POR WHATSAPP (Click-to-Chat Gratuito)
+
+### 8.1 Agregar Nuevos Atributos a un Grupo Existente (100% No Invasivo)
+- Desde **Sensores > Gestión de Campos Extras** (`/sensors/extra-fields`), el botón **"Agregar Campo a un Grupo"** permite crear un nuevo campo en blanco para todos los sensores de un grupo o de todo el workspace (`POST /api/sensors/extra-fields/add-to-group`).
+- **Seguridad total:** Se inyecta en el JSON `metadata` del sensor sin tocar ni alterar la tabla de `measurements`, sin modificar el esquema de `templates`, y preservando todos los valores históricos.
+
+### 8.2 Envío de Liquidaciones e Informes por WhatsApp
+- En la tabla de **Mediciones y Consumos** (`/mediciones`), cada fila cuenta con el botón verde **WhatsApp** (`.sendWhatsAppBtn`).
+- **Detección inteligente de teléfono:** Busca automáticamente en los metadatos del sensor si ya tiene cargado `telefono`, `celular`, `whatsapp`, etc.
+- **Carga rápida al vuelo:** Si el sensor aún no tenía teléfono, el modal permite ingresarlo en el momento y lo guarda automáticamente en su ficha (`POST /api/sensors/extra-fields/sensors/{id}/phone`).
+- **Mensaje oficial con comprobante:** Pre-redacta un mensaje detallado (Lote, Grupo, Fecha, Lectura, Consumo, Costo) y el enlace al **Visor Público** (`/visor/{token}`) con la fotografía original del medidor.
+- **Sin aranceles ni costos:** Utiliza el protocolo oficial Click-to-Chat (`wa.me`), abriendo WhatsApp Web o la app nativa sin requerir pasarelas pagas ni aranceles a Meta.
+
+
 

@@ -1277,6 +1277,58 @@
         </div>
     </div>
 
+    <!-- Modal para Enviar Liquidación / Informe por WhatsApp -->
+    <div class="modal fade" id="whatsappSendModal" tabindex="-1" aria-labelledby="whatsappSendModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header bg-success text-white p-3 px-4">
+                    <h5 class="modal-title fw-bold" id="whatsappSendModalLabel">
+                        <i class="bi bi-whatsapp me-2"></i>Enviar Liquidación por WhatsApp
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="d-flex align-items-center gap-3 mb-3 p-3 bg-light rounded-3 border">
+                        <div class="bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                            <i class="bi bi-speedometer2 fs-4"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-dark fs-6" id="waSensorTitle">Sensor</div>
+                            <small class="text-muted" id="waSensorSubtitle">Grupo</small>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="waPhoneNumber" class="form-label fw-semibold">
+                            <i class="bi bi-telephone-fill text-success me-1"></i> Número de WhatsApp del Propietario / Residente
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted"><i class="bi bi-phone"></i></span>
+                            <input type="text" class="form-control" id="waPhoneNumber" placeholder="Ej: 5491122334455 o 1122334455">
+                        </div>
+                        <div id="waPhoneStatusNotice" class="form-text small mt-1"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="waMessageText" class="form-label fw-semibold">
+                            <i class="bi bi-chat-text text-primary me-1"></i> Mensaje a Enviar
+                        </label>
+                        <textarea class="form-control font-monospace" id="waMessageText" rows="7" style="font-size: 0.82rem; line-height: 1.5;"></textarea>
+                        <div class="form-text small text-muted mt-1">
+                            <i class="bi bi-info-circle me-1"></i> El mensaje incluye el enlace al visor oficial con foto del medidor para que el vecino audite su consumo.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light p-3 px-4 d-flex justify-content-between">
+                    <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success rounded-pill px-4 fw-semibold" id="btnConfirmSendWhatsApp">
+                        <i class="bi bi-whatsapp me-1"></i> Abrir WhatsApp (Web / App)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Barra de acciones flotante (se muestra al seleccionar filas) -->
     <div id="bulkActionsBar"
         class="position-fixed bottom-0 start-50 translate-middle-x mb-4 shadow rounded px-4 py-3 bg-white"
@@ -1841,6 +1893,23 @@
                                                                                                 </td>
                                                                                                 <td>
                                                                                                     <div class="table-actions">
+                                                                                                        <button class="btn btn-sm btn-outline-success sendWhatsAppBtn" 
+                                                                                                                title="Enviar liquidación por WhatsApp al propietario" 
+                                                                                                                data-measurement-id="${measurement.id}"
+                                                                                                                data-sensor-id="${sensor.id || measurement.sensor_id}" 
+                                                                                                                data-sensor-name="${escapeHtml(sensorName)}" 
+                                                                                                                data-sensor-identifier="${escapeHtml(sensorIdentifier)}"
+                                                                                                                data-group-name="${escapeHtml(groupName)}"
+                                                                                                                data-value="${escapeHtml(String(value))} ${escapeHtml(unit)}"
+                                                                                                                data-consumption="${measurement.consumption !== null && measurement.consumption !== undefined ? Number(measurement.consumption).toFixed(2) : ''}"
+                                                                                                                data-unit="${escapeHtml(unit)}"
+                                                                                                                data-cost="${measurement.cost !== null && measurement.cost !== undefined ? Number(measurement.cost).toFixed(2) : ''}"
+                                                                                                                data-currency="${escapeHtml(measurement.currency || 'ARS')}"
+                                                                                                                data-date="${escapeHtml(date)}"
+                                                                                                                data-token="${sensor.public_token || ''}"
+                                                                                                                data-meta='${metaJsonSafe}'>
+                                                                                                            <i class="bi bi-whatsapp"></i>
+                                                                                                        </button>
                                                                                                         <button class="btn btn-sm btn-outline-info analyzeSensorBtn" 
                                                                                                                 title="Análisis Avanzado y Gráfico de Consumo" 
                                                                                                                 data-sensor-id="${sensor.id || measurement.sensor_id}" 
@@ -3698,6 +3767,127 @@
                     }
                 });
             }
+
+            // =============================================
+            // ENVÍO DE LIQUIDACIÓN / INFORME POR WHATSAPP
+            // =============================================
+            let currentWaSensorId = null;
+            let currentWaOriginalPhone = '';
+
+            $(document).on('click', '.sendWhatsAppBtn', function() {
+                const btn = $(this);
+                currentWaSensorId = btn.data('sensor-id');
+                const sensorName = btn.data('sensor-name') || 'Medidor';
+                const sensorIdentifier = btn.data('sensor-identifier') || '';
+                const groupName = btn.data('group-name') || '';
+                const value = btn.data('value') || '';
+                const consumption = btn.data('consumption') || '';
+                const unit = btn.data('unit') || '';
+                const cost = btn.data('cost') || '';
+                const currency = btn.data('currency') || 'ARS';
+                const date = btn.data('date') || '';
+                const token = btn.data('token') || '';
+
+                let meta = {};
+                try {
+                    const rawMeta = btn.attr('data-meta');
+                    if (rawMeta) meta = JSON.parse(rawMeta);
+                } catch(e) {}
+
+                // Buscar campo de teléfono en los metadatos del sensor
+                const phoneKeys = ['telefono', 'celular', 'whatsapp', 'tel', 'phone', 'movil', 'contacto'];
+                let foundPhone = '';
+                for (let k of Object.keys(meta)) {
+                    if (phoneKeys.includes(k.toLowerCase()) && meta[k]) {
+                        foundPhone = String(meta[k]).trim();
+                        break;
+                    }
+                }
+
+                currentWaOriginalPhone = foundPhone;
+                $('#waPhoneNumber').val(foundPhone);
+                $('#waSensorTitle').text(`${sensorName} ${sensorIdentifier ? '(' + sensorIdentifier + ')' : ''}`);
+                $('#waSensorSubtitle').text(`Grupo: ${groupName} • Fecha: ${date}`);
+
+                if (foundPhone) {
+                    $('#waPhoneStatusNotice').html(`<span class="text-success"><i class="bi bi-check-circle me-1"></i> Teléfono recuperado de la ficha del sensor.</span>`);
+                } else {
+                    $('#waPhoneStatusNotice').html(`<span class="text-muted"><i class="bi bi-info-circle me-1"></i> Este sensor no tenía teléfono registrado aún. Al ingresarlo se guardará automáticamente en su ficha.</span>`);
+                }
+
+                // Generar URL pública del visor para que el vecino audite su toma y foto
+                let visorUrl = '';
+                if (token) {
+                    visorUrl = `${window.location.origin}/visor/${token}`;
+                } else {
+                    visorUrl = `${window.location.origin}/mediciones`;
+                }
+
+                // Plantilla de mensaje cordial, clara y profesional
+                let msg = `Hola! Te compartimos la liquidación de consumo registrada en tu medidor:\n\n`;
+                msg += `📍 *Lote / Sensor:* ${sensorName} ${sensorIdentifier ? '(' + sensorIdentifier + ')' : ''}\n`;
+                if (groupName) msg += `🏢 *Grupo / Barrio:* ${groupName}\n`;
+                msg += `📅 *Fecha de Toma:* ${date}\n`;
+                msg += `🔢 *Lectura Actual:* ${value}\n`;
+                if (consumption) msg += `💧 *Consumo del Período:* ${consumption} ${unit}\n`;
+                if (cost) msg += `💵 *Importe:* $${Number(cost).toLocaleString('es-ES', {minimumFractionDigits: 2, maximumFractionDigits: 2})} ${currency}\n`;
+                msg += `\n📸 *Comprobante Digital y Fotografía:* Puedes auditar la foto física del visor y tu historial aquí:\n${visorUrl}\n\n`;
+                msg += `Saludos cordiales,\nAdministración.`;
+
+                $('#waMessageText').val(msg);
+                $('#whatsappSendModal').modal('show');
+            });
+
+            $('#btnConfirmSendWhatsApp').click(function() {
+                const phoneInput = $('#waPhoneNumber').val().trim();
+                const messageText = $('#waMessageText').val().trim();
+
+                if (!phoneInput) {
+                    alert('Por favor ingresa un número de teléfono con código de área (ej: 5491122334455).');
+                    $('#waPhoneNumber').focus();
+                    return;
+                }
+
+                if (!messageText) {
+                    alert('El mensaje no puede estar vacío.');
+                    return;
+                }
+
+                // Limpiar teléfono (solo números)
+                let cleanPhone = phoneInput.replace(/[^0-9]/g, '');
+                // Si en Argentina ingresan 1122334455 sin 549, prefijar 549 si tiene 10 dígitos
+                if (cleanPhone.length === 10 && cleanPhone.startsWith('11')) {
+                    cleanPhone = '549' + cleanPhone;
+                } else if (cleanPhone.length === 10 && !cleanPhone.startsWith('54')) {
+                    cleanPhone = '549' + cleanPhone;
+                }
+
+                // Si el teléfono es nuevo o cambió, guardarlo asincrónicamente en la ficha del sensor
+                if (cleanPhone !== currentWaOriginalPhone && currentWaSensorId) {
+                    const token = localStorage.getItem('token');
+                    $.ajax({
+                        url: `/api/sensors/extra-fields/sensors/${currentWaSensorId}/phone`,
+                        type: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer ' + token,
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        data: JSON.stringify({
+                            phone: cleanPhone,
+                            field_key: 'telefono'
+                        }),
+                        success: function(resp) {
+                            console.log('Teléfono guardado en ficha del sensor:', resp);
+                        }
+                    });
+                }
+
+                // Abrir enlace oficial Click-to-Chat de WhatsApp (Web o App nativa)
+                const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(messageText)}`;
+                window.open(waUrl, '_blank');
+                $('#whatsappSendModal').modal('hide');
+            });
 
             // Leer parámetros de la URL para filtros o apertura automática de auditoría
             const urlParams = new URLSearchParams(window.location.search);
