@@ -480,6 +480,32 @@ Permite a los administradores con plan **Premium** georreferenciar sus medidores
    - Al importar sensores masivamente en un grupo existente, el sistema compara por el `identifier` único del sensor.
    - Si el sensor ya existe en el grupo, se actualizan sus atributos (datos, metadatos, plantilla) y **NO se consume cuota adicional de la suscripción**. Solo se descuenta cupo si el identificador es completamente nuevo.
 
+### 4.9 ¿Cómo agregar un nuevo campo o atributo a un grupo de sensores ya creado?
+Existen **dos métodos** en MedFlow para agregar nuevos campos (atributos personalizados como Lote, Manzana, DNI, Titular, Piso/Depto, Teléfono, Marca, etc.) a un grupo que ya tiene sensores y mediciones operativas:
+
+1. **Método 1: Vía Web Directa (Recomendado, 100% No Invasivo y Sin Excel):**
+   - En el menú lateral, ve a **Sensores > Gestión de Campos Extras** (`/sensors/extra-fields`).
+   - Haz clic en el botón verde superior **"+ Agregar Campo a un Grupo"**.
+   - Se abrirá un modal donde puedes:
+     * Elegir el **Grupo de Sensores** (o aplicar a *Todos los grupos del espacio*).
+     * Ingresar el **Nombre del Campo** (ej: `Lote`, `DNI`, `Titular`, `Telefono`, `Observaciones`, etc.).
+     * (Opcional) Ingresar un valor inicial o dejarlo en blanco para que se inicialice vacío.
+   - Haz clic en **"Crear y Asignar Campo"**.
+   - **Garantía técnica:** Esta acción es 100% segura y no invasiva. Solo agrega la clave en el JSON `metadata` de los sensores del grupo en blanco. **NO altera la base de datos, NO modifica el histórico de mediciones y NO toca la plantilla.** A partir de ese momento, el campo aparecerá en la edición de cada sensor y en los filtros de mediciones.
+
+2. **Método 2: Vía Importación Masiva (Excel / CSV):**
+   - Si tienes los datos en una planilla de cálculo, ve a **Sensores > Importar Sensores** (o **Carga Masiva**).
+   - Sube un archivo con la columna `identificador` (el ID único de cada medidor) y la nueva columna que deseas sumar (ej: `Telefono`, `Responsable`).
+   - El sistema detectará que los sensores ya existen y actualizará/inyectará el nuevo campo sin duplicar sensores ni consumir cuota de suscripción (costo 0 de cuota).
+
+### 4.10 ¿Cómo enviar liquidaciones y comprobantes por WhatsApp a los propietarios?
+- En la vista **Mediciones y Consumos** (`/mediciones`), en la columna de acciones de cada fila, haz clic en el botón verde con el icono de **WhatsApp**.
+- **Flexibilidad con o sin campo telefónico previo:**
+  * **Si el sensor ya tiene un campo telefónico:** El modal detecta automáticamente el número y lo pre-carga.
+  * **Si el sensor NO tiene campo de teléfono:** El administrador puede **escribir el número a mano directamente en el popup**. Al enviar, el sistema mandará el mensaje y además guardará ese teléfono en la ficha del sensor para que quede registrado a futuro.
+- **Mensaje pre-redactado y comprobante:** El texto incluye Lote, Grupo, Fecha de toma, Lectura actual, Consumo en m³/kWh, Importe y el enlace directo al **Visor Público** (`/visor/{token}`) con la foto real del medidor para que el vecino audite su consumo.
+- **Sin costos ni aranceles:** Utiliza el protocolo Click-to-Chat (`wa.me`), abriendo WhatsApp Web o la App sin pagar tarifas de Meta.
+
 ---
 
 ## 5. REFERENCIA RÁPIDA DE RUTAS Y MIDDLEWARES
@@ -528,6 +554,10 @@ Permite a los administradores con plan **Premium** georreferenciar sus medidores
 ## 6. REGLAS DE RESPUESTA PARA FLOWY (resumen ejecutivo)
 
 - Ante "¿cómo hago X?": responder con el flujo paso a paso, citando botones en **negrita** (ej: **Tomar Mediciones**, **Habilitar Monetización**, **Reseteo de Medidor**, **Calendario de Tomas**, **Programar Toma / Tolerancias**, **Mapa de Sensores**, **Picos y Consumos**, **Telemetría**).
+- Ante "¿cómo agrego un campo o atributo nuevo a un grupo de sensores ya creado?": **NUNCA responder que la importación por Excel es la única vía.** Indicar de forma clara y prioritaria que existen **DOS métodos**:
+  1. **Directo desde la Web (Recomendado, 100% no invasivo y sin Excel):** Ir a **Sensores > Gestión de Campos Extras** (`/sensors/extra-fields`) y pulsar el botón verde **"+ Agregar Campo a un Grupo"**. Permite seleccionar el grupo (o todos), escribir el nombre de cualquier atributo (ej: *Lote, Manzana, DNI, Titular, Piso/Depto, Marca de Medidor, Teléfono, etc.*) y se crea en blanco de forma segura, sin tocar mediciones pasadas ni plantillas.
+  2. **Por Importación Masiva (Excel/CSV):** Ir a **Sensores > Carga Masiva** y subir una planilla con el `identificador` y la columna nueva que se desea sumar (el sistema actualiza en el lugar sin duplicar y con costo 0 de cuota).
+- Ante "¿cómo enviar por WhatsApp?": Indicar que en **Mediciones y Consumos** se pulsa el botón verde **WhatsApp** en la fila correspondiente. Es una función eventual y gratuita (Click-to-Chat `wa.me`). Funciona tanto si el sensor ya tiene un campo telefónico (lo autocompleta) como si **NO lo tiene** (el usuario puede tipear el número a mano directamente en el popup en ese instante, y el sistema lo envía y opcionalmente lo guarda en la ficha del sensor). Incluye enlace al comprobante oficial con foto para el vecino.
 - Ante cálculos: mostrar la **fórmula exacta** documentada (costo, prorrateo, packs, tasa diaria).
 - Ante límites: indicar el plan requerido (Free/Básico/Premium) y el middleware que lo valida.
 - Ante "¿existe la función Y?": solo confirmar si está en este documento; si no, declarar no documentada.
