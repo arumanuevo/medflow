@@ -569,18 +569,20 @@ Permite a los administradores con plan **Premium** georreferenciar sus medidores
 
 ---
 
-## 8. GESTIÓN DE CAMPOS EXTRAS Y COMUNICACIÓN POR WHATSAPP (Click-to-Chat Gratuito)
+## 8. GESTIÓN ESTRUCTURAL DE CAMPOS EXTRAS Y COMUNICACIÓN POR WHATSAPP (Click-to-Chat Gratuito)
 
-### 8.1 Agregar Nuevos Atributos a un Grupo Existente (100% No Invasivo)
-- Desde **Sensores > Gestión de Campos Extras** (`/sensors/extra-fields`), el botón **"Agregar Campo a un Grupo"** permite crear un nuevo campo en blanco para todos los sensores de un grupo o de todo el workspace (`POST /api/sensors/extra-fields/add-to-group`).
-- **Seguridad total:** Se inyecta en el JSON `metadata` del sensor sin tocar ni alterar la tabla de `measurements`, sin modificar el esquema de `templates`, y preservando todos los valores históricos.
+### 8.1 Gestión Estructural de Atributos y Campos Extras Dinámicos (100% No Invasivo)
+- **Capacidad estructural y multiuso:** La creación y asignación de nuevos campos extras a grupos existentes es una funcionalidad genérica de la plataforma que **no se restringe a números de teléfono**. Sirve para cualquier atributo operativo o administrativo que requiera el usuario: *Lote, Manzana, DNI, Titular/Propietario, Piso/Depto, Marca de Medidor, Coeficiente de Prorrateo, Categoría Tarifaria, Observaciones, etc.*
+- **Operación segura y no traumática:** Desde **Sensores > Gestión de Campos Extras** (`/sensors/extra-fields`), el botón **"Agregar Campo a un Grupo"** (`POST /api/sensors/extra-fields/add-to-group`) permite elegir un grupo específico (o todos los grupos) y agregar el nuevo atributo en blanco. 
+- **Integridad total de datos:** Esta acción inyecta la clave en el JSON `metadata` de los sensores sin modificar el esquema SQL de tablas, sin alterar las plantillas (`templates`) y sin tocar ninguna medición histórica ya registrada en el sistema.
 
-### 8.2 Envío de Liquidaciones e Informes por WhatsApp
-- En la tabla de **Mediciones y Consumos** (`/mediciones`), cada fila cuenta con el botón verde **WhatsApp** (`.sendWhatsAppBtn`).
-- **Detección inteligente de teléfono:** Busca automáticamente en los metadatos del sensor si ya tiene cargado `telefono`, `celular`, `whatsapp`, etc.
-- **Carga rápida al vuelo:** Si el sensor aún no tenía teléfono, el modal permite ingresarlo en el momento y lo guarda automáticamente en su ficha (`POST /api/sensors/extra-fields/sensors/{id}/phone`).
-- **Mensaje oficial con comprobante:** Pre-redacta un mensaje detallado (Lote, Grupo, Fecha, Lectura, Consumo, Costo) y el enlace al **Visor Público** (`/visor/{token}`) con la fotografía original del medidor.
-- **Sin aranceles ni costos:** Utiliza el protocolo oficial Click-to-Chat (`wa.me`), abriendo WhatsApp Web o la app nativa sin requerir pasarelas pagas ni aranceles a Meta.
+### 8.2 Envío Eventual de Informes y Liquidaciones por WhatsApp (Con o Sin Campo Telefónico Previo)
+- **Comunicaciones eventuales y a demanda:** En la tabla unificada de **Mediciones y Consumos** (`/mediciones`), cada fila dispone en su columna de acciones del botón verde **WhatsApp** (`.sendWhatsAppBtn`).
+- **Flexibilidad total con o sin campo telefónico:**
+  * **Con campo telefónico precargado:** Si el sensor ya cuenta con un atributo como `telefono`, `celular`, `whatsapp`, `tel` o `phone` en sus metadatos, el sistema lo detecta automáticamente y lo pre-carga en el modal.
+  * **Sin campo telefónico previo (carga manual al vuelo):** Si el sensor **NO tiene ningún campo de teléfono creado**, el administrador puede **tipear el número a mano directamente en el popup**. Al presionar enviar, el sistema opcionalmente guarda ese número en la ficha del sensor (`POST /api/sensors/extra-fields/sensors/{id}/phone`) para que ya quede registrado a futuro, sin obligar al usuario a configurar campos previamente.
+- **Mensaje oficial con comprobante y fotografía:** El sistema genera un mensaje pre-armado y editable con el Lote/Sensor, Grupo, Fecha de toma, Lectura registrada, Consumo del período, Importe en moneda local y el enlace al **Visor Público** (`/visor/{token}`) para que el vecino audite la fotografía real de su medidor y el gráfico histórico.
+- **Cero aranceles y sin riesgo de baneo:** Opera mediante el protocolo nativo `wa.me`, abriendo la conversación directamente en WhatsApp Web o la App oficial sin consumir saldo ni intermediarios de pago.
 
 
 

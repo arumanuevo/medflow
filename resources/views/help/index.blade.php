@@ -147,6 +147,20 @@
                                     data-steps="Pasos: &lt;br&gt;1. Dirigete a la sección de Backups de Evidencias.&lt;br&gt;2. Selecciona un grupo.&lt;br&gt;3. El navegador empaquetará todo sin sobrecargar la red y arrojará un archivo .zip a tu computadora.">
                                     <i class="bi bi-archive me-1 text-warning"></i> Política de Retención y Backups ZIP</a>
                             </li>
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal"
+                                    data-title="Gestión Estructural: Agregar Nuevos Atributos a un Grupo Existente"
+                                    data-content="MedFlow te permite incorporar nuevos campos y atributos a tus sensores en cualquier momento de forma <strong>100% segura y no traumática</strong>, incluso si la base ya tiene miles de mediciones y está en pleno funcionamiento operativo.&lt;br&gt;&lt;br&gt;&lt;strong&gt;• Capacidad Estructural Universal:&lt;/strong&gt; Esta función no está limitada a teléfonos; sirve para cualquier dato administrativo que necesites (ej: &lt;em&gt;Lote, Manzana, DNI, Titular, Piso/Depto, Marca de Medidor, Coeficiente, Observaciones internas&lt;/em&gt;).&lt;br&gt;&lt;strong&gt;• Inicialización en blanco:&lt;/strong&gt; El nuevo campo se crea vacío en todos los sensores del grupo seleccionado sin alterar fórmulas, sin tocar esquemas SQL y sin modificar ninguna medición histórica."
+                                    data-steps="Ingresa a &lt;strong&gt;Sensores > Gestión de Campos Extras&lt;/strong&gt;, pulsa el botón &lt;strong&gt;+ Agregar Campo a un Grupo&lt;/strong&gt;, selecciona el grupo destino y escribe el nombre del atributo.">
+                                    <i class="bi bi-tags-fill me-1 text-primary"></i> Agregar campos a un grupo existente</a>
+                            </li>
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal"
+                                    data-title="Comunicaciones Eventuales por WhatsApp (Con o Sin Teléfono Previo)"
+                                    data-content="En la tabla de &lt;strong&gt;Mediciones y Consumos&lt;/strong&gt; puedes enviar liquidaciones y reportes a los vecinos vía WhatsApp de forma individual y a demanda, sin pagar aranceles a Meta ni contratar pasarelas costosas.&lt;br&gt;&lt;br&gt;&lt;strong&gt;• Con teléfono precargado:&lt;/strong&gt; Si el sensor ya tiene cargado un atributo telefónico (ej: &lt;em&gt;telefono, celular o whatsapp&lt;/em&gt;), el sistema lo detecta y lo autocompleta en el mensaje.&lt;br&gt;&lt;strong&gt;• Sin teléfono previo (escritura a mano):&lt;/strong&gt; Si el sensor &lt;strong&gt;NO tiene ningún campo de teléfono&lt;/strong&gt;, no hay problema: al pulsar el botón verde de WhatsApp, puedes &lt;strong&gt;escribir el número a mano en el modal en ese mismo instante&lt;/strong&gt;. El sistema enviará el mensaje y además guardará ese teléfono en la ficha del sensor para que no tengas que volver a escribirlo la próxima vez.&lt;br&gt;&lt;strong&gt;• Comprobante oficial:&lt;/strong&gt; El mensaje pre-redactado incluye el link oficial al &lt;em&gt;Visor Público&lt;/em&gt; con la fotografía real del medidor para máxima transparencia."
+                                    data-steps="En &lt;strong&gt;Mediciones y Consumos&lt;/strong&gt;, ve a la columna de Acciones de cualquier fila y presiona el botón verde con el icono de &lt;strong&gt;WhatsApp&lt;/strong&gt;. Revisa o escribe el teléfono y haz clic en &lt;strong&gt;Abrir WhatsApp&lt;/strong&gt;.">
+                                    <i class="bi bi-whatsapp me-1 text-success"></i> Envío eventual por WhatsApp (con o sin teléfono previo)</a>
+                            </li>
                         </ul>
                     </div>
                 </div>
