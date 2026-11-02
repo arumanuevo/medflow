@@ -97,7 +97,7 @@ class SidebarService
             ],
             [
                 'icon' => 'bi bi-speedometer',
-                'label' => 'Sensores',
+                'label' => 'Medidores',
                 'url' => '/sensors',
                 'active' => request()->is('sensors*') && !request()->is('sensors/create*'),
             ],
@@ -112,7 +112,7 @@ class SidebarService
         if ($hasPremium) {
             $menu[] = [
                 'icon' => 'bi bi-geo-alt-fill',
-                'label' => 'Mapa de Sensores',
+                'label' => 'Mapa de Medidores',
                 'url' => '/mapa-sensores',
                 'active' => request()->is('mapa-sensores*'),
             ];
@@ -127,7 +127,7 @@ class SidebarService
         $menu = array_merge($menu, [
             [
                 'icon' => 'bi bi-folder',
-                'label' => 'Grupos',
+                'label' => 'Grupos de Medidores',
                 'url' => '/sensor-groups',
                 'active' => request()->is('sensor-groups*'),
             ],

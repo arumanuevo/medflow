@@ -1,6 +1,6 @@
 @extends('layouts.modern')
 
-@section('title', 'Editar Grupo de Sensores - MeasureFlow')
+@section('title', 'Editar Grupo de Medidores - MedFlow')
 
 @section('content')
     <!-- Incluir el archivo CSS externo -->
@@ -11,7 +11,7 @@
             <div class="col-md-8">
                 <div class="card">
                     <div class="card-header bg-primary text-white">
-                        <h4><i class="bi bi-folder btn-icon"></i> Editar Grupo de Sensores</h4>
+                        <h4><i class="bi bi-folder btn-icon"></i> Editar Grupo de Medidores</h4>
                     </div>
                     <div class="card-body">
                         <form id="sensorGroupForm">
@@ -104,16 +104,83 @@
                                                     value="{{ $billing['fixed_charge'] ?? '0' }}">
                                             </div>
                                             <div class="col-md-4 mb-3">
-                                                <label class="form-label" data-bs-toggle="tooltip" title="Ingresa el costo por cada unidad consumida. Se multiplicará por el consumo del periodo.">Costo x Unidad <i class="bi bi-info-circle text-muted"></i></label>
-                                                <input type="number" step="0.01" class="form-control" id="billingPrice"
-                                                    value="{{ $billing['price_per_unit'] ?? '0' }}">
+                                                <label class="form-label fw-semibold text-dark" data-bs-toggle="tooltip" title="Ingresa el costo por cada unidad consumida. Debe ser mayor a 0 cuando la liquidación esté activa.">Costo x Unidad <span class="text-danger">*</span> <i class="bi bi-info-circle text-muted"></i></label>
+                                                <input type="number" step="0.0001" min="0.0001" class="form-control" id="billingPrice"
+                                                    value="{{ $billing['price_per_unit'] ?? '' }}" placeholder="Mayor a 0 (ej: 150.00)" required>
+                                                <div class="form-text text-danger" id="billingPriceError" style="display:none; font-size: 0.73rem;">El costo por unidad debe ser estrictamente mayor a 0.</div>
                                             </div>
                                         </div>
-                                        <div class="form-check form-switch mt-3">
+                                        <div class="form-check form-switch mt-2">
                                             <input class="form-check-input" type="checkbox" id="billingShowPublic" {{ (isset($billing['show_in_public_viewer']) && $billing['show_in_public_viewer']) || !isset($billing['show_in_public_viewer']) ? 'checked' : '' }}>
                                             <label class="form-check-label" for="billingShowPublic">Mostrar valores monetarios en el Visor Público / Links Compartidos</label>
                                         </div>
-                                        <small class="text-muted">Si habilitas esto, el sistema calculará un costo estimado en la vista pública de cada sensor de este grupo.</small>
+                                        <small class="text-muted d-block mb-3">Si habilitas esto, el sistema calculará un costo estimado en la vista pública de cada medidor de este grupo.</small>
+
+                                        <!-- Sección Medidor General y Tratamiento de Remanentes (Macro-Medición) -->
+                                        @php
+                                            $macro = $billing['macro_meter'] ?? [];
+                                            $macroEnabled = !empty($macro['enabled']);
+                                            $macroSensorId = $macro['sensor_id'] ?? '';
+                                            $macroTreatment = $macro['treatment'] ?? 'prorate_proportional';
+                                            $macroNotes = $macro['notes'] ?? '';
+                                        @endphp
+                                        <div class="border rounded-3 p-3 bg-white shadow-sm border-info-subtle mt-3">
+                                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                                <div class="form-check form-switch mb-0">
+                                                    <input class="form-check-input" type="checkbox" id="macroMeterEnabled" {{ $macroEnabled ? 'checked' : '' }}>
+                                                    <label class="form-check-label fw-bold text-dark" for="macroMeterEnabled">
+                                                        <i class="bi bi-diagram-3-fill text-primary me-1"></i> Balance con Medidor General (Macro-Medidor / Barrios Cerrados)
+                                                    </label>
+                                                </div>
+                                                <span class="badge bg-primary text-white">Casos Especiales</span>
+                                            </div>
+                                            <p class="text-muted small mb-3">
+                                                Útil para barrios privados o predios con un medidor general de entrada cuya factura total no coincide exactamente con la suma de los medidores individuales.
+                                            </p>
+
+                                            <div id="macroMeterFields" style="display: {{ $macroEnabled ? 'block' : 'none' }};">
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <label class="form-label fw-semibold small">Medidor General del Grupo (Boca de Entrada)</label>
+                                                        <select class="form-select form-select-sm" id="macroMeterSensorId">
+                                                            <option value="">-- Sin medidor asignado (Cálculo por factura externa) --</option>
+                                                            @if(isset($group->sensors))
+                                                                @foreach($group->sensors as $s)
+                                                                    <option value="{{ $s->id }}" {{ $macroSensorId == $s->id ? 'selected' : '' }}>
+                                                                        {{ $s->name }} ({{ $s->identifier }})
+                                                                    </option>
+                                                                @endforeach
+                                                            @endif
+                                                        </select>
+                                                        <div class="form-text" style="font-size: 0.72rem;">Selecciona el medidor que toma la lectura global del predio.</div>
+                                                    </div>
+
+                                                    <div class="col-md-6">
+                                                        <label class="form-label fw-semibold small">Tratamiento del Remanente / Diferencia de Consumo <span class="text-danger">*</span></label>
+                                                        <select class="form-select form-select-sm" id="macroMeterTreatment">
+                                                            <option value="prorate_proportional" {{ $macroTreatment === 'prorate_proportional' ? 'selected' : '' }}>
+                                                                Prorratear proporcional al consumo privado (Quién más consumió, más asume)
+                                                            </option>
+                                                            <option value="prorate_equal" {{ $macroTreatment === 'prorate_equal' ? 'selected' : '' }}>
+                                                                Prorratear en partes iguales entre medidores activos (Cuota uniforme)
+                                                            </option>
+                                                            <option value="common_areas" {{ $macroTreatment === 'common_areas' ? 'selected' : '' }}>
+                                                                Asignar a Áreas Comunes / Consumo Central (Absorbido por la administración)
+                                                            </option>
+                                                            <option value="losses_technical" {{ $macroTreatment === 'losses_technical' ? 'selected' : '' }}>
+                                                                Registrar como Pérdida Técnica / Ineficiencia de Red (Auditoría de fugas, no se cobra)
+                                                            </option>
+                                                        </select>
+                                                        <div class="form-text" style="font-size: 0.72rem;">Elige qué hacer contablemente con la diferencia entre el general y la suma de lotes.</div>
+                                                    </div>
+
+                                                    <div class="col-12">
+                                                        <label class="form-label fw-semibold small">Notas Contables / Subcuenta de Asignación (Opcional)</label>
+                                                        <input type="text" class="form-control form-control-sm" id="macroMeterNotes" value="{{ $macroNotes }}" placeholder="Ej: Imputar a expensas de espacios comunes o subcuenta de mantenimiento">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -251,6 +318,15 @@
                 }
             });
 
+            // Toggle Medidor General
+            $('#macroMeterEnabled').change(function() {
+                if($(this).is(':checked')) {
+                    $('#macroMeterFields').slideDown();
+                } else {
+                    $('#macroMeterFields').slideUp();
+                }
+            });
+
             // Guardar cambios
             $('#saveSensorGroup').click(async function() {
                 const groupId = $('#groupId').val();
@@ -270,12 +346,32 @@
                 
                 let billing_settings = null;
                 if($('#billingEnabled').is(':checked')) {
+                    const pricePerUnit = parseFloat($('#billingPrice').val()) || 0;
+                    if (pricePerUnit <= 0) {
+                        $('#billingPriceError').show();
+                        $('#billingPrice').addClass('is-invalid').focus();
+                        showAlert('El Costo por Unidad debe ser estrictamente mayor a 0 cuando la liquidación financiera está habilitada.', 'danger');
+                        return;
+                    } else {
+                        $('#billingPriceError').hide();
+                        $('#billingPrice').removeClass('is-invalid');
+                    }
+
+                    const isMacro = $('#macroMeterEnabled').is(':checked');
+                    const macroObj = {
+                        enabled: isMacro,
+                        sensor_id: isMacro && $('#macroMeterSensorId').val() ? parseInt($('#macroMeterSensorId').val()) : null,
+                        treatment: isMacro ? $('#macroMeterTreatment').val() : 'prorate_proportional',
+                        notes: isMacro ? ($('#macroMeterNotes').val() || '').trim() : null
+                    };
+
                     billing_settings = {
                         is_enabled: true,
                         currency: $('#billingCurrency').val(),
                         fixed_charge: parseFloat($('#billingFixed').val()) || 0,
-                        price_per_unit: parseFloat($('#billingPrice').val()) || 0,
+                        price_per_unit: pricePerUnit,
                         show_in_public_viewer: $('#billingShowPublic').is(':checked'),
+                        macro_meter: macroObj,
                         schedule: scheduleObj
                     };
                 } else {

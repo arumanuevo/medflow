@@ -1,6 +1,6 @@
 @extends('layouts.modern')
 
-@section('title', 'Medición Masiva - ' . ($sensor->name ?? 'Sensor'))
+@section('title', 'Medición Masiva - ' . ($medidor->name ?? 'Medidor'))
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/bulk-measurement.css') }}">
@@ -15,10 +15,10 @@
                 Medición Masiva
             </h5>
             <div>
-                <a href="{{ route('measurements.select-sensor') }}" class="btn btn-light btn-sm me-1">
+                <a href="{{ route('measurements.select-medidor') }}" class="btn btn-light btn-sm me-1">
                     <i class="bi bi-arrow-left me-1"></i> Volver
                 </a>
-                <a href="{{ route('sensors.index') }}" class="btn btn-light btn-sm">
+                <a href="{{ route('medidors.index') }}" class="btn btn-light btn-sm">
                     <i class="bi bi-x-lg"></i> Cancelar
                 </a>
             </div>
@@ -33,17 +33,17 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <span class="progress-text">
                         <i class="bi bi-list-check me-1"></i>
-                        Sensor {{ $currentPosition }} de {{ $totalMarked }}
+                        Medidor {{ $currentPosition }} de {{ $totalMarked }}
                     </span>
-                    @if($hasMoreSensors)
+                    @if($hasMoreMedidors)
                         <span class="badge bg-info text-dark">
                             <i class="bi bi-arrow-right me-1"></i>
-                            Siguiente sensor disponible
+                            Siguiente medidor disponible
                         </span>
                     @else
                         <span class="badge bg-success">
                             <i class="bi bi-check-circle me-1"></i>
-                            Último sensor
+                            Último medidor
                         </span>
                     @endif
                 </div>
@@ -54,27 +54,27 @@
 
             <!-- DEPURACIÓN TEMPORAL -->
             <div class="alert alert-info small">
-                <strong>Debug:</strong> Sensor ID: {{ $sensor->id }} | Posición: {{ $currentPosition }} de {{ $totalMarked }} | ¿Siguiente? {{ $hasMoreSensors ? 'Sí' : 'No' }}
-                @if($hasMoreSensors && isset($nextSensor))
-                    | Siguiente ID: {{ $nextSensor->id }}
+                <strong>Debug:</strong> Medidor ID: {{ $medidor->id }} | Posición: {{ $currentPosition }} de {{ $totalMarked }} | ¿Siguiente? {{ $hasMoreMedidors ? 'Sí' : 'No' }}
+                @if($hasMoreMedidors && isset($nextMedidor))
+                    | Siguiente ID: {{ $nextMedidor->id }}
                 @endif
             </div>
 
             <!-- ============================================
             INFO COMPACTA DEL SENSOR
             ============================================ -->
-            <div class="sensor-info-compact">
+            <div class="medidor-info-compact">
                 <span class="info-item">
                     <i class="bi bi-tag"></i>
-                    <strong>{{ $sensor->name }}</strong>
+                    <strong>{{ $medidor->name }}</strong>
                 </span>
                 <span class="info-item">
                     <i class="bi bi-hash"></i>
-                    {{ $sensor->identifier }}
+                    {{ $medidor->identifier }}
                 </span>
                 <span class="info-item">
                     <i class="bi bi-folder"></i>
-                    {{ $sensor->group->name ?? 'Sin grupo' }}
+                    {{ $medidor->group->name ?? 'Sin grupo' }}
                 </span>
                 <span class="info-item">
                     <i class="bi bi-clock"></i>
@@ -91,7 +91,7 @@
                         <div class="col-md-6">
                             <div class="label">Última medición</div>
                             <div class="value">
-                                {{ number_format($lastValue, 2) }} <span class="unit">m³</span>
+                                {{ number_format($lastValue, 2, ',', '.') }} <span class="unit">m³</span>
                             </div>
                         </div>
                         <div class="col-md-6 text-md-end">
@@ -106,7 +106,7 @@
                 <div class="previous-measurement-box" style="border-left-color: #ffc107; background: #fff8e7;">
                     <div class="label">⚠️ Sin mediciones anteriores</div>
                     <div class="value" style="font-size: 0.9rem; font-weight: 400;">
-                        Esta es la primera medición para este sensor.
+                        Esta es la primera medición para este medidor.
                     </div>
                 </div>
             @endif
@@ -116,8 +116,8 @@
             ============================================ -->
             <form id="measurementForm">
                 @csrf
-                <input type="hidden" name="sensor_id" value="{{ $sensor->id }}">
-                <input type="hidden" id="groupName" value="{{ str_replace(' ', '_', $sensor->group->name ?? 'SinGrupo') }}">
+                <input type="hidden" name="medidor_id" value="{{ $medidor->id }}">
+                <input type="hidden" id="groupName" value="{{ str_replace(' ', '_', $medidor->group->name ?? 'SinGrupo') }}">
 
                 <!-- Valor -->
                 <div class="mb-3">
@@ -131,7 +131,7 @@
                     </div>
                     @if($lastValue !== null)
                         <small class="text-muted">
-                            Anterior: <strong>{{ number_format($lastValue, 2) }} m³</strong>
+                            Anterior: <strong>{{ number_format($lastValue, 2, ',', '.') }} m³</strong>
                             <span id="consumptionDiff" class="badge bg-secondary ms-1">Diferencia: 0.00 m³</span>
                         </small>
                     @endif
@@ -206,8 +206,8 @@
                 <!-- Campos personalizados -->
                 @php
                     $customFields = [];
-                    if (isset($sensor->group) && isset($sensor->group->template) && isset($sensor->group->template->schema['campos'])) {
-                        $customFields = array_filter($sensor->group->template->schema['campos'], function($campo) {
+                    if (isset($medidor->group) && isset($medidor->group->template) && isset($medidor->group->template->schema['campos'])) {
+                        $customFields = array_filter($medidor->group->template->schema['campos'], function($campo) {
                             return !in_array($campo['nombre'], ['consumo_m3', 'foto', 'fecha_medicion', 'identificador']);
                         });
                     }
@@ -256,23 +256,23 @@ DEBUG DETALLADO - TEMPORAL
         <h6 class="text-warning"><i class="bi bi-bug me-1"></i> DEBUG - BULK CREATE</h6>
         <div class="row small">
             <div class="col-md-6">
-                <strong>Sensor actual:</strong> ID {{ $sensor->id }} - {{ $sensor->name }}
+                <strong>Medidor actual:</strong> ID {{ $medidor->id }} - {{ $medidor->name }}
                 <br>
-                <strong>Marcado:</strong> {{ $sensor->marcado_para_medicion ? '✅ Sí' : '❌ No' }}
+                <strong>Marcado:</strong> {{ $medidor->marcado_para_medicion ? '✅ Sí' : '❌ No' }}
                 <br>
                 <strong>Posición:</strong> {{ $currentPosition }} de {{ $totalMarked }}
             </div>
             <div class="col-md-6">
-                <strong>¿Tiene siguiente?</strong> {{ $hasMoreSensors ? '✅ Sí' : '❌ No' }}
-                @if($hasMoreSensors && isset($nextSensor))
+                <strong>¿Tiene siguiente?</strong> {{ $hasMoreMedidors ? '✅ Sí' : '❌ No' }}
+                @if($hasMoreMedidors && isset($nextMedidor))
                     <br>
-                    <strong>Siguiente:</strong> ID {{ $nextSensor->id }} - {{ $nextSensor->name }}
+                    <strong>Siguiente:</strong> ID {{ $nextMedidor->id }} - {{ $nextMedidor->name }}
                     <br>
-                    <strong>URL siguiente:</strong> <code>{{ $nextSensorUrl }}</code>
+                    <strong>URL siguiente:</strong> <code>{{ $nextMedidorUrl }}</code>
                 @endif
-                @if(isset($firstSensorId))
+                @if(isset($firstMedidorId))
                     <br>
-                    <strong>Primer sensor:</strong> ID {{ $firstSensorId }}
+                    <strong>Primer medidor:</strong> ID {{ $firstMedidorId }}
                 @endif
             </div>
         </div>
@@ -280,9 +280,9 @@ DEBUG DETALLADO - TEMPORAL
         <div class="small text-muted">
             <strong>Todos los IDs marcados:</strong> 
             @php
-                $allIds = \App\Models\Sensor::where('marcado_para_medicion', true)
-                    ->whereHas('group', function($q) use ($sensor) {
-                        $q->where('user_id', $sensor->group->user_id ?? 0);
+                $allIds = \App\Models\Medidor::where('marcado_para_medicion', true)
+                    ->whereHas('group', function($q) use ($medidor) {
+                        $q->where('user_id', $medidor->group->user_id ?? 0);
                     })
                     ->orderBy('id', 'asc')
                     ->pluck('id')
@@ -294,15 +294,15 @@ DEBUG DETALLADO - TEMPORAL
 </div>
                 <!-- Botones -->
                 <div class="d-flex gap-2 mt-4 pt-3 border-top">
-                    <a href="{{ route('measurements.select-sensor') }}" class="btn btn-secondary">
+                    <a href="{{ route('measurements.select-medidor') }}" class="btn btn-secondary">
                         <i class="bi bi-arrow-left me-1"></i> Volver
                     </a>
                     <button type="submit" class="btn btn-primary flex-grow-1" id="saveMeasurementBtn">
                         <i class="bi bi-check-circle me-1"></i> Guardar Medición
                     </button>
-                    @if($hasMoreSensors && isset($nextSensor))
-                        <a href="{{ route('measurements.bulk-create', $nextSensor->id) }}" 
-                           class="btn btn-info btn-next-sensor" id="nextSensorBtn">
+                    @if($hasMoreMedidors && isset($nextMedidor))
+                        <a href="{{ route('measurements.bulk-create', $nextMedidor->id) }}" 
+                           class="btn btn-info btn-next-medidor" id="nextMedidorBtn">
                             <i class="bi bi-arrow-right me-1"></i> Siguiente
                         </a>
                     @endif
@@ -347,13 +347,13 @@ $(document).ready(function() {
     // =============================================
     // CONFIGURACIÓN
     // =============================================
-    const sensorId = {{ $sensor->id }};
-    const groupName = '{{ str_replace(' ', '_', $sensor->group->name ?? 'SinGrupo') }}';
+    const medidorId = {{ $medidor->id }};
+    const groupName = '{{ str_replace(' ', '_', $medidor->group->name ?? 'SinGrupo') }}';
     const token = localStorage.getItem('token');
     const lastValue = {{ $lastValue !== null ? $lastValue : 'null' }};
-    const hasMoreSensors = {{ $hasMoreSensors ? 'true' : 'false' }};
+    const hasMoreMedidors = {{ $hasMoreMedidors ? 'true' : 'false' }};
     const allMeasurements = @json($allMeasurements ?? []);
-    const nextSensorUrl = @json(isset($nextSensor) ? route('measurements.bulk-create', $nextSensor->id) : null);
+    const nextMedidorUrl = @json(isset($nextMedidor) ? route('measurements.bulk-create', $nextMedidor->id) : null);
 
     let hasRealPhoto = false;
     let stream = null;
@@ -519,7 +519,7 @@ $(document).ready(function() {
             time = now.toTimeString().slice(0, 5).replace(/:/g, '');
         }
 
-        return `${groupName}_${sensorId}_${date}_${time}.png`;
+        return `${groupName}_${medidorId}_${date}_${time}.png`;
     }
 
     async function startCamera() {
@@ -620,7 +620,7 @@ $(document).ready(function() {
 
         const formData = new FormData();
         formData.append('foto', photoBlob, $('#photo').val());
-        formData.append('sensor_id', sensorId);
+        formData.append('medidor_id', medidorId);
 
         return new Promise((resolve, reject) => {
             $.ajax({
@@ -695,7 +695,7 @@ $(document).ready(function() {
 
         // Preparar datos
         const formData = {
-            sensor_id: sensorId,
+            medidor_id: medidorId,
             data: {
                 consumo_m3: consumoNum,
                 foto: $('#photo').val(),
@@ -731,15 +731,15 @@ $(document).ready(function() {
             if (response.success) {
                 showAlert('✅ Medición guardada correctamente', 'success');
                 
-                if (hasMoreSensors && nextSensorUrl) {
+                if (hasMoreMedidors && nextMedidorUrl) {
                     $btn.prop('disabled', false).html('<i class="bi bi-check-circle me-1"></i> Guardado ✓');
-                    showAlert('📋 Redirigiendo al siguiente sensor...', 'info');
+                    showAlert('📋 Redirigiendo al siguiente medidor...', 'info');
                     setTimeout(() => {
-                        window.location.href = nextSensorUrl;
+                        window.location.href = nextMedidorUrl;
                     }, 1500);
                 } else {
                     setTimeout(() => {
-                        window.location.href = '/sensors/' + sensorId;
+                        window.location.href = '/medidors/' + medidorId;
                     }, 1500);
                 }
             } else {

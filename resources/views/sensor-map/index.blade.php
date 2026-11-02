@@ -1,6 +1,6 @@
 @extends('layouts.modern')
 
-@section('title', 'Mapa Interactivo de Sensores (GIS) - MedFlow')
+@section('title', 'Mapa Interactivo de Medidores (GIS) - MedFlow')
 
 @push('styles')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
@@ -324,7 +324,7 @@
                         <span class="text-white-50 small">Centro de Inteligencia Geográfica y Telemetría</span>
                     </div>
                     <h4 class="mb-0 fw-bold text-white">
-                        <i class="bi bi-geo-alt-fill text-info me-1"></i> Mapa GIS de Sensores, Tomas y Consumos
+                        <i class="bi bi-geo-alt-fill text-info me-1"></i> Mapa GIS de Medidores, Tomas y Consumos
                     </h4>
                 </div>
 
@@ -358,7 +358,7 @@
     <div class="gis-quick-filters" id="gisQuickFiltersBar">
         <div class="gis-stat-card active" data-quick-filter="all" style="border-left-color: #3b82f6;">
             <div>
-                <div class="stat-label">Todos los Sensores</div>
+                <div class="stat-label">Todos los Medidores</div>
                 <div class="stat-sub"><span id="kpiLocatedSub">{{ $stats['located'] }}</span> en mapa (<span id="kpiCoverageSub">{{ $stats['coverage_percent'] }}%</span>)</div>
             </div>
             <div class="stat-value text-primary" id="kpiTotalSensors">{{ $stats['total'] }}</div>
@@ -528,7 +528,7 @@
                 <div class="gis-placing-banner" id="placingModeBanner">
                     <i class="bi bi-geo-fill fs-5"></i>
                     <div>
-                        <span>Ubicando sensor: <strong id="placingSensorName">-</strong></span>
+                        <span>Ubicando medidor: <strong id="placingSensorName">-</strong></span>
                         <div class="small fw-normal opacity-90">Haz clic en el punto exacto del mapa donde se encuentra el medidor</div>
                     </div>
                     <button type="button" class="btn btn-light btn-sm rounded-pill fw-bold px-3 ms-2" id="btnCancelPlacing">
@@ -550,14 +550,14 @@
             <div class="modal-header bg-dark text-white">
                 <div>
                     <h5 class="modal-title mb-0 fw-bold" id="telemetryModalTitle">
-                        <i class="bi bi-graph-up-arrow text-info me-2"></i>Telemetría del Sensor
+                        <i class="bi bi-graph-up-arrow text-info me-2"></i>Telemetría del Medidor
                     </h5>
                     <small class="text-white-50" id="telemetryModalSubtitle">-</small>
                 </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body">
-                {{-- Fila de KPIs del Sensor --}}
+                {{-- Fila de KPIs del Medidor --}}
                 <div class="row g-2 mb-3">
                     <div class="col-md-3 col-6">
                         <div class="p-2 rounded border bg-light h-100">
@@ -628,7 +628,7 @@
                         <i class="bi bi-rulers me-1"></i> Tomar Medición
                     </a>
                     <a href="#" id="telemetryShowBtn" class="btn btn-outline-secondary btn-sm">
-                        <i class="bi bi-eye me-1"></i> Ficha del Sensor
+                        <i class="bi bi-eye me-1"></i> Ficha del Medidor
                     </a>
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
                 </div>
@@ -643,7 +643,7 @@
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-dark text-white">
                 <h5 class="modal-title">
-                    <i class="bi bi-pin-map-fill text-info me-2"></i>Coordenadas del Sensor
+                    <i class="bi bi-pin-map-fill text-info me-2"></i>Coordenadas del Medidor
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
@@ -1083,7 +1083,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="text-center text-muted py-5 px-3">
                     <i class="bi bi-geo-alt fs-1 d-block mb-2 opacity-50"></i>
                     <p class="mb-1 fw-semibold">No hay sensores con este criterio</p>
-                    <small>Prueba seleccionando "Todos los Sensores" arriba.</small>
+                    <small>Prueba seleccionando "Todos los Medidores" arriba.</small>
                 </div>
             `;
             return;

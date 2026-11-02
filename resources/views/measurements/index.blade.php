@@ -357,7 +357,7 @@
                             </h5>
 
                             <div class="card-header-tools d-flex align-items-center flex-wrap gap-1 gap-md-2 justify-content-end">
-                                <button class="btn btn-warning btn-sm" id="btnOpenGlobalRadar" title="Escanear anomalías en todos los sensores">
+                                <button class="btn btn-warning btn-sm" id="btnOpenGlobalRadar" title="Escanear anomalías en todos los medidores">
                                     <i class="bi bi-radar me-1"></i> Radar Global
                                 </button>
                                 <button class="btn btn-info text-white btn-sm" id="btnBulkUploadPhotos" title="Subir lote de fotos o archivo .ZIP">
@@ -371,7 +371,7 @@
                                     <span id="toggleErrorsText">Auditoría</span>
                                     <span id="auditBadge" class="badge rounded-pill ms-1 d-none" style="font-size: 0.65rem;"></span>
                                 </button>
-                                <a href="{{ route('sensor-groups.index') }}" class="btn btn-light btn-sm" title="Ir al listado y gestión de Grupos de Sensores">
+                                <a href="{{ route('sensor-groups.index') }}" class="btn btn-light btn-sm" title="Ir al listado y gestión de Grupos de Medidores">
                                     <i class="bi bi-folder2-open me-1"></i> Ver Grupos
                                 </a>
                             </div>
@@ -416,7 +416,7 @@
                                         <h5 class="card-title"><i class="bi bi-clock-history me-2"></i> Primera Medición
                                         </h5>
                                         <p class="card-text h4" id="noPreviousCount">0</p>
-                                        <small>Primera medición de un sensor</small>
+                                        <small>Primera medición de un medidor</small>
                                     </div>
                                 </div>
                             </div>
@@ -452,9 +452,9 @@
                                 <!-- Fila 1: Filtros de Entidad / Medidor / Plantilla / Auditoría -->
                                 <div class="row g-2 mb-2">
                                     <div class="col-xl-2 col-md-4 col-sm-6">
-                                        <label for="sensorFilter" class="form-label small fw-semibold text-muted mb-1">Medidor / Sensor</label>
+                                        <label for="sensorFilter" class="form-label small fw-semibold text-muted mb-1">Medidor</label>
                                         <select class="form-select form-select-sm" id="sensorFilter">
-                                            <option value="" selected>Todos los sensores</option>
+                                            <option value="" selected>Todos los medidores</option>
                                             @foreach($sensors as $sensor)
                                                 <option value="{{ $sensor->id }}"
                                                     title="{{ $sensor->name }} ({{ $sensor->identifier }})">
@@ -464,7 +464,7 @@
                                         </select>
                                     </div>
                                     <div class="col-xl-2 col-md-4 col-sm-6">
-                                        <label for="identifierFilter" class="form-label small fw-semibold text-muted mb-1">Buscar ID / Sensor / Foto</label>
+                                        <label for="identifierFilter" class="form-label small fw-semibold text-muted mb-1">Buscar ID / Medidor / Foto</label>
                                         <div class="input-group input-group-sm">
                                             <input type="text" class="form-control form-control-sm" id="identifierFilter"
                                                 placeholder="Ej: 53651, A16F090716, 101, foto...">
@@ -618,7 +618,7 @@
                                             <input class="form-check-input" type="checkbox" id="selectAllMeasurements">
                                         </th>
                                         <th class="sortable" data-field="sensor_id" style="cursor: pointer;">
-                                            Sensor <i class="bi bi-arrow-down-up text-muted ms-1"
+                                            Medidor <i class="bi bi-arrow-down-up text-muted ms-1"
                                                 style="font-size: 0.75rem;"></i>
                                         </th>
                                         <th class="sortable" data-field="identifier" style="cursor: pointer;">
@@ -871,7 +871,7 @@
                     <p>¿Deseas registrar esta medición como un <strong>Reemplazo de Medidor Físico</strong> o <strong>Reseteo de Contador</strong>?</p>
                     <div class="card bg-light p-3 mb-3 border-0">
                         <div><strong>Medición ID:</strong> <span id="resetModalDisplayId"></span></div>
-                        <div><strong>Sensor:</strong> <span id="resetModalDisplaySensor"></span></div>
+                        <div><strong>Medidor:</strong> <span id="resetModalDisplaySensor"></span></div>
                         <div><strong>Lectura Inicial (Nuevo Medidor):</strong> <span id="resetModalDisplayValue" class="badge bg-primary"></span></div>
                         <div><strong>Fecha:</strong> <span id="resetModalDisplayDate"></span></div>
                     </div>
@@ -897,7 +897,7 @@
             <div class="modal-content border-0 shadow">
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title" id="sensorMetadataModalLabel">
-                        <i class="bi bi-tags-fill me-2"></i> Atributos del Sensor
+                        <i class="bi bi-tags-fill me-2"></i> Atributos del Medidor
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -1036,7 +1036,7 @@
                                 </div>
                                 <div class="input-group input-group-sm" style="max-width: 220px;">
                                     <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                                    <input type="text" class="form-control" id="bulkPhotoSearchInput" placeholder="Buscar archivo o sensor...">
+                                    <input type="text" class="form-control" id="bulkPhotoSearchInput" placeholder="Buscar archivo o medidor...">
                                 </div>
                             </div>
 
@@ -1047,7 +1047,7 @@
                                             <th>Archivo</th>
                                             <th>Estado</th>
                                             <th>Diagnóstico / Motivo</th>
-                                            <th>Medidor / Sensor</th>
+                                            <th>Medidor</th>
                                             <th>Fecha</th>
                                         </tr>
                                     </thead>
@@ -1085,7 +1085,7 @@
                     <div class="alert alert-secondary py-2 px-3 mb-3 pointer-events-none">
                         <strong class="text-danger small"><i class="bi bi-shield-exclamation"></i> ¿Qué hace este Radar?</strong><br>
                         <small class="text-muted" style="font-size: 0.8rem;">
-                            Escaneará <b>todos tus sensores</b> utilizando la tasa diaria de consumo y regresará un listado de los sensores que estén arrojando anomalías bajo la sensibilidad especificada.
+                            Escaneará <b>todos tus medidores</b> utilizando la tasa diaria de consumo y regresará un listado de los medidores que estén arrojando anomalías bajo la sensibilidad especificada.
                         </small>
                     </div>
 
@@ -1137,7 +1137,7 @@
                             </h6>
                             <div class="input-group input-group-sm w-50">
                                 <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                <input type="text" class="form-control" id="radarSearch" placeholder="Buscar sensor o ID...">
+                                <input type="text" class="form-control" id="radarSearch" placeholder="Buscar medidor o ID...">
                             </div>
                         </div>
                         <div class="table-responsive" style="max-height: 350px; overflow-y: auto;">
@@ -1158,7 +1158,7 @@
         </div>
     </div>
 
-    <!-- Modal para Análisis Avanzado por Sensor con Gráfico -->
+    <!-- Modal para Análisis Avanzado por Medidor con Gráfico -->
     <div class="modal fade" id="analyzeSensorModal" tabindex="-1" aria-labelledby="analyzeSensorModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
@@ -1805,7 +1805,7 @@
                         consumptionCellHtml = '<span class="badge bg-secondary">Inicial (0)</span>';
                     } else {
                         const badgeColor = consumption < 0 ? 'danger' : 'success';
-                        consumptionCellHtml = `<span class="badge bg-${badgeColor}">${consumption > 0 ? '+' : ''}${consumption} ${unit}</span>`;
+                        consumptionCellHtml = `<span class="badge bg-${badgeColor}">${consumption > 0 ? '+' : ''}${formatNumberLatin(consumption)} ${unit}</span>`;
                     }
                     if (measurement.days_between) {
                         consumptionCellHtml += `<div class="text-muted mt-1" style="font-size:0.68rem;"><i class="bi bi-clock-history"></i> ${measurement.days_between} días (prom: ${measurement.daily_average || 0}/d)</div>`;
@@ -3810,9 +3810,9 @@
                 $('#waSensorSubtitle').text(`Grupo: ${groupName} • Fecha: ${date}`);
 
                 if (foundPhone) {
-                    $('#waPhoneStatusNotice').html(`<span class="text-success"><i class="bi bi-check-circle me-1"></i> Teléfono recuperado de la ficha del sensor.</span>`);
+                    $('#waPhoneStatusNotice').html(`<span class="text-success"><i class="bi bi-check-circle me-1"></i> Teléfono recuperado de la ficha del medidor.</span>`);
                 } else {
-                    $('#waPhoneStatusNotice').html(`<span class="text-muted"><i class="bi bi-info-circle me-1"></i> Este sensor no tenía teléfono registrado aún. Al ingresarlo se guardará automáticamente en su ficha.</span>`);
+                    $('#waPhoneStatusNotice').html(`<span class="text-muted"><i class="bi bi-info-circle me-1"></i> Este medidor no tenía teléfono registrado aún. Al ingresarlo se guardará automáticamente en su ficha.</span>`);
                 }
 
                 // Generar URL pública del visor para que el vecino audite su toma y foto
@@ -3825,7 +3825,7 @@
 
                 // Plantilla de mensaje cordial, clara y profesional
                 let msg = `Hola! Te compartimos la liquidación de consumo registrada en tu medidor:\n\n`;
-                msg += `📍 *Lote / Sensor:* ${sensorName} ${sensorIdentifier ? '(' + sensorIdentifier + ')' : ''}\n`;
+                msg += `📍 *Lote / Medidor:* ${sensorName} ${sensorIdentifier ? '(' + sensorIdentifier + ')' : ''}\n`;
                 if (groupName) msg += `🏢 *Grupo / Barrio:* ${groupName}\n`;
                 msg += `📅 *Fecha de Toma:* ${date}\n`;
                 msg += `🔢 *Lectura Actual:* ${value}\n`;

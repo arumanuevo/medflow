@@ -152,7 +152,7 @@
                 <div class="p-3 {{ $hasCriticalAnomalies ? 'bg-danger' : ($totalMeasurementAnomalies > 0 ? 'bg-warning text-dark' : 'bg-primary') }} text-white d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="mb-0 fw-bold text-white"><i class="bi bi-shield-shaded me-1"></i> Sanidad de Mediciones</h6>
-                        <small class="text-white-50">Auditoría del Parque de Sensores</small>
+                        <small class="text-white-50">Auditoría del Parque de Medidores</small>
                     </div>
                     <span class="badge bg-white {{ $hasCriticalAnomalies ? 'text-danger' : ($totalMeasurementAnomalies > 0 ? 'text-dark' : 'text-primary') }} rounded-pill">
                         {{ $totalMeasurementAnomalies > 0 ? $totalMeasurementAnomalies . ' anomalía(s)' : '100% Óptimo' }}
@@ -178,7 +178,7 @@
                                 <span class="badge bg-warning text-dark">{{ $headerDateErrors }}</span>
                             </div>
                             <div class="small text-muted" style="font-size: 0.74rem;">
-                                Mediciones con fecha anterior a registros ya tomados en ese sensor.
+                                Mediciones con fecha anterior a registros ya tomados en ese medidor.
                             </div>
                         </a>
                     @endif
@@ -187,7 +187,7 @@
                         <div class="p-4 text-center text-muted">
                             <i class="bi bi-shield-check fs-2 text-success d-block mb-1"></i>
                             <div class="small fw-semibold text-dark">¡Base de Mediciones Sana!</div>
-                            <div style="font-size: 0.75rem;">No se detectaron consumos negativos ni desfasajes en el parque de sensores.</div>
+                            <div style="font-size: 0.75rem;">No se detectaron consumos negativos ni desfasajes en el parque de medidores.</div>
                         </div>
                     @endif
 

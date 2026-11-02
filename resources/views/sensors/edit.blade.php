@@ -1,6 +1,6 @@
 @extends('layouts.modern')
 
-@section('title', 'Editar Sensor - MeasureFlow')
+@section('title', 'Editar Medidor - MedFlow')
 
 @section('content')
     <!-- Incluir el archivo CSS externo -->
@@ -10,14 +10,14 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header ">
-                    <h4><i class="bi bi-sensors"></i> Editar Sensor: {{ $sensor->name }}</h4>
+                    <h4><i class="bi bi-sensors"></i> Editar Medidor: {{ $sensor->name }}</h4>
                 </div>
                 <div class="card-body">
                     <form id="sensorEditForm">
                         @csrf
                         @method('PUT')
                         <div class="mb-3">
-                            <label for="name" class="form-label">Nombre del Sensor <span
+                            <label for="name" class="form-label">Nombre del Medidor <span
                                     class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="name" name="name" value="{{ $sensor->name }}"
                                 required>
@@ -28,7 +28,7 @@
                                     class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="identifier" name="identifier"
                                 value="{{ $sensor->identifier }}" required>
-                            <div class="form-text">Ej: SENSOR-001</div>
+                            <div class="form-text">Ej: MEDIDOR-001</div>
                         </div>
 
                         <div class="mb-3">
@@ -77,7 +77,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="group_id" class="form-label">Grupo de Sensores <span
+                            <label for="group_id" class="form-label">Grupo de Medidores <span
                                     class="text-danger">*</span></label>
                             <select class="form-select" id="group_id" name="group_id" required>
                                 <option value="" selected disabled>Selecciona un grupo...</option>
@@ -92,7 +92,7 @@
                         <!-- ✅ Contenedor dinámico de campos Metadata y Plantilla -->
                         <div id="dynamic-metadata-container" class="mt-4 mb-3 p-3 bg-light rounded border shadow-sm" style="display: none;">
                             <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3 flex-wrap gap-2">
-                                <h5 class="mb-0"><i class="bi bi-card-list text-primary me-1"></i> Datos Específicos del Sensor</h5>
+                                <h5 class="mb-0"><i class="bi bi-card-list text-primary me-1"></i> Datos Específicos del Medidor</h5>
                                 <span id="template-badge-info" class="badge bg-primary-subtle text-primary border border-primary-subtle"></span>
                             </div>
                             <div id="template-system-fields-info" class="mb-3"></div>
@@ -121,11 +121,11 @@
                                     <input class="form-check-input" type="checkbox" id="sensorScheduleOverride"
                                            name="metadata[schedule][override]" value="1" {{ $hasOverride ? 'checked' : '' }}>
                                     <label class="form-check-label fw-bold" for="sensorScheduleOverride">
-                                        Definir fecha y tolerancia particular para este sensor (no heredar del grupo)
+                                        Definir fecha y tolerancia particular para este medidor (no heredar del grupo)
                                     </label>
                                 </div>
                                 <small class="text-muted d-block mb-3">
-                                    Si está desactivado, este sensor seguirá automáticamente la fecha programada de su grupo.
+                                    Si está desactivado, este medidor seguirá automáticamente la fecha programada de su grupo.
                                 </small>
 
                                 <div id="sensorScheduleFields" style="display: {{ $hasOverride ? 'block' : 'none' }};">

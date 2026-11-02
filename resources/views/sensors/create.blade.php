@@ -1,6 +1,6 @@
 @extends('layouts.modern')
 
-@section('title', 'Crear Sensor - MeasureFlow')
+@section('title', 'Crear Medidor - MedFlow')
 
 @section('content')
     <div class="container">
@@ -12,7 +12,7 @@
                         <div class="d-flex align-items-center gap-2">
                             <i class="bi bi-cpu-fill fs-4"></i>
                             <div class="d-flex flex-column">
-                                <h5 class="mb-0 fw-bold">Crear Nuevo Sensor</h5>
+                                <h5 class="mb-0 fw-bold">Crear Nuevo Medidor</h5>
                                 <span class="opacity-75" style="font-size: 0.8rem;">Registra un nuevo medidor físico o
                                     virtual</span>
                             </div>
@@ -25,7 +25,7 @@
                             <div>
                                 <h6 class="alert-heading fw-bold mb-1">Estructura Requerida</h6>
                                 <p class="mb-0 small text-dark">
-                                    Para registrar un sensor, necesitas asignarlo a un <strong>Grupo de Lotes
+                                    Para registrar un medidor, necesitas asignarlo a un <strong>Grupo de Lotes
                                         lógicos</strong>. Si no ves ningún grupo disponible, debes <a
                                         href="{{ route('sensor-groups.create') }}" class="alert-link">crear un Grupo
                                         primero</a>.
@@ -60,7 +60,7 @@
                                         <input type="text" class="form-control border-start-0 ps-0" id="identifier"
                                             name="identifier" required
                                             value="{{ request('community') == '1' ? 'COMUNITARIO-' . strtoupper(Str::random(3)) : '' }}"
-                                            placeholder="Ej: SENSOR-001">
+                                            placeholder="Ej: MEDIDOR-001">
                                     </div>
                                 </div>
                             </div>
@@ -74,7 +74,7 @@
                                             class="bi bi-file-text"></i></span>
                                     <textarea class="form-control border-start-0 ps-0" id="description" name="description"
                                         rows="2"
-                                        placeholder="Describe la ubicación exacta o el propósito de este sensor..."></textarea>
+                                        placeholder="Describe la ubicación exacta o el propósito de este medidor..."></textarea>
                                 </div>
                             </div>
 
@@ -160,7 +160,7 @@
                                 <div class="d-flex justify-content-between align-items-center border-bottom border-secondary-subtle pb-2 mb-3 flex-wrap gap-2">
                                     <h6 class="text-uppercase text-dark fw-bold mb-0"
                                         style="font-size: 0.75rem; letter-spacing: 1px;"><i
-                                            class="bi bi-card-checklist me-1 text-primary"></i> Propiedades Extendidas de Plantilla</h6>
+                                            class="bi bi-card-checklist me-1 text-primary"></i> Propiedades Extendidas del Medidor</h6>
                                     <span id="template-badge-info" class="badge bg-primary-subtle text-primary border border-primary-subtle"></span>
                                 </div>
                                 <div id="template-system-fields-info" class="mb-3"></div>
@@ -173,7 +173,7 @@
                                     <i class="bi bi-arrow-left"></i> Cancelar
                                 </a>
                                 <button type="submit" class="btn btn-primary px-4 shadow-sm fw-bold" id="submitBtn">
-                                    <i class="bi bi-plus-circle me-1"></i> Desplegar Sensor
+                                    <i class="bi bi-plus-circle me-1"></i> Guardar Medidor
                                 </button>
                             </div>
                         </form>

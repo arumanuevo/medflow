@@ -1,6 +1,6 @@
 @extends('layouts.modern')
 
-@section('title', 'Grupos de Sensores')
+@section('title', 'Grupos de Medidores')
 
 @push('styles')
     <style>
@@ -123,7 +123,7 @@
 
     <div class="card">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h4 class="card-title mb-0 text-white"><i class="bi bi-folder btn-icon"></i> Grupos de Sensores</h4>
+            <h4 class="card-title mb-0 text-white"><i class="bi bi-folder btn-icon"></i> Grupos de Medidores</h4>
             <div class="d-flex gap-2">
                 <a href="{{ route('measurements.select-sensor') }}" class="btn btn-success">
                     <i class="bi bi-rulers"></i> Tomar Medición
@@ -214,7 +214,7 @@
                 });
 
                 if (!response.success) {
-                    showAlert(response.message || 'Error al cargar grupos de sensores', 'danger');
+                    showAlert(response.message || 'Error al cargar grupos de medidores', 'danger');
                     return;
                 }
 
@@ -240,8 +240,8 @@
                 html = `
                             <div class="empty-state">
                                 <i class="bi bi-folder"></i>
-                                <h4>No tienes grupos de sensores</h4>
-                                <p>Crea tu primer grupo para organizar tus sensores.</p>
+                                <h4>No tienes grupos de medidores</h4>
+                                <p>Crea tu primer grupo para organizar tus medidores.</p>
                                 @if(isset($canCreateGroup) && !$canCreateGroup)
                                     <button class="btn btn-secondary opacity-50" title="Límite de grupos alcanzado" onclick="alert('Límite de grupos alcanzado. Elimina uno o sube de plan.'); return false;">
                                         <i class="bi bi-lock-fill"></i> Crear Primer Grupo
@@ -275,14 +275,14 @@
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <div>
                                                     <span class="sensor-count">
-                                                        <i class="bi bi-sensors"></i> ${group.sensors_count || group.sensors?.length || 0} sensores
+                                                        <i class="bi bi-sensors"></i> ${group.sensors_count || group.sensors?.length || 0} medidores
                                                     </span>
                                                 </div>
                                                 <div class="btn-group" role="group">
-                                                    <a href="/sensor-groups/${group.id}" class="btn btn-sm btn-info btn-custom text-white" title="Ver grupo">
+                                                    <a href="/sensor-groups/${group.id}" class="btn btn-sm btn-info btn-custom text-white" title="Ver medidores del grupo">
                                                         <i class="bi bi-eye"></i>
                                                     </a>
-                                                    <a href="{{ route('sensors.create') }}?group_id=${group.id}" class="btn btn-sm btn-primary btn-custom" title="Agregar sensor">
+                                                    <a href="{{ route('sensors.create') }}?group_id=${group.id}" class="btn btn-sm btn-primary btn-custom" title="Agregar medidor">
                                                         <i class="bi bi-plus-circle"></i>
                                                     </a>
                                                     <a href="/sensor-groups/${group.id}/edit" class="btn btn-sm btn-warning btn-custom" title="Editar grupo">

@@ -80,19 +80,19 @@
                         <div class="col-12 mb-2">
                             <div class="stat-card p-3 border text-center" style="background-color: #f8f9fa;">
                                 <h6 class="text-muted small mb-1">Volumen Total Consumido</h6>
-                                <h2 class="fw-bold text-dark mb-0">{{ number_format($finalBilledTotal, 2) }} <span class="fs-5 text-muted">{{ $unit }}</span></h2>
+                                <h2 class="fw-bold text-dark mb-0">{{ number_format($finalBilledTotal, 2, ',', '.') }} <span class="fs-5 text-muted">{{ $unit }}</span></h2>
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="stat-card p-3 h-100 border text-center">
                                 <h6 class="text-muted small mb-1">Consumo Lote</h6>
-                                <h4 class="fw-bold text-primary mb-0">{{ number_format($totalDelta, 2) }}</h4>
+                                <h4 class="fw-bold text-primary mb-0">{{ number_format($totalDelta, 2, ',', '.') }}</h4>
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="stat-card p-3 h-100 border text-center">
                                 <h6 class="text-muted small mb-1">Espacios Comunes</h6>
-                                <h4 class="fw-bold text-success mb-0">+{{ number_format($communityContribution, 2) }}</h4>
+                                <h4 class="fw-bold text-success mb-0">+{{ number_format($communityContribution, 2, ',', '.') }}</h4>
                             </div>
                         </div>
                     </div>

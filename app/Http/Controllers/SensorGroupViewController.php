@@ -48,6 +48,7 @@ class SensorGroupViewController extends Controller
     public function edit(SensorGroup $group)
     {
         $user = auth()->user();
+        $group->load('sensors');
         $templates = Template::where(function ($q) use ($user) {
             $q->where('is_default', true)
                 ->orWhereNull('created_by')

@@ -860,6 +860,18 @@ class ConsumptionController extends Controller
 
                 $communityContribution = round($totalCommunityDelta / $privateSensorsCount, 2);
             }
+
+            // Tratamiento de Macro-Medidor y Remanentes según configuración contable
+            $billingSettings = $sensor->group->billing_settings ?? [];
+            $macroMeter = $billingSettings['macro_meter'] ?? [];
+            if (!empty($macroMeter['enabled'])) {
+                $treatment = $macroMeter['treatment'] ?? 'prorate_proportional';
+                if ($treatment === 'common_areas' || $treatment === 'losses_technical') {
+                    // El remanente es absorbido por la administración o aislado como pérdida técnica,
+                    // no se le suma recargo al consumo del lote individual.
+                    $communityContribution = 0;
+                }
+            }
         }
 
         $finalConsumptionUnit = round($delta + $communityContribution, 2);

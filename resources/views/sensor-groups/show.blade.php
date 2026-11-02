@@ -47,7 +47,7 @@
                                     <i class="bi bi-pencil"></i> Editar Grupo
                                 </a>
                                 <a href="{{ route('sensors.create') }}?group_id={{ $group->id }}" class="btn btn-primary">
-                                    <i class="bi bi-plus-circle"></i> Agregar Sensor
+                                    <i class="bi bi-plus-circle"></i> Agregar Medidor
                                 </a>
                                 <form action="{{ route('sensor-groups.destroy', $group->id) }}" method="POST">
                                     @csrf
@@ -61,7 +61,7 @@
                     </div>
 
                     <div class="mt-4">
-                        <h5>Sensores en este Grupo ({{ $group->sensors->count() }})</h5>
+                        <h5>Medidores en este Grupo ({{ $group->sensors->count() }})</h5>
                         @if($group->sensors->count() > 0)
                         <div class="table-responsive">
                             <table class="table table-bordered table-striped">
@@ -91,7 +91,7 @@
                         </div>
                         @else
                         <div class="alert alert-info">
-                            <i class="bi bi-info-circle"></i> Este grupo no tiene sensores asignados.
+                            <i class="bi bi-info-circle"></i> Este grupo no tiene medidores asignados.
                             <a href="{{ route('sensors.create') }}?group_id={{ $group->id }}">Agregar uno ahora</a>
                         </div>
                         @endif

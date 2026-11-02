@@ -54,7 +54,7 @@
                     <i class="bi bi-plus-circle me-1"></i> Agregar Campo a un Grupo
                 </button>
                 <a href="{{ route('sensors.index') }}" class="btn btn-light rounded-pill px-3">
-                    <i class="bi bi-arrow-left me-1"></i> Volver a Sensores
+                    <i class="bi bi-arrow-left me-1"></i> Volver a Medidores
                 </a>
             </div>
         </div>
@@ -72,7 +72,7 @@
                             Son atributos personalizados adicionales asociados a cada sensor (ej: <strong>Teléfono</strong>, <strong>Lote</strong>, <strong>Propietario</strong>, <strong>Marca</strong>, <strong>Ubicación</strong>).
                         </p>
                         <small class="text-muted d-block">
-                            • Puedes pulsar <strong>"Agregar Campo a un Grupo"</strong> para crear un nuevo atributo en blanco para todos los sensores de un grupo de forma 100% segura y no invasiva.<br>
+                            • Puedes pulsar <strong>"Agregar Campo a un Grupo"</strong> para crear un nuevo atributo en blanco para todos los medidores de un grupo de forma 100% segura y no invasiva.<br>
                             • Las mediciones existentes y fórmulas no se alteran.
                         </small>
                     </div>
@@ -92,7 +92,7 @@
     </div>
 </div>
 
-<!-- Modal para agregar campo a un grupo de sensores (No invasivo) -->
+<!-- Modal para agregar campo a un grupo de medidores (No invasivo) -->
 <div class="modal fade" id="addFieldToGroupModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
@@ -105,7 +105,7 @@
             <div class="modal-body p-4">
                 <div class="p-3 bg-light rounded-3 border mb-3 small text-muted">
                     <i class="bi bi-shield-check text-success me-1"></i>
-                    <strong>Operación 100% Segura:</strong> El campo se creará en blanco en los sensores seleccionados. Las mediciones ya tomadas, fechas y plantillas se mantendrán completamente intactas.
+                    <strong>Operación 100% Segura:</strong> El campo se creará en blanco en los medidores seleccionados. Las mediciones ya tomadas, fechas y plantillas se mantendrán completamente intactas.
                 </div>
 
                 <div class="mb-3">
@@ -113,7 +113,7 @@
                     <select class="form-select" id="targetGroupSelect" required>
                         <option value="" disabled selected>Cargando grupos...</option>
                     </select>
-                    <small class="text-muted">Elige un grupo específico o aplica a todos los sensores de tu espacio.</small>
+                    <small class="text-muted">Elige un grupo específico o aplica a todos los medidores de tu espacio.</small>
                 </div>
 
                 <div class="mb-3">
@@ -158,7 +158,7 @@
                 <p>¿Estás seguro de que deseas eliminar el campo <strong id="deleteFieldName"></strong>?</p>
                 <div class="alert alert-warning border-0 small">
                     <i class="bi bi-exclamation-triangle me-1"></i>
-                    Esto eliminará este campo de <strong id="deleteFieldCount"></strong> sensores.
+                    Esto eliminará este campo de <strong id="deleteFieldCount"></strong> medidores.
                     Esta acción no se puede deshacer.
                 </div>
                 <div id="deleteFieldSensorsList" class="mt-2">
@@ -193,7 +193,7 @@
                 </div>
                 <div class="alert alert-info border-0 small mb-0">
                     <i class="bi bi-info-circle me-1"></i>
-                    Se actualizará el nombre en <strong id="renameFieldCount"></strong> sensores.
+                    Se actualizará el nombre en <strong id="renameFieldCount"></strong> medidores.
                 </div>
             </div>
             <div class="modal-footer bg-light">
@@ -255,7 +255,7 @@ function loadGroupsForModal() {
             if (response.success && response.data) {
                 let options = '<option value="all">🌟 Todos los grupos de este espacio</option>';
                 response.data.forEach(g => {
-                    options += `<option value="${g.id}">${g.name} (${g.sensors_count || 0} sensores)</option>`;
+                    options += `<option value="${g.id}">${g.name} (${g.sensors_count || 0} medidores)</option>`;
                 });
                 select.html(options);
                 $('#addFieldToGroupModal').modal('show');
@@ -403,7 +403,7 @@ function renderFields(fields) {
                                     ${isPhoneField ? '<i class="bi bi-whatsapp me-1"></i>' : ''}${field.name}
                                 </span>
                             </h5>
-                            <span class="badge bg-secondary-subtle text-secondary border">${field.count} sensores</span>
+                            <span class="badge bg-secondary-subtle text-secondary border">${field.count} medidores</span>
                         </div>
                         <div class="mt-3">
                             <small class="text-muted fw-semibold">Sensores con este atributo:</small>
@@ -460,7 +460,7 @@ function renderFields(fields) {
                 sensorsHtml += `<span class="sensor-tag text-muted">+${sensors.length - 10} más</span>`;
             }
         }
-        $('#deleteFieldSensors').html(sensorsHtml || '<span class="text-muted">Todos los sensores</span>');
+        $('#deleteFieldSensors').html(sensorsHtml || '<span class="text-muted">Todos los medidores</span>');
         
         $('#deleteFieldModal').modal('show');
     });

@@ -1,6 +1,6 @@
 ﻿@extends('layouts.modern')
 
-@section('title', 'Mis Sensores')
+@section('title', 'Mis Medidores')
 
 @push('styles')
     <style>
@@ -552,11 +552,11 @@
                 <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
                     <h4 class="mb-0 d-flex align-items-center gap-2">
                         <i class="fas fa-tachometer-alt"></i>
-                        <span>Mis Sensores</span>
+                        <span>Mis Medidores</span>
                         <span id="totalCountBadge" class="badge bg-light text-dark ms-2" style="font-size: 0.7rem;"
-                            title="Total de sensores">0</span>
+                            title="Total de medidores">0</span>
                         <span id="selectedCountBadge" class="badge bg-warning text-dark d-none" style="font-size: 0.7rem;"
-                            title="Sensores seleccionados para acciones en lote">0 seleccionados</span>
+                            title="Medidores seleccionados para acciones en lote">0 seleccionados</span>
                     </h4>
 
                     <div class="card-header-tools">
@@ -564,7 +564,7 @@
                         <div class="search-wrapper">
                             <div class="position-relative w-100">
                                 <input type="text" class="form-control" id="searchInput"
-                                    placeholder="🔍 Buscar sensores...">
+                                    placeholder="🔍 Buscar medidores...">
                                 <span class="search-clear position-absolute end-0 top-50 translate-middle-y me-2 d-none"
                                     id="searchClear">&times;</span>
                             </div>
@@ -579,7 +579,7 @@
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="actionsDropdown">
                                 <li>
                                     <a href="{{ route('sensors.create') }}" class="dropdown-item" id="createSensorLink">
-                                        <i class="bi bi-plus-circle text-success"></i> Crear Sensor
+                                        <i class="bi bi-plus-circle text-success"></i> Crear Medidor
                                     </a>
                                 </li>
                                 <li>
@@ -602,13 +602,13 @@
                                     @if($permissions['import_sensors'] ?? false)
                                         <a href="{{ route('sensor-groups.bulk-import') }}" class="dropdown-item"
                                             id="importSensorsLink">
-                                            <i class="bi bi-file-earmark-excel text-info"></i> Importar Sensores
+                                            <i class="bi bi-file-earmark-excel text-info"></i> Importar Medidores
                                         </a>
                                     @else
                                         <a href="#"
                                             class="dropdown-item d-flex justify-content-between align-items-center text-muted gate-blocked pe-2"
                                             id="importSensorsLink" onclick="showGateBlockedNotification(); return false;">
-                                            <span><i class="bi bi-file-earmark-excel text-info"></i> Importar Sensores</span>
+                                            <span><i class="bi bi-file-earmark-excel text-info"></i> Importar Medidores</span>
                                             <span class="premium-badge"><i class="bi bi-lock-fill"></i> Premium</span>
                                         </a>
                                     @endif
@@ -657,7 +657,7 @@
                     </span>
                     <span class="limit-item">
                         <i class="bi bi-speedometer2"></i>
-                        Sensores: <span id="sensorLimit" class="count">...</span>
+                        Medidores: <span id="sensorLimit" class="count">...</span>
                     </span>
                     <span class="limit-item">
                         <i class="bi bi-folder"></i>
@@ -747,7 +747,7 @@
                                     <div class="spinner-border text-primary" role="status">
                                         <span class="visually-hidden">Cargando...</span>
                                     </div>
-                                    <p class="mt-2 text-muted">Cargando sensores...</p>
+                                    <p class="mt-2 text-muted">Cargando medidores...</p>
                                 </td>
                             </tr>
                         </tbody>
@@ -760,7 +760,7 @@
                 <div class="pagination-wrapper px-3 pb-3">
                     <div class="pagination-info" id="paginationInfo">
                         Mostrando <strong id="pageStart">0</strong> - <strong id="pageEnd">0</strong> de <strong
-                            id="totalRecords">0</strong> sensores
+                            id="totalRecords">0</strong> medidores
                     </div>
                     <div class="pagination-controls">
                         <select class="per-page-select" id="perPageSelect">
@@ -1443,7 +1443,7 @@
                                                                                                         <a href="/sensors/${sensor.id}" class="btn btn-sm btn-info" title="Ver Sensor">
                                                                                                             <i class="bi bi-eye"></i>
                                                                                                         </a>
-                                                                                                        <a href="/sensors/${sensor.id}/edit" class="btn btn-sm btn-warning" title="Editar Sensor">
+                                                                                                        <a href="/sensors/${sensor.id}/edit" class="btn btn-sm btn-warning" title="Editar Medidor">
                                                                                                             <i class="bi bi-pencil"></i>
                                                                                                         </a>
                                                                                                         <button class="btn btn-sm btn-danger delete-sensor-btn"

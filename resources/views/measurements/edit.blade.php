@@ -1,6 +1,6 @@
 @extends('layouts.modern')
 
-@section('title', 'Editar Medición - ' . ($measurement->sensor->name ?? 'Sensor'))
+@section('title', 'Editar Medición - ' . ($measurement->medidor->name ?? 'Medidor'))
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/measurements-create-styles.css') }}">
@@ -157,7 +157,7 @@
         border-color: #0d6efd;
     }
 
-    .sensor-info-compact {
+    .medidor-info-compact {
         display: flex;
         flex-wrap: wrap;
         gap: 0.5rem 1rem;
@@ -166,7 +166,7 @@
         border-bottom: 1px solid #e9ecef;
         margin-bottom: 1rem;
     }
-    .sensor-info-compact .info-item {
+    .medidor-info-compact .info-item {
         display: flex;
         align-items: center;
         gap: 0.3rem;
@@ -174,10 +174,10 @@
         padding: 0.2rem 0.6rem;
         border-radius: 4px;
     }
-    .sensor-info-compact .info-item i {
+    .medidor-info-compact .info-item i {
         color: #6c757d;
     }
-    .sensor-info-compact .info-item strong {
+    .medidor-info-compact .info-item strong {
         color: #212529;
     }
 
@@ -257,7 +257,7 @@
         .edit-measurement-container .card-body {
             padding: 0.75rem;
         }
-        .sensor-info-compact .info-item {
+        .medidor-info-compact .info-item {
             font-size: 0.75rem;
             padding: 0.15rem 0.5rem;
         }
@@ -295,18 +295,18 @@
             <!-- ============================================
             INFO COMPACTA DEL SENSOR
             ============================================ -->
-            <div class="sensor-info-compact">
+            <div class="medidor-info-compact">
                 <span class="info-item">
                     <i class="bi bi-tag"></i>
-                    <strong>{{ $measurement->sensor->name }}</strong>
+                    <strong>{{ $measurement->medidor->name }}</strong>
                 </span>
                 <span class="info-item">
                     <i class="bi bi-hash"></i>
-                    {{ $measurement->sensor->identifier }}
+                    {{ $measurement->medidor->identifier }}
                 </span>
                 <span class="info-item">
                     <i class="bi bi-folder"></i>
-                    {{ $measurement->sensor->group->name ?? 'Sin grupo' }}
+                    {{ $measurement->medidor->group->name ?? 'Sin grupo' }}
                 </span>
                 <span class="info-item">
                     <i class="bi bi-clock"></i>
@@ -314,7 +314,7 @@
                 </span>
                 <span class="info-item">
                     <i class="bi bi-file-text"></i>
-                    Plantilla: {{ $measurement->sensor->group->template->name ?? 'N/A' }}
+                    Plantilla: {{ $measurement->medidor->group->template->name ?? 'N/A' }}
                 </span>
             </div>
 
@@ -323,8 +323,8 @@
             ============================================ -->
             @php
                 $mainField = 'valor';
-                if (isset($measurement->sensor->group->template->schema['campos'])) {
-                    foreach ($measurement->sensor->group->template->schema['campos'] as $campo) {
+                if (isset($measurement->medidor->group->template->schema['campos'])) {
+                    foreach ($measurement->medidor->group->template->schema['campos'] as $campo) {
                         if ($campo['tipo'] === 'numero' && ($campo['requerido'] ?? false)) {
                             $mainField = $campo['nombre'];
                             break;
@@ -333,7 +333,7 @@
                 }
                 $currentValue = $measurement->data[$mainField] ?? $measurement->data['valor'] ?? $measurement->data['consumo_m3'] ?? 0;
                 $currentDate = $measurement->measured_at;
-                $unit = $measurement->sensor->group->template->schema['unidad'] ?? $measurement->sensor->group->unidad_medida ?? 'm³';
+                $unit = $measurement->medidor->group->template->schema['unidad'] ?? $measurement->medidor->group->unidad_medida ?? 'm³';
                 $fotoPath = $measurement->data['foto'] ?? 'Sin Foto';
             @endphp
 
@@ -342,7 +342,7 @@
                     <div class="col-md-6">
                         <div class="label">Medición actual</div>
                         <div class="value">
-                            {{ number_format($currentValue, 2) }} <span class="unit">{{ $unit }}</span>
+                            {{ number_format($currentValue, 2, ',', '.') }} <span class="unit">{{ $unit }}</span>
                         </div>
                     </div>
                     <div class="col-md-6 text-md-end">
@@ -361,8 +361,8 @@
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="measurement_id" value="{{ $measurement->id }}">
-                <input type="hidden" name="sensor_id" value="{{ $measurement->sensor->id }}">
-                <input type="hidden" id="groupName" value="{{ str_replace(' ', '_', $measurement->sensor->group->name ?? 'SinGrupo') }}">
+                <input type="hidden" name="medidor_id" value="{{ $measurement->medidor->id }}">
+                <input type="hidden" id="groupName" value="{{ str_replace(' ', '_', $measurement->medidor->group->name ?? 'SinGrupo') }}">
                 <input type="hidden" id="originalPhoto" value="{{ $fotoPath }}">
 
                 <!-- Campo: Valor de consumo (campo principal) -->
@@ -451,7 +451,7 @@
                                     
                                     <small class="text-muted text-center">
                                         <i class="bi bi-info-circle"></i>
-                                        Formato: <code>(grupo)_(sensor)_(fecha).png</code>
+                                        Formato: <code>(grupo)_(medidor)_(fecha).png</code>
                                     </small>
                                 </div>
                             </div>
@@ -465,15 +465,15 @@
                 @php
                     $systemFields = ['consumo_m3', 'foto', 'fecha_medicion', 'tipo', 'valor'];
                     $customFields = [];
-                    if (isset($measurement->sensor->group) && isset($measurement->sensor->group->template) && isset($measurement->sensor->group->template->schema['campos'])) {
-                        $customFields = array_filter($measurement->sensor->group->template->schema['campos'], function($campo) use ($systemFields) {
+                    if (isset($measurement->medidor->group) && isset($measurement->medidor->group->template) && isset($measurement->medidor->group->template->schema['campos'])) {
+                        $customFields = array_filter($measurement->medidor->group->template->schema['campos'], function($campo) use ($systemFields) {
                             if (in_array($campo['nombre'], $systemFields)) {
                                 return false;
                             }
                             
                             // Comportamiento Estricto: Permitir SOLO si el contexto lo autoriza expresamente
-                            // Asumimos que los campos sin contexto son metadata estática del Sensor
-                            $contexto = isset($campo['contexto']) ? strtolower(trim($campo['contexto'])) : 'sensor';
+                            // Asumimos que los campos sin contexto son metadata estática del Medidor
+                            $contexto = isset($campo['contexto']) ? strtolower(trim($campo['contexto'])) : 'medidor';
                             return in_array($contexto, ['medicion', 'ambos']);
                         });
                     }
@@ -582,7 +582,7 @@ $(document).ready(function() {
     // =============================================
     // 1. CONFIGURACIÓN INICIAL
     // =============================================
-    const sensorId = {{ $measurement->sensor->id }};
+    const medidorId = {{ $measurement->medidor->id }};
     const measurementId = {{ $measurement->id }};
     const groupName = $('#groupName').val();
     const token = localStorage.getItem('token');
@@ -644,7 +644,7 @@ $(document).ready(function() {
             time = now.toTimeString().slice(0, 5).replace(/:/g, '');
         }
 
-        return `${groupName}_${sensorId}_${date}_${time}.png`;
+        return `${groupName}_${medidorId}_${date}_${time}.png`;
     }
 
     async function startCamera() {
@@ -770,7 +770,7 @@ $(document).ready(function() {
         const photoName = $('#photo').val();
         const formData = new FormData();
         formData.append('foto', photoBlob, photoName);
-        formData.append('sensor_id', sensorId);
+        formData.append('medidor_id', medidorId);
 
         return new Promise((resolve, reject) => {
             $.ajax({
@@ -843,7 +843,7 @@ $(document).ready(function() {
 
         // Preparar datos
         const formData = {
-            sensor_id: sensorId,
+            medidor_id: medidorId,
             data: {
                 consumo_m3: consumoNum,
                 foto: $('#photo').val(),

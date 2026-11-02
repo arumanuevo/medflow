@@ -1,6 +1,6 @@
 @extends('layouts.modern')
 
-@section('title', 'Crear Grupo de Sensores - MeasureFlow')
+@section('title', 'Crear Grupo de Medidores - MedFlow')
 
 @section('content')
     <!-- Incluir el archivo CSS externo -->
@@ -11,7 +11,7 @@
             <div class="col-md-8">
                 <div class="card">
                     <div class="card-header bg-primary text-white">
-                        <h4><i class="bi bi-folder btn-icon"></i> Crear Grupo de Sensores</h4>
+                        <h4><i class="bi bi-folder btn-icon"></i> Crear Grupo de Medidores</h4>
                     </div>
                     <div class="card-body">
                         <!-- ✅ Mensaje de información mejorado -->
@@ -29,9 +29,9 @@
                                         <hr>
                                         <p class="mb-0 small text-muted">
                                             <i class="bi bi-lightbulb"></i>
-                                            <strong>Consejo:</strong> Un grupo de sensores te permite organizar tus sensores por
+                                            <strong>Consejo:</strong> Un grupo de medidores te permite organizar tus medidores por
                                             proyectos,
-                                            ubicaciones o tipos de medición. Por ejemplo: "Sensores Planta Norte", "Mediciones
+                                            ubicaciones o tipos de medición. Por ejemplo: "Medidores Barrio Norte", "Mediciones
                                             de Agua", etc.
                                         </p>
                                     </div>
@@ -42,7 +42,7 @@
 
                         <!-- Mensaje de éxito (inicialmente oculto) -->
                         <div id="successAlert" class="alert alert-success d-none" role="alert">
-                            <i class="bi bi-check-circle"></i> Grupo de sensores creado correctamente.
+                            <i class="bi bi-check-circle"></i> Grupo de medidores creado correctamente.
                         </div>
 
                         <form id="sensorGroupForm">
@@ -50,7 +50,7 @@
                                 <label for="groupName" class="form-label">Nombre del Grupo <span
                                         class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="groupName" required>
-                                <div class="form-text">Ej: "Sensores Planta Norte", "Mediciones de Agua", "Proyecto X"</div>
+                                <div class="form-text">Ej: "Medidores Loteo Norte", "Mediciones de Agua", "Proyecto X"</div>
                             </div>
 
                             <div class="mb-3">
@@ -122,7 +122,7 @@
                                                 monetarios en el Visor Público / Links Compartidos</label>
                                         </div>
                                         <small class="text-muted">Si habilitas esto, el sistema calculará un costo estimado
-                                            en la vista pública de cada sensor de este grupo.</small>
+                                            en la vista pública de cada medidor de este grupo.</small>
                                     </div>
                                 </div>
                             </div>
@@ -268,12 +268,32 @@
 
                 let billing_settings = null;
                 if ($('#billingEnabled').is(':checked')) {
+                    const pricePerUnit = parseFloat($('#billingPrice').val()) || 0;
+                    if (pricePerUnit <= 0) {
+                        $('#billingPriceError').show();
+                        $('#billingPrice').addClass('is-invalid').focus();
+                        showAlert('El Costo por Unidad debe ser estrictamente mayor a 0 cuando la liquidación financiera está habilitada.', 'danger');
+                        return;
+                    } else {
+                        $('#billingPriceError').hide();
+                        $('#billingPrice').removeClass('is-invalid');
+                    }
+
+                    const isMacro = $('#macroMeterEnabled').is(':checked');
+                    const macroObj = {
+                        enabled: isMacro,
+                        sensor_id: isMacro && $('#macroMeterSensorId').val() ? parseInt($('#macroMeterSensorId').val()) : null,
+                        treatment: isMacro ? $('#macroMeterTreatment').val() : 'prorate_proportional',
+                        notes: isMacro ? ($('#macroMeterNotes').val() || '').trim() : null
+                    };
+
                     billing_settings = {
                         is_enabled: true,
                         currency: $('#billingCurrency').val(),
                         fixed_charge: parseFloat($('#billingFixed').val()) || 0,
-                        price_per_unit: parseFloat($('#billingPrice').val()) || 0,
+                        price_per_unit: pricePerUnit,
                         show_in_public_viewer: $('#billingShowPublic').is(':checked'),
+                        macro_meter: macroObj,
                         schedule: scheduleObj
                     };
                 } else {

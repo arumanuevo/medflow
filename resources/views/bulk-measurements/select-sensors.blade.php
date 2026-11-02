@@ -1,6 +1,6 @@
 @extends('layouts.modern')
 
-@section('title', 'Seleccionar Sensores - Medición Masiva')
+@section('title', 'Seleccionar Medidores - Medición Masiva')
 
 @push('styles')
     <style>
@@ -23,11 +23,11 @@
             border-radius: 20px;
         }
 
-        .sensor-table-wrapper {
+        .medidor-table-wrapper {
             overflow-x: auto;
         }
 
-        .sensor-table-wrapper .table th {
+        .medidor-table-wrapper .table th {
             white-space: nowrap;
             font-size: 0.75rem;
             padding: 0.5rem 0.6rem;
@@ -38,18 +38,18 @@
             position: relative;
         }
 
-        .sensor-table-wrapper .table th:hover {
+        .medidor-table-wrapper .table th:hover {
             background-color: rgba(13, 110, 253, 0.08);
         }
 
-        .sensor-table-wrapper .table td {
+        .medidor-table-wrapper .table td {
             font-size: 0.85rem;
             padding: 0.5rem 0.6rem;
             vertical-align: middle;
             text-align: center;
         }
 
-        .sensor-table-wrapper .table td.text-left {
+        .medidor-table-wrapper .table td.text-left {
             text-align: left;
         }
 
@@ -57,7 +57,7 @@
             background-color: #e7f1ff !important;
         }
 
-        .sensor-checkbox {
+        .medidor-checkbox {
             cursor: pointer;
         }
 
@@ -143,7 +143,7 @@
                             </div>
                             <div class="d-flex align-items-center gap-2">
                                 <span class="badge bg-light text-dark">
-                                    <i class="bi bi-sensors"></i> {{ $sensors->count() }} sensores
+                                    <i class="bi bi-medidors"></i> {{ $medidors->count() }} medidores
                                 </span>
                                 <button type="button" class="btn btn-sm btn-light" id="inviteInspectorBtn"
                                     title="Invitar Inspector a App Móvil">
@@ -153,17 +153,17 @@
                         </div>
                     </div>
 
-                    {{-- ✅ MODAL: Advertencia - no hay sensores seleccionados --}}
+                    {{-- ✅ MODAL: Advertencia - no hay medidores seleccionados --}}
                     <div class="modal fade" id="noSelectionModal" tabindex="-1" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered">
                             <div class="modal-content border-0 shadow">
                                 <div class="modal-header bg-warning text-dark border-0">
-                                    <h5 class="modal-title">⚠️ Sin sensores seleccionados</h5>
+                                    <h5 class="modal-title">⚠️ Sin medidores seleccionados</h5>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                 </div>
                                 <div class="modal-body">
-                                    <p>Debes seleccionar al menos un sensor antes de invitar a un inspector móvil.</p>
-                                    <p class="text-muted small">Usá los checkboxes de la tabla para marcar los sensores que
+                                    <p>Debes seleccionar al menos un medidor antes de invitar a un inspector móvil.</p>
+                                    <p class="text-muted small">Usá los checkboxes de la tabla para marcar los medidores que
                                         el inspector podrá medir.</p>
                                 </div>
                                 <div class="modal-footer border-0">
@@ -213,12 +213,12 @@
                                             lo deseas.</div>
                                     </div>
                                     <input type="hidden" id="inviteLimit" value="0">
-                                    <input type="hidden" id="inviteSensorIds" value="">
+                                    <input type="hidden" id="inviteMedidorIds" value="">
                                     <div class="mb-3">
-                                        <label class="form-label fw-semibold">Sensores seleccionados</label>
+                                        <label class="form-label fw-semibold">Medidores seleccionados</label>
                                         <div class="form-control-plaintext text-primary fw-semibold"
                                             id="inviteSelectedCount">0</div>
-                                        <div class="form-text">Solo el inspector podrá medir estos sensores.</div>
+                                        <div class="form-text">Solo el inspector podrá medir estos medidores.</div>
                                     </div>
                                     <div id="inviteResultMsg" class="d-none"></div>
                                 </div>
@@ -252,7 +252,7 @@
                             <i class="bi bi-briefcase"></i>
                             Estás en el espacio de <strong>{{ $ownerName ?? 'Propietario' }}</strong>
                             <br>
-                            <small class="text-muted">Selecciona los sensores que deseas medir y usa la acción
+                            <small class="text-muted">Selecciona los medidores que deseas medir y usa la acción
                                 masiva.</small>
                         </div>
 
@@ -274,7 +274,7 @@
                                         <i class="bi bi-list-ol me-1"></i> Orden de selección
                                     </label>
                                     <span class="text-muted small ms-1" data-bs-toggle="tooltip"
-                                        title="Si está marcado, los sensores se medirán en el orden en que los seleccionaste. Si no, se ordenarán por ID ascendente.">
+                                        title="Si está marcado, los medidores se medirán en el orden en que los seleccionaste. Si no, se ordenarán por ID ascendente.">
                                         <i class="bi bi-info-circle"></i>
                                     </span>
                                 </div>
@@ -283,7 +283,7 @@
                                     <i class="bi bi-rulers"></i> Comenzar Medición Masiva
                                 </button>
                                 {{-- ✅ BOTÓN PARA IMPORTAR MEDICIONES (Restringido) --}}
-                                @if($permissions['import_sensors'] ?? false)
+                                @if($permissions['import_medidors'] ?? false)
                                     <a href="{{ route('measurements.bulk-import') }}" class="btn btn-sm btn-warning">
                                         <i class="bi bi-file-earmark-excel"></i> Importar Mediciones
                                     </a>
@@ -304,7 +304,7 @@
                                     <select id="groupFilter" class="form-select form-select-sm">
                                         <option value="">Todos los grupos</option>
                                         @php
-                                            $groups = $sensors->groupBy('group.name')->keys()->sort();
+                                            $groups = $medidors->groupBy('group.name')->keys()->sort();
                                         @endphp
                                         @foreach($groups as $groupName)
                                             <option value="{{ $groupName }}">{{ $groupName }}</option>
@@ -346,11 +346,11 @@
                         {{-- Formulario para medición masiva --}}
                         <form id="bulkMeasurementForm" method="POST" action="{{ route('bulk-measurements.start') }}">
                             @csrf
-                            <input type="hidden" name="sensor_ids" id="sensorIdsInput" value="">
+                            <input type="hidden" name="medidor_ids" id="medidorIdsInput" value="">
 
-                            {{-- Tabla de Sensores --}}
-                            <div class="sensor-table-wrapper">
-                                <table class="table table-bordered table-striped table-hover" id="sensorsTable">
+                            {{-- Tabla de Medidores --}}
+                            <div class="medidor-table-wrapper">
+                                <table class="table table-bordered table-striped table-hover" id="medidorsTable">
                                     <thead>
                                         <tr>
                                             <th style="width: 40px;">
@@ -366,14 +366,14 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @forelse($sensors as $sensor)
+                                        @forelse($medidors as $medidor)
                                             @php
-                                                $lastMeasurement = $sensor->lastMeasurement;
+                                                $lastMeasurement = $medidor->lastMeasurement;
 
                                                 // Obtener el campo principal de la plantilla
                                                 $mainField = 'valor';
-                                                if ($sensor->group && $sensor->group->template && isset($sensor->group->template->schema['campos'])) {
-                                                    foreach ($sensor->group->template->schema['campos'] as $campo) {
+                                                if ($medidor->group && $medidor->group->template && isset($medidor->group->template->schema['campos'])) {
+                                                    foreach ($medidor->group->template->schema['campos'] as $campo) {
                                                         if ($campo['tipo'] === 'numero' && ($campo['requerido'] ?? false)) {
                                                             $mainField = $campo['nombre'];
                                                             break;
@@ -388,8 +388,8 @@
                                                 $estado = 'Sin medición';
                                                 $estadoClass = 'secondary';
                                                 if ($lastMeasurement) {
-                                                    $periodoMedicion = $sensor->group->periodo_medicion ?? 30;
-                                                    $diasVencimiento = $sensor->group->dias_vencimiento ?? 5;
+                                                    $periodoMedicion = $medidor->group->periodo_medicion ?? 30;
+                                                    $diasVencimiento = $medidor->group->dias_vencimiento ?? 5;
                                                     $proximaMedicion = \Carbon\Carbon::parse($lastMeasurement->measured_at)->addDays($periodoMedicion);
                                                     $diasRestantes = now()->diffInDays($proximaMedicion, false);
 
@@ -405,28 +405,28 @@
                                                     }
                                                 }
 
-                                                $isMarked = in_array($sensor->id, $markedSensorIds);
-                                                $isLocked = !($sensor->is_measurable ?? true); // Candado limitante
+                                                $isMarked = in_array($medidor->id, $markedMedidorIds);
+                                                $isLocked = !($medidor->is_measurable ?? true); // Candado limitante
                                             @endphp
-                                            <tr data-sensor-id="{{ $sensor->id }}"
-                                                data-sensor-name="{{ strtolower($sensor->name) }}"
-                                                data-group="{{ $sensor->group->name ?? '' }}"
+                                            <tr data-medidor-id="{{ $medidor->id }}"
+                                                data-medidor-name="{{ strtolower($medidor->name) }}"
+                                                data-group="{{ $medidor->group->name ?? '' }}"
                                                 data-status="{{ strtolower(str_replace(' ', '_', $estado)) }}"
-                                                data-identifier="{{ strtolower($sensor->identifier) }}"
-                                                data-community="{{ $sensor->is_community ? '1' : '0' }}"
+                                                data-identifier="{{ strtolower($medidor->identifier) }}"
+                                                data-community="{{ $medidor->is_community ? '1' : '0' }}"
                                                 class="{{ $isLocked ? 'table-secondary opacity-75' : '' }}">
                                                 <td>
                                                     @if($isLocked)
                                                         <i class="bi bi-lock-fill text-danger fs-5 ms-2"
-                                                            title="Bloqueado por límite de sensores de Plan"></i>
+                                                            title="Bloqueado por límite de medidores de Plan"></i>
                                                     @else
-                                                        <input type="checkbox" class="sensor-checkbox"
-                                                            data-sensor-id="{{ $sensor->id }}">
+                                                        <input type="checkbox" class="medidor-checkbox"
+                                                            data-medidor-id="{{ $medidor->id }}">
                                                     @endif
                                                 </td>
                                                 <td class="text-left">
-                                                    <strong>{{ $sensor->name }}</strong>
-                                                    @if($sensor->is_community)
+                                                    <strong>{{ $medidor->name }}</strong>
+                                                    @if($medidor->is_community)
                                                         <span class="badge bg-success ms-1" style="font-size:0.6rem;"><i
                                                                 class="bi bi-tree-fill"></i> Común</span>
                                                     @endif
@@ -437,17 +437,17 @@
                                                                 class="bi bi-lock-fill"></i> Bloqueado</span>
                                                     @endif
                                                 </td>
-                                                <td><code>{{ $sensor->identifier }}</code></td>
-                                                <td>{{ $sensor->group->name ?? 'Sin grupo' }}</td>
+                                                <td><code>{{ $medidor->identifier }}</code></td>
+                                                <td>{{ $medidor->group->name ?? 'Sin grupo' }}</td>
                                                 <td>{{ $lastDate }}</td>
-                                                <td>{{ is_numeric($lastValue) ? number_format($lastValue, 2) : $lastValue }}
+                                                <td>{{ is_numeric($lastValue) ? number_format($lastValue, 2, ',', '.') : $lastValue }}
                                                 </td>
                                                 <td>
                                                     <span class="badge bg-{{ $estadoClass }}">{{ $estado }}</span>
                                                 </td>
                                                 <td style="width: 80px;">
                                                     <div class="table-actions">
-                                                        <a href="{{ route('measurements.create', $sensor->id) }}"
+                                                        <a href="{{ route('measurements.create', $medidor->id) }}"
                                                             class="btn btn-success" title="Tomar medición individual">
                                                             <i class="bi bi-rulers"></i>
                                                         </a>
@@ -458,9 +458,9 @@
                                             <tr>
                                                 <td colspan="8" class="text-center py-4">
                                                     <i class="bi bi-exclamation-triangle" style="font-size: 2rem;"></i>
-                                                    <h5 class="mt-2">No hay sensores disponibles</h5>
+                                                    <h5 class="mt-2">No hay medidores disponibles</h5>
                                                     <p class="text-muted">El propietario de este espacio aún no ha creado
-                                                        sensores.</p>
+                                                        medidores.</p>
                                                 </td>
                                             </tr>
                                         @endforelse
@@ -472,7 +472,7 @@
                             <div class="pagination-wrapper px-3 py-2 border rounded shadow-sm bg-white mb-3 mt-2">
                                 <div class="pagination-info text-muted small" id="paginationInfo">
                                     Mostrando <strong id="pageStart">0</strong> - <strong id="pageEnd">0</strong> de <strong
-                                        id="totalRecords">0</strong> sensores
+                                        id="totalRecords">0</strong> medidores
                                 </div>
                                 <div class="pagination-controls d-flex align-items-center gap-3">
                                     <div class="d-flex align-items-center gap-1">
@@ -524,9 +524,9 @@
                         <i class="bi bi-exclamation-triangle-fill text-warning" style="font-size: 3rem;"></i>
                         <h5 class="mt-3">¿Estás seguro?</h5>
                         <p class="text-muted">
-                            Vas a tomar mediciones para <strong id="modalSelectedCount">0</strong> sensores.
+                            Vas a tomar mediciones para <strong id="modalSelectedCount">0</strong> medidores.
                             <br>
-                            El sistema te guiará a través de cada sensor en secuencia ordenada por ID.
+                            El sistema te guiará a través de cada medidor en secuencia ordenada por ID.
                         </p>
                     </div>
                 </div>
@@ -546,7 +546,7 @@
 @push('scripts')
     <script>
         $(document).ready(function () {
-            const $sensorCheckboxes = $('.sensor-checkbox');
+            const $medidorCheckboxes = $('.medidor-checkbox');
             const $selectAllBtn = $('#selectAllBtn');
             const $deselectAllBtn = $('#deselectAllBtn');
             const $startBulkBtn = $('#startBulkBtn');
@@ -556,7 +556,7 @@
             const $statusFilter = $('#statusFilter');
             const $searchFilter = $('#searchFilter');
             const $clearFiltersBtn = $('#clearFiltersBtn');
-            const $sensorRows = $('#sensorsTable tbody tr');
+            const $medidorRows = $('#medidorsTable tbody tr');
             const $useSelectionOrder = $('#useSelectionOrder');
 
             // Array para mantener el orden de selección manual
@@ -609,20 +609,20 @@
             updateSelectedCount();
 
             // Seleccionar/Deseleccionar checkbox individual
-            $sensorCheckboxes.change(function () {
+            $medidorCheckboxes.change(function () {
                 const $row = $(this).closest('tr');
-                const sensorId = $(this).data('sensor-id');
+                const medidorId = $(this).data('medidor-id');
 
                 if ($(this).is(':checked')) {
                     $row.addClass('selected-row');
                     // Agregar al final del array de orden de selección
-                    if (!selectionOrder.includes(sensorId)) {
-                        selectionOrder.push(sensorId);
+                    if (!selectionOrder.includes(medidorId)) {
+                        selectionOrder.push(medidorId);
                     }
                 } else {
                     $row.removeClass('selected-row');
                     // Remover del array de orden de selección
-                    selectionOrder = selectionOrder.filter(id => id !== sensorId);
+                    selectionOrder = selectionOrder.filter(id => id !== medidorId);
                 }
                 updateSelectedCount();
             });
@@ -630,8 +630,8 @@
             // Seleccionar todos
             $('#selectAllCheckbox').change(function () {
                 const isChecked = $(this).is(':checked');
-                $sensorCheckboxes.prop('checked', isChecked);
-                $sensorRows.each(function () {
+                $medidorCheckboxes.prop('checked', isChecked);
+                $medidorRows.each(function () {
                     if (isChecked) {
                         $(this).addClass('selected-row');
                     } else {
@@ -641,8 +641,8 @@
 
                 // Actualizar el orden de selección
                 if (isChecked) {
-                    selectionOrder = $sensorCheckboxes.map(function () {
-                        return $(this).data('sensor-id');
+                    selectionOrder = $medidorCheckboxes.map(function () {
+                        return $(this).data('medidor-id');
                     }).get();
                 } else {
                     selectionOrder = [];
@@ -665,17 +665,17 @@
             $startBulkBtn.click(function () {
                 const selectedCount = getSelectedCount();
                 if (selectedCount === 0) {
-                    showAlert('Debes seleccionar al menos un sensor.', 'warning');
+                    showAlert('Debes seleccionar al menos un medidor.', 'warning');
                     return;
                 }
 
-                // Obtener los IDs de los sensores seleccionados
-                const selectedSensorIds = $sensorCheckboxes.filter(':checked').map(function () {
-                    return $(this).data('sensor-id');
+                // Obtener los IDs de los medidores seleccionados
+                const selectedMedidorIds = $medidorCheckboxes.filter(':checked').map(function () {
+                    return $(this).data('medidor-id');
                 }).get();
 
                 // Guardar los IDs en el campo oculto
-                $('#sensorIdsInput').val(selectedSensorIds.join(','));
+                $('#medidorIdsInput').val(selectedMedidorIds.join(','));
 
                 // Guardar el orden de selección
                 const useSelectionOrder = $useSelectionOrder.is(':checked');
@@ -716,7 +716,7 @@
 
             // Obtener cantidad de seleccionados
             function getSelectedCount() {
-                return $sensorCheckboxes.filter(':checked').length;
+                return $medidorCheckboxes.filter(':checked').length;
             }
 
             // Estado del filtro de comunidad
@@ -746,13 +746,13 @@
 
                 let visibleRows = [];
 
-                $sensorRows.each(function () {
+                $medidorRows.each(function () {
                     const $row = $(this);
 
                     // SAFE CASTING TO STRING TO AVOID .toLowerCase() TypeError on INT values
                     const rowGroup = String($row.data('group') || '').toLowerCase();
                     const rowStatus = String($row.data('status') || '').toLowerCase();
-                    const rowName = String($row.data('sensor-name') || '').toLowerCase();
+                    const rowName = String($row.data('medidor-name') || '').toLowerCase();
                     const rowIdentifier = String($row.data('identifier') || '').toLowerCase();
                     const isCommunity = String($row.data('community') || '0');
 
@@ -813,8 +813,8 @@
                     preselectRaw.split(',').map(v => parseInt(v.trim(), 10)).filter(n => !isNaN(n))
                 );
                 if (preselectSet.size > 0) {
-                    $sensorCheckboxes.each(function () {
-                        const sId = parseInt($(this).data('sensor-id'), 10);
+                    $medidorCheckboxes.each(function () {
+                        const sId = parseInt($(this).data('medidor-id'), 10);
                         if (preselectSet.has(sId)) {
                             $(this).prop('checked', true);
                             $(this).closest('tr').addClass('selected-row');
@@ -825,13 +825,13 @@
                     });
                     updateSelectedCount();
                     showAlert(
-                        `<i class="bi bi-calendar2-check-fill me-1"></i> Se preseleccionaron <strong>${selectionOrder.length} sensor(es)</strong> desde el Calendario de Tomas. Puedes ajustar la selección y hacer clic en <strong>📱 Invitar Inspector</strong> (App Flutter) o en <strong>Comenzar Medición Masiva</strong>.`,
+                        `<i class="bi bi-calendar2-check-fill me-1"></i> Se preseleccionaron <strong>${selectionOrder.length} medidor(es)</strong> desde el Calendario de Tomas. Puedes ajustar la selección y hacer clic en <strong>📱 Invitar Inspector</strong> (App Flutter) o en <strong>Comenzar Medición Masiva</strong>.`,
                         'info'
                     );
                 }
             }
 
-            // ✅ BOTÓN: Abrir modal de invitación SOLO si hay sensores seleccionados
+            // ✅ BOTÓN: Abrir modal de invitación SOLO si hay medidores seleccionados
             document.getElementById('inviteInspectorBtn').addEventListener('click', function () {
                 const selectedCount = getSelectedCount();
                 if (selectedCount === 0) {
@@ -840,15 +840,15 @@
                     $noSelectionModal.show();
                     return;
                 }
-                // Obtener IDs de los sensores seleccionados
-                const selectedSensorIds = $sensorCheckboxes.filter(':checked').map(function () {
-                    return $(this).data('sensor-id');
+                // Obtener IDs de los medidores seleccionados
+                const selectedMedidorIds = $medidorCheckboxes.filter(':checked').map(function () {
+                    return $(this).data('medidor-id');
                 }).get().join(',');
                 // Abrir modal de invitación y setear el count y los IDs
                 const $inviteModal = new bootstrap.Modal(document.getElementById('mobileInviteModal'));
                 document.getElementById('inviteLimit').value = selectedCount;
-                document.getElementById('inviteSensorIds').value = selectedSensorIds;
-                document.getElementById('inviteSelectedCount').textContent = selectedCount + ' sensores';
+                document.getElementById('inviteMedidorIds').value = selectedMedidorIds;
+                document.getElementById('inviteSelectedCount').textContent = selectedCount + ' medidores';
                 document.getElementById('sendInviteBtn').disabled = false;
                 document.getElementById('sendInviteBtnText').textContent = 'Enviar Enlace de Acceso';
                 document.getElementById('sendInviteBtnSpinner').classList.add('d-none');
@@ -865,7 +865,7 @@
                 if (selectedCount === 0) {
                     // No debería pasar porque el botón de abrir el modal ya valida,
                     // pero por seguridad
-                    document.getElementById('inviteResultMsg').innerHTML = '<div class="alert alert-warning py-2">No hay sensores seleccionados.</div>';
+                    document.getElementById('inviteResultMsg').innerHTML = '<div class="alert alert-warning py-2">No hay medidores seleccionados.</div>';
                     document.getElementById('inviteResultMsg').classList.remove('d-none');
                     return;
                 }
@@ -902,8 +902,8 @@
                     headers: reqHeaders,
                     body: JSON.stringify({
                         email: email,
-                        sensor_limit: limit,
-                        sensor_ids: document.getElementById('inviteSensorIds').value,
+                        medidor_limit: limit,
+                        medidor_ids: document.getElementById('inviteMedidorIds').value,
                         group_id: parseInt(document.getElementById('inviteGroupId').value) || 0
                     })
                 })

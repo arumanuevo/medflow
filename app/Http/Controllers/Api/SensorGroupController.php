@@ -90,6 +90,21 @@ class SensorGroupController extends Controller
 
         $validatedData['user_id'] = $user->id;
 
+        // ✅ Validación de Costo por Unidad si la Liquidación Financiera está habilitada
+        if (isset($validatedData['billing_settings']) && is_array($validatedData['billing_settings'])) {
+            $isBillingEnabled = filter_var($validatedData['billing_settings']['is_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            if ($isBillingEnabled) {
+                $pricePerUnit = (float) ($validatedData['billing_settings']['price_per_unit'] ?? 0);
+                if ($pricePerUnit <= 0) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'El costo por unidad debe ser mayor a 0 cuando la liquidación financiera está habilitada.',
+                        'errors' => ['billing_settings.price_per_unit' => ['El costo por unidad debe ser estrictamente mayor a 0.']]
+                    ], 422);
+                }
+            }
+        }
+
         $group = SensorGroup::create($validatedData);
 
         Log::info('✅ Grupo creado', [
@@ -100,7 +115,7 @@ class SensorGroupController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Grupo de sensores creado correctamente',
+            'message' => 'Grupo de medidores creado correctamente',
             'data' => $group
         ], 201);
     }
@@ -179,6 +194,18 @@ class SensorGroupController extends Controller
         }
 
         if (isset($validatedData['billing_settings']) && is_array($validatedData['billing_settings'])) {
+            $isBillingEnabled = filter_var($validatedData['billing_settings']['is_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            if ($isBillingEnabled) {
+                $pricePerUnit = (float) ($validatedData['billing_settings']['price_per_unit'] ?? 0);
+                if ($pricePerUnit <= 0) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'El costo por unidad debe ser mayor a 0 cuando la liquidación financiera está habilitada.',
+                        'errors' => ['billing_settings.price_per_unit' => ['El costo por unidad debe ser estrictamente mayor a 0.']]
+                    ], 422);
+                }
+            }
+
             $existingBilling = $group->billing_settings ?? [];
             if (!isset($validatedData['billing_settings']['schedule']) && isset($existingBilling['schedule'])) {
                 $validatedData['billing_settings']['schedule'] = $existingBilling['schedule'];
@@ -193,7 +220,7 @@ class SensorGroupController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Grupo de sensores actualizado correctamente',
+            'message' => 'Grupo de medidores actualizado correctamente',
             'data' => $group
         ]);
     }

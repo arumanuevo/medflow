@@ -1,6 +1,6 @@
 @extends('layouts.modern')
 
-@section('title', 'Detalles del Sensor - MeasureFlow')
+@section('title', 'Detalles del Medidor - MedFlow')
 
 @section('content')
     <!-- Incluir el archivo CSS externo -->
@@ -10,10 +10,10 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h4><i class="bi bi-sensors"></i> Detalles del Sensor</h4>
+                    <h4><i class="bi bi-speedometer2"></i> Detalles del Medidor</h4>
                     <div>
                         <a href="{{ route('sensors.index') }}" class="btn btn-secondary me-2">
-                            <i class="bi bi-arrow-left"></i> Volver a Sensores
+                            <i class="bi bi-arrow-left"></i> Volver a Medidores
                         </a>
                         @auth
                             @if(
@@ -24,14 +24,14 @@
                                     <i class="bi bi-geo-alt-fill"></i> Ubicar en Mapa
                                 </a>
                                 <a href="{{ route('sensors.edit', ['sensor' => $sensor->id]) }}" class="btn btn-warning">
-                                    <i class="bi bi-pencil"></i> Editar Sensor
+                                    <i class="bi bi-pencil"></i> Editar Medidor
                                 </a>
                             @endif
                         @endauth
                     </div>
                 </div>
                 <div class="card-body">
-                    <!-- Información básica del sensor -->
+                    <!-- Información básica del medidor -->
                     <div class="row mb-4">
                         <div class="col-md-6">
                             <h5><i class="bi bi-info-circle"></i> Información Básica</h5>
@@ -216,7 +216,7 @@
                                             (isset($sensor->group) && $sensor->group->sharedAccess()->where('shared_with', auth()->user()->id)->whereIn('role', ['inspector', 'admin'])->exists())
                                         )
                                         <a href="{{ route('sensors.edit', ['sensor' => $sensor->id]) }}" class="btn btn-warning">
-                                            <i class="bi bi-pencil"></i> Editar Sensor
+                                            <i class="bi bi-pencil"></i> Editar Medidor
                                         </a>
                                     @endif
                                     @if(auth()->user()->hasRole('admin') || (isset($sensor->group) && $sensor->group->user_id === auth()->user()->id))

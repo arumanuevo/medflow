@@ -13,7 +13,7 @@
 @if(isset($groups) && $groups->isEmpty())
     <div class="alert alert-warning">
         <i class="bi bi-exclamation-triangle"></i> 
-        <strong>Debug:</strong> No hay grupos con sensoresdddddd.
+        <strong>Debug:</strong> No hay grupos con medidoresdddddd.
         @if(!$isOwner)
             <br>Espacio activo: {{ $activeWorkspace }}
             <br>¿Eres colaborador? {{ auth()->user()->collaborations()->where('workspace_id', $activeWorkspace)->where('status', 'active')->exists() ? 'Sí' : 'No' }}
@@ -62,7 +62,7 @@
                                             <h5 class="card-title"><i class="bi bi-inbox"></i> Total</h5>
                                             <p class="card-text h4" id="totalSensors">0</p>
                                         </div>
-                                        <button class="btn btn-light btn-sm" data-bs-toggle="tooltip" title="Número total de sensores a los que tienes acceso">
+                                        <button class="btn btn-light btn-sm" data-bs-toggle="tooltip" title="Número total de medidores a los que tienes acceso">
                                             <i class="bi bi-info-circle"></i>
                                         </button>
                                     </div>
@@ -77,7 +77,7 @@
                                             <h5 class="card-title"><i class="bi bi-check-circle"></i> Al Día</h5>
                                             <p class="card-text h4" id="alDiaSensors">0</p>
                                         </div>
-                                        <button class="btn btn-light btn-sm" data-bs-toggle="tooltip" title="Sensores que no necesitan medición aún">
+                                        <button class="btn btn-light btn-sm" data-bs-toggle="tooltip" title="Medidores que no necesitan medición aún">
                                             <i class="bi bi-info-circle"></i>
                                         </button>
                                     </div>
@@ -92,7 +92,7 @@
                                             <h5 class="card-title"><i class="bi bi-exclamation-triangle"></i> Pendientes</h5>
                                             <p class="card-text h4" id="pendingSensors">0</p>
                                         </div>
-                                        <button class="btn btn-light btn-sm" data-bs-toggle="tooltip" title="Sensores que necesitan medición pronto (dentro del período de vencimiento)">
+                                        <button class="btn btn-light btn-sm" data-bs-toggle="tooltip" title="Medidores que necesitan medición pronto (dentro del período de vencimiento)">
                                             <i class="bi bi-info-circle"></i>
                                         </button>
                                     </div>
@@ -107,7 +107,7 @@
                                             <h5 class="card-title"><i class="bi bi-x-circle"></i> Vencidos</h5>
                                             <p class="card-text h4" id="overdueSensors">0</p>
                                         </div>
-                                        <button class="btn btn-light btn-sm" data-bs-toggle="tooltip" title="Sensores con medición vencida (fuera del período de vencimiento)">
+                                        <button class="btn btn-light btn-sm" data-bs-toggle="tooltip" title="Medidores con medición vencida (fuera del período de vencimiento)">
                                             <i class="bi bi-info-circle"></i>
                                         </button>
                                     </div>
@@ -124,7 +124,7 @@
             <select class="form-select form-select-sm" id="groupFilter">
                 <option value="" selected>Todos los grupos</option>
             </select>
-            <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="tooltip" title="Filtrar sensores por grupo">
+            <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="tooltip" title="Filtrar medidores por grupo">
                 <i class="bi bi-info-circle"></i>
             </button>
         </div>
@@ -148,7 +148,7 @@
         <label for="searchInput" class="form-label">Buscar</label>
         <div class="input-group">
             <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="Nombre o identificador...">
-            <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="tooltip" title="Buscar sensores por nombre o identificador">
+            <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="tooltip" title="Buscar medidores por nombre o identificador">
                 <i class="bi bi-info-circle"></i>
             </button>
         </div>
@@ -163,17 +163,17 @@
                     <!-- Acciones masivas -->
                     <div class="row mb-4" id="bulkActions">
                         <div class="col-md-12 d-flex gap-2">
-                            <button class="btn btn-success" id="markAllForMeasurement" data-bs-toggle="tooltip" title="Marca todos los sensores del grupo seleccionado para medición">
+                            <button class="btn btn-success" id="markAllForMeasurement" data-bs-toggle="tooltip" title="Marca todos los medidores del grupo seleccionado para medición">
                                 <i class="bi bi-check-square"></i> Marcar Todos para Medición
                             </button>
-                            <button class="btn btn-danger" id="unmarkAllForMeasurement" data-bs-toggle="tooltip" title="Desmarca todos los sensores">
+                            <button class="btn btn-danger" id="unmarkAllForMeasurement" data-bs-toggle="tooltip" title="Desmarca todos los medidores">
                                 <i class="bi bi-x-square"></i> Desmarcar Todos
                             </button>
-                            <button class="btn btn-info" id="takeBulkMeasurement" data-bs-toggle="tooltip" title="Inicia el proceso de medición para los sensores seleccionados">
+                            <button class="btn btn-info" id="takeBulkMeasurement" data-bs-toggle="tooltip" title="Inicia el proceso de medición para los medidores seleccionados">
                                 <i class="bi bi-rulers"></i> Tomar Mediciones Masivas
                             </button>
                              <!-- Botón para importar mediciones desde Excel -->
-                            <a href="{{ route('measurements.bulk-import') }}" class="btn btn-warning" data-bs-toggle="tooltip" title="Importar mediciones desde archivo Excel o CSV (múltiples sensores)">
+                            <a href="{{ route('measurements.bulk-import') }}" class="btn btn-warning" data-bs-toggle="tooltip" title="Importar mediciones desde archivo Excel o CSV (múltiples medidores)">
                                 <i class="bi bi-file-earmark-excel"></i> Importar Mediciones
                             </a>
                         </div>
@@ -185,7 +185,7 @@
                             <thead>
                                 <tr>
                                     <th>
-                                        <input type="checkbox" id="selectAllSensors" data-bs-toggle="tooltip" title="Seleccionar/desseleccionar todos los sensores">
+                                        <input type="checkbox" id="selectAllSensors" data-bs-toggle="tooltip" title="Seleccionar/desseleccionar todos los medidores">
                                     </th>
                                     <th data-sort="id">ID <i class="bi bi-arrow-up-down"></i></th>
                                     <th data-sort="sensor">Sensor <i class="bi bi-arrow-up-down"></i></th>
@@ -202,7 +202,7 @@
                                 <tr>
                                     <td colspan="10" class="text-center">
                                         <div class="spinner-border text-primary" role="status"></div>
-                                        <p class="mt-2">Cargando sensores...</p>
+                                        <p class="mt-2">Cargando medidores...</p>
                                     </td>
                                 </tr>
                             </tbody>
@@ -278,7 +278,7 @@
                             <div class="tab-pane fade show active" id="help-intro" role="tabpanel" aria-labelledby="help-intro-tab">
                                 <h4 class="mb-3"><i class="bi bi-info-circle me-2"></i> Introducción</h4>
                                 <p class="mb-3">
-                                    Esta página está diseñada para ayudarte a gestionar las mediciones de tus sensores de manera eficiente.
+                                    Esta página está diseñada para ayudarte a gestionar las mediciones de tus medidores de manera eficiente.
                                 </p>
                                 <div class="card mb-3 border-0 shadow-sm">
                                     <div class="card-body">
@@ -289,9 +289,9 @@
                                             </li>
                                             <li class="mb-2">
                                                 <strong>Gestionar mediciones masivas:</strong>
-                                                Marca varios sensores y usa el botón <span class="badge bg-info"><i class="bi bi-rulers me-1"></i> Tomar Mediciones Masivas</span>
+                                                Marca varios medidores y usa el botón <span class="badge bg-info"><i class="bi bi-rulers me-1"></i> Tomar Mediciones Masivas</span>
                                             </li>
-                                            <li class="mb-2"><strong>Filtrar y buscar:</strong> Usa los filtros para encontrar sensores por grupo, estado o nombre.</li>
+                                            <li class="mb-2"><strong>Filtrar y buscar:</strong> Usa los filtros para encontrar medidores por grupo, estado o nombre.</li>
                                             <li><strong>Visualizar el estado:</strong> Ve el estado de cada sensor (Al Día, Pendiente, Vencido).</li>
                                         </ul>
                                     </div>
@@ -299,8 +299,8 @@
                                 <div class="alert alert-info">
                                     <strong><i class="bi bi-lightbulb me-2"></i> Consejos:</strong>
                                     <ul class="mb-0 mt-2">
-                                        <li>Los sensores marcados en <span class="badge bg-warning text-dark">Pendiente</span> o <span class="badge bg-danger">Vencido</span> son prioridad.</li>
-                                        <li>Usa los filtros para enfocarte en los sensores que necesitan atención.</li>
+                                        <li>Los medidores marcados en <span class="badge bg-warning text-dark">Pendiente</span> o <span class="badge bg-danger">Vencido</span> son prioridad.</li>
+                                        <li>Usa los filtros para enfocarte en los medidores que necesitan atención.</li>
                                     </ul>
                                 </div>
                             </div>
@@ -386,8 +386,8 @@
                                         <div class="row">
                                             <div class="col-12 col-md-6 mb-3 mb-md-0">
                                                 <h6 class="mb-2"><i class="bi bi-calendar-range me-2"></i> Período de medición</h6>
-                                                <p class="mb-2 small">Número de días entre mediciones para un grupo de sensores.</p>
-                                                <small class="text-muted">Ejemplo: 30 días para sensores de agua, 7 días para sensores de temperatura.</small>
+                                                <p class="mb-2 small">Número de días entre mediciones para un grupo de medidores.</p>
+                                                <small class="text-muted">Ejemplo: 30 días para medidores de agua, 7 días para medidores de temperatura.</small>
                                             </div>
                                             <div class="col-12 col-md-6">
                                                 <h6 class="mb-2"><i class="bi bi-hourglass-split me-2"></i> Días de vencimiento</h6>
@@ -425,7 +425,7 @@
                                                 <tbody>
                                                     <tr>
                                                         <td><strong>Grupo</strong></td>
-                                                        <td>Filtrar sensores por grupo específico.</td>
+                                                        <td>Filtrar medidores por grupo específico.</td>
                                                         <td>Seleccionar "Garage"</td>
                                                     </tr>
                                                     <tr>
@@ -456,15 +456,15 @@
                                     <div class="card-body">
                                         <h5 class="mb-3"><i class="bi bi-check-square me-2"></i> ¿Qué son las mediciones masivas?</h5>
                                         <p class="mb-3">
-                                            Permiten tomar mediciones de varios sensores en una sola sesión, sin seleccionar cada sensor individualmente.
+                                            Permiten tomar mediciones de varios medidores en una sola sesión, sin seleccionar cada sensor individualmente.
                                         </p>
                                         <h5 class="mb-3"><i class="bi bi-123 me-2"></i> Pasos para Realizar Mediciones Masivas</h5>
                                         <ol class="mb-0">
                                             <li class="mb-2">
-                                                <strong>Seleccionar sensores:</strong>
+                                                <strong>Seleccionar medidores:</strong>
                                                 <ul class="mb-2">
-                                                    <li>Usa los filtros para encontrar los sensores.</li>
-                                                    <li>Marca los sensores individualmente haciendo clic en el botón <span class="badge bg-warning text-dark"><i class="bi bi-square me-1"></i></span>.</li>
+                                                    <li>Usa los filtros para encontrar los medidores.</li>
+                                                    <li>Marca los medidores individualmente haciendo clic en el botón <span class="badge bg-warning text-dark"><i class="bi bi-square me-1"></i></span>.</li>
                                                     <li>O usa el botón <strong>"Marcar Todos para Medición"</strong>.</li>
                                                 </ul>
                                             </li>
@@ -489,9 +489,9 @@
                                 <div class="alert alert-success">
                                     <strong><i class="bi bi-check-circle me-2"></i> Beneficios:</strong>
                                     <ul class="mb-0 mt-2">
-                                        <li>Ahorra tiempo al medir varios sensores seguidos.</li>
-                                        <li>Evita olvidar sensores importantes.</li>
-                                        <li>Prioriza sensores por estado (Pendiente/Vencido).</li>
+                                        <li>Ahorra tiempo al medir varios medidores seguidos.</li>
+                                        <li>Evita olvidar medidores importantes.</li>
+                                        <li>Prioriza medidores por estado (Pendiente/Vencido).</li>
                                     </ul>
                                 </div>
                             </div>
@@ -591,7 +591,7 @@
                                 <div class="alert alert-info mt-3">
                                     <i class="bi bi-lightbulb me-2"></i>
                                     <strong>Consejo:</strong> 
-                                    <span class="small">El flujo de trabajo está diseñado para ser rápido y eficiente. Marca varios sensores a la vez para ahorrar tiempo.</span>
+                                    <span class="small">El flujo de trabajo está diseñado para ser rápido y eficiente. Marca varios medidores a la vez para ahorrar tiempo.</span>
                                 </div>
                             </div>
                         </div>
@@ -754,7 +754,7 @@ $(document).ready(function() {
             'select_sensor_guide_intro': {
                 content: `
                     <h4><i class="bi bi-info-circle me-2"></i> Introducción</h4>
-                    <p>Esta página está diseñada para ayudarte a gestionar las mediciones de tus sensores de manera eficiente.</p>
+                    <p>Esta página está diseñada para ayudarte a gestionar las mediciones de tus medidores de manera eficiente.</p>
                     <div class="card mb-3">
                         <div class="card-body">
                             <ul class="mb-0">
@@ -764,9 +764,9 @@ $(document).ready(function() {
                                 </li>
                                 <li class="mb-2">
                                     <strong>Gestionar mediciones masivas:</strong>
-                                    Marca varios sensores y usa el botón <span class="badge bg-info"><i class="bi bi-rulers me-1"></i> Tomar Mediciones Masivas</span>
+                                    Marca varios medidores y usa el botón <span class="badge bg-info"><i class="bi bi-rulers me-1"></i> Tomar Mediciones Masivas</span>
                                 </li>
-                                <li class="mb-2"><strong>Filtrar y buscar:</strong> Usa los filtros para encontrar sensores por grupo, estado o nombre.</li>
+                                <li class="mb-2"><strong>Filtrar y buscar:</strong> Usa los filtros para encontrar medidores por grupo, estado o nombre.</li>
                                 <li><strong>Visualizar el estado:</strong> Ve el estado de cada sensor (Al Día, Pendiente, Vencido).</li>
                             </ul>
                         </div>
@@ -774,8 +774,8 @@ $(document).ready(function() {
                     <div class="alert alert-info">
                         <strong><i class="bi bi-lightbulb me-2"></i> Consejos:</strong>
                         <ul class="mb-0 mt-2">
-                            <li>Los sensores marcados en <span class="badge bg-warning text-dark">Pendiente</span> o <span class="badge bg-danger">Vencido</span> son prioridad.</li>
-                            <li>Usa los filtros para enfocarte en los sensores que necesitan atención.</li>
+                            <li>Los medidores marcados en <span class="badge bg-warning text-dark">Pendiente</span> o <span class="badge bg-danger">Vencido</span> son prioridad.</li>
+                            <li>Usa los filtros para enfocarte en los medidores que necesitan atención.</li>
                         </ul>
                     </div>
                 `
@@ -865,7 +865,7 @@ $(document).ready(function() {
             search: currentSearch
         };
 
-        console.log('🔍 Cargando sensores con parámetros:', params);
+        console.log('🔍 Cargando medidores con parámetros:', params);
 
         $.ajax({
             url: '/api/bulk/measurements/sensors',
@@ -880,7 +880,7 @@ $(document).ready(function() {
                     <tr>
                         <td colspan="10" class="text-center">
                             <div class="spinner-border text-primary" role="status"></div>
-                            <p class="mt-2">Cargando sensores...</p>
+                            <p class="mt-2">Cargando medidores...</p>
                         </td>
                     </tr>
                 `);
@@ -902,7 +902,7 @@ $(document).ready(function() {
                 }
             },
             error: function(xhr) {
-                console.error('❌ Error al cargar sensores:', xhr);
+                console.error('❌ Error al cargar medidores:', xhr);
                 showError('Error: ' + (xhr.responseJSON?.message || xhr.statusText));
             }
         });
@@ -927,7 +927,7 @@ $(document).ready(function() {
             $('#sensorsTableBody').html(`
                 <tr>
                     <td colspan="10" class="text-center">
-                        <i class="bi bi-inbox"></i> No se encontraron sensores
+                        <i class="bi bi-inbox"></i> No se encontraron medidores
                     </td>
                 </tr>
             `);
@@ -1134,9 +1134,9 @@ $(document).ready(function() {
                 console.log('✅ Marcar todos éxito:', response);
                 if (response.success) {
                     loadSensors();
-                    showAlert(`Se marcaron ${response.data.affected} sensores para medición`, 'success');
+                    showAlert(`Se marcaron ${response.data.affected} medidores para medición`, 'success');
                 } else {
-                    showAlert(response.message || 'Error al marcar sensores', 'danger');
+                    showAlert(response.message || 'Error al marcar medidores', 'danger');
                 }
             },
             error: function(xhr) {
@@ -1156,26 +1156,26 @@ $(document).ready(function() {
 
         currentAction = 'unmarkAll';
         $('#confirmActionMessage').html(`
-            <p>¿Estás seguro de que deseas desmarcar todos los sensores filtrados?</p>
-            <p class="text-muted">Se desmarcarán todos los sensores que coincidan con los filtros actuales.</p>
+            <p>¿Estás seguro de que deseas desmarcar todos los medidores filtrados?</p>
+            <p class="text-muted">Se desmarcarán todos los medidores que coincidan con los filtros actuales.</p>
         `);
         $('#confirmActionModal').modal('show');
     });
 
     // ✅ Botón "Tomar Mediciones Masivas" - CORREGIDO
     $('#takeBulkMeasurement').on('click', function() {
-        // Obtener los IDs de los sensores marcados en la base de datos
+        // Obtener los IDs de los medidores marcados en la base de datos
         const markedSensorIds = [];
         $('.sensorCheckbox:checked').each(function() {
             const sensorId = $(this).closest('tr').data('sensor-id');
             markedSensorIds.push(sensorId);
         });
 
-        console.log(`📤 Tomar mediciones masivas: ${markedSensorIds.length} sensores marcados`, markedSensorIds);
+        console.log(`📤 Tomar mediciones masivas: ${markedSensorIds.length} medidores marcados`, markedSensorIds);
 
-        // Si no hay sensores marcados, mostrar error
+        // Si no hay medidores marcados, mostrar error
         if (markedSensorIds.length === 0) {
-            showAlert('No hay sensores seleccionados para medición. Marca al menos un sensor.', 'warning');
+            showAlert('No hay medidores seleccionados para medición. Marca al menos un sensor.', 'warning');
             return;
         }
 
@@ -1214,10 +1214,10 @@ $(document).ready(function() {
                     console.log('✅ Desmarcar todos éxito:', response);
                     if (response.success) {
                         loadSensors();
-                        showAlert(`Se desmarcaron ${response.data.affected} sensores`, 'success');
+                        showAlert(`Se desmarcaron ${response.data.affected} medidores`, 'success');
                         selectedSensors.clear();
                     } else {
-                        showAlert(response.message || 'Error al desmarcar sensores', 'danger');
+                        showAlert(response.message || 'Error al desmarcar medidores', 'danger');
                     }
                 },
                 error: function(xhr) {

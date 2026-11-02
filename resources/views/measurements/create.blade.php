@@ -1,6 +1,6 @@
 @extends('layouts.modern')
 
-@section('title', 'Tomar Medición - ' . ($sensor->name ?? 'Sensor'))
+@section('title', 'Tomar Medición - ' . ($medidor->name ?? 'Medidor'))
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/measurements-create-styles.css') }}">
@@ -14,7 +14,7 @@
                     <i class="bi bi-rulers me-2"></i>
                     Tomar Medición
                 </h5>
-                <a href="{{ route('sensors.show', $sensor->id) }}" class="btn btn-light btn-sm">
+                <a href="{{ route('medidors.show', $medidor->id) }}" class="btn btn-light btn-sm">
                     <i class="bi bi-x-lg"></i> Cancelar
                 </a>
             </div>
@@ -27,18 +27,18 @@
                 <!-- ============================================
                 INFO COMPACTA DEL SENSOR
                 ============================================ -->
-                <div class="sensor-info-compact">
+                <div class="medidor-info-compact">
                     <span class="info-item">
                         <i class="bi bi-tag"></i>
-                        <strong>{{ $sensor->name }}</strong>
+                        <strong>{{ $medidor->name }}</strong>
                     </span>
                     <span class="info-item">
                         <i class="bi bi-hash"></i>
-                        {{ $sensor->identifier }}
+                        {{ $medidor->identifier }}
                     </span>
                     <span class="info-item">
                         <i class="bi bi-folder"></i>
-                        {{ $sensor->group->name ?? 'Sin grupo' }}
+                        {{ $medidor->group->name ?? 'Sin grupo' }}
                     </span>
                     <span class="info-item">
                         <i class="bi bi-clock"></i>
@@ -46,7 +46,7 @@
                     </span>
                     <span class="info-item">
                         <i class="bi bi-file-text"></i>
-                        Plantilla: {{ $sensor->group->template->name ?? 'N/A' }}
+                        Plantilla: {{ $medidor->group->template->name ?? 'N/A' }}
                     </span>
                 </div>
 
@@ -58,8 +58,8 @@
                     $mainFieldLabel = 'Consumo Actual';
                     $unit = 'm³';
 
-                    if ($sensor->group && $sensor->group->template && isset($sensor->group->template->schema['campos'])) {
-                        foreach ($sensor->group->template->schema['campos'] as $campo) {
+                    if ($medidor->group && $medidor->group->template && isset($medidor->group->template->schema['campos'])) {
+                        foreach ($medidor->group->template->schema['campos'] as $campo) {
                             if ($campo['tipo'] === 'numero' && ($campo['requerido'] ?? false)) {
                                 $mainField = $campo['nombre'];
                                 $mainFieldLabel = ucfirst(str_replace('_', ' ', $campo['nombre']));
@@ -84,7 +84,7 @@
                             <div class="col-md-6">
                                 <div class="label">Última medición</div>
                                 <div class="value">
-                                    {{ number_format($lastValue, 2) }} <span class="unit">{{ $unit }}</span>
+                                    {{ number_format($lastValue, 2, ',', '.') }} <span class="unit">{{ $unit }}</span>
                                 </div>
                             </div>
                             <div class="col-md-6 text-md-end">
@@ -99,7 +99,7 @@
                     <div class="previous-measurement-box" style="border-left-color: #ffc107; background: #fff8e7;">
                         <div class="label">⚠️ Sin mediciones anteriores</div>
                         <div class="value" style="font-size: 0.9rem; font-weight: 400;">
-                            Esta es la primera medición para este sensor.
+                            Esta es la primera medición para este medidor.
                         </div>
                     </div>
                 @endif
@@ -107,8 +107,8 @@
     ADVERTENCIA DE PERÍODO (CON REDONDEO)
     ============================================ -->
                 @php
-                    $periodoMedicion = $sensor->group->periodo_medicion ?? 30;
-                    $diasVencimiento = $sensor->group->dias_vencimiento ?? 5;
+                    $periodoMedicion = $medidor->group->periodo_medicion ?? 30;
+                    $diasVencimiento = $medidor->group->dias_vencimiento ?? 5;
                     $diasDesdeUltima = null;
                     $estadoPeriodo = 'ok';
                     $mensajePeriodo = '';
@@ -120,26 +120,26 @@
 
                         if ($diasDesdeUltima < $periodoMedicion) {
                             $estadoPeriodo = 'temprano';
-                            $mensajePeriodo = "⚠️ Han pasado <strong>" . number_format($diasDesdeUltima, 0) . "</strong> días desde la última medición. " .
+                            $mensajePeriodo = "⚠️ Han pasado <strong>" . number_format($diasDesdeUltima, 0, ',', '.') . "</strong> días desde la última medición. " .
                                 "El período definido es de <strong>{$periodoMedicion}</strong> días. " .
-                                "Faltan <strong>" . number_format($diasRestantes, 0) . "</strong> días para la próxima medición programada.";
+                                "Faltan <strong>" . number_format($diasRestantes, 0, ',', '.') . "</strong> días para la próxima medición programada.";
                         } elseif ($diasDesdeUltima > $periodoMedicion + $diasVencimiento) {
                             $estadoPeriodo = 'vencido';
-                            $mensajePeriodo = "🔴 Han pasado <strong>" . number_format($diasDesdeUltima, 0) . "</strong> días desde la última medición. " .
+                            $mensajePeriodo = "🔴 Han pasado <strong>" . number_format($diasDesdeUltima, 0, ',', '.') . "</strong> días desde la última medición. " .
                                 "El período definido es de <strong>{$periodoMedicion}</strong> días. " .
                                 "La medición está <strong>vencida por " . number_format($diasDesdeUltima - $periodoMedicion, 0) . " días</strong>.";
                         } elseif ($diasDesdeUltima > $periodoMedicion) {
                             $estadoPeriodo = 'pendiente';
                             $diasExcedidos = $diasDesdeUltima - $periodoMedicion;
-                            $mensajePeriodo = "🟡 Han pasado <strong>" . number_format($diasDesdeUltima, 0) . "</strong> días desde la última medición. " .
+                            $mensajePeriodo = "🟡 Han pasado <strong>" . number_format($diasDesdeUltima, 0, ',', '.') . "</strong> días desde la última medición. " .
                                 "El período definido es de <strong>{$periodoMedicion}</strong> días. " .
-                                "La medición está <strong>" . number_format($diasExcedidos, 0) . " días</strong> fuera del período.";
+                                "La medición está <strong>" . number_format($diasExcedidos, 0, ',', '.') . " días</strong> fuera del período.";
                         } else {
                             $estadoPeriodo = 'ok';
                             $diasRestantes = $periodoMedicion - $diasDesdeUltima;
-                            $mensajePeriodo = "✅ Han pasado <strong>" . number_format($diasDesdeUltima, 0) . "</strong> días desde la última medición. " .
+                            $mensajePeriodo = "✅ Han pasado <strong>" . number_format($diasDesdeUltima, 0, ',', '.') . "</strong> días desde la última medición. " .
                                 "El período definido es de <strong>{$periodoMedicion}</strong> días. " .
-                                "Te quedan <strong>" . number_format($diasRestantes, 0) . "</strong> días para la próxima medición programada.";
+                                "Te quedan <strong>" . number_format($diasRestantes, 0, ',', '.') . "</strong> días para la próxima medición programada.";
                         }
                     }
                 @endphp
@@ -156,9 +156,9 @@
                 ============================================ -->
                 <form id="measurementForm">
                     @csrf
-                    <input type="hidden" name="sensor_id" value="{{ $sensor->id }}">
+                    <input type="hidden" name="medidor_id" value="{{ $medidor->id }}">
                     <input type="hidden" id="groupName"
-                        value="{{ str_replace(' ', '_', $sensor->group->name ?? 'SinGrupo') }}">
+                        value="{{ str_replace(' ', '_', $medidor->group->name ?? 'SinGrupo') }}">
 
                     <!-- Campo: Valor de consumo (campo principal de la plantilla) -->
                     <div class="mb-3">
@@ -174,7 +174,7 @@
                         @if($lastValue !== null)
                             <small class="text-muted">
                                 <i class="bi bi-info-circle me-1"></i>
-                                Anterior: <strong>{{ number_format($lastValue, 2) }} {{ $unit }}</strong>
+                                Anterior: <strong>{{ number_format($lastValue, 2, ',', '.') }} {{ $unit }}</strong>
                                 @php
                                     $diff = $lastValue ? (float) old($mainField, 0) - $lastValue : null;
                                 @endphp
@@ -346,7 +346,7 @@
 
                                         <small class="text-muted text-center mt-1">
                                             <i class="bi bi-info-circle me-1"></i>
-                                            Formato: <code>(grupo)_(sensor)_(fecha).png</code>
+                                            Formato: <code>(grupo)_(medidor)_(fecha).png</code>
                                         </small>
                                     </div>
                                 </div>
@@ -359,16 +359,16 @@
                     ============================================ -->
                     @php
                         $customFields = [];
-                        if (isset($sensor->group) && isset($sensor->group->template) && isset($sensor->group->template->schema['campos'])) {
-                            $customFields = array_filter($sensor->group->template->schema['campos'], function ($campo) use ($mainField) {
+                        if (isset($medidor->group) && isset($medidor->group->template) && isset($medidor->group->template->schema['campos'])) {
+                            $customFields = array_filter($medidor->group->template->schema['campos'], function ($campo) use ($mainField) {
                                 // 1. Excluir campos estructurales fijos de medición 
                                 if (in_array($campo['nombre'], [$mainField, 'consumo_m3', 'foto', 'fecha_medicion', 'valor', 'identificador'])) {
                                     return false;
                                 }
                                 
                                 // 2. Comportamiento Estricto: Permitir SOLO si el contexto lo autoriza expresamente
-                                // Si no hay contexto definido, asumimos que es metadata estática del Sensor (por ej: Ocupación, Lote, Ubicación).
-                                $contexto = isset($campo['contexto']) ? strtolower(trim($campo['contexto'])) : 'sensor';
+                                // Si no hay contexto definido, asumimos que es metadata estática del Medidor (por ej: Ocupación, Lote, Ubicación).
+                                $contexto = isset($campo['contexto']) ? strtolower(trim($campo['contexto'])) : 'medidor';
                                 return in_array($contexto, ['medicion', 'ambos']);
                             });
                         }
@@ -417,7 +417,7 @@
                     BOTONES
                     ============================================ -->
                     <div class="d-flex gap-2 mt-4 pt-3 border-top">
-                        <a href="{{ route('sensors.show', $sensor->id) }}" class="btn btn-secondary">
+                        <a href="{{ route('medidors.show', $medidor->id) }}" class="btn btn-secondary">
                             <i class="bi bi-x-circle me-1"></i> Cancelar
                         </a>
                         <button type="submit" class="btn btn-primary flex-grow-1" id="saveMeasurementBtn">
@@ -469,8 +469,8 @@
                 // =============================================
                 // 1. CONFIGURACIÓN INICIAL (datos desde PHP)
                 // =============================================
-                const sensorId = {{ $sensor->id }};
-                const groupName = '{{ str_replace(' ', '_', $sensor->group->name ?? 'SinGrupo') }}';
+                const medidorId = {{ $medidor->id }};
+                const groupName = '{{ str_replace(' ', '_', $medidor->group->name ?? 'SinGrupo') }}';
                 const token = localStorage.getItem('token');
                 const mainField = '{{ $mainField }}';
                 const lastValue = {{ $lastValue !== null ? $lastValue : 'null' }};
@@ -675,7 +675,7 @@
                         time = now.toTimeString().slice(0, 5).replace(/:/g, '');
                     }
 
-                    return `${groupName}_${sensorId}_${date}_${time}.png`;
+                    return `${groupName}_${medidorId}_${date}_${time}.png`;
                 }
 
                 async function startCamera() {
@@ -798,7 +798,7 @@
                     const photoName = $('#photo').val();
                     const formData = new FormData();
                     formData.append('foto', photoBlob, photoName);
-                    formData.append('sensor_id', sensorId);
+                    formData.append('medidor_id', medidorId);
 
                     return new Promise((resolve, reject) => {
                         $.ajax({
@@ -889,7 +889,7 @@
 
                     // Preparar datos
                     const formData = {
-                        sensor_id: sensorId,
+                        medidor_id: medidorId,
                         data: {
                             foto: $('#photo').val(),
                             fecha_medicion: fecha,
@@ -930,7 +930,7 @@
                         if (response.success) {
                             showAlert('✅ Medición guardada correctamente', 'success');
                             setTimeout(() => {
-                                window.location.href = '/sensors/' + sensorId;
+                                window.location.href = '/medidors/' + medidorId;
                             }, 1000);
                         } else {
                             showAlert('❌ ' + (response.message || 'Error al guardar'), 'danger');

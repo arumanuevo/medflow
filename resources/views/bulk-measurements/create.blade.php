@@ -267,7 +267,7 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <span class="label">Última medición</span>
-                                    <span class="value">{{ is_numeric($lastValue) ? number_format($lastValue, 2) : ($lastValue ?? 'N/A') }}</span>
+                                    <span class="value">{{ is_numeric($lastValue) ? number_format($lastValue, 2, ',', '.') : ($lastValue ?? 'N/A') }}</span>
                                 </div>
                                 <div class="text-end">
                                     <span class="date">
@@ -329,7 +329,7 @@
                                 @if($lastValue !== null)
                                     <small class="text-muted">
                                         <i class="bi bi-arrow-up"></i> 
-                                        Debe ser mayor que <strong>{{ is_numeric($lastValue) ? number_format($lastValue, 2) : $lastValue }}</strong>
+                                        Debe ser mayor que <strong>{{ is_numeric($lastValue) ? number_format($lastValue, 2, ',', '.') : $lastValue }}</strong>
                                     </small>
                                 @endif
                             </div>

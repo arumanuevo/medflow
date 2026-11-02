@@ -612,8 +612,8 @@ try {
                 📅 Calendario y tomas de hoy
             </button>
             <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill py-1 px-2 flowy-quick-btn" style="font-size: 0.71rem;"
-                data-question="¿Cómo uso el Mapa de Sensores (GIS) para ubicar medidores y ver vencimientos o picos de consumo?">
-                🗺️ Mapa GIS y Picos de Consumo
+                data-question="¿Cómo uso el Mapa de Medidores (GIS) para ubicar medidores y ver vencimientos o picos de consumo?">
+                🗺️ Mapa GIS de Medidores
             </button>
             <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill py-1 px-2 flowy-quick-btn" style="font-size: 0.71rem;"
                 data-question="¿Cómo puedo filtrar y exportar reportes de mediciones o consumos en PDF y CSV?">
@@ -625,7 +625,7 @@ try {
 
     <div class="card-footer bg-white border-top-0 p-2">
         <div class="input-group">
-            <input type="text" id="flowyUserInput" class="form-control rounded-pill border-1 bg-light ps-3 me-2" placeholder="Pregunta sobre sensores, lecturas, calendario, reportes..." aria-label="Escribe tu consulta...">
+            <input type="text" id="flowyUserInput" class="form-control rounded-pill border-1 bg-light ps-3 me-2" placeholder="Pregunta sobre medidores, lecturas, calendario, reportes..." aria-label="Escribe tu consulta...">
             <button class="btn btn-primary rounded-circle d-flex align-items-center px-3" id="btnSendFlowy" style="height: 40px; width: 40px !important;">
                 <i class="bi bi-send-fill" style="margin-left: -2px;"></i>
             </button>
