@@ -196,7 +196,7 @@
                 </div>
             </div>
 
-            <!-- Módulo 4: Finanzas y Áreas Comunes -->
+            <!-- Módulo 4: Finanzas y Configuración Contable -->
             <div class="col help-card">
                 <div class="card h-100 border-0 shadow-sm rounded-4">
                     <div class="card-body p-4">
@@ -205,20 +205,27 @@
                                 style="width: 45px; height: 45px;">
                                 <i class="bi bi-wallet2 fs-5"></i>
                             </div>
-                            <h5 class="fw-bold mb-0">Finanzas y Áreas Comunes</h5>
+                            <h5 class="fw-bold mb-0">Finanzas y Configuración Contable</h5>
                         </div>
                         <ul class="list-unstyled text-muted mb-0">
                             <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
                                     data-bs-toggle="modal" data-bs-target="#helpModal"
-                                    data-title="La Configuración Contable"
-                                    data-content="Al editar un Grupo de Sensores, puedes habilitar la 'Configuración Contable'. Esto te permite asignar una moneda, un cargo fijo y un multiplicador de precio por unidad (Ej: $1500 por cada m3 de agua). Se reflejará como costo en tus tablas de consumo y en enlaces públicos si así lo habilitas."
-                                    data-steps="Ve a &lt;strong&gt;Grupos de Sensores > Editar Grupo&lt;/strong&gt; y marca la opción &lt;strong&gt;Habilitar Monetización&lt;/strong&gt;.">
-                                    <i class="bi bi-play-circle me-1 text-warning"></i> ¿Cómo funciona la Monetización?</a>
+                                    data-title="Configuración Contable y Liquidación Financiera"
+                                    data-content="Al crear o editar un Grupo de Medidores puedes habilitar la 'Liquidación Financiera'. Esto te permite fijar la moneda (ARS o USD), un cargo fijo (expensa base) y el costo por cada unidad consumida (ej: $ 150,00 por m³ de agua o kWh). El sistema exige que el costo por unidad sea estrictamente mayor a 0 para garantizar cálculos financieros válidos. Además, puedes decidir si este costo se muestra o se oculta en el Visor Público y comprobantes compartidos."
+                                    data-steps="Ve a &lt;strong&gt;Grupos de Medidores > Editar Grupo&lt;/strong&gt; y en la sección &lt;strong&gt;Configuración Contable&lt;/strong&gt; activa &lt;strong&gt;Habilitar Liquidación Financiera&lt;/strong&gt;.">
+                                    <i class="bi bi-play-circle me-1 text-warning"></i> Liquidación y Tarifas x Unidad</a>
                             </li>
                             <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
-                                    data-bs-toggle="modal" data-bs-target="#helpModal" data-title="Sensores de Área Común"
-                                    data-content="Si administras un consorcio puedes marcar sensores como 'Áreas Comunes'. ¿Por qué se ofrece esta funcionalidad? Porque automatiza las finanzas evitando excel paralelos. El gasto en recursos públicos (ej: riego del parque) se abstrae y prorratea, dividiendo el costo total equitativamente e inyectándolo a cada boleto de los medidores privados del mismo grupo vecinal de manera transparente."
-                                    data-steps="Al Crear o Editar un Sensor, activa la opción &lt;strong&gt;Es Área Común / Aplica a Prorrateo&lt;/strong&gt;.">
+                                    data-bs-toggle="modal" data-bs-target="#helpModal"
+                                    data-title="Balance con Medidor General (Macro-Medición en Barrios Cerrados)"
+                                    data-content="En barrios cerrados, condominios o parques industriales donde existe un Medidor General de entrada, con frecuencia el consumo total facturado por la proveedora no coincide con la sumatoria de las lecturas individuales de cada lote. En la Configuración Contable puedes activar 'Balance con Medidor General' y elegir qué hacer con ese remanente o diferencia:&lt;br&gt;&lt;br&gt;&lt;strong&gt;1. Prorratear proporcional al consumo:&lt;/strong&gt; Quien más consumió, asume una porción mayor del remanente.&lt;br&gt;&lt;strong&gt;2. Prorratear en partes iguales:&lt;/strong&gt; La diferencia se divide equitativamente entre los medidores activos del grupo.&lt;br&gt;&lt;strong&gt;3. Asignar a Áreas Comunes / Consumo Central:&lt;/strong&gt; No se le traslada al vecino; se imputa al balance general o expensas del barrio.&lt;br&gt;&lt;strong&gt;4. Registrar como Pérdida Técnica / Ineficiencia de Red:&lt;/strong&gt; Se aísla contablemente como fuga para auditoría técnica, sin cobro al usuario."
+                                    data-steps="Dentro de &lt;strong&gt;Grupos de Medidores > Editar Grupo > Configuración Contable&lt;/strong&gt;, activa &lt;strong&gt;Balance con Medidor General&lt;/strong&gt;, asigna el medidor de entrada y selecciona la regla de remanente deseada.">
+                                    <i class="bi bi-diagram-3-fill me-1 text-primary"></i> Medidor General y Remanentes</a>
+                            </li>
+                            <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
+                                    data-bs-toggle="modal" data-bs-target="#helpModal" data-title="Medidores de Área Común (Prorrateo Comunitario)"
+                                    data-content="Si administras un consorcio o barrio privado, puedes marcar medidores específicos como 'Áreas Comunes' (ej: riego de parques, piscina, club house). El sistema automatiza las finanzas evitando planillas Excel paralelas: calcula el consumo diferencial del medidor común y lo prorratea de forma transparente inyectándolo a cada boleto de los medidores privados del mismo grupo vecinal."
+                                    data-steps="Al Crear o Editar un Medidor, activa la opción &lt;strong&gt;Es Área Común / Aplica a Prorrateo&lt;/strong&gt;.">
                                     <i class="bi bi-play-circle me-1 text-warning"></i> Prorrateo de gastos comunes</a></li>
                         </ul>
                     </div>

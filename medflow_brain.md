@@ -515,10 +515,33 @@ Existen **dos métodos** en MedFlow para agregar nuevos campos (atributos person
 ### 4.10 ¿Cómo enviar liquidaciones y comprobantes por WhatsApp a los propietarios?
 - En la vista **Mediciones y Consumos** (`/mediciones`), en la columna de acciones de cada fila, haz clic en el botón verde con el icono de **WhatsApp**.
 - **Flexibilidad con o sin campo telefónico previo:**
-  * **Si el sensor ya tiene un campo telefónico:** El modal detecta automáticamente el número y lo pre-carga.
-  * **Si el sensor NO tiene campo de teléfono:** El administrador puede **escribir el número a mano directamente en el popup**. Al enviar, el sistema mandará el mensaje y además guardará ese teléfono en la ficha del sensor para que quede registrado a futuro.
-- **Mensaje pre-redactado y comprobante:** El texto incluye Lote, Grupo, Fecha de toma, Lectura actual, Consumo en m³/kWh, Importe y el enlace directo al **Visor Público** (`/visor/{token}`) con la foto real del medidor para que el vecino audite su consumo.
+  * **Si el medidor ya tiene un campo telefónico:** El modal detecta automáticamente el número y lo pre-carga.
+  * **Si el medidor NO tiene campo de teléfono:** El administrador puede **escribir el número a mano directamente en el popup**. Al enviar, el sistema mandará el mensaje y además guardará ese teléfono en la ficha del medidor para que quede registrado a futuro.
+- **Mensaje pre-redactado y comprobante:** El texto incluye Lote/Medidor, Grupo, Fecha de toma, Lectura actual, Consumo en m³/kWh, Importe (en notación latina, ej: `$ 15.200,50`) y el enlace directo al **Visor Público** (`/visor/{token}`) con la foto real del medidor para que el vecino audite su consumo.
 - **Sin costos ni aranceles:** Utiliza el protocolo Click-to-Chat (`wa.me`), abriendo WhatsApp Web o la App sin pagar tarifas de Meta.
+
+### 4.11 ¿Cómo configurar la contabilidad, liquidación financiera y el balance con Medidor General / Remanentes?
+En MedFlow, la gestión contable y tarifaria se configura dentro de cada **Grupo de Medidores**:
+
+1. **Acceso al módulo:**
+   - En el menú lateral, ve a **Grupos de Medidores** (`/sensor-groups`).
+   - Haz clic en el botón **Editar** (icono de lápiz) del grupo que deseas tarifar.
+   - Desplázate hasta la tarjeta **Configuración Contable**.
+
+2. **Habilitar Liquidación Financiera:**
+   - Activa el interruptor **"Habilitar Liquidación Financiera"**.
+   - **Moneda:** Selecciona `ARS` (Pesos Argentinos) o `USD` (Dólares).
+   - **Cargo Fijo:** Monto base por expensa o cuota fija independiente del consumo.
+   - **Costo x Unidad (Obligatorio > 0):** Ingresa la tarifa por unidad consumida (ej: `$ 150,00` por m³ o kWh). **Regla de integridad:** El sistema exige estrictamente que este costo sea mayor a 0 y no permite enviar un valor en 0 cuando la liquidación está activa. Si no se desea liquidar económicamente, se deja el switch desactivado (modo estadístico).
+   - **Visor Público:** Permite elegir si el importe monetario se muestra o se oculta a los vecinos en sus links y QR públicos.
+
+3. **Balance con Medidor General (Macro-Medición en Barrios Cerrados y Predios):**
+   - Si tu barrio privado, parque industrial o edificio cuenta con un **Medidor General en la boca de entrada** y la factura global de la proveedora no coincide con la suma de los consumos individuales de los lotes ($\Delta = Consumo_{General} - \sum Consumo_{Lotes}$), activa **"Balance con Medidor General"**.
+   - Elige el medidor físico que registra la entrada general y selecciona el **Tratamiento del Remanente** entre 4 opciones:
+     * **1. Prorratear proporcional al consumo privado (`prorate_proportional`):** Quien más consumió asume una porción proporcionalmente mayor del remanente.
+     * **2. Prorratear en partes iguales (`prorate_equal`):** La diferencia se divide equitativamente entre los medidores activos del grupo (ideal para alícuotas uniformes de expensas).
+     * **3. Asignar a Áreas Comunes / Consumo Central (`common_areas`):** No se recarga a la factura del vecino; se imputa como gasto central de administración (espacios verdes, club house, portería).
+     * **4. Registrar como Pérdida Técnica / Ineficiencia de Red (`losses_technical`):** Se aísla contablemente como pérdida física o fuga para auditoría técnica de la red, sin cobro a los usuarios.
 
 ---
 
