@@ -119,15 +119,6 @@
     </div>
 </div>
 
-<!-- Pastilla Flotante Minimizada (Visible de forma no intrusiva) -->
-<div id="medflowLegalFloatBadge" class="position-fixed" style="bottom: 18px; left: 18px; z-index: 1045;">
-    <button type="button" onclick="openLegalNoticeModal()" class="btn btn-sm btn-white bg-white text-secondary shadow-sm rounded-pill border d-inline-flex align-items-center gap-2 px-3 py-1" style="font-size: 0.76rem; border-color: #cbd5e1 !important; transition: all 0.2s ease;">
-        <i class="bi bi-shield-check text-primary"></i>
-        <span class="d-none d-md-inline fw-semibold text-dark">Aviso Legal & Responsabilidad</span>
-        <span class="badge bg-light text-muted border px-1" style="font-size: 0.65rem;">SaaS</span>
-    </button>
-</div>
-
 <script>
     (function() {
         const STORAGE_KEY = 'medflow_legal_accepted_v1';

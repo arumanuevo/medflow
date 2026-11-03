@@ -114,7 +114,7 @@
     {{-- Footer --}}
     <div class="sidebar-footer">
         <a href="{{ route('legal.terms') }}" 
-           target="_blank"
+           onclick="if (typeof openLegalNoticeModal === 'function') { openLegalNoticeModal(); return false; }"
            class="sidebar-menu-link" 
            title="Marco Legal, Términos y Responsabilidad (Argentina)"
            style="color: #94a3b8; font-size: 0.82rem;">
