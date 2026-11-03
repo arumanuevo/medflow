@@ -689,6 +689,9 @@
                 </div>
             </div>
 
+            {{-- Contenedor de Alerta de Límite / Downgrade Informativa --}}
+            <div id="downgradeBannerContainer"></div>
+
             <!-- ============================================
                                                                                         FILTROS AVANZADOS / HORIZONTAL TOOLBAR
                                                                                         ============================================ -->
@@ -980,13 +983,14 @@
                 if (limits.sensors.is_unlimited) {
                     sensorLimit.text('∞');
                     sensorLimit.removeClass('danger warning');
+                    $('#downgradeBannerContainer').empty();
                 } else {
                     const used = limits.sensors.used;
                     const max = limits.sensors.max;
                     const remaining = limits.sensors.remaining;
                     sensorLimit.text(`${used} / ${max}`);
                     sensorLimit.removeClass('danger warning');
-                    // ✅ Manejo de Alerta Prominente por Límite de Sensores
+                    // ✅ Manejo de Alerta Prominente por Límite de Medidores
                     $('#sensorLimitReachedWarning').remove(); // Limpiar advertencias previas
 
                     if (remaining <= 0) {
@@ -996,10 +1000,10 @@
                         const warningHtml = `
                                         <div id="sensorLimitReachedWarning" class="d-flex align-items-center gap-2 ms-auto" style="animation: pulse 2s infinite;">
                                             <span class="badge bg-danger px-3 py-2 shadow-sm rounded-pill border border-light">
-                                                <i class="bi bi-exclamation-triangle-fill me-1"></i> Límite de Sensores Alcanzado
+                                                <i class="bi bi-exclamation-triangle-fill me-1"></i> Límite de Medidores Alcanzado
                                             </span>
-                                            <a href="/profile" class="btn btn-sm btn-warning fw-bold shadow-sm rounded-pill">
-                                                <i class="bi bi-cart-plus-fill"></i> Expandir Capacidad
+                                            <a href="/subscription/plans" class="btn btn-sm btn-warning fw-bold shadow-sm rounded-pill text-dark">
+                                                <i class="bi bi-cart-plus-fill"></i> Actualizar Plan
                                             </a>
                                         </div>
                                     `;
@@ -1007,6 +1011,39 @@
 
                     } else if (remaining <= 1) {
                         sensorLimit.addClass('warning');
+                    }
+
+                    // ✅ Banner Informativo Explicativo cuando hay medidores excedentes (Downgrade o Límite Superado)
+                    if (used > max) {
+                        const excessCount = used - max;
+                        const planDisplayName = plan.name || 'Gratuito';
+                        const bannerHtml = `
+                            <div class="alert alert-warning border-start border-4 border-warning shadow-sm mx-3 mt-3 mb-0 d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                <div class="d-flex align-items-start gap-3">
+                                    <div class="fs-2 text-warning lh-1 mt-1">
+                                        <i class="bi bi-shield-exclamation"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold text-dark mb-1">
+                                            Límite de Medidores del Plan Excedido (Restricción por Downgrade / Cupo)
+                                        </h6>
+                                        <p class="mb-0 text-muted small">
+                                            Tu plan actual (<strong>${planDisplayName}</strong>) permite operar hasta <strong>${max} medidores</strong> activos. Actualmente tienes <strong>${used} medidores</strong> registrados.
+                                            <br>
+                                            <strong>Tus datos históricos y configuraciones están 100% preservados y no se borran</strong>, pero los <strong>${excessCount} medidor(es)</strong> que sobrepasan la capacidad están en <em>modo solo lectura</em> (bloqueados para tomar nuevas mediciones). Asimismo, funciones avanzadas como el Mapa Satelital GIS y exportaciones requieren un Plan Premium activo.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="ms-auto text-end">
+                                    <a href="/subscription/plans" class="btn btn-warning fw-bold text-dark text-nowrap shadow-sm">
+                                        <i class="bi bi-star-fill me-1"></i> Actualizar a Premium
+                                    </a>
+                                </div>
+                            </div>
+                        `;
+                        $('#downgradeBannerContainer').html(bannerHtml);
+                    } else {
+                        $('#downgradeBannerContainer').empty();
                     }
                 }
 
@@ -1422,7 +1459,7 @@
                     let rowHtml = `<tr data-sensor-id="${sensor.id}">`;
                     const isChecked = selectedSensors.has(sensor.id) ? 'checked' : '';
                     let communityBadge = sensor.is_community ? ' <span class="badge bg-success bg-opacity-10 text-success border border-success ms-1" style="font-size: 0.65rem;" title="Medidor de Consumo Comunitario. Su valor tarifario será prorrateado al total de miembros privados del grupo"><i class="bi bi-tree-fill"></i> Común</span>' : '';
-                    let lockedBadge = sensor.is_measurable === false ? ' <span class="badge bg-danger bg-opacity-10 text-danger border border-danger ms-1" style="font-size: 0.65rem;" title="Has alcanzado el límite máximo de licencias de sensores de tu plan (Premium base: 20). Para habilitar este y más sensores físicos, ingresa a tu Perfil > Facturación y Licencias."><i class="bi bi-lock-fill"></i> Bloqueado</span>' : '';
+                    let lockedBadge = sensor.is_measurable === false ? ' <span class="badge bg-danger bg-opacity-10 text-danger border border-danger ms-1" style="font-size: 0.65rem;" title="Has alcanzado el límite de medidores activos de tu plan actual. Tus datos históricos se conservan, pero para registrar nuevas mediciones en este medidor debes actualizar a un plan superior."><i class="bi bi-lock-fill"></i> Bloqueado</span>' : '';
 
                     rowHtml += `<td class="text-center"><input type="checkbox" class="sensor-checkbox" data-sensor-id="${sensor.id}" ${isChecked}></td>`;
                     rowHtml += `<td class="text-left"><strong>${sensor.name}</strong>${communityBadge}${lockedBadge}</td>`;
@@ -1440,7 +1477,7 @@
 
                     if (sensor.is_measurable === false) {
                         rowHtml += `
-                                                                                                        <button class="btn btn-sm btn-secondary opacity-50" title="Sube de plan para medir este sensor" onclick="alert('Límite de sensores de tu plan alcanzado. Cambia a plan superior.'); return false;">
+                                                                                                        <button class="btn btn-sm btn-secondary opacity-50" title="Medidor bloqueado por límite de plan" onclick="alert('Has alcanzado el límite de medidores operativos de tu plan actual. Tus datos históricos se conservan intactos, pero para tomar nuevas mediciones en este medidor actualiza tu suscripción en Facturación y Licencias.'); return false;">
                                                                                                             <i class="bi bi-lock-fill"></i>
                                                                                                         </button>
                                                                 `;

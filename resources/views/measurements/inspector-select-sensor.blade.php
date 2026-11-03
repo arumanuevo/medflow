@@ -201,7 +201,7 @@
                                                 @if($isLocked)
                                                     <span
                                                         class="badge bg-danger bg-opacity-10 text-danger border border-danger ms-1"
-                                                        style="font-size: 0.65rem;" title="Has alcanzado el límite máximo de licencias de sensores de tu plan (Premium base: 20). Para habilitar este y más sensores físicos, ingresa a tu Perfil > Facturación y Licencias."><i
+                                                        style="font-size: 0.65rem;" title="Has alcanzado el límite de medidores activos del plan. Tus datos se conservan, pero para registrar nuevas mediciones en este medidor debes actualizar a un plan superior."><i
                                                             class="bi bi-lock-fill"></i> Bloqueado</span>
                                                 @endif
                                             </td>

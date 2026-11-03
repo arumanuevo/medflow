@@ -433,7 +433,7 @@
                                                     @if($isLocked)
                                                         <span
                                                             class="badge bg-danger bg-opacity-10 text-danger border border-danger ms-1"
-                                                            style="font-size: 0.65rem;" title="Límite del Plan Superado"><i
+                                                            style="font-size: 0.65rem;" title="Límite del Plan Superado (Medidor bloqueado para nuevas mediciones)"><i
                                                                 class="bi bi-lock-fill"></i> Bloqueado</span>
                                                     @endif
                                                 </td>

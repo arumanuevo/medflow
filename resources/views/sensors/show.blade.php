@@ -23,9 +23,22 @@
                                     auth()->user()->hasRole('admin') ||
                                     (isset($sensor->group) && $sensor->group->user_id === auth()->user()->id)
                                 )
-                                <a href="{{ route('sensor-map.index', ['sensor_id' => $sensor->id]) }}" class="btn btn-light btn-sm text-primary shadow-sm" title="Ver o asignar coordenada en el Mapa Interactivo (Premium)">
-                                    <i class="bi bi-geo-alt-fill text-primary"></i> Ubicar en Mapa
-                                </a>
+                                @php
+                                    $userHasMapAccess = auth()->user()->hasRole('admin') || 
+                                                        auth()->user()->subscription_plan === 'premium' || 
+                                                        (auth()->user()->getActiveSubscription() && auth()->user()->getActiveSubscription()->plan === 'premium') ||
+                                                        auth()->user()->email === 'scastellanoadmin@gmail.com';
+                                @endphp
+
+                                @if($userHasMapAccess)
+                                    <a href="{{ route('sensor-map.index', ['sensor_id' => $sensor->id]) }}" class="btn btn-light btn-sm text-primary shadow-sm" title="Ver o asignar coordenada en el Mapa Interactivo Satelital">
+                                        <i class="bi bi-geo-alt-fill text-primary"></i> Ubicar en Mapa
+                                    </a>
+                                @else
+                                    <button type="button" class="btn btn-light btn-sm text-muted shadow-sm" data-bs-toggle="modal" data-bs-target="#gisMapPremiumModal" title="Función exclusiva del Plan Premium">
+                                        <i class="bi bi-geo-alt-fill text-secondary"></i> Ubicar en Mapa <span class="badge bg-warning text-dark ms-1" style="font-size:0.65rem;"><i class="bi bi-lock-fill"></i> Premium</span>
+                                    </button>
+                                @endif
                                 <a href="{{ route('sensors.edit', ['sensor' => $sensor->id]) }}" class="btn btn-warning btn-sm text-dark fw-bold shadow-sm">
                                     <i class="bi bi-pencil"></i> Editar Medidor
                                 </a>
@@ -356,6 +369,40 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-danger" id="confirmDeleteSensor">Eliminar Sensor</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- ✅ Modal Informativo para Mapa GIS (Exclusivo Premium / Aclaración Downgrade) --}}
+    <div class="modal fade" id="gisMapPremiumModal" tabindex="-1" aria-labelledby="gisMapPremiumModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="gisMapPremiumModalLabel">
+                        <i class="bi bi-geo-alt-fill me-1"></i> Mapa Satelital Interactivo (GIS)
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <div class="mb-3">
+                        <span class="d-inline-flex p-3 rounded-circle bg-warning bg-opacity-10 text-warning fs-1">
+                            <i class="bi bi-map"></i>
+                        </span>
+                    </div>
+                    <h5 class="fw-bold text-dark">Función Exclusiva del Plan Premium</h5>
+                    <p class="text-muted small mt-2">
+                        El Mapa Interactivo GIS permite geolocalizar medidores sobre cartografía satelital en alta resolución, trazar rutas de inspección y auditar consumos territoriales en tiempo real.
+                    </p>
+                    <div class="alert alert-light border small text-start my-3">
+                        <i class="bi bi-info-circle text-primary me-1"></i> <strong>Nota sobre downgrades:</strong> Si registraste coordenadas de este medidor anteriormente, las coordenadas se conservan en la base de datos, pero la visualización y navegación en el mapa satelital requiere un Plan Premium activo.
+                    </div>
+                    <div class="d-grid gap-2 mt-4">
+                        <a href="{{ route('subscription.plans') }}" class="btn btn-warning fw-bold py-2 shadow-sm text-dark">
+                            <i class="bi bi-star-fill me-1"></i> Ver Planes y Activar Premium
+                        </a>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    </div>
                 </div>
             </div>
         </div>

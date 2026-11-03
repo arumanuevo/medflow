@@ -12,9 +12,7 @@ class FreePlan implements PlanInterface
     }
     public function getMaxSensors(): int
     {
-        $base = 2; // ✅ 2 sensores permitidos
-        $extraPacks = $this->user ? ($this->user->additional_sensor_packs ?? 0) : 0;
-        return $base + ($extraPacks * 10);
+        return 2; // ✅ 2 medidores permitidos estrictamente en plan gratuito
     }
 
     public function getMaxGroups(): int

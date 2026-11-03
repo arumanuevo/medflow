@@ -35,7 +35,7 @@ class SensorMapController extends Controller
         if (!$isSuperAdmin && $subService->getPlan()->getPlanKey() !== 'premium') {
             return [
                 'allowed' => false,
-                'reason' => 'El Mapa Interactivo de Sensores (GIS) es una aplicación exclusiva del Plan Premium.'
+                'reason' => 'El Mapa Interactivo de Medidores (GIS) es una aplicación exclusiva del Plan Premium.'
             ];
         }
 

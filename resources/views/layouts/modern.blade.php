@@ -225,6 +225,7 @@
 
             {{-- ✅ CONTENIDO --}}
             <div class="modern-content">
+                @include('layouts.partials.alerts')
                 @yield('content')
             </div>
 

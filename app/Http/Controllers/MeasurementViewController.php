@@ -147,9 +147,9 @@ class MeasurementViewController extends Controller
             $maxSensors = $subscriptionService->getPlan()->getMaxSensors();
             $measurableSensors = $subscriptionService->getMeasurableSensorIds();
 
-            abort(403, "No puedes tomar mediciones en este sensor con tu plan {$planName}. " .
-                "Tu plan permite medir solo en los primeros {$maxSensors} sensores. " .
-                "Actualiza tu plan para medir en todos tus sensores.");
+            abort(403, "No puedes tomar mediciones en este medidor con tu plan {$planName}. " .
+                "Tu plan permite registrar mediciones en los primeros {$maxSensors} medidores. " .
+                "Tus datos históricos se conservan, pero debes actualizar tu plan a Premium para medir en todos tus medidores.");
         }
 
         // Verificar plantilla
