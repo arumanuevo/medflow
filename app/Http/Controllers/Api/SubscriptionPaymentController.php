@@ -61,6 +61,28 @@ class SubscriptionPaymentController extends Controller
     {
         $user = $request->user();
 
+        // ✅ Si se invoca desde el panel de SuperAdmin o con parámetro ?email=...
+        if ($request->has('email')) {
+            $targetEmail = $request->query('email') ?: $request->input('email');
+            $targetUser = User::where('email', $targetEmail)->first();
+            if ($targetUser) {
+                // Si el usuario actual es admin/superadmin o si la petición viene del panel
+                if (!$user || $user->hasRole('admin') || $user->hasRole('superadmin') || $user->id == 1) {
+                    $user = $targetUser;
+                }
+            }
+        }
+
+        if (!$user) {
+            if ($request->isMethod('get')) {
+                return redirect()->route('login')->with('error', 'Debes iniciar sesión.');
+            }
+            return response()->json([
+                'success' => false,
+                'message' => 'Usuario no identificado o no autenticado.'
+            ], 401);
+        }
+
         Log::info('🔵 Iniciando creación de preferencia', [
             'user_id' => $user->id,
             'email' => $user->email,
@@ -69,6 +91,9 @@ class SubscriptionPaymentController extends Controller
 
         if (!$this->accessToken) {
             Log::error('❌ Access token no configurado');
+            if ($request->isMethod('get')) {
+                return redirect()->back()->with('error', 'Mercado Pago no está configurado correctamente en el servidor.');
+            }
             return response()->json([
                 'success' => false,
                 'message' => 'Mercado Pago no está configurado correctamente. Contacta al administrador.'
@@ -81,6 +106,9 @@ class SubscriptionPaymentController extends Controller
 
         if ($validator->fails()) {
             Log::error('❌ Error de validación', ['errors' => $validator->errors()->toArray()]);
+            if ($request->isMethod('get')) {
+                return redirect()->back()->with('error', 'Plan de suscripción no válido.');
+            }
             return response()->json([
                 'success' => false,
                 'message' => 'Error de validación',
@@ -93,6 +121,9 @@ class SubscriptionPaymentController extends Controller
 
         if (!$planConfig) {
             Log::error('❌ Plan no encontrado', ['plan' => $plan]);
+            if ($request->isMethod('get')) {
+                return redirect()->back()->with('error', 'Plan no encontrado en la configuración.');
+            }
             return response()->json([
                 'success' => false,
                 'message' => 'Plan no encontrado'
@@ -111,28 +142,30 @@ class SubscriptionPaymentController extends Controller
             'dynamic_price' => $dynamicPrice
         ]);
 
-        // Verificar si el usuario ya tiene una suscripción activa del mismo plan (permitir upgrade de basico -> premium)
-        $activeSubscription = Subscription::where('user_id', $user->id)
-            ->where('status', 'active')
-            ->where(function ($q) {
-                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
-            })
-            ->first();
+        // Verificar si el usuario ya tiene una suscripción activa del mismo plan (solo si es POST desde la app del usuario)
+        if (!$request->isMethod('get')) {
+            $activeSubscription = Subscription::where('user_id', $user->id)
+                ->where('status', 'active')
+                ->where(function ($q) {
+                    $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+                })
+                ->first();
 
-        if ($activeSubscription && ($activeSubscription->plan === $plan || $activeSubscription->plan === 'premium')) {
-            Log::info('⚠️ Usuario ya tiene suscripción activa de este nivel o superior', [
-                'user_id' => $user->id,
-                'subscription_id' => $activeSubscription->id,
-                'active_plan' => $activeSubscription->plan,
-                'target_plan' => $plan
-            ]);
-            return response()->json([
-                'success' => false,
-                'message' => 'Ya tienes una suscripción activa para este plan.',
-                'data' => [
-                    'subscription' => $activeSubscription
-                ]
-            ], 400);
+            if ($activeSubscription && ($activeSubscription->plan === $plan || $activeSubscription->plan === 'premium')) {
+                Log::info('⚠️ Usuario ya tiene suscripción activa de este nivel o superior', [
+                    'user_id' => $user->id,
+                    'subscription_id' => $activeSubscription->id,
+                    'active_plan' => $activeSubscription->plan,
+                    'target_plan' => $plan
+                ]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ya tienes una suscripción activa para este plan.',
+                    'data' => [
+                        'subscription' => $activeSubscription
+                    ]
+                ], 400);
+            }
         }
 
         try {
@@ -199,6 +232,13 @@ class SubscriptionPaymentController extends Controller
                 'user_id' => $user->id
             ]);
 
+            if ($request->isMethod('get')) {
+                $redirectUrl = $preference->init_point ?: $preference->sandbox_init_point;
+                if ($redirectUrl) {
+                    return redirect()->away($redirectUrl);
+                }
+            }
+
             return response()->json([
                 'success' => true,
                 'data' => [
@@ -230,6 +270,10 @@ class SubscriptionPaymentController extends Controller
                 $errorMessage .= $e->getMessage();
             }
 
+            if ($request->isMethod('get')) {
+                return redirect()->back()->with('error', $errorMessage);
+            }
+
             return response()->json([
                 'success' => false,
                 'message' => $errorMessage
@@ -240,6 +284,11 @@ class SubscriptionPaymentController extends Controller
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
+
+            if ($request->isMethod('get')) {
+                return redirect()->back()->with('error', 'Error al crear la preferencia de pago: ' . $e->getMessage());
+            }
+
             return response()->json([
                 'success' => false,
                 'message' => 'Error al crear la preferencia de pago: ' . $e->getMessage()
@@ -394,8 +443,40 @@ class SubscriptionPaymentController extends Controller
                     $packsCount = isset($parts[2]) && is_numeric($parts[2]) ? (int) $parts[2] : 1;
                     $user = User::find($userId);
                     if ($user && $packsCount > 0) {
-                        $user->additional_sensor_packs += $packsCount;
-                        $user->save();
+                        $alreadyRecorded = Subscription::where('payment_id', $paymentId)->exists();
+                        if (!$alreadyRecorded) {
+                            $systemPrices = $this->getSystemPrices();
+                            $pricePerPack = (float) ($systemPrices['pack'] ?? 10000);
+                            $amount = $payment->transaction_amount ?? ($packsCount * $pricePerPack);
+
+                            $sub = Subscription::where('user_id', $user->id)
+                                ->where('status', 'pending')
+                                ->where('plan', 'like', 'Pack Extra%')
+                                ->latest()
+                                ->first();
+
+                            if ($sub) {
+                                $sub->status = 'active';
+                                $sub->payment_id = $paymentId;
+                                $sub->amount = $amount;
+                                $sub->paid_at = now();
+                                $sub->save();
+                            } else {
+                                Subscription::create([
+                                    'user_id' => $user->id,
+                                    'plan' => 'Pack Extra (+' . ($packsCount * 10) . ' Medidores)',
+                                    'status' => 'active',
+                                    'payment_id' => $paymentId,
+                                    'amount' => $amount,
+                                    'currency' => $payment->currency_id ?? 'ARS',
+                                    'paid_at' => now(),
+                                    'expires_at' => null,
+                                ]);
+                            }
+
+                            $user->additional_sensor_packs += $packsCount;
+                            $user->save();
+                        }
                     }
                     Log::info('Pago de packs confirmado por webhook', [
                         'user_id' => $userId,
@@ -568,8 +649,8 @@ class SubscriptionPaymentController extends Controller
             $preferenceData = [
                 "items" => [
                     [
-                        "title" => "Pack Extra de Sensores x" . ($packs * 10) . ' - MedFlow',
-                        "description" => "Expansión de capacidad para " . ($packs * 10) . " sensores adicionales.",
+                        "title" => "Pack Extra de Medidores x" . ($packs * 10) . ' - MedFlow',
+                        "description" => "Expansión de capacidad para " . ($packs * 10) . " medidores adicionales.",
                         "quantity" => 1,
                         "unit_price" => (float) ($packs * $pricePerPack),
                         "currency_id" => "ARS"
@@ -591,6 +672,16 @@ class SubscriptionPaymentController extends Controller
             ];
 
             $preference = $client->create($preferenceData);
+
+            // Registrar suscripción provisoria en estado pending
+            Subscription::create([
+                'user_id' => $user->id,
+                'plan' => 'Pack Extra (+' . ($packs * 10) . ' Medidores)',
+                'status' => 'pending',
+                'preference_id' => $preference->id,
+                'amount' => (float) ($packs * $pricePerPack),
+                'currency' => 'ARS',
+            ]);
 
             return response()->json([
                 'success' => true,
@@ -625,6 +716,7 @@ class SubscriptionPaymentController extends Controller
 
         $paymentId = $request->query('payment_id');
         $packs = (int) $request->query('packs', 0);
+        $preferenceId = $request->query('preference_id');
 
         if ($paymentId && $packs > 0) {
             try {
@@ -632,10 +724,46 @@ class SubscriptionPaymentController extends Controller
                 $payment = $client->get($paymentId);
 
                 if ($payment->status === 'approved') {
-                    $user->additional_sensor_packs += $packs;
-                    $user->save();
+                    $alreadyRecorded = Subscription::where('payment_id', $paymentId)->exists();
 
-                    return redirect('/profile')->with('success', "¡Excelente! Has expandido tu límite exitosamente instalando {$packs} paquete(s) de expansión.");
+                    if (!$alreadyRecorded) {
+                        $systemPrices = $this->getSystemPrices();
+                        $pricePerPack = (float) ($systemPrices['pack'] ?? 10000);
+                        $amount = $payment->transaction_amount ?? ($packs * $pricePerPack);
+
+                        $sub = null;
+                        if ($preferenceId) {
+                            $sub = Subscription::where('preference_id', $preferenceId)
+                                ->where('status', 'pending')
+                                ->latest()
+                                ->first();
+                        }
+
+                        if ($sub) {
+                            $sub->status = 'active';
+                            $sub->payment_id = $paymentId;
+                            $sub->amount = $amount;
+                            $sub->paid_at = now();
+                            $sub->save();
+                        } else {
+                            Subscription::create([
+                                'user_id' => $user->id,
+                                'plan' => 'Pack Extra (+' . ($packs * 10) . ' Medidores)',
+                                'status' => 'active',
+                                'payment_id' => $paymentId,
+                                'preference_id' => $preferenceId,
+                                'amount' => $amount,
+                                'currency' => $payment->currency_id ?? 'ARS',
+                                'paid_at' => now(),
+                                'expires_at' => null,
+                            ]);
+                        }
+
+                        $user->additional_sensor_packs += $packs;
+                        $user->save();
+                    }
+
+                    return redirect('/profile')->with('success', "¡Excelente! Has expandido tu capacidad exitosamente instalando {$packs} paquete(s) de expansión.");
                 }
             } catch (\Exception $e) {
                 Log::error('Error validando pago de packs: ' . $e->getMessage());

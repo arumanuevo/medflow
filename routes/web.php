@@ -301,8 +301,8 @@ Route::middleware(['auth'])->group(function () {
         ]);
     })->name('subscription.payment');
 
-    // Crear preferencia (API)
-    Route::post('/api/subscription/create-preference', [SubscriptionPaymentController::class, 'createPreference'])
+    // Crear preferencia (API y SuperAdmin Checkout)
+    Route::match(['get', 'post'], '/api/subscription/create-preference', [SubscriptionPaymentController::class, 'createPreference'])
         ->name('subscription.create.preference');
 
     // Comprar Packs Extras (API)

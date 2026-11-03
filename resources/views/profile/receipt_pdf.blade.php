@@ -105,7 +105,7 @@
         </tr>
         <tr>
             <th>Concepto / Descripción:</th>
-            <td>{{ $user->descripcion_servicio ?? ('Suscripción MedFlow - Plan ' . strtoupper($subscription->plan)) }}
+            <td>{{ str_starts_with($subscription->plan, 'Pack') ? $subscription->plan : ($user->descripcion_servicio ?? ('Suscripción MedFlow - Plan ' . strtoupper($subscription->plan))) }}
             </td>
         </tr>
         <tr>
