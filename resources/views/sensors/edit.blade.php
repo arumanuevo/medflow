@@ -8,9 +8,10 @@
 
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card">
-                <div class="card-header ">
-                    <h4><i class="bi bi-sensors"></i> Editar Medidor: {{ $sensor->name }}</h4>
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center"
+                     style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important; color: #ffffff !important; border-bottom: none; border-radius: 8px 8px 0 0 !important; padding: 1.1rem 1.5rem !important;">
+                    <h4 class="mb-0 text-white fw-bold"><i class="bi bi-speedometer2 me-2"></i> Editar Medidor: {{ $sensor->name }}</h4>
                 </div>
                 <div class="card-body">
                     <form id="sensorEditForm">

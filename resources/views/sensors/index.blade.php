@@ -1,4 +1,4 @@
-﻿@extends('layouts.modern')
+@extends('layouts.modern')
 
 @section('title', 'Mis Medidores')
 
@@ -26,32 +26,45 @@
                                                                                        ============================================ */
         .sensor-table-wrapper {
             overflow-x: auto;
+            overflow-y: auto;
+            max-height: calc(100vh - 250px);
+            min-height: 420px;
+            position: relative;
         }
 
         .sensor-table-wrapper table {
             min-width: 600px;
             margin-bottom: 0;
+            border-collapse: separate;
+            border-spacing: 0;
         }
 
         .sensor-table-wrapper .table th {
             white-space: nowrap;
             font-size: 0.72rem;
-            padding: 0.5rem 0.5rem;
+            padding: 0.6rem 0.5rem;
             text-align: center !important;
             vertical-align: middle;
             cursor: pointer;
             user-select: none;
-            position: relative;
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 15 !important;
+            background-color: #1e293b !important;
+            color: #ffffff !important;
+            border-bottom: 2px solid #0f172a !important;
+            box-shadow: inset 0 -2px 0 #0f172a, 0 2px 4px rgba(0, 0, 0, 0.12) !important;
             transition: background-color 0.15s;
-            border-bottom: 2px solid #dee2e6;
         }
 
         .sensor-table-wrapper .table th:hover {
-            background-color: rgba(13, 110, 253, 0.06);
+            background-color: #334155 !important;
+            color: #ffffff !important;
         }
 
         .sensor-table-wrapper .table th:not(.no-sort):hover {
-            background-color: rgba(13, 110, 253, 0.08);
+            background-color: #334155 !important;
+            color: #ffffff !important;
         }
 
         .sensor-table-wrapper .table td {

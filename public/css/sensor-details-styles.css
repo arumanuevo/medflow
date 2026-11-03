@@ -13,10 +13,17 @@
 
 .card-header {
     border-radius: 8px 8px 0 0 !important;
-    padding: 1rem 1.5rem;
+    padding: 1.1rem 1.5rem !important;
     font-weight: 600;
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #dee2e6;
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+    color: #ffffff !important;
+    border-bottom: none !important;
+}
+
+.card-header h4 {
+    color: #ffffff !important;
+    margin-bottom: 0 !important;
+    font-weight: 700 !important;
 }
 
 .card-body {

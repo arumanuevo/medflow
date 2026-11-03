@@ -8,11 +8,14 @@
    ESTILOS BASE PARA TABLAS (idéntico a sensors)
    ============================================ */
 
-/* Wrapper para tablas responsivas */
+/* Wrapper para tablas responsivas con sticky header */
 .sensor-table-wrapper,
 .table-wrapper,
 .table-responsive {
     overflow-x: auto;
+    overflow-y: auto;
+    max-height: calc(100vh - 250px);
+    position: relative;
 }
 
 /* Estilos para todas las tablas */
@@ -36,37 +39,42 @@
     border-color: #dee2e6;
 }
 
-/* Encabezados de tabla - IDÉNTICO A SENSORS */
+/* Encabezados de tabla - IDÉNTICO A SENSORS CON STICKY */
 .sensor-table-wrapper .table th,
 .table-wrapper .table th,
 .table-responsive .table th,
 .table th {
     white-space: nowrap;
     font-size: 0.72rem !important;
-    padding: 0.5rem 0.5rem !important;
+    padding: 0.6rem 0.5rem !important;
     text-align: center !important;
     vertical-align: middle !important;
     cursor: pointer;
     user-select: none;
-    position: relative;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 15 !important;
     transition: background-color 0.15s;
-    border-bottom: 2px solid #dee2e6 !important;
-    background-color: #343a40 !important;
-    color: #fff !important;
+    border-bottom: 2px solid #0f172a !important;
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+    box-shadow: inset 0 -2px 0 #0f172a, 0 2px 4px rgba(0, 0, 0, 0.12) !important;
 }
 
 .sensor-table-wrapper .table th:hover,
 .table-wrapper .table th:hover,
 .table-responsive .table th:hover,
 .table th:hover {
-    background-color: rgba(13, 110, 253, 0.08) !important;
+    background-color: #334155 !important;
+    color: #ffffff !important;
 }
 
 .sensor-table-wrapper .table th:not(.no-sort):hover,
 .table-wrapper .table th:not(.no-sort):hover,
 .table-responsive .table th:not(.no-sort):hover,
 .table th:not(.no-sort):hover {
-    background-color: rgba(13, 110, 253, 0.08) !important;
+    background-color: #334155 !important;
+    color: #ffffff !important;
 }
 
 /* Celdas de tabla - IDÉNTICO A SENSORS */

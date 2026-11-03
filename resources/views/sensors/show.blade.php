@@ -8,11 +8,14 @@
 
     <div class="row">
         <div class="col-md-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h4><i class="bi bi-speedometer2"></i> Detalles del Medidor</h4>
-                    <div>
-                        <a href="{{ route('sensors.index') }}" class="btn btn-secondary me-2">
+            <div class="card shadow-sm border-0">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2 text-white" 
+                     style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important; color: #ffffff !important; border-bottom: none; border-radius: 8px 8px 0 0 !important; padding: 1.1rem 1.5rem !important;">
+                    <h4 class="mb-0 text-white fw-bold d-flex align-items-center gap-2" style="color: #ffffff !important;">
+                        <i class="bi bi-speedometer2"></i> Detalles del Medidor: <span class="badge bg-white text-primary ms-1" style="font-size: 0.9rem;">{{ $sensor->name }}</span>
+                    </h4>
+                    <div class="d-flex align-items-center gap-2">
+                        <a href="{{ route('sensors.index') }}" class="btn btn-light btn-sm text-dark shadow-sm">
                             <i class="bi bi-arrow-left"></i> Volver a Medidores
                         </a>
                         @auth
@@ -20,10 +23,10 @@
                                     auth()->user()->hasRole('admin') ||
                                     (isset($sensor->group) && $sensor->group->user_id === auth()->user()->id)
                                 )
-                                <a href="{{ route('sensor-map.index', ['sensor_id' => $sensor->id]) }}" class="btn btn-info text-white me-2" title="Ver o asignar coordenada en el Mapa Interactivo (Premium)">
-                                    <i class="bi bi-geo-alt-fill"></i> Ubicar en Mapa
+                                <a href="{{ route('sensor-map.index', ['sensor_id' => $sensor->id]) }}" class="btn btn-light btn-sm text-primary shadow-sm" title="Ver o asignar coordenada en el Mapa Interactivo (Premium)">
+                                    <i class="bi bi-geo-alt-fill text-primary"></i> Ubicar en Mapa
                                 </a>
-                                <a href="{{ route('sensors.edit', ['sensor' => $sensor->id]) }}" class="btn btn-warning">
+                                <a href="{{ route('sensors.edit', ['sensor' => $sensor->id]) }}" class="btn btn-warning btn-sm text-dark fw-bold shadow-sm">
                                     <i class="bi bi-pencil"></i> Editar Medidor
                                 </a>
                             @endif
