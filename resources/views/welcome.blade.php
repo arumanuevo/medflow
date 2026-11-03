@@ -251,7 +251,7 @@
 
                     <ul class="feature-list">
                         <li><i class="bi bi-check-circle-fill"></i> Panel de Administración Base</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Hasta 200 sensores limitados</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Hasta 200 medidores limitados</li>
                         <li><i class="bi bi-check-circle-fill"></i> Lector QR para medidores</li>
                         <li class="missing"><i class="bi bi-x-circle-fill"></i> Multi-usuario e Inspectores</li>
                         <li class="missing"><i class="bi bi-x-circle-fill"></i> Enrutamiento Masivo</li>
@@ -280,7 +280,7 @@
 
                     <ul class="feature-list">
                         <li><i class="bi bi-check-circle-fill"></i> Sistema Multi-Roles (Inspectores Invitados)</li>
-                        <li><i class="bi bi-check-circle-fill"></i> Sensores sin límite de registros</li>
+                        <li><i class="bi bi-check-circle-fill"></i> Medidores sin límite de registros</li>
                         <li><i class="bi bi-check-circle-fill"></i> Restricción In-App de Acceso a Rutas (Modal Assign)
                         </li>
                         <li><i class="bi bi-check-circle-fill"></i> Exportación CSV Masiva</li>

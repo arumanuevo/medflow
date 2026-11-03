@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHBhdGggZmlsbD0iIzBkNmVmZCIgZD0iTTE0LjUgM2EuNS41IDAgMCAxIC41LjV2OWEuNS41IDAgMCAxLS41LjVoLTEzYS41LjUgMCAwIDEtLjUtLjV2LTlhLjUuNSAwIDAgMSAuNS0uNWgxM3ptLTEzLTFBMS41IDEuNSAwIDAgMCAwIDMuNXY5QTEuNSAxLjUgMCAwIDAgMS41IDE0aDEzYTEuNSAxLjUgMCAwIDAgMS41LTEuNXYtOUExLjUgMS41IDAgMCAwIDE0LjUgMmgtMTN6Ii8+PHBhdGggZmlsbD0iIzBkNmVmZCIgZD0iTTMgOC41YS41LjUgMCAwIDEgLjUtLjVoMS44OWwxLjI1NC0yLjUwOGEuNS41IDAgMCAxIC45MS0uMDE2bDEuMjk0IDIuOTgzLjg0NC0xLjI2NmEuNS41IDAgMCAxIC44NDMuMDE4bDEuMTA5IDEuNzg5SDEyLjVhLjUuNSAwIDAgMSAwIDFIMTFhLjUuNSAwIDAgMS0uNDI0LS4yMzZsLS42ODktMS4xMS0uODQ5IDEuMjcyYS41LjUgMCAwIDEtLjg0NC0uMDE3bC0xLjMtMy0xLjI0NiAyLjQ5MkEuNS41IDAgMCAxIDUuMiA5SDMuNWEuNS41IDAgMCAxLS41LS41eiIvPjwvc3ZnPg==">
-    <title>MedFlow - Gestión Inteligente de Sensores</title>
+    <title>MedFlow - Gestión Inteligente de Medidores</title>
 
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -497,11 +497,11 @@
             <!-- Columna Izquierda: Información -->
             <div class="col-lg-6 animate-fade-in animate-delay-1 mb-5 mb-lg-0">
                 <h1 class="hero-title">
-                    Gestión de Sensores<br>
+                    Gestión de Medidores<br>
                     <span class="highlight">Inteligente y Simple</span>
                 </h1>
                 <p class="hero-subtitle">
-                    La plataforma completa para monitorear sensores en obras civiles,
+                    La plataforma completa para monitorear medidores en consorcios, barrios y obras,
                     industrias, consorcios y hogares. Toma mediciones auditadas, geolocaliza tu red en mapas interactivos, genera reportes y colabora con tu equipo.
                 </p>
 
@@ -665,7 +665,7 @@
                         <hr>
                         <div class="text-start" style="font-size: 0.85rem;">
                             <div class="plan-feature"><i class="bi bi-check"></i> 1 Grupo Máximo</div>
-                            <div class="plan-feature"><i class="bi bi-check"></i> 2 Sensores en total</div>
+                            <div class="plan-feature"><i class="bi bi-check"></i> 2 Medidores en total</div>
                             <div class="plan-feature"><i class="bi bi-check"></i> Mediciones Básicas (1 imagen x vez)</div>
                             <div class="plan-feature"><i class="bi bi-check"></i> Reportes Mensuales Generales</div>
                             <div class="plan-feature text-muted"><i class="bi bi-x text-muted"></i> Mapa Interactivo GIS y Telemetría</div>
@@ -681,11 +681,11 @@
                     <div class="card-body">
                         <h5 class="card-title fw-bold">🚀 Basic</h5>
                         <p class="card-text text-muted small">Pequeños administradores independientes.</p>
-                        <div class="price" style="font-size: 1.8rem;">@php $sysPrices = @json_decode(file_get_contents(storage_path("app/pricing.json")), true) ?: ["basico" => 10000, "premium" => 25000]; @endphp ${{ number_format($sysPrices["basico"], 0) }}<small>/ARS mes</small></div>
+                        <div class="price" style="font-size: 1.8rem;">@php $sysPrices = @json_decode(file_get_contents(storage_path("app/pricing.json")), true) ?: ["basico" => 10000, "premium" => 25000]; @endphp ${{ number_format($sysPrices["basico"], 0, ',', '.') }}<small>/ARS mes</small></div>
                         <hr>
                         <div class="text-start" style="font-size: 0.85rem;">
                             <div class="plan-feature"><i class="bi bi-check text-success"></i> 2 Grupos Máximo</div>
-                            <div class="plan-feature"><i class="bi bi-check text-success"></i> 10 Sensores en Total</div>
+                            <div class="plan-feature"><i class="bi bi-check text-success"></i> 10 Medidores en total</div>
                             <div class="plan-feature"><i class="bi bi-check text-success"></i> Calendario de Tomas y Tolerancias</div>
                             <div class="plan-feature"><i class="bi bi-check text-success"></i> Control de Errores Básico</div>
                             <div class="plan-feature"><i class="bi bi-check text-success"></i> Estadísticas Analíticas Extendidas</div>
@@ -702,7 +702,7 @@
                     <div class="card-body">
                         <h5 class="card-title fw-bold">🏢 Premium</h5>
                         <p class="card-text text-muted small">Para PyMEs o Consorcios grandes. Autocancelable.</p>
-                        <div class="price" style="font-size: 1.8rem;">${{ number_format($sysPrices["premium"], 0) }}<small>/ARS mes</small></div>
+                        <div class="price" style="font-size: 1.8rem;">${{ number_format($sysPrices["premium"], 0, ',', '.') }}<small>/ARS mes</small></div>
                         
                         <hr>
                         <div class="text-start" style="font-size: 0.85rem;">
@@ -712,7 +712,7 @@
                             <div class="plan-feature"><i class="bi bi-robot text-primary"></i> <b class="text-primary">Chat IA 24/7 (Flowy)</b></div>
                             <div class="plan-feature"><i class="bi bi-check text-primary"></i> <b class="text-dark">Colaboración Multi-Rol e Inspectores</b></div>
                             <div class="plan-feature"><i class="bi bi-check text-primary"></i> Delegar rutas in-app a Huéspedes</div>
-                            <div class="plan-feature"><i class="bi bi-check text-primary"></i> Base de 20 Sensores (<b class="text-primary">+ Packs Extra</b>)</div>
+                            <div class="plan-feature"><i class="bi bi-check text-primary"></i> Base de 20 Medidores (<b class="text-primary">+ Packs Extra</b>)</div>
                             <div class="plan-feature"><i class="bi bi-check text-primary"></i> Importación Masiva e Histórica</div>
                             <div class="plan-feature"><i class="bi bi-check text-primary"></i> Contraste y Zoom HD de Fotos</div>
                             <div class="plan-feature"><i class="bi bi-check text-primary"></i> Detección de Anormalidades y Fugas</div>
@@ -751,7 +751,7 @@
                 <p class="text-muted mb-4">
                     Comprendemos que cada industria tiene flujos de trabajo &uacute;nicos. Si necesitas 
                     <strong>asesoramiento especializado</strong> o un <strong>desarrollo de software y hardware AdHoc</strong> 
-                    para integrar tus propios sensores a MedFlow, estamos para ayudarte.
+                    para integrar tus propios medidores a MedFlow, estamos para ayudarte.
                 </p>
                 <div class="d-flex align-items-center mb-3">
                     <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 45px; height: 45px;">
@@ -788,7 +788,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Tu Consulta</label>
-                                <textarea class="form-control" rows="4" name="message" id="contactMessage" placeholder="Desarrollo a medida, cotizaci&oacute;n de sensores..." required></textarea>
+                                <textarea class="form-control" rows="4" name="message" id="contactMessage" placeholder="Desarrollo a medida, cotizaci&oacute;n de medidores..." required></textarea>
                             </div>
                             <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-semibold">
                                 <i class="bi bi-send me-2"></i> Enviar Mensaje
@@ -826,7 +826,7 @@
                 <div class="col-12">
                     <p class="mb-1 text-muted">
                         <i class="bi bi-activity text-primary me-1"></i>
-                        <strong>MedFlow</strong> - Gestión Inteligente de Sensores
+                        <strong>MedFlow</strong> - Gestión Inteligente de Medidores
                     </p>
                     <p class="small text-muted mb-4">
                         &copy; {{ date('Y') }} MedFlow. Todos los derechos reservados.
