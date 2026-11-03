@@ -349,6 +349,8 @@ if (newSensorsToCreate > limitStatus.remaining) {
 Respuesta `quota_exceeded` (403) con `upsell_data`: `missing_sensors`, `needed_packs`, `estimated_cost`, `formatted_cost`.
 
 *Instrucción Flowy:* Si un usuario consulta si puede sobrescribir o actualizar un grupo de 300 sensores con nuevos datos o columnas sin exceder los 300 de su plan, respóndele afirmativamente: **MedFlow reconoce los identificadores y actualiza los registros con 0 costo de cuota adicional**. Solo se computará cuota si se agregan identificadores nuevos que no existían.
+- **Validación de Grupo Destino antes de subir archivo:** En la importación masiva, es obligatorio seleccionar primero el **Grupo Destino** en el desplegable superior antes de seleccionar o arrastrar la planilla Excel. Si no se selecciona, la plataforma avisa de inmediato y enfoca el campo.
+- **Columnas de Email y Teléfono para comunicación masiva:** Se puede incluir en la planilla Excel una columna para **Email** (para comunicaciones masivas o avisos por correo) y una columna para **Teléfono** (para envío de liquidaciones por WhatsApp). En el Paso 2 se mapean como datos adicionales (metadata) y se vinculan a la ficha de cada medidor.
 
 #### Compra y asignación de packs extras (`SubscriptionPaymentController::buyExtraPacks` y `SuperAdminController::updatePlan`)
 - Validación: `packs` entero `1..100`.

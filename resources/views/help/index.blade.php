@@ -315,17 +315,17 @@
                             </li>
                             <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
                                     data-bs-toggle="modal" data-bs-target="#helpModal"
-                                    data-title="Migración de Sensores Físicos (Base)"
-                                    data-content="Al subir tu archivo Excel de Sensores, asegúrate de contar al menos con dos columnas madre: <strong>Un Identificador Único Universal (ID Físico/Serial del aparato)</strong> y <strong>El Nombre o Dirección</strong> del lote. Si tu excel antiguo tenía columnas adicionales como 'Nombre de Inquilino', 'Deuda Previa' o 'Piso', ¡no las descartes! MedFlow las convertirá automáticamente en <strong>Metadatos (Campos Extra)</strong> que quedarán inyectados permanentemente en el ecosistema, dándole contexto al inspector en campo."
-                                    data-steps="1. Limpia tu Excel de celdas vacías en la cabecera.<br>2. Súbelo a <strong>Importar Sensores</strong>.<br>3. Mapea la columna serial y decide qué columnas extra guardar como Metadata.">
+                                    data-title="Migración de Medidores Físicos y Datos de Contacto"
+                                    data-content="Al subir tu archivo Excel de Medidores, primero selecciona el <strong>Grupo Destino</strong>. Asegúrate de contar al menos con dos columnas madre: <strong>Un Identificador Único Universal (ID Físico/Serial)</strong> y <strong>El Nombre o Referencia</strong> del lote.<br><br><strong>📧 Comunicación Masiva y WhatsApp:</strong> Si planeas enviar comunicaciones, avisos masivos o liquidaciones, puedes incluir una columna de <strong>Email</strong> y otra de <strong>Teléfono</strong>. MedFlow las guardará como <strong>Campos Adicionales (Metadata)</strong> asociadas permanentemente a la ficha de cada medidor."
+                                    data-steps="1. Selecciona primero el <strong>Grupo Destino</strong>.<br>2. Sube tu Excel o CSV en <strong>Importar Medidores</strong>.<br>3. Mapea la columna serial y asocia Email, Teléfono o Lote como Campos Extras.">
                                     <i class="bi bi-hdd-network-fill me-1" style="color: #6f42c1;"></i> Construyendo la base
-                                    de aparatos</a>
+                                    de medidores y contactos</a>
                             </li>
                             <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"
                                     data-bs-toggle="modal" data-bs-target="#helpModal"
                                     data-title="Sobrescritura y Actualización Masiva (Sin costo de cuota)"
                                     data-content="¿Necesitas actualizar nombres, descripciones o añadir nuevas columnas a medidores que ya tienes cargados? Puedes volver a subir tu archivo Excel/CSV sobre el mismo Grupo. MedFlow detectará automáticamente los <strong>Identificadores</strong> ya existentes y <strong>sobrescribirá/actualizará</strong> su información sin duplicarlos.<br><br><strong>Consumo de Cupo en tu Plan:</strong> Las actualizaciones consumen <code>0 cupo</code> de suscripción. Únicamente se descuenta cupo de tu plan si el archivo incluye identificadores nuevos que no existían previamente en ese grupo."
-                                    data-steps="1. Ve a <strong>Sensores > Importar Sensores</strong> y selecciona tu Grupo.<br>2. Sube la planilla con los mismos Identificadores y las nuevas columnas.<br>3. Mapea los campos; los registros coincidentes se actualizarán sin consumir cuota adicional.">
+                                    data-steps="1. Ve a <strong>Medidores > Importar Medidores</strong> y selecciona primero tu Grupo Destino.<br>2. Sube la planilla con los mismos Identificadores y las nuevas columnas (ej: Email o Teléfono).<br>3. Mapea los campos; los registros coincidentes se actualizarán sin consumir cuota adicional.">
                                     <i class="bi bi-arrow-repeat me-1" style="color: #6f42c1;"></i> Sobrescritura y actualización sin costo</a>
                             </li>
                             <li class="mb-2"><a href="#" class="text-decoration-none text-muted help-item"

@@ -434,15 +434,15 @@ class BulkSensorImportController extends Controller
     public function downloadTemplate(Request $request)
     {
         try {
-            $headers = ['Nombre *', 'Identificador *', 'Descripción'];
+            $headers = ['Nombre *', 'Identificador *', 'Email (Avisos Masivos)', 'Teléfono (WhatsApp)', 'Lote / Referencia', 'Descripción'];
             $sampleData = [
-                ['Sensor 1', 'SENSOR_001', 'Descripción del sensor 1'],
-                ['Sensor 2', 'SENSOR_002', 'Descripción del sensor 2'],
-                ['Sensor 3', 'SENSOR_003', 'Descripción del sensor 3']
+                ['Medidor Lote 1', 'MED_001', 'propietario1@correo.com', '+5491112345678', 'Lote 101', 'Medidor principal'],
+                ['Medidor Lote 2', 'MED_002', 'vecino2@correo.com', '+5491187654321', 'Lote 102', 'Medidor de agua'],
+                ['Medidor Lote 3', 'MED_003', 'contacto3@correo.com', '', 'Lote 103', 'Medidor de entrada']
             ];
 
             // Crear archivo CSV
-            $tempFile = tempnam(sys_get_temp_dir(), 'plantilla_importacion_sensores_') . '.csv';
+            $tempFile = tempnam(sys_get_temp_dir(), 'plantilla_importacion_medidores_') . '.csv';
             $file = fopen($tempFile, 'w');
 
             // Agregar BOM para UTF-8
@@ -458,9 +458,9 @@ class BulkSensorImportController extends Controller
 
             fclose($file);
 
-            return response()->download($tempFile, 'plantilla_importacion_sensores.csv', [
+            return response()->download($tempFile, 'plantilla_importacion_medidores.csv', [
                 'Content-Type' => 'text/csv; charset=UTF-8',
-                'Content-Disposition' => 'attachment; filename="plantilla_importacion_sensores.csv"'
+                'Content-Disposition' => 'attachment; filename="plantilla_importacion_medidores.csv"'
             ])->deleteFileAfterSend(true);
 
         } catch (\Exception $e) {

@@ -35,26 +35,25 @@
                         <!-- Paso 1: Seleccionar Grupo y Archivo -->
                         <div id="step1" class="step">
                             <h5><i class="bi bi-upload btn-icon"></i> Paso 1: Seleccionar Grupo y Subir Archivo</h5>
-                            <p class="text-muted">Selecciona el grupo de sensores y sube un archivo <strong>.xlsx</strong> o
+                            <p class="text-muted">Selecciona primero el grupo de medidores y sube un archivo <strong>.xlsx</strong> o
                                 <strong>.csv</strong> con los datos.</p>
 
-                            <div class="alert alert-info">
+                            <div class="alert alert-info border-start border-primary border-3">
                                 <i class="bi bi-info-circle btn-icon"></i>
-                                <strong>Instrucciones:</strong>
+                                <strong>Instrucciones y Recomendaciones:</strong>
                                 <ul class="mb-0 mt-2">
-                                    <li>El archivo debe contener una columna con el <strong>nombre del sensor</strong>.</li>
-                                    <li>El archivo debe contener una columna con el <strong>identificador</strong> (único).
-                                    </li>
+                                    <li>El archivo debe contener una columna con el <strong>nombre del medidor</strong> (o lote / referencia).</li>
+                                    <li>El archivo debe contener una columna con el <strong>identificador</strong> (número de serie o ID físico único e irrepetible).</li>
+                                    <li><strong>📧 Comunicación y Avisos Masivos:</strong> Si planeas realizar comunicaciones masivas, liquidaciones o avisos por correo a tus vecinos o usuarios, incluye una columna con el <strong>Email</strong> de cada uno. También puedes incluir una columna de <strong>Teléfono</strong> para comunicaciones por WhatsApp. En el Paso 2 podrás asociar esas columnas como datos adicionales en la ficha de cada medidor.</li>
                                     <li>La <strong>descripción</strong> es opcional.</li>
-                                    <li>Puedes agregar <strong>campos adicionales</strong> (Lote, Apellido, Ubicación, etc.)
-                                        en el paso 2.</li>
+                                    <li>Puedes agregar cualquier otro <strong>campo adicional</strong> (Lote, Manzana, Titular, etc.) en el paso 2.</li>
                                 </ul>
                             </div>
 
                             <div class="mb-3">
-                                <label for="groupSelect" class="form-label">Grupo Destino <span
+                                <label for="groupSelect" class="form-label fw-bold">Grupo Destino <span
                                         class="text-danger">*</span></label>
-                                <select class="form-select" id="groupSelect" required>
+                                <select class="form-select form-select-lg" id="groupSelect" required>
                                     @if(isset($groups) && $groups->isEmpty())
                                         <option value="" selected disabled>No tienes grupos disponibles (Crea uno primero)
                                         </option>
@@ -67,7 +66,12 @@
                                         @endforeach
                                     @endif
                                 </select>
-                                <div class="form-text">Selecciona el grupo donde se crearán los sensores</div>
+                                <div class="form-text">⚠️ <strong>Selecciona primero el grupo destino</strong> para habilitar la carga de la planilla.</div>
+                            </div>
+
+                            <div id="groupPendingNotice" class="alert alert-warning py-2 px-3 small d-flex align-items-center mb-3 {{ !empty($selectedGroupId) ? 'd-none' : '' }}">
+                                <i class="bi bi-arrow-up-circle-fill me-2 fs-5 text-warning"></i>
+                                <span><strong>Paso previo requerido:</strong> Primero debes elegir el <strong>Grupo Destino</strong> en el desplegable de arriba para habilitar la selección del archivo.</span>
                             </div>
 
                             <div id="groupInfo" class="alert alert-secondary d-none">
@@ -82,23 +86,33 @@
                                 <p class="mb-0"><strong>Campos de medición de este grupo:</strong></p>
                                 <ul id="templateFieldsList" class="mb-0">
                                     <li class="text-muted"><i class="bi bi-info-circle"></i> Estos campos se usan al tomar
-                                        mediciones, no al importar sensores.</li>
+                                        mediciones, no al importar medidores.</li>
                                 </ul>
                             </div>
 
-                            <div class="drop-zone" id="dropZone">
-                                <i class="bi bi-file-earmark-excel"></i>
-                                <p><strong>Arrastra y suelta el archivo aquí</strong> o haz clic para seleccionarlo</p>
-                                <p class="text-muted small">(Solo archivos .xlsx o .csv)</p>
-                                <input type="file" id="fileInput" accept=".xlsx,.csv" style="display: none;">
+                            <div class="drop-zone" id="dropZone" style="cursor: pointer;">
+                                <div id="dropZoneContent">
+                                    <i class="bi bi-file-earmark-excel"></i>
+                                    <p class="mb-1"><strong>Arrastra y suelta el archivo aquí</strong> o haz clic para seleccionarlo</p>
+                                    <p class="text-muted small mb-0">(Solo archivos .xlsx o .csv)</p>
+                                </div>
+                                <div id="dropZoneSpinner" class="d-none text-center py-3">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Cargando...</span>
+                                    </div>
+                                    <p class="mt-2 text-muted fw-semibold mb-0">Analizando archivo...</p>
+                                </div>
                             </div>
 
+                            <!-- Input de archivo colocado fuera del drop-zone para evitar loops de eventos -->
+                            <input type="file" id="fileInput" accept=".xlsx,.csv" class="d-none">
+
                             <div class="d-flex gap-2 mt-3 flex-wrap">
-                                <button class="btn btn-secondary" id="selectFileBtn">
+                                <button type="button" class="btn btn-primary" id="selectFileBtn">
                                     <i class="bi bi-folder-open btn-icon"></i> Seleccionar Archivo
                                 </button>
-                                <a href="/api/sensor-groups/download-template" class="btn btn-info">
-                                    <i class="bi bi-download btn-icon"></i> Descargar Plantilla (.csv)
+                                <a href="/api/sensor-groups/download-template" class="btn btn-outline-secondary">
+                                    <i class="bi bi-download btn-icon"></i> Descargar Plantilla Modelo (.csv)
                                 </a>
                             </div>
                         </div>
@@ -402,31 +416,74 @@
         let extraFields = [];
 
         // =============================================
+        // DISPARADOR SEGURO DE SELECCIÓN DE ARCHIVO
+        // =============================================
+        function triggerFileInput(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            const groupId = $('#groupSelect').val();
+            if (!groupId) {
+                showAlert('⚠️ Por favor, selecciona primero el Grupo Destino en el desplegable superior antes de subir el archivo Excel.', 'warning');
+                $('#groupSelect').addClass('is-invalid border-danger').focus();
+                $('html, body').animate({ scrollTop: $('#groupSelect').offset().top - 120 }, 300);
+                return false;
+            }
+            $('#groupSelect').removeClass('is-invalid border-danger');
+            
+            const fileInput = document.getElementById('fileInput');
+            if (fileInput) {
+                fileInput.value = ''; // Permite re-seleccionar el mismo archivo
+                fileInput.click();
+            }
+        }
+
+        // =============================================
         // INICIALIZACIÓN
         // =============================================
         $(document).ready(function () {
-            // Eventos
-            $('#selectFileBtn').click(() => $('#fileInput').click());
-            $('#fileInput').change(handleFileSelect);
-            $('#dropZone').click(() => $('#fileInput').click());
+            // Eventos seguros para abrir el selector de archivo
+            $('#selectFileBtn').on('click', triggerFileInput);
+            $('#dropZone').on('click', function(e) {
+                triggerFileInput(e);
+            });
+            $(document).on('change', '#fileInput', handleFileSelect);
 
             // Drag and drop
             $('#dropZone').on('dragover', function (e) {
                 e.preventDefault();
+                e.stopPropagation();
                 $(this).addClass('active');
             });
 
             $('#dropZone').on('dragleave', function (e) {
                 e.preventDefault();
+                e.stopPropagation();
                 $(this).removeClass('active');
             });
 
             $('#dropZone').on('drop', function (e) {
                 e.preventDefault();
+                e.stopPropagation();
                 $(this).removeClass('active');
-                if (e.originalEvent.dataTransfer.files.length) {
-                    $('#fileInput').prop('files', e.originalEvent.dataTransfer.files);
-                    handleFileSelect();
+
+                const groupId = $('#groupSelect').val();
+                if (!groupId) {
+                    showAlert('⚠️ Por favor, selecciona primero el Grupo Destino en el desplegable superior antes de soltar el archivo Excel.', 'warning');
+                    $('#groupSelect').addClass('is-invalid border-danger').focus();
+                    $('html, body').animate({ scrollTop: $('#groupSelect').offset().top - 120 }, 300);
+                    return;
+                }
+                $('#groupSelect').removeClass('is-invalid border-danger');
+
+                const dt = e.originalEvent.dataTransfer;
+                if (dt && dt.files && dt.files.length) {
+                    const input = document.getElementById('fileInput');
+                    if (input) {
+                        input.files = dt.files;
+                        handleFileSelect();
+                    }
                 }
             });
 
@@ -736,9 +793,12 @@
             $('#groupSelect').change(function () {
                 selectedGroupId = $(this).val();
                 if (selectedGroupId) {
+                    $('#groupSelect').removeClass('is-invalid border-danger');
+                    $('#groupPendingNotice').addClass('d-none');
                     loadTemplateFields(selectedGroupId);
                     loadSensorsByGroup(selectedGroupId);
                 } else {
+                    $('#groupPendingNotice').removeClass('d-none');
                     $('#groupInfo').addClass('d-none');
                     $('#templateInfo').addClass('d-none');
                 }
@@ -747,8 +807,11 @@
             // Si hay un grupo preseleccionado, cargar sus datos
             if ($('#groupSelect').val()) {
                 selectedGroupId = $('#groupSelect').val();
+                $('#groupPendingNotice').addClass('d-none');
                 loadTemplateFields(selectedGroupId);
                 loadSensorsByGroup(selectedGroupId);
+            } else {
+                $('#groupPendingNotice').removeClass('d-none');
             }
         });
 
@@ -1682,23 +1745,13 @@
     }
 
     function showLoading() {
-        $('#dropZone').html(`
-            <div class="text-center">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Cargando...</span>
-                </div>
-                <p class="mt-2">Analizando archivo...</p>
-            </div>
-        `);
+        $('#dropZoneContent').addClass('d-none');
+        $('#dropZoneSpinner').removeClass('d-none');
     }
 
     function hideLoading() {
-        $('#dropZone').html(`
-            <i class="bi bi-file-earmark-excel"></i>
-            <p><strong>Arrastra y suelta el archivo aquí</strong> o haz clic para seleccionarlo</p>
-            <p class="text-muted small">(Solo archivos .xlsx o .csv)</p>
-            <input type="file" id="fileInput" accept=".xlsx,.csv" style="display: none;">
-        `);
+        $('#dropZoneSpinner').addClass('d-none');
+        $('#dropZoneContent').removeClass('d-none');
     }
 
 
