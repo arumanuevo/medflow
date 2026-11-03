@@ -175,15 +175,21 @@
                                     <td>{{ $u->email }}</td>
                                     <td>
                                         <span
-                                            class="badge {{ $u->subscription_plan == 'premium' ? 'bg-warning' : ($u->subscription_plan == 'free' ? 'bg-secondary' : 'bg-primary') }}">
+                                            class="badge {{ $u->subscription_plan == 'premium' ? 'bg-warning text-dark' : ($u->subscription_plan == 'free' ? 'bg-secondary' : 'bg-primary') }}">
                                             {{ strtoupper($u->subscription_plan ?: 'N/A') }}
                                         </span>
+                                        @if(($u->additional_sensor_packs ?? 0) > 0)
+                                            <br>
+                                            <span class="badge bg-success-subtle text-success border border-success border-opacity-25 mt-1" style="font-size: 0.68rem;" title="{{ $u->additional_sensor_packs }} pack(s) asignado(s)">
+                                                <i class="bi bi-box-seam me-1"></i>+{{ $u->additional_sensor_packs * 10 }} medidores ({{ $u->additional_sensor_packs }}p)
+                                            </span>
+                                        @endif
                                     </td>
                                     <td>{{ $u->created_at->format('d/m/Y') }}</td>
                                     <td class="text-end">
-                                        <!-- Cambiar Plan -->
+                                        <!-- Cambiar Plan y Asignar Packs -->
                                         <button type="button" class="btn btn-sm btn-outline-primary mb-1" data-toggle="modal"
-                                            data-target="#planModal{{ $u->id }}" title="Cambiar Plan">
+                                            data-target="#planModal{{ $u->id }}" title="Cambiar Plan y Asignar Packs">
                                             <i class="bi bi-stars"></i>
                                         </button>
                                         <!-- Generar Pago -->
@@ -277,28 +283,57 @@
             </div>
         </div>
 
-        <!-- Modal Plan -->
+        <!-- Modal Plan y Packs -->
         <div class="modal fade" id="planModal{{ $u->id }}" tabindex="-1">
-            <div class="modal-dialog modal-sm modal-dialog-centered">
-                <form action="{{ route('superadmin.users.plan', $u->id) }}" method="POST" class="modal-content">
+            <div class="modal-dialog modal-dialog-centered">
+                <form action="{{ route('superadmin.users.plan', $u->id) }}" method="POST" class="modal-content border-0 shadow">
                     @csrf
-                    <div class="modal-header">
-                        <h5 class="modal-title">Cambiar Plan</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <div class="modal-header bg-light">
+                        <h5 class="modal-title fs-6 fw-bold text-dark"><i class="bi bi-stars text-primary me-2"></i>Gestionar Plan y Packs de Medidores</h5>
+                        <button type="button" class="close btn-close" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body text-start">
-                        <label>Forzar plan de <b>{{ $u->name }}</b></label>
-                        <select name="subscription_plan" class="form-select mt-2">
-                            <option value="free" {{ $u->subscription_plan == 'free' ? 'selected' : '' }}>
-                                Free</option>
-                            <option value="basico" {{ $u->subscription_plan == 'basico' ? 'selected' : '' }}>Básico</option>
-                            <option value="premium" {{ $u->subscription_plan == 'premium' ? 'selected' : '' }}>Premium</option>
-                            <option value="enterprise" {{ $u->subscription_plan == 'enterprise' ? 'selected' : '' }}>Enterprise
-                            </option>
-                        </select>
+                        <div class="p-2 bg-light rounded border mb-3">
+                            <span class="text-muted small d-block">Usuario:</span>
+                            <strong class="text-dark">{{ $u->name }}</strong> <small class="text-muted">({{ $u->email }})</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-dark">Plan de Suscripción</label>
+                            <select name="subscription_plan" class="form-select">
+                                <option value="free" {{ $u->subscription_plan == 'free' ? 'selected' : '' }}>Free (Hasta 5 medidores)</option>
+                                <option value="basico" {{ $u->subscription_plan == 'basico' ? 'selected' : '' }}>Básico (Hasta 10 medidores)</option>
+                                <option value="premium" {{ $u->subscription_plan == 'premium' ? 'selected' : '' }}>Premium (Base 20 medidores)</option>
+                                <option value="enterprise" {{ $u->subscription_plan == 'enterprise' ? 'selected' : '' }}>Enterprise (Corporativo / Ilimitado)</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-dark d-flex justify-content-between align-items-center">
+                                <span>Packs Extras Asignados</span>
+                                <span class="badge bg-primary rounded-pill">+10 medidores por pack</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white"><i class="bi bi-box-seam text-primary"></i></span>
+                                <input type="number" name="additional_sensor_packs" class="form-control" 
+                                       value="{{ $u->additional_sensor_packs ?? 0 }}" min="0" max="500" required>
+                                <span class="input-group-text bg-light text-muted small">Pack(s)</span>
+                            </div>
+                            <div class="form-text small text-muted mt-1">
+                                Cada pack expande la capacidad en <strong>+10 medidores</strong> adicionales. (Ej: con Premium y 3 packs = <strong>50 medidores</strong>).
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info py-2 px-3 small mb-0">
+                            <i class="bi bi-info-circle me-1"></i>
+                            <strong>Asignación manual sin cargo:</strong> La capacidad se aplicará de inmediato al usuario en su espacio de trabajo y quedará registrada en su historial.
+                        </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary btn-sm">Guardar</button>
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary btn-sm px-3 fw-bold">
+                            <i class="bi bi-check-circle me-1"></i> Guardar Cambios
+                        </button>
                     </div>
                 </form>
             </div>

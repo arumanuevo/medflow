@@ -12,7 +12,9 @@ class BasicoPlan implements PlanInterface
     }
     public function getMaxSensors(): int
     {
-        return 10;
+        $base = 10;
+        $extraPacks = $this->user ? ($this->user->additional_sensor_packs ?? 0) : 0;
+        return $base + ($extraPacks * 10);
     }
 
     public function getMaxGroups(): int

@@ -274,14 +274,20 @@ class SuperAdminController extends Controller
     public function updatePlan(Request $request, User $user)
     {
         $request->validate([
-            'subscription_plan' => 'required|in:free,basico,premium,enterprise'
+            'subscription_plan' => 'required|in:free,basico,premium,enterprise',
+            'additional_sensor_packs' => 'nullable|integer|min:0|max:500'
         ]);
 
-        $user->subscription_plan = $request->subscription_plan;
+        $oldPacks = (int) ($user->additional_sensor_packs ?? 0);
+        $newPacks = $request->has('additional_sensor_packs') ? (int) $request->additional_sensor_packs : $oldPacks;
 
-        // 1. Marcar como expiradas las suscripciones anteriores
+        $user->subscription_plan = $request->subscription_plan;
+        $user->additional_sensor_packs = $newPacks;
+
+        // 1. Marcar como expiradas las suscripciones base anteriores (sin alterar los packs extras de medidores)
         \App\Models\Subscription::where('user_id', $user->id)
             ->where('status', 'active')
+            ->where('plan', 'not like', 'Pack Extra%')
             ->update(['status' => 'expired']);
 
         // 2. Crear un nuevo certificado manual de suscripción si no es Free
@@ -298,9 +304,29 @@ class SuperAdminController extends Controller
             ]);
         }
 
+        // 3. Si el superadmin incrementó packs manualmente, registrar el comprobante de cortesía
+        if ($newPacks > $oldPacks) {
+            $diffPacks = $newPacks - $oldPacks;
+            \App\Models\Subscription::create([
+                'user_id' => $user->id,
+                'plan' => 'Pack Extra (+' . ($diffPacks * 10) . ' Medidores)',
+                'status' => 'active',
+                'amount' => 0,
+                'currency' => 'ARS',
+                'payment_id' => 'SUPERADMIN-PACK-GIFT-' . uniqid(),
+                'paid_at' => Carbon::now(),
+                'expires_at' => null,
+            ]);
+        }
+
         $user->save();
 
-        return redirect()->back()->with('success', 'Plan actualizado a ' . strtoupper($request->subscription_plan));
+        $msg = 'Plan actualizado a ' . strtoupper($request->subscription_plan);
+        if ($newPacks > 0) {
+            $msg .= ' con ' . $newPacks . ' pack(s) asignado(s) (+' . ($newPacks * 10) . ' medidores)';
+        }
+
+        return redirect()->back()->with('success', $msg);
     }
 
     public function sendCustomMessage(Request $request, User $user)
