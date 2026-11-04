@@ -23,13 +23,41 @@
 <!-- Incluir el archivo CSS externo -->
 <link rel="stylesheet" href="{{ asset('css/help-styles.css') }}">
 
+@push('styles')
+<style>
+    .stat-metric-card {
+        background: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        border-radius: 10px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .stat-metric-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
+    .stat-metric-card .stat-icon-wrapper {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+    .stat-metric-card.stat-total { border-left: 4px solid #0d6efd !important; }
+    .stat-metric-card.stat-al-dia { border-left: 4px solid #198754 !important; }
+    .stat-metric-card.stat-pendiente { border-left: 4px solid #f59e0b !important; }
+    .stat-metric-card.stat-vencido { border-left: 4px solid #ef4444 !important; }
+</style>
+@endpush
+
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <div class="d-flex align-items-center">
-                        <h4><i class="bi bi-rulers"></i> Gestión de Mediciones</h4>
+                        <h4 class="mb-0 text-white"><i class="bi bi-rulers me-2"></i> Gestión de Mediciones</h4>
                         <div class="ms-3 d-flex gap-2">
                             <button class="btn btn-light btn-sm" id="showHelpModal" title="Ver ayuda completa">
                                 <i class="bi bi-question-circle-fill"></i> Ayuda
@@ -52,64 +80,72 @@
 
                     <!-- Contenedor para alertas globales -->
                     <div id="globalAlertContainer" class="mb-3"></div>
-                    <!-- Estadísticas -->
-                    <div class="row mb-4" id="statsCards">
-                        <div class="col-md-3">
-                            <div class="card text-white bg-primary mb-3">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h5 class="card-title"><i class="bi bi-inbox"></i> Total</h5>
-                                            <p class="card-text h4" id="totalSensors">0</p>
+
+                    <!-- Estadísticas Elegantes y Discretas -->
+                    <div class="row g-3 mb-4" id="statsCards">
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="card stat-metric-card stat-total shadow-sm h-100">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Total Medidores</span>
+                                        <div class="stat-icon-wrapper bg-primary bg-opacity-10 text-primary">
+                                            <i class="bi bi-inbox"></i>
                                         </div>
-                                        <button class="btn btn-light btn-sm" data-bs-toggle="tooltip" title="Número total de medidores a los que tienes acceso">
-                                            <i class="bi bi-info-circle"></i>
-                                        </button>
+                                    </div>
+                                    <div class="d-flex align-items-baseline justify-content-between">
+                                        <h3 class="fw-bold text-dark mb-0" id="totalSensors">0</h3>
+                                        <span class="badge bg-light text-muted border" style="font-size: 0.65rem;">Registrados</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="card text-white bg-success mb-3">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h5 class="card-title"><i class="bi bi-check-circle"></i> Al Día</h5>
-                                            <p class="card-text h4" id="alDiaSensors">0</p>
+
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="card stat-metric-card stat-al-dia shadow-sm h-100">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Al Día</span>
+                                        <div class="stat-icon-wrapper bg-success bg-opacity-10 text-success">
+                                            <i class="bi bi-check-circle-fill"></i>
                                         </div>
-                                        <button class="btn btn-light btn-sm" data-bs-toggle="tooltip" title="Medidores que no necesitan medición aún">
-                                            <i class="bi bi-info-circle"></i>
-                                        </button>
+                                    </div>
+                                    <div class="d-flex align-items-baseline justify-content-between">
+                                        <h3 class="fw-bold text-success mb-0" id="alDiaSensors">0</h3>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.65rem;">Al día</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="card text-white bg-warning mb-3">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h5 class="card-title"><i class="bi bi-exclamation-triangle"></i> Pendientes</h5>
-                                            <p class="card-text h4" id="pendingSensors">0</p>
+
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="card stat-metric-card stat-pendiente shadow-sm h-100">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Pendientes</span>
+                                        <div class="stat-icon-wrapper bg-warning bg-opacity-10 text-warning">
+                                            <i class="bi bi-clock-history"></i>
                                         </div>
-                                        <button class="btn btn-light btn-sm" data-bs-toggle="tooltip" title="Medidores que necesitan medición pronto (dentro del período de vencimiento)">
-                                            <i class="bi bi-info-circle"></i>
-                                        </button>
+                                    </div>
+                                    <div class="d-flex align-items-baseline justify-content-between">
+                                        <h3 class="fw-bold text-warning-emphasis mb-0" id="pendingSensors">0</h3>
+                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle" style="font-size: 0.65rem;">En ventana</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="card text-white bg-danger mb-3">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h5 class="card-title"><i class="bi bi-x-circle"></i> Vencidos</h5>
-                                            <p class="card-text h4" id="overdueSensors">0</p>
+
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="card stat-metric-card stat-vencido shadow-sm h-100">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Vencidos</span>
+                                        <div class="stat-icon-wrapper bg-danger bg-opacity-10 text-danger">
+                                            <i class="bi bi-exclamation-triangle-fill"></i>
                                         </div>
-                                        <button class="btn btn-light btn-sm" data-bs-toggle="tooltip" title="Medidores con medición vencida (fuera del período de vencimiento)">
-                                            <i class="bi bi-info-circle"></i>
-                                        </button>
+                                    </div>
+                                    <div class="d-flex align-items-baseline justify-content-between">
+                                        <h3 class="fw-bold text-danger mb-0" id="overdueSensors">0</h3>
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle" style="font-size: 0.65rem;">Prioridad</span>
                                     </div>
                                 </div>
                             </div>
@@ -940,9 +976,10 @@ $(document).ready(function() {
         sensors.forEach(sensor => {
             const estadoClass = getEstadoClass(sensor.estado);
             const estadoText = getEstadoText(sensor.estado);
+            const isMeasurable = sensor.is_measurable !== false;
 
             const diasRestantes = sensor.dias_hasta_proxima !== null
-                ? parseFloat(sensor.dias_hasta_proxima).toFixed(2)
+                ? (sensor.dias_hasta_proxima <= -900 ? 'Vencido' : parseFloat(sensor.dias_hasta_proxima).toFixed(0))
                 : 'N/A';
 
             const lastMeasurementDate = sensor.last_measurement_date
@@ -953,30 +990,41 @@ $(document).ready(function() {
                 ? new Date(sensor.proxima_medicion).toLocaleString('es-ES')
                 : 'N/A';
 
-            const diasClass = diasRestantes === 'N/A' ? '' :
-                             diasRestantes < 0 ? 'text-danger' :
-                             diasRestantes <= (sensor.group.dias_vencimiento ?? 5) ? 'text-warning' :
-                             'text-success';
+            const diasClass = diasRestantes === 'N/A' || diasRestantes === 'Vencido' ? 'text-danger fw-bold' :
+                             parseFloat(diasRestantes) < 0 ? 'text-danger fw-bold' :
+                             parseFloat(diasRestantes) <= (sensor.group?.dias_vencimiento ?? 5) ? 'text-warning fw-bold' :
+                             'text-success fw-bold';
 
-            // ✅ Debug: Mostrar estado de marcado en consola
-            console.log(`Sensor ${sensor.id} - ${sensor.name}: marcado_para_medicion = ${sensor.marcado_para_medicion}`);
+            const lockedBadge = !isMeasurable
+                ? ' <span class="badge bg-danger bg-opacity-10 text-danger border border-danger ms-1" style="font-size: 0.65rem;" title="Medidor bloqueado por límite de plan"><i class="bi bi-lock-fill"></i> Bloqueado</span>'
+                : '';
+
+            const checkboxHtml = isMeasurable
+                ? `<input type="checkbox" class="sensorCheckbox" ${sensor.marcado_para_medicion ? 'checked' : ''}>`
+                : `<i class="bi bi-lock-fill text-danger fs-6" title="Bloqueado por límite de plan"></i>`;
+
+            const actionBtn = isMeasurable
+                ? `<a href="/mediciones/create/${sensor.id}" class="btn btn-sm btn-success" title="Tomar Medición"><i class="bi bi-rulers"></i></a>`
+                : `<button class="btn btn-sm btn-secondary opacity-50" title="Medidor bloqueado por límite de plan" onclick="alert('Has alcanzado el límite de medidores operativos de tu plan actual. Para tomar nuevas mediciones en este medidor actualiza tu suscripción en Perfil > Planes.'); return false;"><i class="bi bi-lock-fill"></i></button>`;
+
+            const rawVal = sensor.last_measurement_value;
+            const displayVal = (rawVal !== null && rawVal !== undefined && !isNaN(rawVal))
+                ? parseFloat(rawVal).toLocaleString('es-AR')
+                : (rawVal ?? 'N/A');
 
             html += `
-                <tr data-sensor-id="${sensor.id}">
-                    <td><input type="checkbox" class="sensorCheckbox" ${sensor.marcado_para_medicion ? 'checked' : ''}></td>
+                <tr data-sensor-id="${sensor.id}" class="${!isMeasurable ? 'table-secondary opacity-75' : ''}">
+                    <td>${checkboxHtml}</td>
                     <td>${sensor.id}</td>
-                    <td>${sensor.name}</td>
-                    <td>${sensor.identifier}</td>
-                    <td>${sensor.group.name}</td>
-                    <td>${sensor.last_measurement_value ?? 'N/A'} (${lastMeasurementDate})</td>
+                    <td><strong>${sensor.name}</strong>${lockedBadge}</td>
+                    <td><code>${sensor.identifier}</code></td>
+                    <td>${sensor.group?.name || 'Sin grupo'}</td>
+                    <td>${displayVal} <small class="text-muted">(${lastMeasurementDate})</small></td>
                     <td>${proximaMedicionDate}</td>
                     <td class="${diasClass}">${diasRestantes}</td>
                     <td><span class="badge bg-${estadoClass}">${estadoText}</span></td>
                     <td class="text-nowrap">
-                        <a href="/mediciones/create/${sensor.id}" class="btn btn-sm btn-success" title="Tomar Medición">
-                            <i class="bi bi-rulers"></i>
-                        </a>
-                        
+                        ${actionBtn}
                     </td>
                 </tr>
             `;
@@ -1097,6 +1145,10 @@ $(document).ready(function() {
         currentSearch = $('#searchInput').val();
         currentPage = 1;
         loadSensors();
+    });
+
+    $('#statusFilter, #groupFilter').on('change', function() {
+        $('#applyFilters').click();
     });
 
     $('#searchInput').on('keypress', function(e) {

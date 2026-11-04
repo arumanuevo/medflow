@@ -36,15 +36,11 @@ public function getSensorsForBulkMeasurement(Request $request)
     })->with(['group', 'lastMeasurement']);
 
     // Aplicar filtros si existen
-    if ($request->has('group_id') && $request->group_id) {
+    if ($request->filled('group_id')) {
         $query->where('group_id', $request->group_id);
     }
 
-    if ($request->has('status') && $request->status !== 'all') {
-        // Filtrar por estado (se aplicará después de calcular el estado)
-    }
-
-    if ($request->has('search') && $request->search) {
+    if ($request->filled('search')) {
         $search = $request->search;
         $query->where(function($q) use ($search) {
             $q->where('name', 'like', "%{$search}%")
@@ -53,20 +49,24 @@ public function getSensorsForBulkMeasurement(Request $request)
     }
 
     // Obtener los sensores
-    $sensors = $query->orderBy('name')->paginate($request->per_page ?? 20);
+    $allSensors = $query->orderBy('name')->get();
+
+    // Limitantes de suscripción: medidores utilizables
+    $subscriptionService = new \App\Services\Subscription\SubscriptionService($user);
+    $measurableIds = $subscriptionService->getMeasurableSensorIds();
 
     // Calcular estado y días restantes para cada sensor
-    $sensors->getCollection()->transform(function($sensor) {
+    $allSensors->transform(function($sensor) use ($measurableIds) {
         $lastMeasurement = $sensor->lastMeasurement;
 
         // Obtener configuración del grupo
-        $periodoMedicion = $sensor->group->periodo_medicion ?? 30;
-        $diasVencimiento = $sensor->group->dias_vencimiento ?? 5;
+        $periodoMedicion = (int) ($sensor->group->periodo_medicion ?? 30);
+        $diasVencimiento = (int) ($sensor->group->dias_vencimiento ?? 5);
 
         if (!$lastMeasurement) {
             // Si no hay medición, se considera como "vencido"
             $sensor->estado = 'vencido';
-            $sensor->dias_hasta_proxima = null;
+            $sensor->dias_hasta_proxima = -999;
             $sensor->proxima_medicion = null;
             $sensor->last_measurement_value = null;
             $sensor->last_measurement_date = null;
@@ -76,7 +76,8 @@ public function getSensorsForBulkMeasurement(Request $request)
             $proximaMedicion->add(new \DateInterval("P{$periodoMedicion}D"));
 
             $hoy = new \DateTime();
-            $diasHastaProxima = $hoy->diff($proximaMedicion)->days;
+            $diff = $hoy->diff($proximaMedicion);
+            $diasHastaProxima = ($diff->invert ? -1 : 1) * $diff->days;
 
             // Determinar el estado
             if ($diasHastaProxima < 0) {
@@ -93,29 +94,59 @@ public function getSensorsForBulkMeasurement(Request $request)
             $sensor->last_measurement_date = $lastMeasurement->measured_at;
         }
 
-        // Agregar campo marcado_para_medicion
+        $sensor->is_measurable = in_array($sensor->id, $measurableIds);
         $sensor->marcado_para_medicion = (bool) $sensor->marcado_para_medicion;
 
         return $sensor;
     });
 
     // Aplicar filtro por estado (si se especificó)
-    if ($request->has('status') && $request->status !== 'all') {
-        $sensors = $sensors->filter(function($sensor) use ($request) {
-            return $sensor->estado === $request->status;
+    if ($request->has('status') && $request->status !== 'all' && !empty($request->status)) {
+        $status = strtolower($request->status);
+        $allSensors = $allSensors->filter(function($sensor) use ($status) {
+            if ($status === 'marked') {
+                return $sensor->marcado_para_medicion === true;
+            }
+            if ($status === 'overdue' || $status === 'vencido') {
+                return $sensor->estado === 'vencido';
+            }
+            if ($status === 'pending' || $status === 'pendiente') {
+                return $sensor->estado === 'pendiente';
+            }
+            if ($status === 'al_dia') {
+                return $sensor->estado === 'al_dia';
+            }
+            return true;
         });
     }
 
+    // Ordenar: Medibles primero, luego alfabético por nombre
+    $sortedSensors = $allSensors->sort(function ($a, $b) {
+        $measA = $a->is_measurable ? 1 : 0;
+        $measB = $b->is_measurable ? 1 : 0;
+        if ($measA !== $measB) {
+            return $measB <=> $measA;
+        }
+        return strcasecmp($a->name, $b->name);
+    })->values();
+
+    $page = (int) ($request->page ?? 1);
+    $perPage = (int) ($request->per_page ?? 20);
+    $total = $sortedSensors->count();
+    $lastPage = (int) ceil($total / $perPage) ?: 1;
+    $offset = ($page - 1) * perPage;
+    $pagedData = $sortedSensors->slice($offset, $perPage)->values();
+
     return response()->json([
         'success' => true,
-        'data' => $sensors->values(),
+        'data' => $pagedData,
         'meta' => [
-            'current_page' => $sensors->currentPage(),
-            'from' => $sensors->firstItem(),
-            'last_page' => $sensors->lastPage(),
-            'per_page' => $sensors->perPage(),
-            'to' => $sensors->lastItem(),
-            'total' => $sensors->total(),
+            'current_page' => $page,
+            'from' => $total > 0 ? $offset + 1 : 0,
+            'last_page' => $lastPage,
+            'per_page' => $perPage,
+            'to' => min($offset + $perPage, $total),
+            'total' => $total,
         ],
     ]);
 }
@@ -307,7 +338,7 @@ public function toggleMarkForMeasurement(Request $request, Sensor $sensor)
         $validator = Validator::make($request->all(), [
             'action' => 'required|in:mark,unmark',
             'group_id' => 'nullable|exists:sensor_groups,id',
-            'status' => 'nullable|in:all,al_dia,pendiente,vencido,marked',
+            'status' => 'nullable|in:all,al_dia,pendiente,pending,vencido,overdue,marked',
             'search' => 'nullable|string'
         ]);
 
@@ -370,17 +401,26 @@ public function toggleMarkForMeasurement(Request $request, Sensor $sensor)
             $query->where('group_id', $request->group_id);
         }
 
-        if ($request->has('status') && $request->status !== 'all') {
+        if ($request->has('status') && $request->status !== 'all' && !empty($request->status)) {
             $today = now();
             switch ($request->status) {
                 case 'pending':
+                case 'pendiente':
                     $query->where(function($q) use ($today) {
                         $q->whereNull('proxima_medicion')
-                        ->orWhere('proxima_medicion', '<=', $today->addDays(5));
+                        ->orWhere('proxima_medicion', '<=', $today->copy()->addDays(5));
                     });
                     break;
                 case 'overdue':
-                    $query->where('proxima_medicion', '<', $today);
+                case 'vencido':
+                    $query->where(function($q) use ($today) {
+                        $q->whereNull('proxima_medicion')
+                          ->orWhere('proxima_medicion', '<', $today);
+                    });
+                    break;
+                case 'al_dia':
+                    $query->whereNotNull('proxima_medicion')
+                          ->where('proxima_medicion', '>', $today->copy()->addDays(5));
                     break;
                 case 'marked':
                     $query->where('marcado_para_medicion', true);
@@ -667,7 +707,8 @@ public function getMeasurementStats(Request $request)
         $proximaMedicion->add(new \DateInterval("P{$periodoMedicion}D")); // Sumar período de medición
 
         $hoy = new \DateTime();
-        $diasHastaProxima = $hoy->diff($proximaMedicion)->days;
+        $diff = $hoy->diff($proximaMedicion);
+        $diasHastaProxima = ($diff->invert ? -1 : 1) * $diff->days;
 
         // Determinar el estado
         if ($diasHastaProxima < 0) {
