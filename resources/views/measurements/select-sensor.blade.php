@@ -28,26 +28,27 @@
     .stat-metric-card {
         background: #ffffff;
         border: 1px solid rgba(0, 0, 0, 0.08);
-        border-radius: 10px;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border-radius: 8px;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
     .stat-metric-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        transform: translateY(-1px);
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
     }
     .stat-metric-card .stat-icon-wrapper {
-        width: 36px;
-        height: 36px;
-        border-radius: 8px;
+        width: 30px;
+        height: 30px;
+        border-radius: 6px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.1rem;
+        font-size: 0.95rem;
+        flex-shrink: 0;
     }
-    .stat-metric-card.stat-total { border-left: 4px solid #0d6efd !important; }
-    .stat-metric-card.stat-al-dia { border-left: 4px solid #198754 !important; }
-    .stat-metric-card.stat-pendiente { border-left: 4px solid #f59e0b !important; }
-    .stat-metric-card.stat-vencido { border-left: 4px solid #ef4444 !important; }
+    .stat-metric-card.stat-total { border-left: 3px solid #0d6efd !important; }
+    .stat-metric-card.stat-al-dia { border-left: 3px solid #198754 !important; }
+    .stat-metric-card.stat-pendiente { border-left: 3px solid #f59e0b !important; }
+    .stat-metric-card.stat-vencido { border-left: 3px solid #ef4444 !important; }
 </style>
 @endpush
 
@@ -81,71 +82,79 @@
                     <!-- Contenedor para alertas globales -->
                     <div id="globalAlertContainer" class="mb-3"></div>
 
-                    <!-- Estadísticas Elegantes y Discretas -->
-                    <div class="row g-3 mb-4" id="statsCards">
-                        <div class="col-sm-6 col-xl-3">
+                    <!-- Estadísticas Compactas, Elegantes y Discretas -->
+                    <div class="row g-2 mb-3" id="statsCards">
+                        <div class="col-6 col-md-3">
                             <div class="card stat-metric-card stat-total shadow-sm h-100">
-                                <div class="card-body p-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Total Medidores</span>
-                                        <div class="stat-icon-wrapper bg-primary bg-opacity-10 text-primary">
+                                <div class="card-body py-2 px-3">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <span class="text-uppercase text-muted fw-bold d-block" style="font-size: 0.65rem; letter-spacing: 0.5px;">Total</span>
+                                            <div class="d-flex align-items-baseline gap-2 mt-1">
+                                                <span class="fs-5 fw-bold text-dark mb-0 lh-1" id="totalSensors">0</span>
+                                                <span class="badge bg-light text-muted border py-0 px-1" style="font-size: 0.6rem;">Medidores</span>
+                                            </div>
+                                        </div>
+                                        <div class="stat-icon-wrapper bg-primary bg-opacity-10 text-primary ms-2">
                                             <i class="bi bi-inbox"></i>
                                         </div>
                                     </div>
-                                    <div class="d-flex align-items-baseline justify-content-between">
-                                        <h3 class="fw-bold text-dark mb-0" id="totalSensors">0</h3>
-                                        <span class="badge bg-light text-muted border" style="font-size: 0.65rem;">Registrados</span>
-                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="col-sm-6 col-xl-3">
+                        <div class="col-6 col-md-3">
                             <div class="card stat-metric-card stat-al-dia shadow-sm h-100">
-                                <div class="card-body p-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Al Día</span>
-                                        <div class="stat-icon-wrapper bg-success bg-opacity-10 text-success">
+                                <div class="card-body py-2 px-3">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <span class="text-uppercase text-muted fw-bold d-block" style="font-size: 0.65rem; letter-spacing: 0.5px;">Al Día</span>
+                                            <div class="d-flex align-items-baseline gap-2 mt-1">
+                                                <span class="fs-5 fw-bold text-success mb-0 lh-1" id="alDiaSensors">0</span>
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle py-0 px-1" style="font-size: 0.6rem;">Al día</span>
+                                            </div>
+                                        </div>
+                                        <div class="stat-icon-wrapper bg-success bg-opacity-10 text-success ms-2">
                                             <i class="bi bi-check-circle-fill"></i>
                                         </div>
                                     </div>
-                                    <div class="d-flex align-items-baseline justify-content-between">
-                                        <h3 class="fw-bold text-success mb-0" id="alDiaSensors">0</h3>
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.65rem;">Al día</span>
-                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="col-sm-6 col-xl-3">
+                        <div class="col-6 col-md-3">
                             <div class="card stat-metric-card stat-pendiente shadow-sm h-100">
-                                <div class="card-body p-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Pendientes</span>
-                                        <div class="stat-icon-wrapper bg-warning bg-opacity-10 text-warning">
+                                <div class="card-body py-2 px-3">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <span class="text-uppercase text-muted fw-bold d-block" style="font-size: 0.65rem; letter-spacing: 0.5px;">Pendientes</span>
+                                            <div class="d-flex align-items-baseline gap-2 mt-1">
+                                                <span class="fs-5 fw-bold text-warning-emphasis mb-0 lh-1" id="pendingSensors">0</span>
+                                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle py-0 px-1" style="font-size: 0.6rem;">En ventana</span>
+                                            </div>
+                                        </div>
+                                        <div class="stat-icon-wrapper bg-warning bg-opacity-10 text-warning ms-2">
                                             <i class="bi bi-clock-history"></i>
                                         </div>
                                     </div>
-                                    <div class="d-flex align-items-baseline justify-content-between">
-                                        <h3 class="fw-bold text-warning-emphasis mb-0" id="pendingSensors">0</h3>
-                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle" style="font-size: 0.65rem;">En ventana</span>
-                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="col-sm-6 col-xl-3">
+                        <div class="col-6 col-md-3">
                             <div class="card stat-metric-card stat-vencido shadow-sm h-100">
-                                <div class="card-body p-3">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <span class="text-uppercase text-muted fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px;">Vencidos</span>
-                                        <div class="stat-icon-wrapper bg-danger bg-opacity-10 text-danger">
+                                <div class="card-body py-2 px-3">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <span class="text-uppercase text-muted fw-bold d-block" style="font-size: 0.65rem; letter-spacing: 0.5px;">Vencidos</span>
+                                            <div class="d-flex align-items-baseline gap-2 mt-1">
+                                                <span class="fs-5 fw-bold text-danger mb-0 lh-1" id="overdueSensors">0</span>
+                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle py-0 px-1" style="font-size: 0.6rem;">Prioridad</span>
+                                            </div>
+                                        </div>
+                                        <div class="stat-icon-wrapper bg-danger bg-opacity-10 text-danger ms-2">
                                             <i class="bi bi-exclamation-triangle-fill"></i>
                                         </div>
-                                    </div>
-                                    <div class="d-flex align-items-baseline justify-content-between">
-                                        <h3 class="fw-bold text-danger mb-0" id="overdueSensors">0</h3>
-                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle" style="font-size: 0.65rem;">Prioridad</span>
                                     </div>
                                 </div>
                             </div>
@@ -153,48 +162,53 @@
                     </div>
 
                     <!-- Filtros -->
-<div class="row mb-4" id="filterControls">
-    <div class="col-md-3">
-        <label for="groupFilter" class="form-label">Grupo</label>
-        <div class="input-group">
-            <select class="form-select form-select-sm" id="groupFilter">
-                <option value="" selected>Todos los grupos</option>
-            </select>
-            <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="tooltip" title="Filtrar medidores por grupo">
-                <i class="bi bi-info-circle"></i>
-            </button>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <label for="statusFilter" class="form-label">Estado</label>
-        <div class="input-group">
-            <select class="form-select form-select-sm" id="statusFilter">
-                <option value="all" selected>Todos los estados</option>
-                <option value="al_dia">Al Día</option>
-                <option value="pending">Pendientes</option>
-                <option value="overdue">Vencidos</option>
-                <option value="marked">Marcados para Medición</option>
-            </select>
-            <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="tooltip" title="Filtrar por estado: Al Día, Pendientes, Vencidos o Marcados">
-                <i class="bi bi-info-circle"></i>
-            </button>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <label for="searchInput" class="form-label">Buscar</label>
-        <div class="input-group">
-            <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="Nombre o identificador...">
-            <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="tooltip" title="Buscar medidores por nombre o identificador">
-                <i class="bi bi-info-circle"></i>
-            </button>
-        </div>
-    </div>
-    <div class="col-md-3 d-flex align-items-end">
-        <button class="btn btn-primary w-100" id="applyFilters">
-            <i class="bi bi-funnel"></i> Aplicar Filtros
-        </button>
-    </div>
-</div>
+                    <div class="row g-2 mb-3 align-items-end" id="filterControls">
+                        <div class="col-md-3">
+                            <label for="groupFilter" class="form-label form-label-sm fw-semibold mb-1" style="font-size: 0.8rem;">Grupo</label>
+                            <div class="input-group input-group-sm">
+                                <select class="form-select form-select-sm" id="groupFilter">
+                                    <option value="" selected>Todos los grupos</option>
+                                </select>
+                                <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="tooltip" title="Filtrar medidores por grupo">
+                                    <i class="bi bi-info-circle"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="statusFilter" class="form-label form-label-sm fw-semibold mb-1" style="font-size: 0.8rem;">Estado</label>
+                            <div class="input-group input-group-sm">
+                                <select class="form-select form-select-sm" id="statusFilter">
+                                    <option value="all" selected>Todos los estados</option>
+                                    <option value="al_dia">Al Día</option>
+                                    <option value="pending">Pendientes</option>
+                                    <option value="overdue">Vencidos</option>
+                                    <option value="marked">Marcados para Medición</option>
+                                </select>
+                                <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="tooltip" title="Filtrar por estado: Al Día, Pendientes, Vencidos o Marcados">
+                                    <i class="bi bi-info-circle"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="searchInput" class="form-label form-label-sm fw-semibold mb-1" style="font-size: 0.8rem;">Buscar</label>
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="Nombre o identificador...">
+                                <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="tooltip" title="Buscar medidores por nombre o identificador">
+                                    <i class="bi bi-info-circle"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary btn-sm flex-grow-1" id="applyFilters" title="Aplicar filtros de búsqueda">
+                                    <i class="bi bi-funnel"></i> Filtrar
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm" id="clearFilters" title="Limpiar todos los filtros y restablecer">
+                                    <i class="bi bi-x-circle"></i> Limpiar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Acciones masivas -->
                     <div class="row mb-4" id="bulkActions">
@@ -1143,6 +1157,17 @@ $(document).ready(function() {
         currentGroupId = $('#groupFilter').val();
         currentStatus = $('#statusFilter').val();
         currentSearch = $('#searchInput').val();
+        currentPage = 1;
+        loadSensors();
+    });
+
+    $('#clearFilters').on('click', function() {
+        $('#groupFilter').val('');
+        $('#statusFilter').val('all');
+        $('#searchInput').val('');
+        currentGroupId = '';
+        currentStatus = 'all';
+        currentSearch = '';
         currentPage = 1;
         loadSensors();
     });

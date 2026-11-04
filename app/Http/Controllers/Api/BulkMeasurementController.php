@@ -24,131 +24,145 @@ class BulkMeasurementController extends Controller
  */
 public function getSensorsForBulkMeasurement(Request $request)
 {
-    $user = $request->user();
+    try {
+        $user = $request->user();
 
-    // Filtrar sensores por usuario
-    $query = Sensor::whereHas('group', function($query) use ($user) {
-        $query->where('user_id', $user->id)
-              ->orWhereHas('sharedAccess', function($q) use ($user) {
-                  $q->where('shared_with', $user->id)
-                    ->whereIn('role', ['inspector', 'admin', 'consumidor']);
-              });
-    })->with(['group', 'lastMeasurement']);
+        // Filtrar sensores por usuario
+        $query = Sensor::whereHas('group', function($query) use ($user) {
+            $query->where('user_id', $user->id)
+                  ->orWhereHas('sharedAccess', function($q) use ($user) {
+                      $q->where('shared_with', $user->id)
+                        ->whereIn('role', ['inspector', 'admin', 'consumidor']);
+                  });
+        })->with(['group', 'lastMeasurement']);
 
-    // Aplicar filtros si existen
-    if ($request->filled('group_id')) {
-        $query->where('group_id', $request->group_id);
-    }
+        // Aplicar filtros si existen
+        if ($request->filled('group_id')) {
+            $query->where('group_id', $request->group_id);
+        }
 
-    if ($request->filled('search')) {
-        $search = $request->search;
-        $query->where(function($q) use ($search) {
-            $q->where('name', 'like', "%{$search}%")
-              ->orWhere('identifier', 'like', "%{$search}%");
-        });
-    }
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('identifier', 'like', "%{$search}%");
+            });
+        }
 
-    // Obtener los sensores
-    $allSensors = $query->orderBy('name')->get();
+        // Obtener los sensores
+        $allSensors = $query->orderBy('name')->get();
 
-    // Limitantes de suscripción: medidores utilizables
-    $subscriptionService = new \App\Services\Subscription\SubscriptionService($user);
-    $measurableIds = $subscriptionService->getMeasurableSensorIds();
+        // Limitantes de suscripción: medidores utilizables
+        $subscriptionService = new \App\Services\Subscription\SubscriptionService($user);
+        $measurableIds = $subscriptionService->getMeasurableSensorIds();
 
-    // Calcular estado y días restantes para cada sensor
-    $allSensors->transform(function($sensor) use ($measurableIds) {
-        $lastMeasurement = $sensor->lastMeasurement;
+        // Calcular estado y días restantes para cada sensor
+        $allSensors->transform(function($sensor) use ($measurableIds) {
+            $lastMeasurement = $sensor->lastMeasurement;
 
-        // Obtener configuración del grupo
-        $periodoMedicion = (int) ($sensor->group->periodo_medicion ?? 30);
-        $diasVencimiento = (int) ($sensor->group->dias_vencimiento ?? 5);
+            // Obtener configuración del grupo
+            $periodoMedicion = (int) ($sensor->group?->periodo_medicion ?? 30);
+            $diasVencimiento = (int) ($sensor->group?->dias_vencimiento ?? 5);
 
-        if (!$lastMeasurement) {
-            // Si no hay medición, se considera como "vencido"
-            $sensor->estado = 'vencido';
-            $sensor->dias_hasta_proxima = -999;
-            $sensor->proxima_medicion = null;
-            $sensor->last_measurement_value = null;
-            $sensor->last_measurement_date = null;
-        } else {
-            // Calcular próxima medición
-            $proximaMedicion = new \DateTime($lastMeasurement->measured_at);
-            $proximaMedicion->add(new \DateInterval("P{$periodoMedicion}D"));
-
-            $hoy = new \DateTime();
-            $diff = $hoy->diff($proximaMedicion);
-            $diasHastaProxima = ($diff->invert ? -1 : 1) * $diff->days;
-
-            // Determinar el estado
-            if ($diasHastaProxima < 0) {
+            if (!$lastMeasurement) {
+                // Si no hay medición, se considera como "vencido"
                 $sensor->estado = 'vencido';
-            } elseif ($diasHastaProxima <= $diasVencimiento) {
-                $sensor->estado = 'pendiente';
+                $sensor->dias_hasta_proxima = -999;
+                $sensor->proxima_medicion = null;
+                $sensor->last_measurement_value = null;
+                $sensor->last_measurement_date = null;
             } else {
-                $sensor->estado = 'al_dia';
+                // Calcular próxima medición
+                $proximaMedicion = new \DateTime($lastMeasurement->measured_at);
+                $proximaMedicion->add(new \DateInterval("P{$periodoMedicion}D"));
+
+                $hoy = new \DateTime();
+                $diff = $hoy->diff($proximaMedicion);
+                $diasHastaProxima = ($diff->invert ? -1 : 1) * $diff->days;
+
+                // Determinar el estado
+                if ($diasHastaProxima < 0) {
+                    $sensor->estado = 'vencido';
+                } elseif ($diasHastaProxima <= $diasVencimiento) {
+                    $sensor->estado = 'pendiente';
+                } else {
+                    $sensor->estado = 'al_dia';
+                }
+
+                $sensor->dias_hasta_proxima = $diasHastaProxima;
+                $sensor->proxima_medicion = $proximaMedicion->format('Y-m-d H:i:s');
+                $sensor->last_measurement_value = $lastMeasurement->data['valor'] ?? null;
+                $sensor->last_measurement_date = $lastMeasurement->measured_at;
             }
 
-            $sensor->dias_hasta_proxima = $diasHastaProxima;
-            $sensor->proxima_medicion = $proximaMedicion->format('Y-m-d H:i:s');
-            $sensor->last_measurement_value = $lastMeasurement->data['valor'] ?? null;
-            $sensor->last_measurement_date = $lastMeasurement->measured_at;
-        }
+            $sensor->is_measurable = in_array($sensor->id, $measurableIds);
+            $sensor->marcado_para_medicion = (bool) $sensor->marcado_para_medicion;
 
-        $sensor->is_measurable = in_array($sensor->id, $measurableIds);
-        $sensor->marcado_para_medicion = (bool) $sensor->marcado_para_medicion;
-
-        return $sensor;
-    });
-
-    // Aplicar filtro por estado (si se especificó)
-    if ($request->has('status') && $request->status !== 'all' && !empty($request->status)) {
-        $status = strtolower($request->status);
-        $allSensors = $allSensors->filter(function($sensor) use ($status) {
-            if ($status === 'marked') {
-                return $sensor->marcado_para_medicion === true;
-            }
-            if ($status === 'overdue' || $status === 'vencido') {
-                return $sensor->estado === 'vencido';
-            }
-            if ($status === 'pending' || $status === 'pendiente') {
-                return $sensor->estado === 'pendiente';
-            }
-            if ($status === 'al_dia') {
-                return $sensor->estado === 'al_dia';
-            }
-            return true;
+            return $sensor;
         });
-    }
 
-    // Ordenar: Medibles primero, luego alfabético por nombre
-    $sortedSensors = $allSensors->sort(function ($a, $b) {
-        $measA = $a->is_measurable ? 1 : 0;
-        $measB = $b->is_measurable ? 1 : 0;
-        if ($measA !== $measB) {
-            return $measB <=> $measA;
+        // Aplicar filtro por estado (si se especificó)
+        if ($request->has('status') && $request->status !== 'all' && !empty($request->status)) {
+            $status = strtolower($request->status);
+            $allSensors = $allSensors->filter(function($sensor) use ($status) {
+                if ($status === 'marked') {
+                    return $sensor->marcado_para_medicion === true;
+                }
+                if ($status === 'overdue' || $status === 'vencido') {
+                    return $sensor->estado === 'vencido';
+                }
+                if ($status === 'pending' || $status === 'pendiente') {
+                    return $sensor->estado === 'pendiente';
+                }
+                if ($status === 'al_dia') {
+                    return $sensor->estado === 'al_dia';
+                }
+                return true;
+            });
         }
-        return strcasecmp($a->name, $b->name);
-    })->values();
 
-    $page = (int) ($request->page ?? 1);
-    $perPage = (int) ($request->per_page ?? 20);
-    $total = $sortedSensors->count();
-    $lastPage = (int) ceil($total / $perPage) ?: 1;
-    $offset = ($page - 1) * perPage;
-    $pagedData = $sortedSensors->slice($offset, $perPage)->values();
+        // Ordenar: Medibles primero, luego alfabético por nombre
+        $sortedSensors = $allSensors->sort(function ($a, $b) {
+            $measA = $a->is_measurable ? 1 : 0;
+            $measB = $b->is_measurable ? 1 : 0;
+            if ($measA !== $measB) {
+                return $measB <=> $measA;
+            }
+            return strcasecmp($a->name, $b->name);
+        })->values();
 
-    return response()->json([
-        'success' => true,
-        'data' => $pagedData,
-        'meta' => [
-            'current_page' => $page,
-            'from' => $total > 0 ? $offset + 1 : 0,
-            'last_page' => $lastPage,
-            'per_page' => $perPage,
-            'to' => min($offset + $perPage, $total),
-            'total' => $total,
-        ],
-    ]);
+        $page = (int) ($request->page ?? 1);
+        $perPage = (int) ($request->per_page ?? 20);
+        $total = $sortedSensors->count();
+        $lastPage = (int) ceil($total / $perPage) ?: 1;
+        $offset = ($page - 1) * $perPage;
+        $pagedData = $sortedSensors->slice($offset, $perPage)->values();
+
+        return response()->json([
+            'success' => true,
+            'data' => $pagedData,
+            'meta' => [
+                'current_page' => $page,
+                'from' => $total > 0 ? $offset + 1 : 0,
+                'last_page' => $lastPage,
+                'per_page' => $perPage,
+                'to' => min($offset + $perPage, $total),
+                'total' => $total,
+            ],
+        ]);
+    } catch (\Throwable $e) {
+        Log::error('Error in getSensorsForBulkMeasurement: ' . $e->getMessage(), [
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'trace' => $e->getTraceAsString()
+        ]);
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al obtener medidores: ' . $e->getMessage(),
+            'data' => []
+        ], 500);
+    }
 }
 
    /**
@@ -693,8 +707,8 @@ public function getMeasurementStats(Request $request)
         $lastMeasurement = $sensor->lastMeasurement;
 
         // Obtener configuración del grupo
-        $periodoMedicion = $sensor->group->periodo_medicion ?? 30; // Valor por defecto: 30 días
-        $diasVencimiento = $sensor->group->dias_vencimiento ?? 5; // Valor por defecto: 5 días
+        $periodoMedicion = (int) ($sensor->group?->periodo_medicion ?? 30); // Valor por defecto: 30 días
+        $diasVencimiento = (int) ($sensor->group?->dias_vencimiento ?? 5); // Valor por defecto: 5 días
 
         if (!$lastMeasurement) {
             // Si no hay medición, se considera como "vencido" (necesita medición)
