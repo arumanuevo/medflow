@@ -224,13 +224,30 @@ class MeasurementViewController extends Controller
     {
         $user = auth()->user();
 
+        // Cargar relación del sensor y grupo
+        $measurement->loadMissing(['sensor.group.template']);
+        $sensor = $measurement->sensor;
+
+        if (!$sensor) {
+            abort(404, 'El medidor asociado a esta medición no fue encontrado.');
+        }
+
+        $group = $sensor->group;
+        $sensorOwnerId = $group?->user_id ?? null;
+        $activeWorkspace = session('active_workspace', $user->id);
+
         // Verificar permisos
         $canEditMeasurement = $user->hasRole('admin') ||
-            ($measurement->sensor->group && $measurement->sensor->group->user_id === $user->id) ||
-            ($measurement->sensor->group && $measurement->sensor->group->sharedAccess()
+            ($sensorOwnerId === $user->id) ||
+            ($group && $group->sharedAccess()
                 ->where('shared_with', $user->id)
                 ->whereIn('role', ['inspector', 'admin'])
-                ->exists());
+                ->exists()) ||
+            \App\Models\WorkspaceCollaborator::where('workspace_id', $sensorOwnerId)
+                ->where('user_id', $user->id)
+                ->where('status', 'active')
+                ->whereIn('role', ['inspector', 'admin'])
+                ->exists();
 
         if (!$canEditMeasurement) {
             abort(403, 'No tienes permiso para editar esta medición.');
@@ -239,9 +256,12 @@ class MeasurementViewController extends Controller
         // Obtener configuraciones globales del usuario
         $defaultPeriod = UserSetting::get($user->id, 'default_measurement_period', 30);
         $defaultExpiry = UserSetting::get($user->id, 'default_expiry_days', 5);
+        $medidor = $sensor;
 
         return view('measurements.edit', compact(
             'measurement',
+            'sensor',
+            'medidor',
             'defaultPeriod',
             'defaultExpiry'
         ));

@@ -1,6 +1,10 @@
 @extends('layouts.modern')
 
-@section('title', 'Editar Medición - ' . ($measurement->medidor->name ?? 'Medidor'))
+@php
+    $medidor = $medidor ?? $measurement->sensor ?? $measurement->medidor ?? null;
+@endphp
+
+@section('title', 'Editar Medición - ' . ($medidor->name ?? 'Medidor'))
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/measurements-create-styles.css') }}">
@@ -298,23 +302,23 @@
             <div class="medidor-info-compact">
                 <span class="info-item">
                     <i class="bi bi-tag"></i>
-                    <strong>{{ $measurement->medidor->name }}</strong>
+                    <strong>{{ $medidor->name ?? 'N/A' }}</strong>
                 </span>
                 <span class="info-item">
                     <i class="bi bi-hash"></i>
-                    {{ $measurement->medidor->identifier }}
+                    {{ $medidor->identifier ?? '-' }}
                 </span>
                 <span class="info-item">
                     <i class="bi bi-folder"></i>
-                    {{ $measurement->medidor->group->name ?? 'Sin grupo' }}
+                    {{ $medidor->group->name ?? 'Sin grupo' }}
                 </span>
                 <span class="info-item">
                     <i class="bi bi-clock"></i>
-                    Período: {{ $measurement->periodo_medicion ?? 30 }} días
+                    Período: {{ $measurement->periodo_medicion ?? ($medidor->group->periodo_medicion ?? 30) }} días
                 </span>
                 <span class="info-item">
                     <i class="bi bi-file-text"></i>
-                    Plantilla: {{ $measurement->medidor->group->template->name ?? 'N/A' }}
+                    Plantilla: {{ $medidor->group->template->name ?? 'N/A' }}
                 </span>
             </div>
 
@@ -323,8 +327,8 @@
             ============================================ -->
             @php
                 $mainField = 'valor';
-                if (isset($measurement->medidor->group->template->schema['campos'])) {
-                    foreach ($measurement->medidor->group->template->schema['campos'] as $campo) {
+                if (isset($medidor->group->template->schema['campos'])) {
+                    foreach ($medidor->group->template->schema['campos'] as $campo) {
                         if ($campo['tipo'] === 'numero' && ($campo['requerido'] ?? false)) {
                             $mainField = $campo['nombre'];
                             break;
@@ -333,7 +337,7 @@
                 }
                 $currentValue = $measurement->data[$mainField] ?? $measurement->data['valor'] ?? $measurement->data['consumo_m3'] ?? 0;
                 $currentDate = $measurement->measured_at;
-                $unit = $measurement->medidor->group->template->schema['unidad'] ?? $measurement->medidor->group->unidad_medida ?? 'm³';
+                $unit = $medidor->group->template->schema['unidad'] ?? $medidor->group->unidad_medida ?? 'm³';
                 $fotoPath = $measurement->data['foto'] ?? 'Sin Foto';
             @endphp
 
@@ -361,8 +365,9 @@
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="measurement_id" value="{{ $measurement->id }}">
-                <input type="hidden" name="medidor_id" value="{{ $measurement->medidor->id }}">
-                <input type="hidden" id="groupName" value="{{ str_replace(' ', '_', $measurement->medidor->group->name ?? 'SinGrupo') }}">
+                <input type="hidden" name="sensor_id" value="{{ $medidor->id ?? $measurement->sensor_id }}">
+                <input type="hidden" name="medidor_id" value="{{ $medidor->id ?? $measurement->sensor_id }}">
+                <input type="hidden" id="groupName" value="{{ str_replace(' ', '_', $medidor->group->name ?? 'SinGrupo') }}">
                 <input type="hidden" id="originalPhoto" value="{{ $fotoPath }}">
 
                 <!-- Campo: Valor de consumo (campo principal) -->
@@ -465,8 +470,8 @@
                 @php
                     $systemFields = ['consumo_m3', 'foto', 'fecha_medicion', 'tipo', 'valor'];
                     $customFields = [];
-                    if (isset($measurement->medidor->group) && isset($measurement->medidor->group->template) && isset($measurement->medidor->group->template->schema['campos'])) {
-                        $customFields = array_filter($measurement->medidor->group->template->schema['campos'], function($campo) use ($systemFields) {
+                    if (isset($medidor->group) && isset($medidor->group->template) && isset($medidor->group->template->schema['campos'])) {
+                        $customFields = array_filter($medidor->group->template->schema['campos'], function($campo) use ($systemFields) {
                             if (in_array($campo['nombre'], $systemFields)) {
                                 return false;
                             }
@@ -582,7 +587,7 @@ $(document).ready(function() {
     // =============================================
     // 1. CONFIGURACIÓN INICIAL
     // =============================================
-    const medidorId = {{ $measurement->medidor->id }};
+    const medidorId = {{ $medidor ? $medidor->id : ($measurement->sensor_id ?? 0) }};
     const measurementId = {{ $measurement->id }};
     const groupName = $('#groupName').val();
     const token = localStorage.getItem('token');
@@ -843,6 +848,7 @@ $(document).ready(function() {
 
         // Preparar datos
         const formData = {
+            sensor_id: medidorId,
             medidor_id: medidorId,
             data: {
                 consumo_m3: consumoNum,

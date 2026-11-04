@@ -25,6 +25,14 @@ class Measurement extends Model
         return $this->belongsTo(Sensor::class);
     }
 
+    /**
+     * Alias de compatibilidad para la relación con el medidor.
+     */
+    public function medidor(): BelongsTo
+    {
+        return $this->belongsTo(Sensor::class, 'sensor_id');
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
