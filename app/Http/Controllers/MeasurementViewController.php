@@ -185,9 +185,25 @@ class MeasurementViewController extends Controller
 
         // Determinar si estamos en modo masivo (si hay más sensores marcados)
         $isBulkMode = $hasMoreSensors;
+        $medidor = $sensor;
+
+        // Obtener historial completo de mediciones para validación de secuencia en el formulario
+        $allMeasurements = Measurement::where('sensor_id', $sensor->id)
+            ->orderBy('measured_at', 'asc')
+            ->get()
+            ->map(function ($m) {
+                return [
+                    'id' => $m->id,
+                    'date' => $m->measured_at ? $m->measured_at->toISOString() : null,
+                    'value' => (float) ($m->data['consumo_m3'] ?? $m->data['valor'] ?? 0)
+                ];
+            })
+            ->toArray();
 
         return view('measurements.create', compact(
             'sensor',
+            'medidor',
+            'allMeasurements',
             'previousMeasurement',
             'periodoMedicion',
             'diasVencimiento',
@@ -371,8 +387,15 @@ class MeasurementViewController extends Controller
             'todos' => $allMarkedSensors->pluck('id')->toArray()
         ]);
 
+        $medidor = $sensor;
+        $hasMoreMedidors = $hasMoreSensors;
+        $nextMedidor = $nextSensor;
+
         return view('measurements.bulk-create', compact(
             'sensor',
+            'medidor',
+            'hasMoreMedidors',
+            'nextMedidor',
             'previousMeasurement',
             'allMeasurements',
             'lastValue',

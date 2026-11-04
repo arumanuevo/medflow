@@ -1,5 +1,12 @@
 @extends('layouts.modern')
 
+@php
+    $medidor = $medidor ?? $sensor ?? null;
+    $hasMoreMedidors = $hasMoreMedidors ?? $hasMoreSensors ?? false;
+    $nextMedidor = $nextMedidor ?? $nextSensor ?? null;
+    $nextMedidorUrl = $nextMedidorUrl ?? $nextSensorUrl ?? null;
+@endphp
+
 @section('title', 'Medición Masiva - ' . ($medidor->name ?? 'Medidor'))
 
 @push('styles')
@@ -15,10 +22,10 @@
                 Medición Masiva
             </h5>
             <div>
-                <a href="{{ route('measurements.select-medidor') }}" class="btn btn-light btn-sm me-1">
+                <a href="{{ route('measurements.select-sensor') }}" class="btn btn-light btn-sm me-1">
                     <i class="bi bi-arrow-left me-1"></i> Volver
                 </a>
-                <a href="{{ route('medidors.index') }}" class="btn btn-light btn-sm">
+                <a href="{{ route('sensors.index') }}" class="btn btn-light btn-sm">
                     <i class="bi bi-x-lg"></i> Cancelar
                 </a>
             </div>
@@ -280,7 +287,7 @@ DEBUG DETALLADO - TEMPORAL
         <div class="small text-muted">
             <strong>Todos los IDs marcados:</strong> 
             @php
-                $allIds = \App\Models\Medidor::where('marcado_para_medicion', true)
+                $allIds = \App\Models\Sensor::where('marcado_para_medicion', true)
                     ->whereHas('group', function($q) use ($medidor) {
                         $q->where('user_id', $medidor->group->user_id ?? 0);
                     })
@@ -294,7 +301,7 @@ DEBUG DETALLADO - TEMPORAL
 </div>
                 <!-- Botones -->
                 <div class="d-flex gap-2 mt-4 pt-3 border-top">
-                    <a href="{{ route('measurements.select-medidor') }}" class="btn btn-secondary">
+                    <a href="{{ route('measurements.select-sensor') }}" class="btn btn-secondary">
                         <i class="bi bi-arrow-left me-1"></i> Volver
                     </a>
                     <button type="submit" class="btn btn-primary flex-grow-1" id="saveMeasurementBtn">
@@ -620,6 +627,7 @@ $(document).ready(function() {
 
         const formData = new FormData();
         formData.append('foto', photoBlob, $('#photo').val());
+        formData.append('sensor_id', medidorId);
         formData.append('medidor_id', medidorId);
 
         return new Promise((resolve, reject) => {
@@ -695,6 +703,7 @@ $(document).ready(function() {
 
         // Preparar datos
         const formData = {
+            sensor_id: medidorId,
             medidor_id: medidorId,
             data: {
                 consumo_m3: consumoNum,
@@ -739,7 +748,7 @@ $(document).ready(function() {
                     }, 1500);
                 } else {
                     setTimeout(() => {
-                        window.location.href = '/medidors/' + medidorId;
+                        window.location.href = '/sensors/' + medidorId;
                     }, 1500);
                 }
             } else {

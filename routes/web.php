@@ -417,3 +417,8 @@ Route::get('/system/clear-cache', function (\Illuminate\Http\Request $request) {
 
     return response('<div style="font-family:sans-serif;max-width:600px;margin:40px auto;padding:25px;border:1px solid #10b981;border-radius:12px;background:#f0fdf4;color:#065f46;"><h2>Sistema y Cache Actualizados</h2><ul><li>' . implode('</li><li>', $results) . '</li></ul><p><a href="/sensors/extra-fields" style="padding:10px 16px;background:#059669;color:#fff;text-decoration:none;border-radius:6px;font-weight:bold;">Ir a Campos Extras</a> &nbsp; <a href="/mediciones" style="padding:10px 16px;background:#0284c7;color:#fff;text-decoration:none;border-radius:6px;font-weight:bold;">Ir a Mediciones</a></p></div>');
 })->name('system.clear-cache');
+
+// Alias de rutas por compatibilidad terminológica medidor/es
+Route::get('/medidors', fn() => redirect()->route('sensors.index'))->name('medidors.index');
+Route::get('/medidors/{sensor}', fn($sensor) => redirect()->route('sensors.show', $sensor))->name('medidors.show');
+Route::get('/mediciones/select-medidor', fn() => redirect()->route('measurements.select-sensor'))->name('measurements.select-medidor');

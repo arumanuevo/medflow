@@ -1,5 +1,9 @@
 @extends('layouts.modern')
 
+@php
+    $medidor = $medidor ?? $sensor ?? null;
+@endphp
+
 @section('title', 'Tomar Medición - ' . ($medidor->name ?? 'Medidor'))
 
 @push('styles')
@@ -14,7 +18,7 @@
                     <i class="bi bi-rulers me-2"></i>
                     Tomar Medición
                 </h5>
-                <a href="{{ route('medidors.show', $medidor->id) }}" class="btn btn-light btn-sm">
+                <a href="{{ route('sensors.show', $medidor->id) }}" class="btn btn-light btn-sm">
                     <i class="bi bi-x-lg"></i> Cancelar
                 </a>
             </div>
@@ -417,7 +421,7 @@
                     BOTONES
                     ============================================ -->
                     <div class="d-flex gap-2 mt-4 pt-3 border-top">
-                        <a href="{{ route('medidors.show', $medidor->id) }}" class="btn btn-secondary">
+                        <a href="{{ route('sensors.show', $medidor->id) }}" class="btn btn-secondary">
                             <i class="bi bi-x-circle me-1"></i> Cancelar
                         </a>
                         <button type="submit" class="btn btn-primary flex-grow-1" id="saveMeasurementBtn">
@@ -798,6 +802,7 @@
                     const photoName = $('#photo').val();
                     const formData = new FormData();
                     formData.append('foto', photoBlob, photoName);
+                    formData.append('sensor_id', medidorId);
                     formData.append('medidor_id', medidorId);
 
                     return new Promise((resolve, reject) => {
@@ -889,6 +894,7 @@
 
                     // Preparar datos
                     const formData = {
+                        sensor_id: medidorId,
                         medidor_id: medidorId,
                         data: {
                             foto: $('#photo').val(),
@@ -930,7 +936,7 @@
                         if (response.success) {
                             showAlert('✅ Medición guardada correctamente', 'success');
                             setTimeout(() => {
-                                window.location.href = '/medidors/' + medidorId;
+                                window.location.href = '/sensors/' + medidorId;
                             }, 1000);
                         } else {
                             showAlert('❌ ' + (response.message || 'Error al guardar'), 'danger');
