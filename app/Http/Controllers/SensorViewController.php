@@ -109,6 +109,12 @@ class SensorViewController extends Controller
     {
         $user = auth()->user();
 
+        $gate = new SubscriptionGate($user);
+        if (!$gate->allows('import_sensors')) {
+            return redirect()->route('sensor-groups.index')
+                ->with('warning', 'La importación masiva de medidores desde Excel es una función exclusiva del Plan Premium. Puedes crear medidores individualmente o actualizar a Premium en tu Perfil.');
+        }
+
         $groups = SensorGroup::where('user_id', $user->id)
             ->orWhereHas('sharedAccess', function ($q) use ($user) {
                 $q->where('shared_with', $user->id)

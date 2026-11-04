@@ -124,17 +124,27 @@
     <div class="card">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h4 class="card-title mb-0 text-white"><i class="bi bi-folder btn-icon"></i> Grupos de Medidores</h4>
-            <div class="d-flex gap-2">
-                <a href="{{ route('measurements.select-sensor') }}" class="btn btn-success">
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{{ route('measurements.select-sensor') }}" class="btn btn-success shadow-sm">
                     <i class="bi bi-rulers"></i> Tomar Medición
                 </a>
+                @if(isset($canImportSensors) && $canImportSensors)
+                    <a href="{{ route('sensor-groups.bulk-import') }}" class="btn btn-info text-white shadow-sm" title="Importar medidores masivamente desde Excel">
+                        <i class="bi bi-file-earmark-excel"></i> Importar Medidores
+                    </a>
+                @else
+                    <button type="button" class="btn btn-outline-light" title="Importar medidores (Exclusivo Plan Premium)"
+                        onclick="alert('La importación masiva de medidores desde Excel es una función exclusiva del Plan Premium. Puedes actualizar tu suscripción en Perfil > Planes.'); return false;">
+                        <i class="bi bi-file-earmark-excel"></i> Importar Medidores <i class="bi bi-lock-fill text-warning ms-1"></i>
+                    </button>
+                @endif
                 @if(isset($canCreateGroup) && !$canCreateGroup)
                     <button class="btn btn-secondary text-white opacity-50" title="Límite de grupos alcanzado en tu plan actual"
                         onclick="alert('Has alcanzado el límite de grupos para tu plan. Elimina uno o sube de nivel para crear más.'); return false;">
                         <i class="bi bi-lock-fill"></i> Crear Grupo
                     </button>
                 @else
-                    <a href="{{ route('sensor-groups.create') }}" class="btn btn-primary">
+                    <a href="{{ route('sensor-groups.create') }}" class="btn btn-light text-primary fw-bold shadow-sm">
                         <i class="bi bi-plus-circle"></i> Crear Grupo
                     </a>
                 @endif
@@ -181,6 +191,7 @@
 
 @push('scripts')
     <script>
+        const canImportSensors = {{ ($canImportSensors ?? false) ? 'true' : 'false' }};
         let allGroups = [];
         let currentGroupId = null;
         const modal = new bootstrap.Modal(document.getElementById('deleteGroupModal'));
@@ -282,9 +293,18 @@
                                                     <a href="/sensor-groups/${group.id}" class="btn btn-sm btn-info btn-custom text-white" title="Ver medidores del grupo">
                                                         <i class="bi bi-eye"></i>
                                                     </a>
-                                                    <a href="{{ route('sensors.create') }}?group_id=${group.id}" class="btn btn-sm btn-primary btn-custom" title="Agregar medidor">
+                                                    <a href="{{ route('sensors.create') }}?group_id=${group.id}" class="btn btn-sm btn-primary btn-custom" title="Agregar medidor individual">
                                                         <i class="bi bi-plus-circle"></i>
                                                     </a>
+                                                    ${canImportSensors ? `
+                                                        <a href="{{ route('sensor-groups.bulk-import') }}?group_id=${group.id}" class="btn btn-sm btn-success btn-custom" title="Importar medidores masivamente desde Excel a este grupo">
+                                                            <i class="bi bi-file-earmark-excel"></i>
+                                                        </a>
+                                                    ` : `
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary btn-custom opacity-75" title="Importar con Excel (Exclusivo Plan Premium)" onclick="alert('La importación masiva de medidores desde Excel es una función exclusiva del Plan Premium. Puedes actualizar tu suscripción en Perfil > Planes.'); return false;">
+                                                            <i class="bi bi-file-earmark-excel"></i>
+                                                        </button>
+                                                    `}
                                                     <a href="/sensor-groups/${group.id}/edit" class="btn btn-sm btn-warning btn-custom" title="Editar grupo">
                                                         <i class="bi bi-pencil"></i>
                                                     </a>

@@ -21,8 +21,10 @@ class SensorGroupViewController extends Controller
 
         $subscriptionService = new \App\Services\Subscription\SubscriptionService($user);
         $canCreateGroup = $subscriptionService->canCreateGroup();
+        $gate = new \App\Services\Subscription\SubscriptionGate($user);
+        $canImportSensors = $gate->allows('import_sensors');
 
-        return view('sensor-groups.index', compact('groups', 'canCreateGroup'));
+        return view('sensor-groups.index', compact('groups', 'canCreateGroup', 'canImportSensors'));
     }
 
     public function create()
@@ -89,6 +91,12 @@ class SensorGroupViewController extends Controller
     public function showBulkImportForm(Request $request)
     {
         $user = auth()->user();
+
+        $gate = new \App\Services\Subscription\SubscriptionGate($user);
+        if (!$gate->allows('import_sensors')) {
+            return redirect()->route('sensor-groups.index')
+                ->with('warning', 'La importación masiva de medidores desde Excel es una función exclusiva del Plan Premium. Puedes crear medidores individualmente o actualizar a Premium en tu Perfil.');
+        }
 
         // Obtener los grupos del usuario
         $groups = SensorGroup::where(function ($query) use ($user) {
