@@ -554,7 +554,7 @@
                 btn.prop('disabled', true);
 
                 $.ajax({
-                    url: '{{ route("sensor-map.clear-coords", ["sensor" => $sensor->id]) }}',
+                    url: '{{ route("sensor-map.clear-coordinates", ["sensor" => $sensor->id]) }}',
                     type: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),

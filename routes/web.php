@@ -211,6 +211,9 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/mapa-sensores/{sensor}/coordinates', [\App\Http\Controllers\SensorMapController::class, 'clearCoordinates'])
         ->name('sensor-map.clear-coordinates')
         ->where('sensor', '[0-9]+');
+    Route::delete('/mapa-sensores/{sensor}/clear-coords', [\App\Http\Controllers\SensorMapController::class, 'clearCoordinates'])
+        ->name('sensor-map.clear-coords')
+        ->where('sensor', '[0-9]+');
 
     // Route temporarily moved to bottom
 
