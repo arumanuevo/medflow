@@ -164,6 +164,97 @@
                             </div>
                         </div>
 
+                        <!-- 🌍 Ubicación Geoespacial y Cartografía en Territorio (GIS) -->
+                        @php
+                            $currentUser = auth()->user();
+                            $activeSub = $currentUser ? $currentUser->getActiveSubscription() : null;
+                            $isPremiumUser = $currentUser && (
+                                $currentUser->hasRole('admin') || 
+                                $currentUser->subscription_plan === 'premium' || 
+                                ($activeSub && $activeSub->plan === 'premium') ||
+                                $currentUser->email === 'scastellanoadmin@gmail.com'
+                            );
+
+                            $coords = is_array($sensor->coordinates) ? $sensor->coordinates : (json_decode($sensor->coordinates ?? '[]', true) ?: []);
+                            $sensorLat = $coords['lat'] ?? $coords['latitude'] ?? '';
+                            $sensorLng = $coords['lng'] ?? $coords['longitude'] ?? '';
+                        @endphp
+
+                        <div class="card mt-4 mb-3 {{ $isPremiumUser ? 'border-primary' : 'border-secondary' }} shadow-sm">
+                            <div class="card-header {{ $isPremiumUser ? 'bg-primary text-white' : 'bg-light text-dark' }} d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 fw-bold">
+                                    <i class="bi bi-geo-alt-fill me-1"></i> Ubicación Geoespacial y Cartografía en Territorio (GIS)
+                                </h6>
+                                @if($isPremiumUser)
+                                    <span class="badge bg-success text-white"><i class="bi bi-check-circle me-1"></i> Habilitado en Plan Premium</span>
+                                @else
+                                    <span class="badge bg-warning text-dark"><i class="bi bi-lock-fill me-1"></i> Exclusivo Plan Premium</span>
+                                @endif
+                            </div>
+                            <div class="card-body">
+                                @if(!$isPremiumUser)
+                                    <div class="alert alert-warning border-start border-4 border-warning shadow-sm mb-3">
+                                        <div class="d-flex align-items-start gap-2">
+                                            <i class="bi bi-shield-lock-fill fs-4 text-warning mt-1"></i>
+                                            <div>
+                                                <h6 class="fw-bold mb-1">Capacidad Geoespacial Exclusiva del Plan Premium</h6>
+                                                <p class="mb-2 small text-muted">
+                                                    La geolocalización satelital en territorio, fijación de coordenadas GPS y posicionamiento cartográfico interactivo requieren el <strong>Plan Premium</strong>.
+                                                    Si este medidor tuvo coordenadas registradas previamente, las mismas están a salvo en el sistema, pero para visualizarlas en el mapa satelital o modificarlas es necesario activar Premium.
+                                                </p>
+                                                <a href="{{ route('profile.index') }}" class="btn btn-warning btn-sm fw-bold text-dark shadow-sm">
+                                                    <i class="bi bi-star-fill me-1"></i> Ver Planes y Activar Premium
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-3 opacity-50">
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold">Latitud GPS</label>
+                                            <input type="text" class="form-control" value="{{ $sensorLat ?: 'No asignada' }}" disabled readonly>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold">Longitud GPS</label>
+                                            <input type="text" class="form-control" value="{{ $sensorLng ?: 'No asignada' }}" disabled readonly>
+                                        </div>
+                                    </div>
+                                @else
+                                    <p class="small text-muted mb-3">
+                                        Puedes ingresar las coordenadas GPS de este medidor manualmente, capturar tu ubicación actual con el botón GPS, o abrir directamente el Mapa Satelital Interactivo para situarlo con un clic sobre el terreno.
+                                    </p>
+
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold" for="coordLat">Latitud GPS (-90 a 90)</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light"><i class="bi bi-compass"></i></span>
+                                                <input type="number" step="0.0000001" min="-90" max="90" class="form-control" 
+                                                       id="coordLat" name="coordinates[lat]" value="{{ $sensorLat }}" placeholder="Ej: -34.603722">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold" for="coordLng">Longitud GPS (-180 a 180)</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light"><i class="bi bi-compass-fill"></i></span>
+                                                <input type="number" step="0.0000001" min="-180" max="180" class="form-control" 
+                                                       id="coordLng" name="coordinates[lng]" value="{{ $sensorLng }}" placeholder="Ej: -58.381592">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between pt-2 border-top">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" id="btnGetLocation">
+                                            <i class="bi bi-crosshair me-1"></i> Usar mi ubicación GPS actual
+                                        </button>
+                                        <a href="{{ route('sensor-map.index', ['sensor_id' => $sensor->id]) }}" target="_blank" class="btn btn-primary btn-sm shadow-sm">
+                                            <i class="bi bi-map-fill me-1"></i> Abrir Mapa Satelital para Ubicar en Territorio
+                                        </a>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
                         <div class="d-flex justify-content-end mt-4">
                             <a href="{{ route('sensors.show', ['sensor' => $sensor->id]) }}" class="btn btn-secondary me-2">
                                 <i class="bi bi-arrow-left"></i> Cancelar
@@ -455,6 +546,30 @@
                         alert(errorMessage);
                     }
                 });
+            });
+
+            // GPS Location Helper
+            $('#btnGetLocation').click(function () {
+                if (!navigator.geolocation) {
+                    alert('Tu navegador no soporta geolocalización GPS.');
+                    return;
+                }
+                const btn = $(this);
+                const origHtml = btn.html();
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> Obteniendo GPS...');
+                navigator.geolocation.getCurrentPosition(
+                    function (pos) {
+                        $('#coordLat').val(pos.coords.latitude.toFixed(7));
+                        $('#coordLng').val(pos.coords.longitude.toFixed(7));
+                        btn.prop('disabled', false).html(origHtml);
+                        alert('Ubicación GPS obtenida: ' + pos.coords.latitude.toFixed(5) + ', ' + pos.coords.longitude.toFixed(5));
+                    },
+                    function (err) {
+                        btn.prop('disabled', false).html(origHtml);
+                        alert('No se pudo obtener la ubicación GPS: ' + err.message);
+                    },
+                    { enableHighAccuracy: true, timeout: 10000 }
+                );
             });
         });
     </script>

@@ -465,6 +465,16 @@ class MeasurementViewController extends Controller
             $sensor->is_measurable = in_array($sensor->id, $measurableSensorIds);
         }
 
+        // Medidores utilizables primero
+        $sensors = $sensors->sort(function ($a, $b) {
+            $measA = $a->is_measurable ? 1 : 0;
+            $measB = $b->is_measurable ? 1 : 0;
+            if ($measA !== $measB) {
+                return $measB <=> $measA;
+            }
+            return strcasecmp($a->name, $b->name);
+        })->values();
+
         \Log::info('🔍 inspectorSelectSensor resultado', [
             'user_id' => $user->id,
             'active_workspace' => $activeWorkspace,

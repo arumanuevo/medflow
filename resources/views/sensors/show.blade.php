@@ -24,10 +24,14 @@
                                     (isset($sensor->group) && $sensor->group->user_id === auth()->user()->id)
                                 )
                                 @php
-                                    $userHasMapAccess = auth()->user()->hasRole('admin') || 
-                                                        auth()->user()->subscription_plan === 'premium' || 
-                                                        (auth()->user()->getActiveSubscription() && auth()->user()->getActiveSubscription()->plan === 'premium') ||
-                                                        auth()->user()->email === 'scastellanoadmin@gmail.com';
+                                    $currentUser = auth()->user();
+                                    $activeSub = $currentUser ? $currentUser->getActiveSubscription() : null;
+                                    $userHasMapAccess = $currentUser && (
+                                        $currentUser->hasRole('admin') || 
+                                        $currentUser->subscription_plan === 'premium' || 
+                                        ($activeSub && $activeSub->plan === 'premium') ||
+                                        $currentUser->email === 'scastellanoadmin@gmail.com'
+                                    );
                                 @endphp
 
                                 @if($userHasMapAccess)
@@ -398,7 +402,7 @@
                         <i class="bi bi-info-circle text-primary me-1"></i> <strong>Nota sobre downgrades:</strong> Si registraste coordenadas de este medidor anteriormente, las coordenadas se conservan en la base de datos, pero la visualización y navegación en el mapa satelital requiere un Plan Premium activo.
                     </div>
                     <div class="d-grid gap-2 mt-4">
-                        <a href="{{ route('subscription.plans') }}" class="btn btn-warning fw-bold py-2 shadow-sm text-dark">
+                        <a href="{{ route('profile.index') }}" class="btn btn-warning fw-bold py-2 shadow-sm text-dark">
                             <i class="bi bi-star-fill me-1"></i> Ver Planes y Activar Premium
                         </a>
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>

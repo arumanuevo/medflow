@@ -1002,7 +1002,7 @@
                                             <span class="badge bg-danger px-3 py-2 shadow-sm rounded-pill border border-light">
                                                 <i class="bi bi-exclamation-triangle-fill me-1"></i> Límite de Medidores Alcanzado
                                             </span>
-                                            <a href="/subscription/plans" class="btn btn-sm btn-warning fw-bold shadow-sm rounded-pill text-dark">
+                                            <a href="/profile" class="btn btn-sm btn-warning fw-bold shadow-sm rounded-pill text-dark">
                                                 <i class="bi bi-cart-plus-fill"></i> Actualizar Plan
                                             </a>
                                         </div>
@@ -1035,7 +1035,7 @@
                                     </div>
                                 </div>
                                 <div class="ms-auto text-end">
-                                    <a href="/subscription/plans" class="btn btn-warning fw-bold text-dark text-nowrap shadow-sm">
+                                    <a href="/profile" class="btn btn-warning fw-bold text-dark text-nowrap shadow-sm">
                                         <i class="bi bi-star-fill me-1"></i> Actualizar a Premium
                                     </a>
                                 </div>
@@ -1240,6 +1240,42 @@
                     });
                 }
 
+                // ✅ ORDENAMIENTO GLOBAL: Primero medidores activos/utilizables (is_measurable !== false)
+                data.sort((a, b) => {
+                    const measA = a.is_measurable !== false ? 1 : 0;
+                    const measB = b.is_measurable !== false ? 1 : 0;
+                    if (measA !== measB) {
+                        return measB - measA; // Activos (1) antes que bloqueados (0)
+                    }
+
+                    if (currentSort.key && currentSort.key !== 'checkbox' && currentSort.key !== 'actions') {
+                        const sortKey = currentSort.key;
+                        const direction = currentSort.direction === 'asc' ? 1 : -1;
+                        let valA, valB;
+
+                        if (sortKey === 'group') {
+                            valA = a.group?.name || '';
+                            valB = b.group?.name || '';
+                        } else if (sortKey.startsWith('extra_')) {
+                            const fieldName = sortKey.replace('extra_', '');
+                            valA = a.metadata?.[fieldName] !== undefined && a.metadata?.[fieldName] !== null ? String(a.metadata[fieldName]) : '';
+                            valB = b.metadata?.[fieldName] !== undefined && b.metadata?.[fieldName] !== null ? String(b.metadata[fieldName]) : '';
+                        } else {
+                            valA = a[sortKey] !== undefined && a[sortKey] !== null ? String(a[sortKey]) : '';
+                            valB = b[sortKey] !== undefined && b[sortKey] !== null ? String(b[sortKey]) : '';
+                        }
+
+                        if (typeof valA === 'string') valA = valA.toLowerCase();
+                        if (typeof valB === 'string') valB = valB.toLowerCase();
+
+                        if (valA < valB) return -1 * direction;
+                        if (valA > valB) return 1 * direction;
+                        return 0;
+                    }
+
+                    return (a.name || '').localeCompare(b.name || '');
+                });
+
                 filteredData = data;
                 currentPage = 1;
                 renderWithPagination();
@@ -1365,34 +1401,6 @@
             }
 
             function renderSensors(sensors, total, start, end) {
-                if (currentSort.key && currentSort.key !== 'checkbox' && currentSort.key !== 'actions') {
-                    const sortKey = currentSort.key;
-                    const direction = currentSort.direction === 'asc' ? 1 : -1;
-
-                    sensors.sort((a, b) => {
-                        let valA, valB;
-
-                        if (sortKey === 'group') {
-                            valA = a.group?.name || '';
-                            valB = b.group?.name || '';
-                        } else if (sortKey.startsWith('extra_')) {
-                            const fieldName = sortKey.replace('extra_', '');
-                            valA = a.metadata?.[fieldName] !== undefined && a.metadata?.[fieldName] !== null ? String(a.metadata[fieldName]) : '';
-                            valB = b.metadata?.[fieldName] !== undefined && b.metadata?.[fieldName] !== null ? String(b.metadata[fieldName]) : '';
-                        } else {
-                            valA = a[sortKey] !== undefined && a[sortKey] !== null ? String(a[sortKey]) : '';
-                            valB = b[sortKey] !== undefined && b[sortKey] !== null ? String(b[sortKey]) : '';
-                        }
-
-                        if (typeof valA === 'string') valA = valA.toLowerCase();
-                        if (typeof valB === 'string') valB = valB.toLowerCase();
-
-                        if (valA < valB) return -1 * direction;
-                        if (valA > valB) return 1 * direction;
-                        return 0;
-                    });
-                }
-
                 const headers = getFullHeaders();
                 renderTableHeaders(headers);
 

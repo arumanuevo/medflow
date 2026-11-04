@@ -64,6 +64,16 @@ class BulkMeasurementFlowController extends Controller
             $sensor->is_measurable = in_array($sensor->id, $measurableSensorIds);
         }
 
+        // Medidores activos/utilizables primero
+        $sensors = $sensors->sort(function ($a, $b) {
+            $measA = $a->is_measurable ? 1 : 0;
+            $measB = $b->is_measurable ? 1 : 0;
+            if ($measA !== $measB) {
+                return $measB <=> $measA;
+            }
+            return strcasecmp($a->name, $b->name);
+        })->values();
+
         // Obtener los sensores actualmente marcados para medición
         $markedSensorIds = Sensor::where('marcado_para_medicion', true)
             ->whereHas('group', function ($q) use ($activeWorkspace, $user, $isOwner) {

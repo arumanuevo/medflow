@@ -70,12 +70,19 @@ class SensorController extends Controller
         $subscriptionService = new SubscriptionService($user);
         $measurableIds = $subscriptionService->getMeasurableSensorIds();
 
-        $sensors->map(function ($sensor) use ($measurableIds) {
+        $sensors = $sensors->map(function ($sensor) use ($measurableIds) {
             $sensor->last_measurement = $sensor->measurements->first();
             $sensor->is_measurable = in_array($sensor->id, $measurableIds);
             unset($sensor->measurements);
             return $sensor;
-        });
+        })->sort(function ($a, $b) {
+            $measA = $a->is_measurable ? 1 : 0;
+            $measB = $b->is_measurable ? 1 : 0;
+            if ($measA !== $measB) {
+                return $measB <=> $measA; // Usables/medibles primero
+            }
+            return strcasecmp($a->name, $b->name);
+        })->values();
 
         return response()->json([
             'success' => true,
@@ -283,6 +290,9 @@ class SensorController extends Controller
             'description' => 'nullable|string',
             'group_id' => 'sometimes|exists:sensor_groups,id',
             'is_community' => 'boolean|nullable',
+            'coordinates' => 'nullable|array',
+            'coordinates.lat' => 'nullable|numeric|between:-90,90',
+            'coordinates.lng' => 'nullable|numeric|between:-180,180',
             'metadata' => 'nullable|array',
         ]);
 
@@ -321,7 +331,27 @@ class SensorController extends Controller
             }
         }
 
-        $dataToUpdate = $request->except(['metadata']);
+        $dataToUpdate = $request->except(['metadata', 'coordinates']);
+
+        // Gestión de Coordenadas Satelitales / Territoriales (Exclusivo Premium)
+        if ($request->has('coordinates')) {
+            $isPremiumUser = $user->hasRole('admin') || 
+                             $user->subscription_plan === 'premium' || 
+                             ($user->getActiveSubscription() && $user->getActiveSubscription()->plan === 'premium') ||
+                             $user->email === 'scastellanoadmin@gmail.com';
+
+            if ($isPremiumUser) {
+                $coords = $request->input('coordinates');
+                if (is_array($coords) && !empty($coords['lat']) && !empty($coords['lng'])) {
+                    $dataToUpdate['coordinates'] = [
+                        'lat' => round((float) $coords['lat'], 7),
+                        'lng' => round((float) $coords['lng'], 7),
+                    ];
+                } elseif (is_array($coords) && ($coords['lat'] === '' || $coords['lat'] === null) && ($coords['lng'] === '' || $coords['lng'] === null)) {
+                    $dataToUpdate['coordinates'] = null;
+                }
+            }
+        }
         if ($request->has('metadata') && is_array($request->input('metadata'))) {
             $existingMeta = $sensor->metadata ?? [];
             $incomingMeta = $request->input('metadata');
