@@ -1,5 +1,12 @@
 @extends('layouts.modern')
 
+@php
+    $sensors = $sensors ?? $medidors ?? collect([]);
+    $medidors = $sensors;
+    $markedSensorIds = $markedSensorIds ?? $markedMedidorIds ?? [];
+    $markedMedidorIds = $markedSensorIds;
+@endphp
+
 @section('title', 'Seleccionar Medidores - Medición Masiva')
 
 @push('styles')
@@ -346,6 +353,7 @@
                         {{-- Formulario para medición masiva --}}
                         <form id="bulkMeasurementForm" method="POST" action="{{ route('bulk-measurements.start') }}">
                             @csrf
+                            <input type="hidden" name="sensor_ids" id="sensorIdsInput" value="">
                             <input type="hidden" name="medidor_ids" id="medidorIdsInput" value="">
 
                             {{-- Tabla de Medidores --}}
@@ -676,6 +684,7 @@
 
                 // Guardar los IDs en el campo oculto
                 $('#medidorIdsInput').val(selectedMedidorIds.join(','));
+                $('#sensorIdsInput').val(selectedMedidorIds.join(','));
 
                 // Guardar el orden de selección
                 const useSelectionOrder = $useSelectionOrder.is(':checked');

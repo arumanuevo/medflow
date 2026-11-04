@@ -420,5 +420,7 @@ Route::get('/system/clear-cache', function (\Illuminate\Http\Request $request) {
 
 // Alias de rutas por compatibilidad terminológica medidor/es
 Route::get('/medidors', fn() => redirect()->route('sensors.index'))->name('medidors.index');
+Route::get('/medidors/create', fn() => redirect()->route('sensors.create'))->name('medidors.create');
 Route::get('/medidors/{sensor}', fn($sensor) => redirect()->route('sensors.show', $sensor))->name('medidors.show');
+Route::get('/medidors/{sensor}/edit', fn($sensor) => redirect()->route('sensors.edit', $sensor))->name('medidors.edit');
 Route::get('/mediciones/select-medidor', fn() => redirect()->route('measurements.select-sensor'))->name('measurements.select-medidor');

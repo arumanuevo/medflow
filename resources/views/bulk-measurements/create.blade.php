@@ -1,6 +1,11 @@
 @extends('layouts.modern')
 
-@section('title', 'Medición Masiva - ' . ($sensor->name ?? 'Sensor'))
+@php
+    $sensor = $sensor ?? $medidor ?? null;
+    $medidor = $sensor;
+@endphp
+
+@section('title', 'Medición Masiva - ' . ($sensor->name ?? 'Medidor'))
 
 @push('styles')
 <style>

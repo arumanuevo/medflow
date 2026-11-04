@@ -100,9 +100,14 @@ class BulkMeasurementFlowController extends Controller
         $availableGroups = SensorGroup::whereIn('id', $sensors->pluck('group_id')->unique()->filter())
             ->orderBy('name')->get();
 
+        $medidors = $sensors;
+        $markedMedidorIds = $markedSensorIds;
+
         return view('bulk-measurements.select-sensors', compact(
             'sensors',
+            'medidors',
             'markedSensorIds',
+            'markedMedidorIds',
             'ownerName',
             'activeWorkspace',
             'isOwner',
@@ -120,8 +125,8 @@ class BulkMeasurementFlowController extends Controller
         $activeWorkspace = session('active_workspace', $user->id);
         $isOwner = $activeWorkspace == $user->id;
 
-        // Validar que hay sensores seleccionados
-        $sensorIds = $request->input('sensor_ids', []);
+        // Validar que hay sensores seleccionados (acepta sensor_ids o medidor_ids)
+        $sensorIds = $request->input('sensor_ids') ?: $request->input('medidor_ids', []);
 
         // Convertir a array si viene como string (separado por comas)
         if (is_string($sensorIds)) {
