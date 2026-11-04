@@ -219,10 +219,14 @@
                         <div class="col-md-12">
                             <h5><i class="bi bi-lightning-charge"></i> Acciones</h5>
                             <hr>
-                            <div class="d-flex gap-2">
+                            <div class="d-flex gap-2 flex-wrap">
                                 <a href="{{ route('measurements.create', ['sensor' => $sensor->id]) }}"
                                     class="btn btn-primary">
                                     <i class="bi bi-rulers"></i> Tomar Medición
+                                </a>
+                                <a href="{{ route('measurements.create', ['sensor' => $sensor->id]) }}?reset=1"
+                                    class="btn btn-outline-warning text-dark fw-bold" title="Registrar reemplazo físico de medidor o reseteo de contador a cero">
+                                    <i class="bi bi-arrow-repeat me-1"></i> Cambio de Medidor
                                 </a>
                                 <!-- Botón de Enlace Público -->
                                 <button type="button" class="btn btn-info text-white" data-bs-toggle="modal"

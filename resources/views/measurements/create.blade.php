@@ -495,6 +495,21 @@
                 const now = new Date();
                 $('#fecha_medicion').val(now.toISOString().slice(0, 16));
 
+                // Detectar directiva de Cambio de Medidor desde URL (?reset=1)
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.get('reset') === '1' || urlParams.get('cambio_medidor') === '1') {
+                    $('#is_reset').prop('checked', true);
+                    toggleResetOptions();
+                    setTimeout(() => {
+                        const target = $('#is_reset').closest('.mb-4');
+                        if (target.length) {
+                            $('html, body').animate({
+                                scrollTop: target.offset().top - 90
+                            }, 400);
+                        }
+                    }, 250);
+                }
+
                 // =============================================
                 // 2. VALIDACIÓN DE SECUENCIA (FECHAS Y VALORES)
                 // =============================================
@@ -535,6 +550,8 @@
                         next = null;
                     }
 
+                    const isResetActive = $('#is_reset').is(':checked');
+
                     // Caso 1: Primera medición (fecha anterior a todas)
                     if (position === 'intermediate' && previous === null) {
                         if (next && value >= next.value) {
@@ -548,11 +565,14 @@
 
                     // Caso 2: Última medición
                     if (position === 'last' && previous) {
-                        if (value <= previous.value) {
+                        if (value <= previous.value && !isResetActive) {
                             return {
                                 valid: false,
-                                message: `Siendo la última medición, el valor (${value}) debe ser MAYOR al anterior (${previous.value}).`
+                                message: `Siendo la última medición, el valor (${value}) debe ser MAYOR al anterior (${previous.value}). Si se cambió el aparato físico, activa la casilla "¿Se reemplazó este medidor físico?" abajo.`
                             };
+                        }
+                        if (isResetActive && value <= previous.value) {
+                            return { valid: true, message: `Cambio de Medidor (Nuevo contador: ${value})` };
                         }
                         return { valid: true, message: `Última medición (${previous.value} → ${value})` };
                     }
@@ -913,6 +933,18 @@
                             formData.data.campos_personalizados[name] = isNaN(val) ? val : parseFloat(val);
                         }
                     });
+
+                    // Agregar opciones de cambio de medidor si están activas
+                    if ($('#is_reset').is(':checked')) {
+                        formData.data.is_reset = true;
+                        formData.data.reset_type = $('input[name="data[reset_type]"]:checked').val() || 'simple';
+                        if (formData.data.reset_type === 'exact') {
+                            const oldFinal = $('#old_meter_final').val();
+                            const newStart = $('#new_meter_start').val();
+                            formData.data.old_meter_final = oldFinal !== '' ? parseFloat(oldFinal) : null;
+                            formData.data.new_meter_start = newStart !== '' ? parseFloat(newStart) : 0;
+                        }
+                    }
 
                     // Enviar
                     const $btn = $('#saveMeasurementBtn');

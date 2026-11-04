@@ -1494,6 +1494,9 @@
                                                                                                         <a href="/mediciones/create/${sensor.id}" class="btn btn-sm btn-success" title="Tomar Medición">
                                                                                                             <i class="bi bi-rulers"></i>
                                                                                                         </a>
+                                                                                                        <a href="/mediciones/create/${sensor.id}?reset=1" class="btn btn-sm btn-outline-warning text-dark fw-bold" title="Registrar Cambio de Medidor (Aparato nuevo)">
+                                                                                                            <i class="bi bi-arrow-repeat"></i>
+                                                                                                        </a>
                                                                 `;
                     }
 

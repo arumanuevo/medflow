@@ -1018,7 +1018,8 @@ $(document).ready(function() {
                 : `<i class="bi bi-lock-fill text-danger fs-6" title="Bloqueado por límite de plan"></i>`;
 
             const actionBtn = isMeasurable
-                ? `<a href="/mediciones/create/${sensor.id}" class="btn btn-sm btn-success" title="Tomar Medición"><i class="bi bi-rulers"></i></a>`
+                ? `<a href="/mediciones/create/${sensor.id}" class="btn btn-sm btn-success" title="Tomar Medición"><i class="bi bi-rulers"></i></a>
+                   <a href="/mediciones/create/${sensor.id}?reset=1" class="btn btn-sm btn-outline-warning ms-1 text-dark fw-bold" title="Registrar Cambio de Medidor (Aparato nuevo)"><i class="bi bi-arrow-repeat"></i></a>`
                 : `<button class="btn btn-sm btn-secondary opacity-50" title="Medidor bloqueado por límite de plan" onclick="alert('Has alcanzado el límite de medidores operativos de tu plan actual. Para tomar nuevas mediciones en este medidor actualiza tu suscripción en Perfil > Planes.'); return false;"><i class="bi bi-lock-fill"></i></button>`;
 
             const rawVal = sensor.last_measurement_value;

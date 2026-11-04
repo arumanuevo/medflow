@@ -252,6 +252,26 @@
                             </div>
                         </div>
 
+                        <!-- Directiva de Cambio / Reemplazo de Medidor -->
+                        <div class="card border border-warning-subtle bg-warning bg-opacity-10 mb-4 rounded-3 p-3 shadow-sm">
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="p-2 bg-warning bg-opacity-25 text-warning-emphasis rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; flex-shrink: 0;">
+                                        <i class="bi bi-arrow-repeat fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1 fw-bold text-dark"><i class="bi bi-shield-check text-warning me-1"></i> ¿Reemplazaste el aparato físico de este medidor?</h6>
+                                        <small class="text-muted d-block">
+                                            Si instalaste un nuevo medidor físico o se reseteó el contador a cero, debes registrar un <strong>Cambio de Medidor</strong> para calibrar el corte del período sin generar consumos negativos ni distorsionar la facturación.
+                                        </small>
+                                    </div>
+                                </div>
+                                <a href="{{ route('measurements.create', ['sensor' => $sensor->id]) }}?reset=1" class="btn btn-warning btn-sm fw-bold px-3 py-2 text-dark shadow-sm">
+                                    <i class="bi bi-arrow-repeat me-1"></i> Registrar Cambio de Medidor
+                                </a>
+                            </div>
+                        </div>
+
                         <div class="d-flex justify-content-end mt-4">
                             <a href="{{ route('sensors.show', ['sensor' => $sensor->id]) }}" class="btn btn-secondary me-2">
                                 <i class="bi bi-arrow-left"></i> Cancelar

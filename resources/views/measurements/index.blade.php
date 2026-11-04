@@ -1370,6 +1370,15 @@
                     .replace(/'/g, '&#039;');
             }
 
+            function formatNumberLatin(val, decimals = 2) {
+                if (val === null || val === undefined || isNaN(val) || val === '') return '0,00';
+                return Number(val).toLocaleString('es-ES', {
+                    minimumFractionDigits: decimals,
+                    maximumFractionDigits: decimals
+                });
+            }
+            window.formatNumberLatin = formatNumberLatin;
+
             function formatDateHuman(d) {
                 if (!d) return '';
                 const parts = d.split('-');

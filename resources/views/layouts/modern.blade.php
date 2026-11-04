@@ -648,6 +648,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const userInput = document.getElementById('flowyUserInput');
     const btnSend = document.getElementById('btnSendFlowy');
 
+    window.formatNumberLatin = function(val, decimals = 2) {
+        if (val === null || val === undefined || isNaN(val) || val === '') return '0,00';
+        return Number(val).toLocaleString('es-ES', {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals
+        });
+    };
+
     function escapeHtml(str) {
         const div = document.createElement('div');
         div.textContent = str;
